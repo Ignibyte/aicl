@@ -1,0 +1,55 @@
+{
+    "name": "aicl/aicl",
+    "description": "AICL — AI-first Laravel application framework. Composer package providing auth, RBAC, Filament admin panel, and a rich component library for AI-generated dashboard applications.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^11.0|^12.0",
+
+        "filament/filament": "^4.0",
+        "spatie/laravel-permission": "^6.0",
+        "bezhansalleh/filament-shield": "^4.0",
+        "spatie/laravel-activitylog": "^4.0",
+        "spatie/laravel-settings": "^3.0",
+        "spatie/laravel-medialibrary": "^11.0",
+        "laravel/passport": "^13.0",
+        "jeffgreco13/filament-breezy": "^3.0",
+        "spatie/laravel-model-states": "^2.7",
+        "spatie/laravel-tags": "^4.0",
+        "filament/spatie-laravel-media-library-plugin": "^4.0",
+        "filament/spatie-laravel-settings-plugin": "^4.0",
+        "laravel/socialite": "^5.0",
+        "socialiteproviders/saml2": "^4.8",
+        "laravel/scout": "^10.0",
+        "laravel/reverb": "^1.0",
+        "barryvdh/laravel-dompdf": "^3.0"
+    },
+    "suggest": {
+        "meilisearch/meilisearch-php": "Required for Meilisearch Scout driver support. Recommended search engine for DDEV/local development.",
+        "http-interop/http-factory-guzzle": "Required by meilisearch/meilisearch-php as HTTP factory implementation.",
+        "matchish/laravel-scout-elasticsearch": "Required for Elasticsearch Scout driver support (v7.x). Alternative to Meilisearch.",
+        "elasticsearch/elasticsearch": "Required by matchish/laravel-scout-elasticsearch for Elasticsearch 8.x connectivity."
+    },
+    "autoload": {
+        "psr-4": {
+            "Aicl\\": "src/",
+            "Aicl\\Database\\Seeders\\": "database/seeders/",
+            "Aicl\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Aicl\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aicl\\AiclServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
