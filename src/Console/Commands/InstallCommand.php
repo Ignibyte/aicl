@@ -37,6 +37,15 @@ class InstallCommand extends Command
             $this->callSilently('vendor:publish', $params);
         });
 
+        // Publish brand assets (logo, images)
+        $this->components->task('Publishing AICL brand assets', function (): void {
+            $this->callSilently('vendor:publish', [
+                '--provider' => 'Aicl\AiclServiceProvider',
+                '--tag' => 'aicl-assets',
+                '--force' => true,
+            ]);
+        });
+
         // Publish Filament Shield config
         $this->components->task('Publishing Filament Shield config', function (): void {
             $params = ['--tag' => 'filament-shield-config'];
