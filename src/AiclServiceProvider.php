@@ -105,6 +105,7 @@ class AiclServiceProvider extends ServiceProvider
             $this->commands([
                 Console\Commands\InstallCommand::class,
                 Console\Commands\MakeEntityCommand::class,
+                Console\Commands\RemoveEntityCommand::class,
                 Console\Commands\ValidateEntityCommand::class,
                 Console\Commands\ScoutImportCommand::class,
             ]);
