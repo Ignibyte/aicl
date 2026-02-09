@@ -22,6 +22,7 @@ class InstallCommand extends Command
     {
         if (! $this->option('force') && $this->isAlreadyInstalled()) {
             $this->components->info('AICL is already installed. Use --force to re-run.');
+            $this->ensureSettingsSeeded();
 
             return self::SUCCESS;
         }
@@ -117,6 +118,21 @@ class InstallCommand extends Command
      * Check if AICL has already been installed by verifying
      * the roles table exists and has the expected roles.
      */
+    /**
+     * Ensure settings are seeded even on subsequent runs (idempotent).
+     */
+    protected function ensureSettingsSeeded(): void
+    {
+        if (Schema::hasTable('settings') && \Illuminate\Support\Facades\DB::table('settings')->count() === 0) {
+            $this->components->task('Seeding missing settings', function (): void {
+                $this->callSilently('db:seed', [
+                    '--class' => 'Aicl\Database\Seeders\SettingsSeeder',
+                    '--force' => true,
+                ]);
+            });
+        }
+    }
+
     protected function isAlreadyInstalled(): bool
     {
         if (! Schema::hasTable('roles')) {
