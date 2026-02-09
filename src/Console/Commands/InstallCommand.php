@@ -93,6 +93,14 @@ class InstallCommand extends Command
             ]);
         });
 
+        // Seed default settings
+        $this->components->task('Seeding default settings', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\SettingsSeeder',
+                '--force' => true,
+            ]);
+        });
+
         // Publish Filament assets
         $this->components->task('Publishing Filament assets', function (): void {
             $this->callSilently('filament:assets');
