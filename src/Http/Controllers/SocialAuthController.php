@@ -132,6 +132,7 @@ class SocialAuthController
             ->first();
 
         if ($socialAccount) {
+            /** @var User $user */
             $user = $socialAccount->user;
 
             // Sync roles from SAML assertion on each login

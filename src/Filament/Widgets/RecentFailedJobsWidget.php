@@ -17,11 +17,10 @@ class RecentFailedJobsWidget extends TableWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $heading = 'Recent Failed Jobs';
-
     public function table(Table $table): Table
     {
         return $table
+            ->heading('Recent Failed Jobs')
             ->query(FailedJob::query()->latest('failed_at')->limit(10))
             ->columns([
                 TextColumn::make('job_name')

@@ -44,11 +44,14 @@ class ScoutImportCommand extends Command
                 });
             }
 
-            $result = $this->components->task("Importing {$shortName}", function () use ($modelClass): bool {
-                return $this->callSilently('scout:import', ['model' => $modelClass]) === self::SUCCESS;
+            $importFailed = false;
+            $this->components->task("Importing {$shortName}", function () use ($modelClass, &$importFailed): void {
+                if ($this->callSilently('scout:import', ['model' => $modelClass]) !== self::SUCCESS) {
+                    $importFailed = true;
+                }
             });
 
-            if ($result === false) {
+            if ($importFailed) {
                 $failed = true;
             }
         }
@@ -126,6 +129,6 @@ class ScoutImportCommand extends Command
             }
         } while ($className = get_parent_class($className));
 
-        return array_unique($traits);
+        return array_values(array_unique($traits));
     }
 }

@@ -2902,7 +2902,7 @@ class {$name}StatsOverview extends StatsOverviewWidget
 {
     protected static ?int \$sort = 1;
 
-    protected static ?string \$pollingInterval = '60s';
+    protected ?string \$pollingInterval = '60s';
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -2951,7 +2951,7 @@ class {$name}ByStatusChart extends ChartWidget
 
     protected static ?int \$sort = 2;
 
-    protected static ?string \$pollingInterval = '60s';
+    protected ?string \$pollingInterval = '60s';
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -3017,7 +3017,7 @@ class {$widgetName} extends TableWidget
 
     protected int|string|array \$columnSpan = 'full';
 
-    protected static ?string \$pollingInterval = '60s';
+    protected ?string \$pollingInterval = '60s';
 
     #[On('entity-changed')]
     public function entityChanged(): void
