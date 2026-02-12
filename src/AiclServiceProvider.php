@@ -8,6 +8,30 @@ use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
 use Aicl\Listeners\EntityEventNotificationListener;
 use Aicl\Listeners\NotificationSentLogger;
+use Aicl\Models\FailureReport;
+use Aicl\Models\GenerationTrace;
+use Aicl\Models\GoldenAnnotation;
+use Aicl\Models\PreventionRule;
+use Aicl\Models\RlmFailure;
+use Aicl\Models\RlmLesson;
+use Aicl\Models\RlmPattern;
+use Aicl\Models\RlmScore;
+use Aicl\Observers\FailureReportObserver;
+use Aicl\Observers\GenerationTraceObserver;
+use Aicl\Observers\GoldenAnnotationObserver;
+use Aicl\Observers\PreventionRuleObserver;
+use Aicl\Observers\RlmFailureObserver;
+use Aicl\Observers\RlmLessonObserver;
+use Aicl\Observers\RlmPatternObserver;
+use Aicl\Policies\FailureReportPolicy;
+use Aicl\Policies\GenerationTracePolicy;
+use Aicl\Policies\PreventionRulePolicy;
+use Aicl\Policies\RlmFailurePolicy;
+use Aicl\Policies\RlmLessonPolicy;
+use Aicl\Policies\RlmPatternPolicy;
+use Aicl\Policies\RlmScorePolicy;
+use Aicl\Rlm\EmbeddingService;
+use Aicl\Rlm\KnowledgeService;
 use Aicl\Services\NotificationDispatcher;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
@@ -22,6 +46,10 @@ class AiclServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/aicl.php', 'aicl');
 
         $this->app->singleton(NotificationDispatcher::class);
+        $this->app->singleton(Rlm\ProjectIdentity::class);
+        $this->app->singleton(Rlm\HubClient::class);
+        $this->app->singleton(EmbeddingService::class);
+        $this->app->singleton(KnowledgeService::class);
 
         $this->app->singleton(SamlAttributeMapper::class, function ($app): SamlAttributeMapper {
             $customClass = config('aicl.saml.mapper_class');
@@ -39,6 +67,24 @@ class AiclServiceProvider extends ServiceProvider
     {
         Gate::policy(\App\Models\User::class, \Aicl\Policies\UserPolicy::class);
         Gate::policy(\Spatie\Permission\Models\Role::class, \Aicl\Policies\RolePolicy::class);
+
+        // RLM Hub entity policies
+        Gate::policy(RlmPattern::class, RlmPatternPolicy::class);
+        Gate::policy(RlmFailure::class, RlmFailurePolicy::class);
+        Gate::policy(FailureReport::class, FailureReportPolicy::class);
+        Gate::policy(RlmLesson::class, RlmLessonPolicy::class);
+        Gate::policy(GenerationTrace::class, GenerationTracePolicy::class);
+        Gate::policy(PreventionRule::class, PreventionRulePolicy::class);
+        Gate::policy(RlmScore::class, RlmScorePolicy::class);
+
+        // RLM Hub entity observers
+        RlmPattern::observe(RlmPatternObserver::class);
+        RlmFailure::observe(RlmFailureObserver::class);
+        FailureReport::observe(FailureReportObserver::class);
+        RlmLesson::observe(RlmLessonObserver::class);
+        GenerationTrace::observe(GenerationTraceObserver::class);
+        PreventionRule::observe(PreventionRuleObserver::class);
+        GoldenAnnotation::observe(GoldenAnnotationObserver::class);
 
         Event::listen(EntityCreated::class, [EntityEventNotificationListener::class, 'handleCreated']);
         Event::listen(EntityUpdated::class, [EntityEventNotificationListener::class, 'handleUpdated']);
@@ -84,6 +130,7 @@ class AiclServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/hub-api.php');
 
         // Load social auth routes if enabled
         if (config('aicl.features.social_login', false)) {
@@ -103,11 +150,16 @@ class AiclServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                Console\Commands\DiscoverPatternsCommand::class,
+                Console\Commands\HubSeedCommand::class,
                 Console\Commands\InstallCommand::class,
                 Console\Commands\MakeEntityCommand::class,
+                Console\Commands\PipelineContextCommand::class,
                 Console\Commands\RemoveEntityCommand::class,
-                Console\Commands\ValidateEntityCommand::class,
+                Console\Commands\RlmCommand::class,
                 Console\Commands\ScoutImportCommand::class,
+                Console\Commands\UpgradeCommand::class,
+                Console\Commands\ValidateEntityCommand::class,
             ]);
         }
     }
@@ -175,5 +227,11 @@ class AiclServiceProvider extends ServiceProvider
             'scout.driver' => \Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine::class,
             'elasticsearch.host' => "{$scheme}://{$host}:{$port}",
         ]);
+
+        // Ensure the deferred ElasticSearchServiceProvider is explicitly registered
+        // so Client::class binding is available before Scout observers fire
+        if (! $this->app->providerIsLoaded(\Matchish\ScoutElasticSearch\ElasticSearchServiceProvider::class)) {
+            $this->app->register(\Matchish\ScoutElasticSearch\ElasticSearchServiceProvider::class);
+        }
     }
 }

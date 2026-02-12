@@ -102,6 +102,54 @@ class InstallCommand extends Command
             ]);
         });
 
+        // Seed RLM base failures
+        $this->components->task('Seeding RLM base failures', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\BaseFailureSeeder',
+                '--force' => true,
+            ]);
+        });
+
+        // Seed RLM patterns from PatternRegistry
+        $this->components->task('Seeding RLM patterns', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\PatternRegistrySeeder',
+                '--force' => true,
+            ]);
+        });
+
+        // Seed golden annotations
+        $this->components->task('Seeding golden annotations', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\GoldenAnnotationSeeder',
+                '--force' => true,
+            ]);
+        });
+
+        // Index RLM data into Elasticsearch (if available)
+        $this->components->task('Indexing RLM data into Elasticsearch', function (): bool {
+            if (! config('aicl.features.rlm_search', true)) {
+                return false;
+            }
+
+            $this->callSilently('aicl:rlm', ['action' => 'index', '--all' => true]);
+
+            return true;
+        });
+
+        // Generate embeddings for RLM data (if available)
+        $this->components->task('Generating RLM embeddings', function (): bool {
+            $embeddingService = app(\Aicl\Rlm\EmbeddingService::class);
+
+            if (! $embeddingService->isAvailable()) {
+                return false;
+            }
+
+            $this->callSilently('aicl:rlm', ['action' => 'embed', '--backfill' => true]);
+
+            return true;
+        });
+
         // Publish Filament assets
         $this->components->task('Publishing Filament assets', function (): void {
             $this->callSilently('filament:assets');

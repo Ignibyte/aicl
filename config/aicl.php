@@ -68,6 +68,9 @@ return [
         'api' => true,
         'websockets' => env('AICL_WEBSOCKETS', false),
         'scout_driver' => env('AICL_SCOUT_DRIVER', false),
+        'hub_search' => (bool) env('AICL_HUB_SEARCH', false),
+        'hub_admin' => (bool) env('AICL_HUB_ADMIN', false),
+        'rlm_search' => (bool) env('AICL_RLM_SEARCH', true),
     ],
 
     /*
@@ -75,22 +78,18 @@ return [
     | Search Engine Configuration
     |--------------------------------------------------------------------------
     |
-    | When AICL_SCOUT_DRIVER is set to 'meilisearch' or 'elasticsearch', Scout
-    | will use that engine instead of the default database driver. The engine
+    | When AICL_SCOUT_DRIVER is set to 'elasticsearch', Scout will use
+    | Elasticsearch instead of the default database driver. The engine
     | package must be installed separately (see suggest in composer.json).
     |
-    | Supported: false (database driver), 'meilisearch', 'elasticsearch'
+    | Supported: false (database driver), 'elasticsearch'
     |
     */
 
     'search' => [
-        'meilisearch' => [
-            'host' => env('MEILISEARCH_HOST', 'http://meilisearch:7700'),
-            'key' => env('MEILISEARCH_KEY', ''),
-        ],
         'elasticsearch' => [
             'host' => env('ELASTICSEARCH_HOST', 'elasticsearch'),
-            'port' => env('ELASTICSEARCH_PORT', 9200),
+            'port' => (int) env('ELASTICSEARCH_PORT', 9200),
             'scheme' => env('ELASTICSEARCH_SCHEME', 'http'),
         ],
     ],
@@ -213,5 +212,50 @@ return [
         'cache' => 0,
         'sessions' => 1,
         'queues' => 2,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | RLM Knowledge System
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the RLM (Recursive Language Model) knowledge system.
+    | Uses PostgreSQL as source of truth and Elasticsearch for search/discovery.
+    |
+    */
+
+    'rlm' => [
+        'embeddings' => [
+            'driver' => env('AICL_EMBEDDING_DRIVER'),
+            'dimension' => 1536,
+            'openai' => [
+                'api_key' => env('OPENAI_API_KEY'),
+                'model' => env('AICL_EMBEDDING_MODEL', 'text-embedding-3-small'),
+            ],
+            'ollama' => [
+                'host' => env('OLLAMA_HOST', 'http://localhost:11434'),
+                'model' => env('AICL_OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text'),
+            ],
+        ],
+
+        'semantic' => [
+            'enabled' => (bool) env('AICL_SEMANTIC_ENABLED', false),
+            'api_key' => env('AICL_SEMANTIC_API_KEY', env('ANTHROPIC_API_KEY')),
+            'model' => env('AICL_SEMANTIC_MODEL', 'claude-haiku-4-5-20251001'),
+            'max_tokens' => 1024,
+            'timeout' => 30,
+            'cache_ttl' => 60 * 60 * 24 * 7,
+            'use_cache' => true,
+            'confidence_threshold' => 0.3,
+            'mode' => env('AICL_SEMANTIC_MODE', 'advisory'),
+        ],
+
+        'hub' => [
+            'enabled' => (bool) env('AICL_RLM_HUB_ENABLED', false),
+            'url' => env('AICL_RLM_HUB_URL'),
+            'token' => env('AICL_RLM_HUB_TOKEN'),
+            'timeout' => 30,
+            'sync_on_validate' => false,
+        ],
     ],
 ];

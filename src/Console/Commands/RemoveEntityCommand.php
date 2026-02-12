@@ -117,7 +117,8 @@ class RemoveEntityCommand extends Command
         // Glob-matched files — pattern matches
         $globPatterns = [
             'Enums' => app_path("Enums/{$name}*.php"),
-            'Widgets' => app_path("Filament/Widgets/{$name}*.php"),
+            'Widgets (prefix)' => app_path("Filament/Widgets/{$name}*.php"),
+            'Widgets (contains)' => app_path("Filament/Widgets/*{$plural}*.php"),
             'Notifications' => app_path("Notifications/{$name}*.php"),
             'Migration' => database_path("migrations/*_create_{$snakePlural}_table.php"),
         ];
@@ -126,6 +127,12 @@ class RemoveEntityCommand extends Command
             foreach (glob($pattern) ?: [] as $file) {
                 $this->filesToDelete[] = $file;
             }
+        }
+
+        // Abstract state class (sits alongside the States/{Name}/ directory)
+        $abstractState = app_path("States/{$name}State.php");
+        if (file_exists($abstractState)) {
+            $this->filesToDelete[] = $abstractState;
         }
 
         // Directories
@@ -325,6 +332,7 @@ class RemoveEntityCommand extends Command
             if (file_exists($file)) {
                 unlink($file);
                 $count++;
+                $this->cleanEmptyParentDirectories(dirname($file));
             }
         }
 
@@ -332,10 +340,53 @@ class RemoveEntityCommand extends Command
             if (is_dir($dir)) {
                 $this->removeDirectoryRecursive($dir);
                 $count++;
+                $this->cleanEmptyParentDirectories(dirname($dir));
             }
         }
 
         return $count;
+    }
+
+    /**
+     * Remove parent directories if they are empty after file deletion.
+     *
+     * Only removes directories within app/, database/, tests/, and resources/
+     * to avoid accidentally removing important project directories.
+     */
+    protected function cleanEmptyParentDirectories(string $dir): void
+    {
+        $safePrefixes = [
+            app_path(),
+            database_path(),
+            base_path('tests'),
+            resource_path(),
+        ];
+
+        while ($dir && is_dir($dir) && $this->isDirectoryEmpty($dir)) {
+            $isSafe = false;
+            foreach ($safePrefixes as $prefix) {
+                if (str_starts_with($dir, $prefix) && $dir !== $prefix) {
+                    $isSafe = true;
+
+                    break;
+                }
+            }
+
+            if (! $isSafe) {
+                break;
+            }
+
+            rmdir($dir);
+            $dir = dirname($dir);
+        }
+    }
+
+    /**
+     * Check if a directory is empty (no files or subdirectories).
+     */
+    protected function isDirectoryEmpty(string $dir): bool
+    {
+        return is_dir($dir) && count(array_diff(scandir($dir), ['.', '..'])) === 0;
     }
 
     /**

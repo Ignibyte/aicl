@@ -40,13 +40,13 @@ class ScoutImportCommand extends Command
 
             if ($this->option('flush')) {
                 $this->components->task("Flushing {$shortName}", function () use ($modelClass): void {
-                    $this->callSilently('scout:flush', ['model' => $modelClass]);
+                    $this->callSilently('scout:flush', ['searchable' => [$modelClass]]);
                 });
             }
 
             $importFailed = false;
             $this->components->task("Importing {$shortName}", function () use ($modelClass, &$importFailed): void {
-                if ($this->callSilently('scout:import', ['model' => $modelClass]) !== self::SUCCESS) {
+                if ($this->callSilently('scout:import', ['searchable' => [$modelClass]]) !== self::SUCCESS) {
                     $importFailed = true;
                 }
             });
@@ -80,6 +80,7 @@ class ScoutImportCommand extends Command
 
         $directories = [
             app_path('Models') => 'App\\Models\\',
+            dirname(__DIR__, 2).'/Models' => 'Aicl\\Models\\',
         ];
 
         foreach ($directories as $directory => $namespace) {

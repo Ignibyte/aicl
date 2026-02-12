@@ -28,9 +28,7 @@
         "tomatophp/filament-media-manager": "^4.0"
     },
     "suggest": {
-        "meilisearch/meilisearch-php": "Required for Meilisearch Scout driver support. Recommended search engine for DDEV/local development.",
-        "http-interop/http-factory-guzzle": "Required by meilisearch/meilisearch-php as HTTP factory implementation.",
-        "matchish/laravel-scout-elasticsearch": "Required for Elasticsearch Scout driver support (v7.x). Alternative to Meilisearch.",
+        "matchish/laravel-scout-elasticsearch": "Required for Elasticsearch Scout driver support.",
         "elasticsearch/elasticsearch": "Required by matchish/laravel-scout-elasticsearch for Elasticsearch 8.x connectivity."
     },
     "autoload": {

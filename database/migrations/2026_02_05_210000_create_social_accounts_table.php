@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('provider'); // google, github, etc.
             $table->string('provider_id'); // The provider's user ID
+            $table->string('avatar_url')->nullable();
             $table->text('token')->nullable();
             $table->text('refresh_token')->nullable();
             $table->timestamp('token_expires_at')->nullable();

@@ -1,0 +1,55 @@
+# ─── AICL Hub Deployment ─────────────────────────────────
+# Copy this file to .env and configure for your hub instance.
+
+APP_NAME="AICL Hub"
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=https://hub.example.com
+
+# ─── Database ────────────────────────────────────────────
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=aicl_hub
+DB_USERNAME=aicl
+DB_PASSWORD=
+
+# ─── Redis ───────────────────────────────────────────────
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+# ─── Queue ───────────────────────────────────────────────
+QUEUE_CONNECTION=redis
+
+# ─── AICL Features ──────────────────────────────────────
+AICL_SOCIAL_LOGIN=false
+AICL_SAML=false
+AICL_WEBSOCKETS=false
+AICL_API_LOGGING=true
+AICL_SECURITY_HEADERS=true
+AICL_CSP_ENABLED=true
+AICL_CSP_REPORT_ONLY=false
+
+# ─── RLM Hub ────────────────────────────────────────────
+AICL_RLM_HUB_ENABLED=false
+AICL_HUB_ADMIN=true
+AICL_HUB_SEARCH=true
+
+# ─── Elasticsearch (optional) ───────────────────────────
+AICL_SCOUT_DRIVER=elasticsearch
+ELASTICSEARCH_HOST=127.0.0.1
+ELASTICSEARCH_PORT=9200
+ELASTICSEARCH_SCHEME=http
+SCOUT_DRIVER=elasticsearch
+
+# ─── Semantic Validation (optional) ─────────────────────
+AICL_SEMANTIC_ENABLED=false
+AICL_SEMANTIC_API_KEY=
+AICL_SEMANTIC_MODEL=claude-haiku-4-5-20251001
+AICL_SEMANTIC_MODE=advisory
+
+# ─── OAuth / Passport ───────────────────────────────────
+PASSPORT_PERSONAL_ACCESS_CLIENT_ID=
+PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET=
