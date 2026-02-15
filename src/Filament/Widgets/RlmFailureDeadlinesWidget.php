@@ -3,6 +3,7 @@
 namespace Aicl\Filament\Widgets;
 
 use Aicl\Enums\FailureSeverity;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
 use Aicl\Models\RlmFailure;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -11,11 +12,11 @@ use Livewire\Attributes\On;
 
 class RlmFailureDeadlinesWidget extends TableWidget
 {
+    use PausesWhenHidden;
+
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';
-
-    protected ?string $pollingInterval = '60s';
 
     #[On('entity-changed')]
     public function entityChanged(): void

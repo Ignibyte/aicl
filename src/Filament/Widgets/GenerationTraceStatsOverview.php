@@ -2,16 +2,17 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Models\GenerationTrace;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
+use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Livewire\Attributes\On;
 
 class GenerationTraceStatsOverview extends StatsOverviewWidget
 {
-    protected static ?int $sort = 1;
+    use PausesWhenHidden;
 
-    protected ?string $pollingInterval = '60s';
+    protected static ?int $sort = 1;
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -21,16 +22,16 @@ class GenerationTraceStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $total = GenerationTrace::query()->count();
-        $avgStructural = GenerationTrace::query()->whereNotNull('structural_score')->avg('structural_score');
-        $avgSemantic = GenerationTrace::query()->whereNotNull('semantic_score')->avg('semantic_score');
-        $avgFixIterations = GenerationTrace::query()->avg('fix_iterations');
+        $data = WidgetStatsCacheManager::getOrCompute(
+            'generation_trace_stats',
+            [WidgetStatsCacheManager::class, 'computeGenerationTraceStats'],
+        );
 
         return [
-            Stat::make('Total Traces', $total),
-            Stat::make('Avg Structural Score', $avgStructural ? number_format((float) $avgStructural, 1).'%' : '—'),
-            Stat::make('Avg Semantic Score', $avgSemantic ? number_format((float) $avgSemantic, 1).'%' : '—'),
-            Stat::make('Avg Fix Iterations', $avgFixIterations !== null ? number_format((float) $avgFixIterations, 1) : '0'),
+            Stat::make('Total Traces', $data['total']),
+            Stat::make('Avg Structural Score', $data['avg_structural'] ? number_format($data['avg_structural'], 1).'%' : '—'),
+            Stat::make('Avg Semantic Score', $data['avg_semantic'] ? number_format($data['avg_semantic'], 1).'%' : '—'),
+            Stat::make('Avg Fix Iterations', number_format($data['avg_fix_iterations'], 1)),
         ];
     }
 }

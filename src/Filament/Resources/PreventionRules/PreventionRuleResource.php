@@ -9,18 +9,14 @@ use Aicl\Filament\Resources\PreventionRules\Pages\ViewPreventionRule;
 use Aicl\Filament\Resources\PreventionRules\Schemas\PreventionRuleForm;
 use Aicl\Filament\Resources\PreventionRules\Tables\PreventionRulesTable;
 use Aicl\Models\PreventionRule;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
 class PreventionRuleResource extends Resource
 {
     protected static ?string $model = PreventionRule::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLightBulb;
 
     protected static string|UnitEnum|null $navigationGroup = 'RLM Hub';
 

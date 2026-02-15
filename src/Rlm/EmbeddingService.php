@@ -3,11 +3,11 @@
 namespace Aicl\Rlm;
 
 use Aicl\Contracts\EmbeddingDriver;
+use Aicl\Rlm\Embeddings\NeuronAiEmbeddingAdapter;
 use Aicl\Rlm\Embeddings\NullDriver;
-use Aicl\Rlm\Embeddings\OllamaDriver;
-use Aicl\Rlm\Embeddings\OpenAiDriver;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use NeuronAI\Laravel\Facades\EmbeddingProvider;
 
 class EmbeddingService
 {
@@ -26,7 +26,16 @@ class EmbeddingService
             return null;
         }
 
-        $embedding = $driver->embed($text);
+        try {
+            $embedding = $driver->embed($text);
+        } catch (\Throwable $e) {
+            Log::warning('EmbeddingService: embed() call failed', [
+                'message' => $e->getMessage(),
+                'text_length' => mb_strlen($text),
+            ]);
+
+            return null;
+        }
 
         return ! empty($embedding) ? $embedding : null;
     }
@@ -49,7 +58,16 @@ class EmbeddingService
             return array_map(fn (): null => null, $texts);
         }
 
-        $results = $driver->embedBatch($texts);
+        try {
+            $results = $driver->embedBatch($texts);
+        } catch (\Throwable $e) {
+            Log::warning('EmbeddingService: embedBatch() call failed', [
+                'message' => $e->getMessage(),
+                'batch_size' => count($texts),
+            ]);
+
+            return array_map(fn (): null => null, $texts);
+        }
 
         return array_map(
             fn (array $embedding): ?array => ! empty($embedding) ? $embedding : null,
@@ -91,55 +109,48 @@ class EmbeddingService
      * Resolve the driver based on configuration and environment.
      *
      * Priority:
-     * 1. Explicit AICL_EMBEDDING_DRIVER config
-     * 2. Auto-detect: OpenAI key present → OpenAI
-     * 3. Auto-detect: Ollama reachable → Ollama
+     * 1. NullDriver if explicitly configured
+     * 2. NeuronAI OpenAI adapter if API key present
+     * 3. NeuronAI Ollama adapter if Ollama reachable
      * 4. Fallback: NullDriver
      */
     private function resolveDriver(): EmbeddingDriver
     {
         $explicitDriver = config('aicl.rlm.embeddings.driver');
 
-        if ($explicitDriver !== null) {
-            return match ($explicitDriver) {
-                'openai' => $this->makeOpenAiDriver(),
-                'ollama' => $this->makeOllamaDriver(),
-                'null' => new NullDriver,
-                default => new NullDriver,
-            };
+        if ($explicitDriver === 'null') {
+            return new NullDriver;
         }
 
-        // Auto-detect: check for OpenAI API key
-        $openAiKey = config('aicl.rlm.embeddings.openai.api_key');
+        $dimension = (int) config('aicl.rlm.embeddings.dimension', 1536);
 
-        if (! empty($openAiKey)) {
-            return $this->makeOpenAiDriver();
+        if ($explicitDriver === 'openai' || ($explicitDriver === null && ! empty(config('aicl.rlm.embeddings.openai.api_key')))) {
+            try {
+                $provider = EmbeddingProvider::driver('openai');
+
+                return new NeuronAiEmbeddingAdapter($provider, $dimension, padToTarget: false);
+            } catch (\Throwable $e) {
+                Log::warning('EmbeddingService: NeuronAI OpenAI provider failed.', ['error' => $e->getMessage()]);
+
+                return new NullDriver;
+            }
         }
 
-        // Auto-detect: check if Ollama is reachable
-        if ($this->isOllamaReachable()) {
-            return $this->makeOllamaDriver();
+        if ($explicitDriver === 'ollama' || ($explicitDriver === null && $this->isOllamaReachable())) {
+            try {
+                $provider = EmbeddingProvider::driver('ollama');
+
+                return new NeuronAiEmbeddingAdapter($provider, $dimension, padToTarget: true);
+            } catch (\Throwable $e) {
+                Log::warning('EmbeddingService: NeuronAI Ollama provider failed.', ['error' => $e->getMessage()]);
+
+                return new NullDriver;
+            }
         }
 
         Log::info('EmbeddingService: No embedding driver available. kNN search disabled, BM25 still active.');
 
         return new NullDriver;
-    }
-
-    private function makeOpenAiDriver(): OpenAiDriver
-    {
-        return new OpenAiDriver(
-            apiKey: (string) config('aicl.rlm.embeddings.openai.api_key'),
-            model: (string) config('aicl.rlm.embeddings.openai.model', 'text-embedding-3-small'),
-        );
-    }
-
-    private function makeOllamaDriver(): OllamaDriver
-    {
-        return new OllamaDriver(
-            host: (string) config('aicl.rlm.embeddings.ollama.host', 'http://localhost:11434'),
-            model: (string) config('aicl.rlm.embeddings.ollama.model', 'nomic-embed-text'),
-        );
     }
 
     private function isOllamaReachable(): bool
@@ -150,7 +161,12 @@ class EmbeddingService
             $response = Http::timeout(2)->get(rtrim($host, '/').'/api/tags');
 
             return $response->successful();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            Log::debug('EmbeddingService: Ollama unreachable', [
+                'host' => $host,
+                'message' => $e->getMessage(),
+            ]);
+
             return false;
         }
     }

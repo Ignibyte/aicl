@@ -2,6 +2,10 @@
 
 namespace Aicl\Tests\Unit\Commands;
 
+use Aicl\Enums\FailureCategory;
+use Aicl\Enums\FailureSeverity;
+use Aicl\Models\RlmFailure;
+use Aicl\Rlm\DistillationService;
 use Aicl\Rlm\KnowledgeService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -82,6 +86,7 @@ class RlmCommandTest extends TestCase
             'action' => 'recall',
             '--agent' => 'architect',
             '--phase' => '3',
+            '--format' => 'full',
         ])
             ->assertSuccessful()
             ->expectsOutputToContain('RELEVANT FAILURES')
@@ -266,5 +271,120 @@ class RlmCommandTest extends TestCase
     {
         $this->artisan('aicl:rlm', ['action' => 'nonexistent'])
             ->expectsOutputToContain('trace-save');
+    }
+
+    public function test_recall_cheatsheet_is_default_format(): void
+    {
+        $this->seedBaseFailuresAndDistill();
+
+        $this->artisan('aicl:rlm', [
+            'action' => 'recall',
+            '--agent' => 'architect',
+            '--phase' => '3',
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('CHEAT SHEET')
+            ->expectsOutputToContain('TOP');
+    }
+
+    public function test_recall_cheatsheet_shows_lessons_and_rules(): void
+    {
+        $this->seedBaseFailuresAndDistill();
+
+        $this->artisan('aicl:rlm', [
+            'action' => 'recall',
+            '--agent' => 'architect',
+            '--phase' => '3',
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('LESSONS')
+            ->expectsOutputToContain('DL-');
+    }
+
+    public function test_recall_cheatsheet_falls_back_to_full_when_no_lessons(): void
+    {
+        $this->seedTestData();
+
+        $this->artisan('aicl:rlm', [
+            'action' => 'recall',
+            '--agent' => 'architect',
+            '--phase' => '3',
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Falling back to full recall')
+            ->expectsOutputToContain('RELEVANT FAILURES');
+    }
+
+    public function test_recall_json_format(): void
+    {
+        $this->seedBaseFailuresAndDistill();
+
+        \Illuminate\Support\Facades\Artisan::call('aicl:rlm', [
+            'action' => 'recall',
+            '--agent' => 'architect',
+            '--phase' => '3',
+            '--format' => 'json',
+        ]);
+
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        $decoded = json_decode(trim($output), true);
+
+        $this->assertNotNull($decoded, "JSON output should be valid JSON. Got: {$output}");
+        $this->assertSame('architect', $decoded['agent']);
+        $this->assertSame(3, $decoded['phase']);
+        $this->assertArrayHasKey('lessons', $decoded);
+        $this->assertArrayHasKey('when_then_rules', $decoded);
+    }
+
+    public function test_recall_full_format(): void
+    {
+        $this->seedTestData();
+
+        $this->artisan('aicl:rlm', [
+            'action' => 'recall',
+            '--agent' => 'architect',
+            '--phase' => '3',
+            '--format' => 'full',
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('RELEVANT FAILURES')
+            ->expectsOutputToContain('RELEVANT LESSONS')
+            ->expectsOutputToContain('RECENT SCORES');
+    }
+
+    public function test_recall_cheatsheet_with_entity_context(): void
+    {
+        $this->seedBaseFailuresAndDistill();
+
+        $this->artisan('aicl:rlm', [
+            'action' => 'recall',
+            '--agent' => 'architect',
+            '--phase' => '3',
+            '--entity' => 'Task',
+            '--entity-context' => '{"has_states":true}',
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('CHEAT SHEET');
+    }
+
+    private function seedBaseFailuresAndDistill(): void
+    {
+        RlmFailure::factory()->create([
+            'failure_code' => 'BF-001',
+            'category' => FailureCategory::Scaffolding,
+            'severity' => FailureSeverity::High,
+            'preventive_rule' => 'Override searchableColumns.',
+            'owner_id' => $this->admin->id,
+        ]);
+
+        RlmFailure::factory()->create([
+            'failure_code' => 'BF-012',
+            'category' => FailureCategory::Filament,
+            'severity' => FailureSeverity::Critical,
+            'preventive_rule' => 'Use Schemas namespace for Section/Grid.',
+            'owner_id' => $this->admin->id,
+        ]);
+
+        app(DistillationService::class)->distill();
     }
 }

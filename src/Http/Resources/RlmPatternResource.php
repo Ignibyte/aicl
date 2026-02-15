@@ -35,8 +35,8 @@ class RlmPatternResource extends JsonResource
                 'id' => $this->owner->id,
                 'name' => $this->owner->name,
             ]),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'created_at' => $this->resource->created_at?->toIso8601String(),
+            'updated_at' => $this->resource->updated_at?->toIso8601String(),
         ];
     }
 }

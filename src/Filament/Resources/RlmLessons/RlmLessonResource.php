@@ -9,18 +9,14 @@ use Aicl\Filament\Resources\RlmLessons\Pages\ViewRlmLesson;
 use Aicl\Filament\Resources\RlmLessons\Schemas\RlmLessonForm;
 use Aicl\Filament\Resources\RlmLessons\Tables\RlmLessonsTable;
 use Aicl\Models\RlmLesson;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
 class RlmLessonResource extends Resource
 {
     protected static ?string $model = RlmLesson::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
 
     protected static string|UnitEnum|null $navigationGroup = 'RLM Hub';
 

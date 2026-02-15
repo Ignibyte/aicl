@@ -2,17 +2,18 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Models\RlmFailure;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
+use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Filament\Widgets\ChartWidget;
 use Livewire\Attributes\On;
 
 class CategoryBreakdownChart extends ChartWidget
 {
+    use PausesWhenHidden;
+
     protected ?string $heading = 'Failures by Category';
 
     protected static ?int $sort = 2;
-
-    protected ?string $pollingInterval = '60s';
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -37,11 +38,10 @@ class CategoryBreakdownChart extends ChartWidget
             'performance' => ['label' => 'Performance', 'color' => '#06b6d4'],
         ];
 
-        $counts = RlmFailure::query()
-            ->selectRaw('category, COUNT(*) as count')
-            ->groupBy('category')
-            ->pluck('count', 'category')
-            ->toArray();
+        $counts = WidgetStatsCacheManager::getOrCompute(
+            'failure_by_category',
+            [WidgetStatsCacheManager::class, 'computeFailureByCategory'],
+        );
 
         $data = [];
         $labels = [];

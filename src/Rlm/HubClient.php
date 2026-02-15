@@ -8,6 +8,7 @@ use Aicl\Models\RlmPattern;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class HubClient
 {
@@ -35,7 +36,11 @@ class HubClient
             $response = $this->http()->get('/api/v1/rlm_patterns', ['per_page' => 1]);
 
             return $response->successful();
-        } catch (ConnectionException) {
+        } catch (ConnectionException $e) {
+            Log::warning('HubClient: hub unreachable during health check', [
+                'message' => $e->getMessage(),
+            ]);
+
             return false;
         }
     }
@@ -187,7 +192,11 @@ class HubClient
                         'body' => $response->json(),
                     ];
                 }
-            } catch (ConnectionException) {
+            } catch (ConnectionException $e) {
+                Log::warning('HubClient: connection failed during pushBatch, enqueuing for retry', [
+                    'endpoint' => $endpoint,
+                    'message' => $e->getMessage(),
+                ]);
                 $this->enqueue($endpoint, $payload);
                 $queued++;
             }
@@ -220,8 +229,13 @@ class HubClient
                 } else {
                     $errors++;
                 }
-            } catch (ConnectionException) {
+            } catch (ConnectionException $e) {
                 // Still offline — re-enqueue remaining items and stop
+                Log::warning('HubClient: connection failed during drainQueue, re-enqueuing remaining items', [
+                    'endpoint' => $endpoint,
+                    'remaining_count' => count($items) - $index,
+                    'message' => $e->getMessage(),
+                ]);
                 $remaining = array_slice($items, $index);
                 $this->replaceQueue($remaining);
                 $errors++;
@@ -415,8 +429,14 @@ class HubClient
                 $lastPage = $response->json('meta.last_page', $response->json('last_page', 1));
                 $page++;
             } while ($page <= $lastPage);
-        } catch (ConnectionException) {
+        } catch (ConnectionException $e) {
             // Return whatever we collected so far
+            Log::warning('HubClient: connection failed during paginatedGet', [
+                'endpoint' => $endpoint,
+                'page' => $page,
+                'records_collected' => count($allRecords),
+                'message' => $e->getMessage(),
+            ]);
         }
 
         return $allRecords;

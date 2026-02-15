@@ -9,18 +9,14 @@ use Aicl\Filament\Resources\FailureReports\Pages\ViewFailureReport;
 use Aicl\Filament\Resources\FailureReports\Schemas\FailureReportForm;
 use Aicl\Filament\Resources\FailureReports\Tables\FailureReportsTable;
 use Aicl\Models\FailureReport;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
 class FailureReportResource extends Resource
 {
     protected static ?string $model = FailureReport::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static string|UnitEnum|null $navigationGroup = 'RLM Hub';
 

@@ -2,8 +2,10 @@
 
 namespace Aicl\Models;
 
+use Aicl\Database\Factories\NotificationLogFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
@@ -22,6 +24,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class NotificationLog extends Model
 {
+    /** @use HasFactory<NotificationLogFactory> */
+    use HasFactory;
+
     use HasUuids;
 
     protected $table = 'notification_logs';
@@ -150,5 +155,10 @@ class NotificationLog extends Model
         if ($this->read_at) {
             $this->update(['read_at' => null]);
         }
+    }
+
+    protected static function newFactory(): NotificationLogFactory
+    {
+        return NotificationLogFactory::new();
     }
 }

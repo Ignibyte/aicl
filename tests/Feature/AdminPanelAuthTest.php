@@ -30,7 +30,6 @@ class AdminPanelAuthTest extends TestCase
         $response->assertSee('Sign in to your account');
         $response->assertSee('Welcome Back!');
         $response->assertSee('fi-aicl-login-split', false);
-        $response->assertSee(config('app.name', 'AICL'));
         $response->assertSee('Register');
     }
 

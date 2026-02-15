@@ -6,6 +6,8 @@ use InvalidArgumentException;
 
 class RelationshipParser
 {
+    use ParsesCommaSeparatedDefinitions;
+
     /**
      * @var array<int, string>
      */
@@ -15,47 +17,6 @@ class RelationshipParser
         'belongsToMany',
         'morphMany',
     ];
-
-    /**
-     * Parse a comma-separated relationship definition string into RelationshipDefinition objects.
-     *
-     * @return array<int, RelationshipDefinition>
-     *
-     * @throws InvalidArgumentException
-     */
-    public function parse(string $relationshipsString): array
-    {
-        $relationshipsString = trim($relationshipsString);
-
-        if ($relationshipsString === '') {
-            return [];
-        }
-
-        $segments = array_map('trim', explode(',', $relationshipsString));
-        $definitions = [];
-        $errors = [];
-        $seenNames = [];
-
-        foreach ($segments as $segment) {
-            if ($segment === '') {
-                continue;
-            }
-
-            try {
-                $definition = $this->parseSegment($segment, $seenNames);
-                $seenNames[] = $definition->name;
-                $definitions[] = $definition;
-            } catch (InvalidArgumentException $e) {
-                $errors[] = $e->getMessage();
-            }
-        }
-
-        if (! empty($errors)) {
-            throw new InvalidArgumentException(implode("\n", $errors));
-        }
-
-        return $definitions;
-    }
 
     /**
      * Parse a single relationship segment like "tasks:hasMany:Task".

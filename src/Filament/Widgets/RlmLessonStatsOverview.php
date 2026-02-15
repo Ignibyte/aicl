@@ -2,16 +2,17 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Models\RlmLesson;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
+use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Livewire\Attributes\On;
 
 class RlmLessonStatsOverview extends StatsOverviewWidget
 {
-    protected static ?int $sort = 1;
+    use PausesWhenHidden;
 
-    protected ?string $pollingInterval = '60s';
+    protected static ?int $sort = 1;
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -21,19 +22,21 @@ class RlmLessonStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $total = RlmLesson::query()->count();
-        $verified = RlmLesson::query()->verified()->count();
-        $verifiedPercent = $total > 0 ? round(($verified / $total) * 100, 1) : 0;
-        $avgConfidence = RlmLesson::query()->avg('confidence');
+        $data = WidgetStatsCacheManager::getOrCompute(
+            'rlm_lesson_stats',
+            [WidgetStatsCacheManager::class, 'computeRlmLessonStats'],
+        );
+
+        $verifiedPercent = $data['total'] > 0 ? round(($data['verified'] / $data['total']) * 100, 1) : 0;
 
         return [
-            Stat::make('Total Lessons', $total),
-            Stat::make('Verified', $verified)
+            Stat::make('Total Lessons', $data['total']),
+            Stat::make('Verified', $data['verified'])
                 ->description("{$verifiedPercent}% verified")
                 ->color($verifiedPercent >= 80 ? 'success' : ($verifiedPercent >= 50 ? 'warning' : 'danger')),
-            Stat::make('Unverified', RlmLesson::query()->unverified()->count())
+            Stat::make('Unverified', $data['unverified'])
                 ->color('warning'),
-            Stat::make('Avg Confidence', $avgConfidence ? number_format((float) $avgConfidence, 2) : 'N/A'),
+            Stat::make('Avg Confidence', $data['avg_confidence'] ? number_format((float) $data['avg_confidence'], 2) : 'N/A'),
         ];
     }
 }

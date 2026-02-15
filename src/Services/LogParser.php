@@ -36,13 +36,28 @@ class LogParser
     }
 
     /**
+     * Validate that a path is within the logs directory and is a .log file.
+     */
+    public function isValidLogPath(string $path): bool
+    {
+        if (! File::exists($path) || ! str_ends_with($path, '.log')) {
+            return false;
+        }
+
+        $realPath = realpath($path);
+        $logsDir = realpath(storage_path('logs'));
+
+        return $realPath !== false && $logsDir !== false && str_starts_with($realPath, $logsDir);
+    }
+
+    /**
      * Parse a log file and return structured entries.
      *
      * @return Collection<int, array{timestamp: string, level: string, message: string, context: string|null}>
      */
     public function parseLogFile(string $path, int $limit = 100, ?string $levelFilter = null, ?string $search = null): Collection
     {
-        if (! File::exists($path)) {
+        if (! $this->isValidLogPath($path)) {
             return collect();
         }
 
@@ -107,7 +122,7 @@ class LogParser
      */
     public function tail(string $path, int $lines = 50): Collection
     {
-        if (! File::exists($path)) {
+        if (! $this->isValidLogPath($path)) {
             return collect();
         }
 
@@ -168,11 +183,7 @@ class LogParser
      */
     public function deleteFile(string $path): bool
     {
-        if (! File::exists($path) || ! str_ends_with($path, '.log')) {
-            return false;
-        }
-
-        if (! str_starts_with(realpath($path), realpath(storage_path('logs')))) {
+        if (! $this->isValidLogPath($path)) {
             return false;
         }
 
@@ -184,11 +195,7 @@ class LogParser
      */
     public function clearFile(string $path): bool
     {
-        if (! File::exists($path) || ! str_ends_with($path, '.log')) {
-            return false;
-        }
-
-        if (! str_starts_with(realpath($path), realpath(storage_path('logs')))) {
+        if (! $this->isValidLogPath($path)) {
             return false;
         }
 

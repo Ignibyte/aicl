@@ -23,6 +23,7 @@ class PatternRegistry
             static::observerPatterns(),
             static::filamentPatterns(),
             static::testPatterns(),
+            static::specPatterns(),
         );
 
         if ($entityName !== null) {
@@ -474,6 +475,53 @@ class PatternRegistry
                 check: 'test_.*(can_view|can_manage|owner)',
                 severity: 'warning',
                 weight: 1.0,
+            ),
+        ];
+    }
+
+    /**
+     * Spec file patterns (P-043 through P-046).
+     *
+     * These are ADDITIVE and OPTIONAL — they only apply when a
+     * .entity.md spec file exists for the entity. Entities generated
+     * without spec files still pass the original 42 base patterns.
+     *
+     * @return array<int, EntityPattern>
+     */
+    public static function specPatterns(): array
+    {
+        return [
+            new EntityPattern(
+                name: 'spec.file_exists',
+                description: 'Entity has a corresponding .entity.md spec file in specs/',
+                target: 'spec',
+                check: '# [A-Z][a-zA-Z0-9]+',
+                severity: 'warning',
+                weight: 0.5,
+            ),
+            new EntityPattern(
+                name: 'spec.matches_code',
+                description: 'Generated code matches spec (fields, types, states are consistent)',
+                target: 'spec',
+                check: '## Fields',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            new EntityPattern(
+                name: 'spec.has_business_rules',
+                description: 'Spec includes a Business Rules section documenting domain constraints',
+                target: 'spec',
+                check: '## Business Rules',
+                severity: 'warning',
+                weight: 0.5,
+            ),
+            new EntityPattern(
+                name: 'spec.has_description',
+                description: 'Spec includes a description paragraph after the entity name header',
+                target: 'spec',
+                check: '# [A-Z].*\n\n[A-Za-z]',
+                severity: 'warning',
+                weight: 0.5,
             ),
         ];
     }

@@ -3,7 +3,6 @@
 namespace Aicl\Jobs;
 
 use Aicl\Rlm\EmbeddingService;
-use Aicl\Traits\HasEmbeddings;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
@@ -23,9 +22,6 @@ class GenerateEmbeddingJob implements ShouldQueue
 
     public int $backoff = 10;
 
-    /**
-     * @param  Model&HasEmbeddings  $model
-     */
     public function __construct(
         public Model $model,
     ) {}
@@ -38,6 +34,10 @@ class GenerateEmbeddingJob implements ShouldQueue
                 'id' => $this->model->getKey(),
             ]);
 
+            return;
+        }
+
+        if (! method_exists($this->model, 'embeddingText') || ! method_exists($this->model, 'cacheEmbedding')) {
             return;
         }
 

@@ -9,18 +9,14 @@ use Aicl\Filament\Resources\GenerationTraces\Pages\ViewGenerationTrace;
 use Aicl\Filament\Resources\GenerationTraces\Schemas\GenerationTraceForm;
 use Aicl\Filament\Resources\GenerationTraces\Tables\GenerationTracesTable;
 use Aicl\Models\GenerationTrace;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
 class GenerationTraceResource extends Resource
 {
     protected static ?string $model = GenerationTrace::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCommandLine;
 
     protected static string|UnitEnum|null $navigationGroup = 'RLM Hub';
 

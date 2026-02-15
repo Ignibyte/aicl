@@ -12,17 +12,17 @@ class SettingsTest extends TestCase
 {
     // ─── GeneralSettings ────────────────────────────────────
 
-    public function test_general_settings_extends_spatie_settings(): void
+    public function test_general_settings_extends_settings(): void
     {
         $this->assertTrue(is_subclass_of(GeneralSettings::class, Settings::class));
     }
 
-    public function test_general_settings_group_is_general(): void
+    public function test_general_settings_group(): void
     {
-        $this->assertEquals('general', GeneralSettings::group());
+        $this->assertSame('general', GeneralSettings::group());
     }
 
-    public function test_general_settings_has_expected_properties(): void
+    public function test_general_settings_has_required_properties(): void
     {
         $reflection = new \ReflectionClass(GeneralSettings::class);
 
@@ -36,17 +36,17 @@ class SettingsTest extends TestCase
 
     // ─── MailSettings ───────────────────────────────────────
 
-    public function test_mail_settings_extends_spatie_settings(): void
+    public function test_mail_settings_extends_settings(): void
     {
         $this->assertTrue(is_subclass_of(MailSettings::class, Settings::class));
     }
 
-    public function test_mail_settings_group_is_mail(): void
+    public function test_mail_settings_group(): void
     {
-        $this->assertEquals('mail', MailSettings::group());
+        $this->assertSame('mail', MailSettings::group());
     }
 
-    public function test_mail_settings_has_expected_properties(): void
+    public function test_mail_settings_has_required_properties(): void
     {
         $reflection = new \ReflectionClass(MailSettings::class);
 
@@ -57,23 +57,45 @@ class SettingsTest extends TestCase
 
     // ─── FeatureSettings ────────────────────────────────────
 
-    public function test_feature_settings_extends_spatie_settings(): void
+    public function test_feature_settings_extends_settings(): void
     {
         $this->assertTrue(is_subclass_of(FeatureSettings::class, Settings::class));
     }
 
-    public function test_feature_settings_group_is_features(): void
+    public function test_feature_settings_group(): void
     {
-        $this->assertEquals('features', FeatureSettings::group());
+        $this->assertSame('features', FeatureSettings::group());
     }
 
-    public function test_feature_settings_has_expected_properties(): void
+    public function test_feature_settings_has_required_properties(): void
     {
         $reflection = new \ReflectionClass(FeatureSettings::class);
 
         $this->assertTrue($reflection->hasProperty('enable_registration'));
         $this->assertTrue($reflection->hasProperty('enable_social_login'));
         $this->assertTrue($reflection->hasProperty('enable_mfa'));
+        $this->assertTrue($reflection->hasProperty('enable_saml'));
         $this->assertTrue($reflection->hasProperty('enable_api'));
+    }
+
+    public function test_feature_settings_properties_are_boolean(): void
+    {
+        $reflection = new \ReflectionClass(FeatureSettings::class);
+
+        $booleanProperties = [
+            'enable_registration',
+            'enable_social_login',
+            'enable_mfa',
+            'enable_saml',
+            'enable_api',
+        ];
+
+        foreach ($booleanProperties as $propertyName) {
+            $property = $reflection->getProperty($propertyName);
+            $type = $property->getType();
+
+            $this->assertNotNull($type, "Property {$propertyName} should have a type declaration");
+            $this->assertSame('bool', $type->getName(), "Property {$propertyName} should be typed as bool");
+        }
     }
 }

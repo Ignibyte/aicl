@@ -147,10 +147,10 @@ class PreventionRuleTest extends TestCase
 
     public function test_search_scope_finds_matching_records(): void
     {
-        PreventionRule::factory()->create(['rule_text' => 'Always check for UUID primary keys']);
+        PreventionRule::factory()->create(['rule_text' => 'Always check for XYZUNIQUE123 primary keys']);
         PreventionRule::factory()->create(['rule_text' => 'Validate observer field references']);
 
-        $this->assertCount(1, PreventionRule::search('UUID')->get());
+        $this->assertCount(1, PreventionRule::search('XYZUNIQUE123')->get());
     }
 
     public function test_owner_can_view_own_rule(): void

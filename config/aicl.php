@@ -41,6 +41,18 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default Owner ID
+    |--------------------------------------------------------------------------
+    |
+    | The user ID to assign as owner when no authenticated user is available
+    | (e.g., CLI commands, seeders, background jobs). Set to your admin user's ID.
+    |
+    */
+
+    'default_owner_id' => (int) env('AICL_DEFAULT_OWNER_ID', 1),
+
     'entity_defaults' => [
         'traits' => [
             'entity_events' => true,
@@ -66,7 +78,7 @@ return [
         'social_login' => env('AICL_SOCIAL_LOGIN', false),
         'saml' => env('AICL_SAML', false),
         'api' => true,
-        'websockets' => env('AICL_WEBSOCKETS', false),
+        'websockets' => env('AICL_WEBSOCKETS', true),
         'scout_driver' => env('AICL_SCOUT_DRIVER', false),
         'hub_search' => (bool) env('AICL_HUB_SEARCH', false),
         'hub_admin' => (bool) env('AICL_HUB_ADMIN', false),
@@ -164,9 +176,9 @@ return [
             'filament_directives' => [
                 'default-src' => ["'self'"],
                 'script-src' => ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-                'style-src' => ["'self'", "'unsafe-inline'"],
-                'img-src' => ["'self'", 'data:', 'blob:'],
-                'font-src' => ["'self'", 'data:'],
+                'style-src' => ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+                'img-src' => ["'self'", 'data:', 'blob:', env('APP_URL', '')],
+                'font-src' => ["'self'", 'data:', 'https://fonts.gstatic.com'],
                 'connect-src' => ["'self'", 'ws:', 'wss:'],
                 'frame-ancestors' => ["'none'"],
             ],
@@ -197,6 +209,11 @@ return [
         'brand_name' => env('AICL_BRAND_NAME', 'IGNIBYTE'),
         'logo' => env('AICL_LOGO_PATH', 'vendor/aicl/images/logo.png'),
         'favicon' => env('AICL_FAVICON_PATH', 'vendor/aicl/images/favicon.png'),
+
+        // Navigation layout: 'sidebar' (default), 'topbar', or 'switchable'
+        // When 'switchable', a toggle button appears allowing users to switch
+        // between sidebar and topbar navigation. Preference is stored in localStorage.
+        'navigation_layout' => env('AICL_NAV_LAYOUT', 'sidebar'),
     ],
 
     /*
@@ -216,6 +233,127 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Notifications
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the notification channel driver system.
+    | External channel drivers (Slack, PagerDuty, etc.) use these settings
+    | for retry behavior, queue routing, and extension points.
+    |
+    */
+
+    'notifications' => [
+        'default_channels' => ['database', 'mail', 'broadcast'],
+
+        // Optional custom resolver classes (set to FQCN string or null)
+        'channel_resolver' => null,
+        'recipient_resolver' => null,
+
+        'retry' => [
+            'max_attempts' => 5,
+            'base_delay' => 1, // seconds
+        ],
+
+        'queue' => 'notifications',
+
+        // Template rendering (3.2)
+        'templates' => [
+            // HTML escaping enabled by default (prevents XSS in email output)
+            'escape_html' => true,
+
+            // Maximum template length (prevents abuse in admin-edited templates)
+            'max_length' => 2000,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Document Browser
+    |--------------------------------------------------------------------------
+    |
+    | Directories to expose in the Document Browser Filament page.
+    | Each entry has a label (shown in the sidebar) and a path (relative
+    | to base_path()). Only .md files are listed.
+    |
+    */
+
+    'docs' => [
+        'paths' => [
+            ['label' => 'Architecture', 'path' => '.claude/architecture'],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Health Checks
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the Live Ops Panel health check system.
+    |
+    */
+
+    'health' => [
+        'queues' => ['default', 'notifications', 'high', 'low'],
+        'failed_jobs_threshold' => 10,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Assistant
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the AI assistant chat feature. Supports OpenAI,
+    | Anthropic, and Ollama providers via NeuronAI.
+    |
+    */
+
+    'ai' => [
+        'provider' => env('AICL_AI_PROVIDER', 'openai'),
+
+        'tools_enabled' => env('AICL_AI_TOOLS_ENABLED', true),
+
+        'tools' => [
+            // Additional tools registered by client projects:
+            // App\AI\Tools\MyCustomTool::class,
+        ],
+
+        'openai' => [
+            'api_key' => env('OPENAI_API_KEY'),
+            'model' => env('AICL_AI_MODEL', 'gpt-4o-mini'),
+        ],
+
+        'anthropic' => [
+            'api_key' => env('ANTHROPIC_API_KEY'),
+            'model' => env('AICL_AI_MODEL', 'claude-haiku-4-5-20251001'),
+        ],
+
+        'ollama' => [
+            'host' => env('OLLAMA_HOST', 'http://localhost:11434'),
+            'model' => env('AICL_AI_MODEL', 'llama3.2'),
+        ],
+
+        'system_prompt' => 'You are a helpful assistant for this application. Answer questions clearly and concisely.',
+        'max_prompt_length' => 2000,
+
+        'rate_limit' => [
+            'max_attempts' => 10,
+            'decay_minutes' => 1,
+        ],
+
+        'streaming' => [
+            'queue' => env('AICL_AI_QUEUE', 'default'),
+            'timeout' => (int) env('AICL_AI_TIMEOUT', 120),
+            'max_concurrent_per_user' => 2,
+            'reverb' => [
+                'host' => env('VITE_REVERB_HOST', env('REVERB_HOST', 'localhost')),
+                'port' => (int) env('VITE_REVERB_PORT', env('REVERB_PORT', 8080)),
+                'scheme' => env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'http')),
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | RLM Knowledge System
     |--------------------------------------------------------------------------
     |
@@ -223,6 +361,33 @@ return [
     | Uses PostgreSQL as source of truth and Elasticsearch for search/discovery.
     |
     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | KPI Thresholds
+    |--------------------------------------------------------------------------
+    |
+    | Thresholds used by the KpiCalculator for system health verdicts.
+    |
+    */
+
+    'kpi_thresholds' => [
+        'min_pipeline_runs' => 5,
+        'baseline_window' => 20,
+        'recent_window' => 5,
+        'failure_analysis_window' => 10,
+        'fix_trend_improvement_pct' => -20.0,
+        'fix_trend_decline_pct' => 20.0,
+        'recurrence_healthy_pct' => 30.0,
+        'recurrence_moderate_pct' => 50.0,
+        'auto_retire_min_interactions' => 5,
+        'auto_retire_effectiveness_pct' => 30.0,
+        'verdict_min_runs' => 20,
+        'verdict_effectiveness_target' => 60.0,
+        'verdict_borderline_effectiveness' => 50.0,
+        'verdict_borderline_fix_trend_pct' => -10.0,
+        'verdict_borderline_recurrence_pct' => 40.0,
+    ],
 
     'rlm' => [
         'embeddings' => [

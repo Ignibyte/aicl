@@ -40,8 +40,8 @@ class RlmKnowledgeController extends Controller
         );
 
         return response()->json([
-            'data' => $results->map(fn ($model) => [
-                'id' => $model->id,
+            'data' => $results->map(fn (\Illuminate\Database\Eloquent\Model $model) => [
+                'id' => $model->getKey(),
                 'type' => class_basename($model),
                 'attributes' => $model->toArray(),
             ]),
@@ -141,21 +141,26 @@ class RlmKnowledgeController extends Controller
             return response()->json(['error' => 'Invalid model.'], 422);
         }
 
+        /** @var class-string<\Illuminate\Database\Eloquent\Model> $modelClass */
         $records = $modelClass::whereIn('id', $validated['ids'])->get();
 
         $generated = 0;
         foreach ($records as $record) {
-            if (method_exists($record, 'embeddingText')) {
-                $text = $record->embeddingText();
+            if (! method_exists($record, 'embeddingText') || ! method_exists($record, 'cacheEmbedding')) {
+                continue;
+            }
 
-                if (! empty($text)) {
-                    $embedding = $this->embeddingService->generate($text);
+            $text = $record->embeddingText();
 
-                    if ($embedding !== null) {
-                        $record->cacheEmbedding($embedding);
+            if (! empty($text)) {
+                $embedding = $this->embeddingService->generate($text);
+
+                if ($embedding !== null) {
+                    $record->cacheEmbedding($embedding);
+                    if (method_exists($record, 'searchable')) {
                         $record->searchable();
-                        $generated++;
                     }
+                    $generated++;
                 }
             }
         }

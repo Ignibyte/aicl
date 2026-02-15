@@ -187,7 +187,7 @@ class PreventionRule extends Model implements Auditable, HasEntityLifecycle
             return false;
         }
 
-        if (method_exists($this, 'trashed') && $this->trashed()) {
+        if ($this->trashed()) {
             return false;
         }
 

@@ -3,6 +3,7 @@
 namespace Aicl\Models;
 
 use Aicl\Contracts\Auditable;
+use Aicl\Contracts\DeclaresBaseSchema;
 use Aicl\Contracts\HasEntityLifecycle;
 use Aicl\Database\Factories\RlmPatternFactory;
 use Aicl\Traits\HasAuditTrail;
@@ -37,7 +38,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read User $owner
  * @property-read float $pass_rate
  */
-class RlmPattern extends Model implements Auditable, HasEntityLifecycle
+class RlmPattern extends Model implements Auditable, DeclaresBaseSchema, HasEntityLifecycle
 {
     use HasAuditTrail;
     use HasEmbeddings;
@@ -80,6 +81,75 @@ class RlmPattern extends Model implements Auditable, HasEntityLifecycle
             'pass_count' => 'integer',
             'fail_count' => 'integer',
             'last_evaluated_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * @return array{
+     *     columns: array<int, array{name: string, type: string, modifiers?: array<string>, argument?: string}>,
+     *     traits: array<int, string>,
+     *     contracts: array<int, string>,
+     *     fillable: array<int, string>,
+     *     casts: array<string, string>,
+     *     relationships: array<int, array{name: string, type: string, model: string, foreignKey?: string}>,
+     * }
+     */
+    public static function baseSchema(): array
+    {
+        return [
+            'columns' => [
+                ['name' => 'name', 'type' => 'string', 'modifiers' => ['unique']],
+                ['name' => 'description', 'type' => 'text'],
+                ['name' => 'target', 'type' => 'string', 'modifiers' => ['index']],
+                ['name' => 'check_regex', 'type' => 'text'],
+                ['name' => 'severity', 'type' => 'string'],
+                ['name' => 'weight', 'type' => 'decimal', 'argument' => '5,2'],
+                ['name' => 'category', 'type' => 'string', 'modifiers' => ['index']],
+                ['name' => 'applies_when', 'type' => 'json', 'modifiers' => ['nullable']],
+                ['name' => 'source', 'type' => 'string'],
+                ['name' => 'is_active', 'type' => 'boolean'],
+                ['name' => 'pass_count', 'type' => 'integer'],
+                ['name' => 'fail_count', 'type' => 'integer'],
+                ['name' => 'last_evaluated_at', 'type' => 'dateTime', 'modifiers' => ['nullable']],
+            ],
+            'traits' => [
+                HasAuditTrail::class,
+                HasEmbeddings::class,
+                HasEntityEvents::class,
+                HasSearchableFields::class,
+                HasStandardScopes::class,
+            ],
+            'contracts' => [
+                Auditable::class,
+                HasEntityLifecycle::class,
+            ],
+            'fillable' => [
+                'name',
+                'description',
+                'target',
+                'check_regex',
+                'severity',
+                'weight',
+                'category',
+                'applies_when',
+                'source',
+                'is_active',
+                'pass_count',
+                'fail_count',
+                'last_evaluated_at',
+                'owner_id',
+            ],
+            'casts' => [
+                'weight' => 'decimal:2',
+                'applies_when' => 'array',
+                'is_active' => 'boolean',
+                'pass_count' => 'integer',
+                'fail_count' => 'integer',
+                'last_evaluated_at' => 'datetime',
+            ],
+            'relationships' => [
+                ['name' => 'owner', 'type' => 'belongsTo', 'model' => User::class, 'foreignKey' => 'owner_id'],
+            ],
         ];
     }
 
@@ -187,7 +257,7 @@ class RlmPattern extends Model implements Auditable, HasEntityLifecycle
             return false;
         }
 
-        if (method_exists($this, 'trashed') && $this->trashed()) {
+        if ($this->trashed()) {
             return false;
         }
 

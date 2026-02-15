@@ -6,15 +6,11 @@ use Aicl\Filament\Widgets\CategoryBreakdownChart;
 use Aicl\Filament\Widgets\FailureTrendChart;
 use Aicl\Filament\Widgets\ProjectHealthWidget;
 use Aicl\Filament\Widgets\PromotionQueueWidget;
-use BackedEnum;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
 class RlmDashboard extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBarSquare;
-
     protected static string|UnitEnum|null $navigationGroup = 'RLM Hub';
 
     protected static ?int $navigationSort = 1;

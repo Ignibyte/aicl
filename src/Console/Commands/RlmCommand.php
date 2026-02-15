@@ -2,6 +2,7 @@
 
 namespace Aicl\Console\Commands;
 
+use Aicl\Models\DistilledLesson;
 use Aicl\Models\FailureReport;
 use Aicl\Models\GenerationTrace;
 use Aicl\Models\GoldenAnnotation;
@@ -10,8 +11,10 @@ use Aicl\Models\RlmFailure;
 use Aicl\Models\RlmLesson;
 use Aicl\Models\RlmPattern;
 use Aicl\Models\RlmScore;
+use Aicl\Rlm\DistillationService;
 use Aicl\Rlm\EmbeddingService;
 use Aicl\Rlm\KnowledgeService;
+use Aicl\Rlm\KpiCalculator;
 use Aicl\Traits\HasEmbeddings;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +26,7 @@ class RlmCommand extends Command
      * @var string
      */
     protected $signature = 'aicl:rlm
-        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, embed, index, aar)}
+        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, embed, index, aar, cleanup, distill, feedback, health)}
         {query? : Search query or lesson summary}
         {--agent= : Agent role for recall (architect, rlm, tester, solutions, designer, pm)}
         {--phase= : Pipeline phase number for recall}
@@ -57,7 +60,11 @@ class RlmCommand extends Command
         {--model= : Specific model class for embed/index (e.g., RlmFailure)}
         {--stats : Show embedding/index stats instead of running (embed/index action)}
         {--all : Process all models (index action)}
-        {--recreate : Delete and recreate ES indices (index action)}';
+        {--recreate : Delete and recreate ES indices (index action)}
+        {--remove-faker-records : Remove faker-generated records from RLM tables (cleanup action)}
+        {--surfaced= : Comma-separated DL codes of lessons surfaced during generation (feedback action)}
+        {--failures= : Comma-separated BF/F codes of failures that actually occurred (feedback action)}
+        {--verdict : Include system verdict in health output (health action)}';
 
     /**
      * @var string
@@ -81,6 +88,10 @@ class RlmCommand extends Command
             'embed' => $this->handleEmbed(),
             'index' => $this->handleIndex(),
             'aar' => $this->handleAar(),
+            'cleanup' => $this->handleCleanup(),
+            'distill' => $this->handleDistill(),
+            'feedback' => $this->handleFeedback(),
+            'health' => $this->handleHealth(),
             default => $this->showUsage(),
         };
     }
@@ -140,15 +151,134 @@ class RlmCommand extends Command
             return self::FAILURE;
         }
 
-        $ks = $this->getKnowledgeService();
+        $format = $this->option('format') ?? 'markdown';
 
-        $entityContext = null;
-        if ($this->option('entity-context')) {
-            $entityContext = json_decode($this->option('entity-context'), true);
+        return match ($format) {
+            'json' => $this->handleRecallJson($agent, (int) $phase),
+            'full' => $this->handleRecallFull($agent, (int) $phase),
+            default => $this->handleRecallCheatsheet($agent, (int) $phase),
+        };
+    }
+
+    /**
+     * Cheat sheet format: focused ~30 line output for agent context windows.
+     */
+    private function handleRecallCheatsheet(string $agent, int $phase): int
+    {
+        $distillation = app(DistillationService::class);
+        $entityName = $this->option('entity');
+        $entityContext = $this->option('entity-context')
+            ? json_decode($this->option('entity-context'), true)
+            : null;
+
+        // Use explicit --limit if provided, otherwise default to 5 for cheatsheet
+        $limit = $this->option('limit') !== '10' ? (int) $this->option('limit') : 5;
+
+        $lessons = $distillation->getTopLessons($agent, $phase, $limit, $entityContext);
+
+        $entityLabel = $entityName ?? 'any';
+        $this->line("=== CHEAT SHEET: {$agent} / phase {$phase} (entity: {$entityLabel}) ===");
+        $this->newLine();
+
+        if ($lessons->isEmpty()) {
+            $this->line('No distilled lessons yet. Run: aicl:rlm distill');
+            $this->newLine();
+            $this->line('Falling back to full recall...');
+            $this->newLine();
+
+            return $this->handleRecallFull($agent, $phase);
         }
 
+        // TOP N lessons
+        $this->line("TOP {$lessons->count()} LESSONS:");
+        foreach ($lessons as $i => $lesson) {
+            $num = $i + 1;
+            $codes = implode(',', $lesson->source_failure_codes ?? []);
+            $this->line("  {$num}. [{$lesson->lesson_code}] {$lesson->title}");
+            $this->line("     {$lesson->guidance}");
+            if ($codes) {
+                $this->line("     Sources: {$codes}");
+            }
+        }
+        $this->newLine();
+
+        // When-Then rules
+        $rules = $distillation->generateWhenThenRules($agent, $phase);
+        if ($rules->isNotEmpty()) {
+            $this->line('WHEN-THEN RULES:');
+            foreach ($rules->take(5) as $rule) {
+                $this->line("  WHEN {$rule['when']}:");
+                foreach (array_slice($rule['then'], 0, 3) as $then) {
+                    $this->line("    THEN {$then}");
+                }
+            }
+            $this->newLine();
+        }
+
+        // Recent outcomes from KnowledgeService
+        $ks = $this->getKnowledgeService();
+        $result = $ks->recall($agent, $phase, $entityContext, $entityName);
+        $briefing = $result['risk_briefing'];
+
+        if (! empty($briefing['recent_outcomes'])) {
+            $this->line('RECENT OUTCOMES:');
+            foreach (array_slice($briefing['recent_outcomes'], 0, 3) as $outcome) {
+                $structural = $outcome['structural_score'] ?? '?';
+                $semantic = $outcome['semantic_score'] ?? '?';
+                $this->line("  {$outcome['entity_name']}: {$structural}% structural, {$semantic}% semantic, {$outcome['fix_iterations']} fixes");
+            }
+            $this->newLine();
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * JSON format: structured output for programmatic consumption.
+     */
+    private function handleRecallJson(string $agent, int $phase): int
+    {
+        $distillation = app(DistillationService::class);
+        $entityContext = $this->option('entity-context')
+            ? json_decode($this->option('entity-context'), true)
+            : null;
+        $limit = (int) $this->option('limit');
+
+        $lessons = $distillation->getTopLessons($agent, $phase, $limit, $entityContext);
+        $rules = $distillation->generateWhenThenRules($agent, $phase);
+
+        $output = [
+            'agent' => $agent,
+            'phase' => $phase,
+            'entity' => $this->option('entity'),
+            'lessons' => $lessons->map(fn (DistilledLesson $l) => [
+                'lesson_code' => $l->lesson_code,
+                'title' => $l->title,
+                'guidance' => $l->guidance,
+                'impact_score' => $l->impact_score,
+                'source_failure_codes' => $l->source_failure_codes,
+            ])->values()->all(),
+            'when_then_rules' => $rules->all(),
+        ];
+
+        $this->line(json_encode($output, JSON_PRETTY_PRINT));
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Full format: legacy verbose output with all sections.
+     */
+    private function handleRecallFull(string $agent, int $phase): int
+    {
+        $ks = $this->getKnowledgeService();
+
+        $entityContext = $this->option('entity-context')
+            ? json_decode($this->option('entity-context'), true)
+            : null;
+
         $entityName = $this->option('entity');
-        $result = $ks->recall($agent, (int) $phase, $entityContext, $entityName);
+        $result = $ks->recall($agent, $phase, $entityContext, $entityName);
 
         // Render risk briefing
         $briefing = $result['risk_briefing'];
@@ -196,7 +326,7 @@ class RlmCommand extends Command
         $this->newLine();
 
         foreach ($result['failures'] as $failure) {
-            $severity = strtoupper($failure->severity?->value ?? (string) $failure->severity);
+            $severity = strtoupper($failure->severity->value);
             $this->line("{$failure->failure_code} [{$severity}] {$failure->title}");
             if ($failure->preventive_rule) {
                 $this->line("  -> {$failure->preventive_rule}");
@@ -246,10 +376,7 @@ class RlmCommand extends Command
             $this->line('No previous scores for this entity.');
         } else {
             foreach ($result['scores']->take(5) as $score) {
-                $scoreType = $score->score_type instanceof \BackedEnum
-                    ? $score->score_type->value
-                    : (string) $score->score_type;
-                $this->line("{$scoreType}: {$score->percentage}% ({$score->passed}/{$score->total}) — {$score->created_at}");
+                $this->line("{$score->score_type->value}: {$score->percentage}% ({$score->passed}/{$score->total}) — {$score->created_at}");
             }
         }
 
@@ -340,7 +467,7 @@ class RlmCommand extends Command
         $this->newLine();
 
         foreach ($results as $failure) {
-            $severity = strtoupper($failure->severity?->value ?? (string) $failure->severity);
+            $severity = strtoupper($failure->severity->value);
             $this->line("{$failure->failure_code} [{$severity}] {$failure->title}");
             if ($failure->preventive_rule) {
                 $this->line("  -> {$failure->preventive_rule}");
@@ -380,12 +507,9 @@ class RlmCommand extends Command
 
         $rows = [];
         foreach ($scores as $score) {
-            $scoreType = $score->score_type instanceof \BackedEnum
-                ? $score->score_type->value
-                : (string) $score->score_type;
             $rows[] = [
                 $score->entity_name,
-                $scoreType,
+                $score->score_type->value,
                 "{$score->passed}/{$score->total}",
                 "{$score->percentage}%",
                 $score->errors,
@@ -473,8 +597,8 @@ class RlmCommand extends Command
         $md .= "| # | Category | Title | Severity | Status |\n";
         $md .= "|---|----------|-------|----------|--------|\n";
         foreach ($failures as $f) {
-            $category = $f->category instanceof \BackedEnum ? $f->category->value : (string) $f->category;
-            $severity = $f->severity instanceof \BackedEnum ? $f->severity->value : (string) $f->severity;
+            $category = $f->category->value;
+            $severity = $f->severity->value;
             $md .= "| {$f->failure_code} | {$category} | {$f->title} | {$severity} | {$f->status} |\n";
         }
         $path = $outputDir.'/failures.md';
@@ -506,7 +630,7 @@ class RlmCommand extends Command
         $md .= "| Entity | Type | Passed | Total | Score | Errors | Warnings | Date |\n";
         $md .= "|--------|------|--------|-------|-------|--------|----------|------|\n";
         foreach ($scores as $s) {
-            $scoreType = $s->score_type instanceof \BackedEnum ? $s->score_type->value : (string) $s->score_type;
+            $scoreType = $s->score_type->value;
             $md .= "| {$s->entity_name} | {$scoreType} | {$s->passed} | {$s->total} | {$s->percentage}% | {$s->errors} | {$s->warnings} | {$s->created_at} |\n";
         }
         $path = $outputDir.'/scores.md';
@@ -682,12 +806,14 @@ class RlmCommand extends Command
                     continue;
                 }
 
+                /** @phpstan-ignore method.notFound (method provided by HasEmbeddings trait) */
                 if ($record->getCachedEmbedding() !== null) {
                     $skipped++;
 
                     continue;
                 }
 
+                /** @phpstan-ignore method.notFound (method provided by HasEmbeddings trait) */
                 $record->dispatchEmbeddingJob();
                 $processed++;
             }
@@ -754,6 +880,7 @@ class RlmCommand extends Command
                 ->get()
                 ->each(function (Model $model): void {
                     if (method_exists($model, 'shouldBeSearchable') && $model->shouldBeSearchable()) {
+                        /** @phpstan-ignore method.notFound (method provided by Searchable trait) */
                         $model->searchable();
                     }
                 });
@@ -795,6 +922,7 @@ class RlmCommand extends Command
 
         // 2. Load failure reports created during this pipeline run
         $failureReports = FailureReport::query()
+            ->with('failure')
             ->where('entity_name', $entityName)
             ->where('created_at', '>=', $trace->created_at)
             ->get();
@@ -834,7 +962,7 @@ class RlmCommand extends Command
         // Pre-flagged risks vs outcomes
         if (! empty($riskBriefing['high_risk'])) {
             $this->line('PRE-FLAGGED RISKS:');
-            $failureCodeHits = $failureReports->pluck('failure_code')->unique()->all();
+            $failureCodeHits = $failureReports->map(fn (FailureReport $r) => $r->failure?->failure_code)->filter()->unique()->all();
 
             foreach ($riskBriefing['high_risk'] as $risk) {
                 $code = $risk['failure_code'];
@@ -851,13 +979,14 @@ class RlmCommand extends Command
         // New discoveries (failure reports not in pre-flagged risks)
         $preFlaggedCodes = collect($riskBriefing['high_risk'] ?? [])->pluck('failure_code')->all();
         $newDiscoveries = $failureReports->filter(
-            fn (FailureReport $r): bool => ! in_array($r->failure_code, $preFlaggedCodes, true),
+            fn (FailureReport $r): bool => ! in_array($r->failure?->failure_code, $preFlaggedCodes, true),
         );
 
         if ($newDiscoveries->isNotEmpty()) {
             $this->line('NEW DISCOVERIES:');
             foreach ($newDiscoveries as $discovery) {
-                $this->line("  ! {$discovery->failure_code}: {$discovery->entity_name} — {$discovery->resolution_method}");
+                $failureCode = $discovery->failure->failure_code ?? 'unknown';
+                $this->line("  ! {$failureCode}: {$discovery->entity_name} — {$discovery->resolution_method}");
             }
             $this->newLine();
         }
@@ -897,6 +1026,415 @@ class RlmCommand extends Command
         return $context;
     }
 
+    // ─── Cleanup ────────────────────────────────────────────────
+
+    private function handleCleanup(): int
+    {
+        if (! $this->option('remove-faker-records')) {
+            $this->components->error('Cleanup requires --remove-faker-records flag.');
+            $this->line('  aicl:rlm cleanup --remove-faker-records    Remove faker-generated records');
+            $this->line('  aicl:rlm cleanup --remove-faker-records --dry-run    Preview what would be removed');
+
+            return self::FAILURE;
+        }
+
+        $dryRun = (bool) $this->option('dry-run');
+        $prefix = $dryRun ? '[DRY RUN] ' : '';
+
+        $this->components->info("{$prefix}Cleaning up faker-generated RLM records...");
+
+        // 1. RlmFailure: faker records have failure_code matching F-\d+ pattern (not BF-\d+)
+        $fakerFailures = RlmFailure::query()
+            ->whereRaw("failure_code ~ '^F-\\d+$'")
+            ->get();
+
+        $fakerFailureIds = $fakerFailures->pluck('id')->all();
+
+        $this->line("{$prefix}  RlmFailure: {$fakerFailures->count()} faker records found (F-### pattern)");
+
+        // 2. PreventionRule: rules linked to faker failures (orphaned by deletion)
+        $orphanedRules = PreventionRule::query()
+            ->whereIn('rlm_failure_id', $fakerFailureIds)
+            ->get();
+
+        $this->line("{$prefix}  PreventionRule: {$orphanedRules->count()} rules linked to faker failures");
+
+        // 3. RlmLesson: lessons with source='factory' or without source that have no BF-* context tags
+        $fakerLessons = RlmLesson::query()
+            ->where(function ($query): void {
+                $query->where('source', 'factory')
+                    ->orWhere(function ($q): void {
+                        $q->whereNull('source')
+                            ->where('confidence', '<', 0.5);
+                    });
+            })
+            ->get();
+
+        $this->line("{$prefix}  RlmLesson: {$fakerLessons->count()} faker records found");
+
+        $totalRemoved = $fakerFailures->count() + $orphanedRules->count() + $fakerLessons->count();
+
+        if ($totalRemoved === 0) {
+            $this->components->info('No faker records found. Database is clean.');
+
+            return self::SUCCESS;
+        }
+
+        if (! $dryRun) {
+            // Delete in correct order (rules before failures due to FK)
+            $rulesDeleted = PreventionRule::query()
+                ->whereIn('rlm_failure_id', $fakerFailureIds)
+                ->forceDelete();
+
+            $lessonsDeleted = RlmLesson::query()
+                ->where(function ($query): void {
+                    $query->where('source', 'factory')
+                        ->orWhere(function ($q): void {
+                            $q->whereNull('source')
+                                ->where('confidence', '<', 0.5);
+                        });
+                })
+                ->forceDelete();
+
+            $failuresDeleted = RlmFailure::query()
+                ->whereRaw("failure_code ~ '^F-\\d+$'")
+                ->forceDelete();
+
+            $this->newLine();
+            $this->components->info("Cleanup complete: {$failuresDeleted} failures, {$rulesDeleted} rules, {$lessonsDeleted} lessons removed.");
+        } else {
+            $this->newLine();
+            $this->components->info("[DRY RUN] Would remove {$totalRemoved} total records. Run without --dry-run to execute.");
+        }
+
+        return self::SUCCESS;
+    }
+
+    // ─── Distill ────────────────────────────────────────────────
+
+    private function handleDistill(): int
+    {
+        $dryRun = (bool) $this->option('dry-run');
+        $showStats = (bool) $this->option('stats');
+        $agentFilter = $this->option('agent');
+
+        $service = app(DistillationService::class);
+
+        if ($showStats) {
+            $stats = $service->getStats();
+            $this->components->info('Distillation Coverage Stats:');
+            $this->line("  Total base failures: {$stats['total_failures']}");
+            $this->line("  Clustered failures: {$stats['clustered_failures']}");
+            $this->line("  Total clusters: {$stats['total_clusters']}");
+            $this->line("  Projected lessons: {$stats['total_lessons']}");
+            $this->newLine();
+
+            if (! empty($stats['agents'])) {
+                $rows = [];
+                foreach ($stats['agents'] as $agent => $count) {
+                    $rows[] = [$agent, $count];
+                }
+                $this->table(['Agent', 'Lessons'], $rows);
+            }
+
+            $existing = DistilledLesson::query()->count();
+            $this->line("  Existing distilled lessons: {$existing}");
+
+            return self::SUCCESS;
+        }
+
+        if ($dryRun) {
+            $stats = $service->getStats();
+            $this->components->info('[DRY RUN] Distillation preview:');
+            $this->line("  Would cluster {$stats['total_failures']} failures into {$stats['total_clusters']} clusters");
+            $this->line("  Would generate {$stats['total_lessons']} distilled lessons");
+            $this->newLine();
+
+            foreach ($stats['agents'] as $agent => $count) {
+                $this->line("    {$agent}: {$count} lessons");
+            }
+
+            return self::SUCCESS;
+        }
+
+        $this->components->info('Running distillation pipeline...');
+
+        $result = $service->distill($agentFilter);
+
+        $this->newLine();
+        $this->components->info("Distilled {$result['clusters']} clusters into {$result['lessons']} agent lessons.");
+
+        if (! empty($result['agents'])) {
+            foreach ($result['agents'] as $agent => $count) {
+                $this->line("  {$agent}: {$count} lessons");
+            }
+        }
+
+        return self::SUCCESS;
+    }
+
+    // ─── Feedback ──────────────────────────────────────────────
+
+    private function handleFeedback(): int
+    {
+        $entityName = $this->option('entity');
+        $surfacedRaw = $this->option('surfaced');
+        $failuresRaw = $this->option('failures');
+
+        if (! $entityName) {
+            $this->components->error('Feedback requires --entity option.');
+
+            return self::FAILURE;
+        }
+
+        if (! $surfacedRaw) {
+            $this->components->error('Feedback requires --surfaced option (comma-separated DL codes).');
+
+            return self::FAILURE;
+        }
+
+        $surfacedCodes = array_map('trim', explode(',', $surfacedRaw));
+        $actualFailureCodes = $failuresRaw
+            ? array_map('trim', explode(',', $failuresRaw))
+            : [];
+
+        // Look up surfaced lessons
+        $surfacedLessons = DistilledLesson::query()
+            ->whereIn('lesson_code', $surfacedCodes)
+            ->get();
+
+        if ($surfacedLessons->isEmpty()) {
+            $this->components->error('No distilled lessons found for the provided codes.');
+
+            return self::FAILURE;
+        }
+
+        $service = app(DistillationService::class);
+
+        $preventedLessons = collect();
+        $ignoredLessons = collect();
+        $coveredFailureCodes = collect();
+
+        foreach ($surfacedLessons as $lesson) {
+            $sourceFailureCodes = $lesson->source_failure_codes ?? [];
+
+            // Track all failure codes covered by surfaced lessons
+            $coveredFailureCodes = $coveredFailureCodes->merge($sourceFailureCodes);
+
+            // Check if any of this lesson's source failures actually occurred
+            $overlapping = array_intersect($sourceFailureCodes, $actualFailureCodes);
+
+            if (empty($overlapping)) {
+                // None of the source failures occurred — lesson prevented them
+                $lesson->increment('prevented_count');
+                $preventedLessons->push($lesson);
+            } else {
+                // Source failures still occurred — lesson was ignored/ineffective
+                $lesson->increment('ignored_count');
+                $ignoredLessons->push($lesson);
+            }
+
+            // Recalculate confidence after count update
+            $lesson->refresh();
+            $service->recalculateConfidence($lesson);
+        }
+
+        // Identify uncovered failures — actual failures not covered by any surfaced lesson
+        $uncoveredFailureCodes = collect($actualFailureCodes)
+            ->diff($coveredFailureCodes->unique())
+            ->values();
+
+        // Populate GenerationTrace KPI fields
+        $this->populateTraceKpiFields(
+            $entityName,
+            $surfacedCodes,
+            $actualFailureCodes,
+            $coveredFailureCodes->unique()->values()->all(),
+        );
+
+        // Output summary
+        $phase = $this->option('phase') ? " (phase {$this->option('phase')})" : '';
+        $this->line("=== FEEDBACK SUMMARY: {$entityName}{$phase} ===");
+        $this->newLine();
+
+        $this->line("Surfaced lessons: {$surfacedLessons->count()}");
+        $this->line('Actual failures:  '.count($actualFailureCodes));
+        $this->newLine();
+
+        if ($preventedLessons->isNotEmpty()) {
+            $this->line('PREVENTED ('.($preventedLessons->count()).' lessons effective):');
+            foreach ($preventedLessons as $lesson) {
+                $this->line("  + {$lesson->lesson_code}: {$lesson->title} (confidence: {$lesson->confidence})");
+            }
+            $this->newLine();
+        }
+
+        if ($ignoredLessons->isNotEmpty()) {
+            $this->line('IGNORED ('.($ignoredLessons->count()).' lessons ineffective):');
+            foreach ($ignoredLessons as $lesson) {
+                $this->line("  - {$lesson->lesson_code}: {$lesson->title} (confidence: {$lesson->confidence})");
+            }
+            $this->newLine();
+        }
+
+        if ($uncoveredFailureCodes->isNotEmpty()) {
+            $this->line('UNCOVERED FAILURES (not addressed by any surfaced lesson):');
+            foreach ($uncoveredFailureCodes as $code) {
+                $failure = RlmFailure::query()
+                    ->where('failure_code', $code)
+                    ->first();
+                $title = $failure ? $failure->title : 'Unknown failure';
+                $this->line("  ! {$code}: {$title}");
+            }
+            $this->newLine();
+            $this->components->warn('Uncovered failures may indicate a need for new distilled lessons. Run: aicl:rlm distill');
+        }
+
+        $this->newLine();
+        $this->components->info("Feedback recorded: {$preventedLessons->count()} prevented, {$ignoredLessons->count()} ignored, {$uncoveredFailureCodes->count()} uncovered.");
+
+        return self::SUCCESS;
+    }
+
+    // ─── Health ──────────────────────────────────────────────────
+
+    private function handleHealth(): int
+    {
+        $kpi = app(KpiCalculator::class);
+        $showVerdict = (bool) $this->option('verdict');
+
+        $this->line('=== RLM SYSTEM HEALTH ===');
+        $this->newLine();
+
+        // KPI 1: Fix Iteration Trend
+        $fixTrend = $kpi->fixIterationTrend();
+        $this->line('PIPELINE VELOCITY:');
+        if ($fixTrend['trend'] === 'INSUFFICIENT_DATA') {
+            $this->line('  Insufficient data (need at least 5 pipeline runs)');
+        } else {
+            $arrow = $fixTrend['percent_change'] < 0 ? '↓' : ($fixTrend['percent_change'] > 0 ? '↑' : '→');
+            $this->line("  Last 5 entities: avg {$fixTrend['recent_avg']} fix iterations ({$arrow} from {$fixTrend['baseline_avg']} over last 20)");
+            $this->line("  Trend: {$fixTrend['trend']}");
+        }
+        $this->newLine();
+
+        // KPI 2: Failure Profile
+        $failureRatio = $kpi->failureRatio();
+        $this->line('FAILURE PROFILE:');
+        if ($failureRatio['trend'] === 'INSUFFICIENT_DATA') {
+            $this->line('  No pipeline runs recorded yet');
+        } else {
+            $this->line("  Last {$failureRatio['runs_analyzed']} pipeline runs: {$failureRatio['known_total']} known failures prevented, {$failureRatio['novel_total']} novel discoveries");
+            $this->line("  Known failure recurrence rate: {$failureRatio['recurrence_rate']}%");
+        }
+        $this->newLine();
+
+        // KPI 3: Lesson Effectiveness
+        $effectiveness = $kpi->lessonEffectiveness();
+        $this->line('LESSON EFFECTIVENESS:');
+        $this->line("  {$effectiveness['active_count']} active distilled lessons");
+
+        if ($effectiveness['top_performers']->isNotEmpty()) {
+            $this->line('  Top performers:');
+            foreach ($effectiveness['top_performers'] as $performer) {
+                $this->line("    {$performer['lesson_code']} {$performer['title']}: {$performer['effectiveness']}% ({$performer['prevented']}/{$performer['total']})");
+            }
+        }
+
+        if ($effectiveness['underperformers']->isNotEmpty()) {
+            $this->line('  Underperformers:');
+            foreach ($effectiveness['underperformers'] as $performer) {
+                $this->line("    {$performer['lesson_code']} {$performer['title']}: {$performer['effectiveness']}% ({$performer['prevented']}/{$performer['total']})");
+            }
+        }
+
+        // Auto-retirement
+        $retired = $kpi->autoRetireLessons();
+        if (! empty($retired)) {
+            $this->line('  Retired (auto): '.count($retired).' lessons dropped below 30% threshold');
+            foreach ($retired as $code) {
+                $this->line("    - {$code}");
+            }
+        }
+
+        $this->newLine();
+
+        // Verdict (optional)
+        if ($showVerdict) {
+            $verdict = $kpi->computeVerdict();
+            $this->line("SYSTEM VERDICT: {$verdict['verdict']}");
+
+            $fixIcon = $verdict['metrics']['fix_trend_pass'] ? '✓' : '✗';
+            $recurrenceIcon = $verdict['metrics']['recurrence_pass'] ? '✓' : '✗';
+            $effectivenessIcon = $verdict['metrics']['effectiveness_pass'] ? '✓' : '✗';
+
+            $this->line("  {$fixIcon} Fix iteration trend (target: >20% improvement)");
+            $this->line("  {$recurrenceIcon} Known failure recurrence (target: <30%)");
+            $this->line("  {$effectivenessIcon} Lesson effectiveness (target: >60%)");
+
+            $this->line("  Total pipeline runs: {$verdict['total_runs']}");
+        }
+
+        return self::SUCCESS;
+    }
+
+    // ─── Trace KPI Population ──────────────────────────────────
+
+    /**
+     * Populate KPI fields on the entity's latest GenerationTrace.
+     *
+     * A "known" failure is one whose code appears in any active DistilledLesson's
+     * source_failure_codes. A "novel" failure is one not covered by any lesson.
+     *
+     * @param  array<int, string>  $surfacedCodes
+     * @param  array<int, string>  $actualFailureCodes
+     * @param  array<int, string>  $coveredFailureCodes
+     */
+    private function populateTraceKpiFields(
+        string $entityName,
+        array $surfacedCodes,
+        array $actualFailureCodes,
+        array $coveredFailureCodes,
+    ): void {
+        $trace = GenerationTrace::query()
+            ->byEntity($entityName)
+            ->latest()
+            ->first();
+
+        if (! $trace) {
+            return;
+        }
+
+        // Collect all failure codes covered by any active distilled lesson
+        $allLessonFailureCodes = DistilledLesson::query()
+            ->where('is_active', true)
+            ->whereNotNull('source_failure_codes')
+            ->pluck('source_failure_codes')
+            ->flatten()
+            ->unique()
+            ->values()
+            ->all();
+
+        // Classify each actual failure as known or novel
+        $knownCount = 0;
+        $novelCount = 0;
+
+        foreach ($actualFailureCodes as $code) {
+            if (in_array($code, $allLessonFailureCodes, true)) {
+                $knownCount++;
+            } else {
+                $novelCount++;
+            }
+        }
+
+        $trace->update([
+            'known_failure_count' => $knownCount,
+            'novel_failure_count' => $novelCount,
+            'surfaced_lesson_codes' => $surfacedCodes,
+            'failure_codes_hit' => $actualFailureCodes,
+        ]);
+    }
+
     // ─── Helpers ────────────────────────────────────────────────
 
     private function showUsage(): int
@@ -905,7 +1443,7 @@ class RlmCommand extends Command
         $this->newLine();
         $this->line('Available actions:');
         $this->line('  search {query}           Cross-table search (ES hybrid or deterministic)');
-        $this->line('  recall                   Context-filtered knowledge with risk briefing');
+        $this->line('  recall                   Agent cheat sheet (default) or full risk briefing (--format=full|json)');
         $this->line('  learn {summary}          Record a new lesson');
         $this->line('  failures                 Query failures with filters');
         $this->line('  scores {entity?}         View validation score history');
@@ -916,6 +1454,10 @@ class RlmCommand extends Command
         $this->line('  export                   Export to markdown/JSON from PostgreSQL');
         $this->line('  trace-save               Save a generation trace (requires --entity)');
         $this->line('  sync                     Sync data with hub (requires --push or --pull)');
+        $this->line('  cleanup                  Remove faker-generated records (requires --remove-faker-records)');
+        $this->line('  distill                  Run distillation pipeline (--dry-run, --agent=, --stats)');
+        $this->line('  feedback                 Record feedback on surfaced lessons (--entity, --surfaced, --failures)');
+        $this->line('  health                   RLM system health KPIs and diagnostics (--verdict for system verdict)');
 
         return self::FAILURE;
     }
@@ -929,6 +1471,7 @@ class RlmCommand extends Command
             'RlmPattern' => 'PATTERN',
             'PreventionRule' => 'PREVENTION_RULE',
             'GoldenAnnotation' => 'GOLDEN_ANNOTATION',
+            'DistilledLesson' => 'DISTILLED_LESSON',
             default => $rawType,
         });
         $relevance = $result->getAttribute('_relevance');
@@ -941,7 +1484,7 @@ class RlmCommand extends Command
             $this->line("  [{$type}]{$relevanceStr} {$result->topic}{$subtopic} (confidence: {$confidence}, {$verified})");
             $this->line("    {$result->summary}");
         } elseif ($result instanceof RlmFailure) {
-            $severity = $result->severity?->value ?? (string) $result->severity;
+            $severity = $result->severity->value;
             $this->line("  [{$type}]{$relevanceStr} {$result->failure_code} (severity: {$severity}, status: {$result->status})");
             $this->line("    {$result->title}");
             if ($result->preventive_rule) {
@@ -954,9 +1497,12 @@ class RlmCommand extends Command
             $this->line("  [{$type}]{$relevanceStr} (confidence: {$result->confidence}, priority: {$result->priority})");
             $this->line("    {$result->rule_text}");
         } elseif ($result instanceof GoldenAnnotation) {
-            $category = $result->category instanceof \BackedEnum ? $result->category->value : (string) $result->category;
+            $category = $result->category->value;
             $this->line("  [{$type}]{$relevanceStr} {$result->annotation_key} ({$category})");
             $this->line("    {$result->annotation_text}");
+        } elseif ($result instanceof DistilledLesson) {
+            $this->line("  [{$type}]{$relevanceStr} {$result->lesson_code} → {$result->target_agent} (phase: {$result->target_phase}, impact: {$result->impact_score})");
+            $this->line("    {$result->title}");
         } else {
             $this->line("  [{$type}]{$relevanceStr} ".($result->getAttribute('name') ?? $result->getAttribute('title') ?? $result->getKey()));
         }
@@ -982,6 +1528,7 @@ class RlmCommand extends Command
             $cached = 0;
             $class::query()->get()->each(function (Model $model) use (&$cached): void {
                 if (in_array(HasEmbeddings::class, class_uses_recursive($model), true)
+                    /** @phpstan-ignore method.notFound (method provided by HasEmbeddings trait) */
                     && $model->getCachedEmbedding() !== null) {
                     $cached++;
                 }
@@ -1014,6 +1561,7 @@ class RlmCommand extends Command
             'aicl_rlm_patterns' => RlmPattern::class,
             'aicl_prevention_rules' => PreventionRule::class,
             'aicl_golden_annotations' => GoldenAnnotation::class,
+            'aicl_distilled_lessons' => DistilledLesson::class,
         ];
 
         $rows = [];
@@ -1088,6 +1636,7 @@ class RlmCommand extends Command
             'RlmPattern' => RlmPattern::class,
             'PreventionRule' => PreventionRule::class,
             'GoldenAnnotation' => GoldenAnnotation::class,
+            'DistilledLesson' => DistilledLesson::class,
         ];
 
         if ($filter !== null && isset($all[$filter])) {
@@ -1110,8 +1659,7 @@ class RlmCommand extends Command
         $driver = $service->getDriver();
 
         return match (true) {
-            $driver instanceof \Aicl\Rlm\Embeddings\OpenAiDriver => 'OpenAI (text-embedding-3-small)',
-            $driver instanceof \Aicl\Rlm\Embeddings\OllamaDriver => 'Ollama (nomic-embed-text)',
+            $driver instanceof \Aicl\Rlm\Embeddings\NeuronAiEmbeddingAdapter => 'NeuronAI ('.config('aicl.rlm.embeddings.driver', 'auto').')',
             $driver instanceof \Aicl\Rlm\Embeddings\NullDriver => 'null (disabled)',
             default => class_basename($driver),
         };

@@ -2,8 +2,12 @@
 
 namespace Aicl;
 
+use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\AuditLog;
+use Aicl\Filament\Pages\Changelog;
+use Aicl\Filament\Pages\DocumentBrowser;
+use Aicl\Filament\Pages\DomainEventViewer;
 use Aicl\Filament\Pages\Errors\Forbidden;
 use Aicl\Filament\Pages\Errors\NotFound;
 use Aicl\Filament\Pages\Errors\ServerError;
@@ -12,6 +16,7 @@ use Aicl\Filament\Pages\LogViewer;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\NotificationLogPage;
+use Aicl\Filament\Pages\OpsPanel;
 use Aicl\Filament\Pages\QueueDashboard;
 use Aicl\Filament\Pages\RlmDashboard;
 use Aicl\Filament\Pages\Search;
@@ -34,6 +39,7 @@ use Aicl\Filament\Widgets\FailureReportStatsOverview;
 use Aicl\Filament\Widgets\FailureTrendChart;
 use Aicl\Filament\Widgets\GenerationTraceStatsOverview;
 use Aicl\Filament\Widgets\GlobalSearchWidget;
+use Aicl\Filament\Widgets\PresenceIndicator;
 use Aicl\Filament\Widgets\PreventionRuleDeadlinesWidget;
 use Aicl\Filament\Widgets\PreventionRuleStatsOverview;
 use Aicl\Filament\Widgets\ProjectHealthWidget;
@@ -48,8 +54,13 @@ use Aicl\Filament\Widgets\RlmFailureStatsOverview;
 use Aicl\Filament\Widgets\RlmLessonStatsOverview;
 use Aicl\Filament\Widgets\RlmPatternDeadlinesWidget;
 use Aicl\Filament\Widgets\RlmPatternStatsOverview;
+use Aicl\Http\Middleware\TrackPresenceMiddleware;
+use Aicl\Services\VersionService;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 
 class AiclPlugin implements Plugin
 {
@@ -73,15 +84,70 @@ class AiclPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
+        $navLayout = config('aicl.theme.navigation_layout', 'sidebar');
+
         $panel
             ->resources($this->getResources())
             ->pages($this->getPages())
-            ->widgets($this->getWidgets());
+            ->widgets($this->getWidgets())
+            ->authMiddleware([
+                TrackPresenceMiddleware::class,
+            ]);
+
+        // Navigation layout wiring: topbar-only or switchable both need
+        // topNavigation(true) so Filament renders nav items in the topbar template.
+        // For 'switchable', CSS overrides control which layout is actually visible.
+        if (in_array($navLayout, ['topbar', 'switchable'], true)) {
+            $panel->topNavigation();
+        }
     }
 
     public function boot(Panel $panel): void
     {
-        //
+        if (config('aicl.features.websockets', true)) {
+            // Inject the app's Vite JS bundle (includes Echo for WebSocket presence)
+            // Uses SCRIPTS_AFTER so @vite generates same-origin URLs avoiding CORS
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::SCRIPTS_AFTER,
+                fn (): string => Blade::render('@vite(\'resources/js/app.js\')'),
+            );
+
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
+                fn (): string => Blade::render('@livewire(\'toolbar-presence\')'),
+            );
+        }
+
+        $navLayout = config('aicl.theme.navigation_layout', 'sidebar');
+
+        if ($navLayout === 'switchable') {
+            // Inject early script in <head> to read localStorage and set data-nav-mode
+            // before first paint, preventing flash-of-wrong-layout (FOWL)
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => Blade::render('@include("aicl::components.navigation-switcher-init")'),
+            );
+
+            // Nav switcher toggle — rendered before user menu (inside .fi-topbar-end)
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => Blade::render('@include("aicl::components.navigation-switcher-toggle")'),
+            );
+        }
+
+        // Extended favicon tags (apple-touch-icon, android-chrome, sizes)
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_END,
+            fn (): string => Blade::render('@include("aicl::components.favicon-meta")'),
+        );
+
+        // Version badge — rendered before user menu (inside .fi-topbar-end)
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::USER_MENU_BEFORE,
+            fn (): string => view('aicl::components.version-badge', [
+                'version' => app(VersionService::class)->current(),
+            ])->render(),
+        );
     }
 
     /**
@@ -107,11 +173,16 @@ class AiclPlugin implements Plugin
     protected function getPages(): array
     {
         return [
+            AiAssistant::class,
+            OpsPanel::class,
             QueueDashboard::class,
             RlmDashboard::class,
             LogViewer::class,
             ManageSettings::class,
             AuditLog::class,
+            Changelog::class,
+            DocumentBrowser::class,
+            DomainEventViewer::class,
             NotificationCenter::class,
             NotificationLogPage::class,
             Search::class,
@@ -141,6 +212,7 @@ class AiclPlugin implements Plugin
             GenerationTraceStatsOverview::class,
             GlobalSearchWidget::class,
             PreventionRuleDeadlinesWidget::class,
+            PresenceIndicator::class,
             PreventionRuleStatsOverview::class,
             ProjectHealthWidget::class,
             PromotionQueueWidget::class,

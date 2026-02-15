@@ -2,17 +2,18 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Models\RlmFailure;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
+use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Filament\Widgets\ChartWidget;
 use Livewire\Attributes\On;
 
 class RlmFailureByStatusChart extends ChartWidget
 {
+    use PausesWhenHidden;
+
     protected ?string $heading = 'Failures by Status';
 
     protected static ?int $sort = 2;
-
-    protected ?string $pollingInterval = '60s';
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -36,11 +37,10 @@ class RlmFailureByStatusChart extends ChartWidget
             'deprecated' => ['label' => 'Deprecated', 'color' => '#ef4444'],
         ];
 
-        $counts = RlmFailure::query()
-            ->selectRaw('status, COUNT(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
+        $counts = WidgetStatsCacheManager::getOrCompute(
+            'failure_by_status',
+            [WidgetStatsCacheManager::class, 'computeFailureByStatus'],
+        );
 
         $data = [];
         $labels = [];

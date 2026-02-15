@@ -3,9 +3,12 @@
 namespace Aicl\Notifications;
 
 use Aicl\Models\RlmFailure;
+use Aicl\Notifications\Contracts\HasExternalChannels;
+use Aicl\Notifications\Models\NotificationChannel;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
-class RlmFailureAssignedNotification extends BaseNotification
+class RlmFailureAssignedNotification extends BaseNotification implements HasExternalChannels
 {
     public function __construct(
         public RlmFailure $rlm_failure,
@@ -35,5 +38,13 @@ class RlmFailureAssignedNotification extends BaseNotification
     public function getColor(): string
     {
         return 'primary';
+    }
+
+    /**
+     * @return Collection<int, NotificationChannel>
+     */
+    public function externalChannels(): Collection
+    {
+        return NotificationChannel::active()->get();
     }
 }

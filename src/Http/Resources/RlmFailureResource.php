@@ -40,14 +40,14 @@ class RlmFailureResource extends JsonResource
             'promoted_at' => $this->promoted_at?->toIso8601String(),
             'aicl_version' => $this->aicl_version,
             'laravel_version' => $this->laravel_version,
-            'status' => $this->status ? ['value' => (string) $this->status, 'label' => $this->status->label()] : null,
+            'status' => ['value' => (string) $this->status, 'label' => $this->status->label()],
             'is_active' => $this->is_active,
             'owner' => $this->whenLoaded('owner', fn () => [
                 'id' => $this->owner->id,
                 'name' => $this->owner->name,
             ]),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'created_at' => $this->resource->created_at?->toIso8601String(),
+            'updated_at' => $this->resource->updated_at?->toIso8601String(),
         ];
     }
 }

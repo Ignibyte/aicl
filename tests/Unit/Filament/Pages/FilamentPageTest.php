@@ -59,7 +59,7 @@ class FilamentPageTest extends TestCase
         $this->assertNull($defaults['selectedFile']);
         $this->assertNull($defaults['levelFilter']);
         $this->assertNull($defaults['search']);
-        $this->assertFalse($defaults['autoRefresh']);
+        $this->assertFalse($defaults['liveMode']);
         $this->assertEquals(100, $defaults['limit']);
     }
 

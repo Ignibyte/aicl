@@ -2,6 +2,8 @@
 
 namespace Aicl\Models;
 
+use Aicl\Database\Factories\FailedJobFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -17,6 +19,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class FailedJob extends Model
 {
+    /** @use HasFactory<FailedJobFactory> */
+    use HasFactory;
+
     protected $table = 'failed_jobs';
 
     public $timestamps = false;
@@ -54,5 +59,10 @@ class FailedJob extends Model
         $lines = explode("\n", $this->exception);
 
         return $lines[0] ?? 'No exception message';
+    }
+
+    protected static function newFactory(): FailedJobFactory
+    {
+        return FailedJobFactory::new();
     }
 }

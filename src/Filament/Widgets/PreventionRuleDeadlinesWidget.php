@@ -2,6 +2,7 @@
 
 namespace Aicl\Filament\Widgets;
 
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
 use Aicl\Models\PreventionRule;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -11,11 +12,11 @@ use Livewire\Attributes\On;
 
 class PreventionRuleDeadlinesWidget extends TableWidget
 {
+    use PausesWhenHidden;
+
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';
-
-    protected ?string $pollingInterval = '60s';
 
     #[On('entity-changed')]
     public function entityChanged(): void

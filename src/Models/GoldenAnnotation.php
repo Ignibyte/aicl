@@ -181,7 +181,7 @@ class GoldenAnnotation extends Model
             'annotation_key' => $this->annotation_key,
             'annotation_text' => $this->annotation_text,
             'rationale' => $this->rationale,
-            'category' => $this->category instanceof AnnotationCategory ? $this->category->value : $this->category,
+            'category' => $this->category->value,
             'pattern_name' => $this->pattern_name,
             'feature_tags' => $this->feature_tags,
             'is_active' => $this->is_active,
@@ -221,7 +221,7 @@ class GoldenAnnotation extends Model
             return false;
         }
 
-        if (method_exists($this, 'trashed') && $this->trashed()) {
+        if ($this->trashed()) {
             return false;
         }
 

@@ -2,6 +2,7 @@
 
 namespace Aicl\Filament\Pages;
 
+use Aicl\Swoole\Cache\NotificationBadgeCacheManager;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -200,9 +201,7 @@ class NotificationCenter extends Page implements HasForms, HasTable
 
     public static function getNavigationBadge(): ?string
     {
-        $count = auth()->user()?->unreadNotifications()->count() ?? 0;
-
-        return $count > 0 ? (string) $count : null;
+        return NotificationBadgeCacheManager::getBadge(auth()->id());
     }
 
     public static function getNavigationBadgeColor(): string|array|null

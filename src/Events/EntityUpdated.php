@@ -2,65 +2,33 @@
 
 namespace Aicl\Events;
 
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
+use Aicl\Events\Traits\BroadcastsDomainEvent;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
-class EntityUpdated implements ShouldBroadcast
+class EntityUpdated extends DomainEvent implements ShouldBroadcast
 {
-    use Dispatchable;
-    use InteractsWithSockets;
-    use SerializesModels;
+    use BroadcastsDomainEvent;
 
-    public function __construct(
-        public Model $entity,
-    ) {}
+    public static string $eventType = 'entity.updated';
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, Channel>
-     */
-    public function broadcastOn(): array
+    public function __construct(Model $entity)
     {
-        $channels = [
-            new PrivateChannel('dashboard'),
-        ];
+        parent::__construct();
 
-        // Add entity-specific channel
-        if ($this->entity->exists) {
-            $entityType = strtolower(class_basename($this->entity));
-            $channels[] = new PrivateChannel("{$entityType}s.{$this->entity->getKey()}");
-        }
-
-        return $channels;
+        $this->forEntity($entity);
     }
 
     /**
-     * Get the data to broadcast.
-     *
      * @return array<string, mixed>
      */
-    public function broadcastWith(): array
+    public function toPayload(): array
     {
         return [
             'id' => $this->entity->getKey(),
             'type' => class_basename($this->entity),
             'action' => 'updated',
             'changes' => $this->entity->getChanges(),
-            'timestamp' => now()->toIso8601String(),
         ];
-    }
-
-    /**
-     * The event's broadcast name.
-     */
-    public function broadcastAs(): string
-    {
-        return 'entity.updated';
     }
 }

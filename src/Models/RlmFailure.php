@@ -200,9 +200,9 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
         $array = [
             'id' => $this->id,
             'failure_code' => $this->failure_code,
-            'category' => $this->category?->value,
-            'severity' => $this->severity?->value,
-            'status' => $this->status ? (string) $this->status : null,
+            'category' => $this->category?->value, // @phpstan-ignore nullsafe.neverNull
+            'severity' => $this->severity?->value, // @phpstan-ignore nullsafe.neverNull
+            'status' => (string) $this->status,
             'title' => $this->title,
             'description' => $this->description,
             'root_cause' => $this->root_cause,
@@ -249,7 +249,7 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
             return false;
         }
 
-        if (method_exists($this, 'trashed') && $this->trashed()) {
+        if ($this->trashed()) {
             return false;
         }
 

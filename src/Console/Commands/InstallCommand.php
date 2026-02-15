@@ -110,6 +110,22 @@ class InstallCommand extends Command
             ]);
         });
 
+        // Seed RLM lessons (curated, linked to base failures)
+        $this->components->task('Seeding RLM lessons', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\RlmLessonSeeder',
+                '--force' => true,
+            ]);
+        });
+
+        // Seed RLM prevention rules (curated, linked to base failures)
+        $this->components->task('Seeding RLM prevention rules', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\PreventionRuleSeeder',
+                '--force' => true,
+            ]);
+        });
+
         // Seed RLM patterns from PatternRegistry
         $this->components->task('Seeding RLM patterns', function (): void {
             $this->callSilently('db:seed', [
@@ -122,6 +138,22 @@ class InstallCommand extends Command
         $this->components->task('Seeding golden annotations', function (): void {
             $this->callSilently('db:seed', [
                 '--class' => 'Aicl\Database\Seeders\GoldenAnnotationSeeder',
+                '--force' => true,
+            ]);
+        });
+
+        // Seed distilled lessons (runs distillation pipeline on base failures)
+        $this->components->task('Seeding distilled lessons', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\DistilledLessonSeeder',
+                '--force' => true,
+            ]);
+        });
+
+        // Seed notification channels
+        $this->components->task('Seeding notification channels', function (): void {
+            $this->callSilently('db:seed', [
+                '--class' => 'Aicl\Database\Seeders\NotificationChannelSeeder',
                 '--force' => true,
             ]);
         });

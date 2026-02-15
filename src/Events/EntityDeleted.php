@@ -2,21 +2,17 @@
 
 namespace Aicl\Events;
 
+use Aicl\Events\Traits\BroadcastsDomainEvent;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Events\Dispatchable;
 
-class EntityDeleted implements ShouldBroadcast
+class EntityDeleted extends DomainEvent implements ShouldBroadcast
 {
-    use Dispatchable;
-    use InteractsWithSockets;
+    use BroadcastsDomainEvent;
 
-    // Note: We intentionally do NOT use SerializesModels here because
-    // the model may have already been deleted by the time this event
-    // is processed, and SerializesModels would try to re-fetch it.
+    public static string $eventType = 'entity.deleted';
 
     /**
      * The ID of the deleted entity.
@@ -35,49 +31,57 @@ class EntityDeleted implements ShouldBroadcast
 
     public function __construct(Model $entity)
     {
+        parent::__construct();
+
         $this->entityId = $entity->getKey();
         $this->entityType = class_basename($entity);
         $this->entityClass = get_class($entity);
+
+        // Don't call forEntity() — the model may be deleted by the time
+        // SerializesModels tries to re-fetch it. Use scalar overrides instead.
     }
 
     /**
-     * Get the channels the event should broadcast on.
+     * Override entity type for DomainEvent persistence using scalar value.
+     */
+    public function getEntityType(): ?string
+    {
+        return $this->entityClass;
+    }
+
+    /**
+     * Override entity ID for DomainEvent persistence using scalar value.
+     */
+    public function getEntityId(): int|string|null
+    {
+        return $this->entityId;
+    }
+
+    /**
+     * Override broadcast channels to use scalar properties since
+     * the model may no longer exist after deletion.
      *
      * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
-        $channels = [
-            new PrivateChannel('dashboard'),
-        ];
-
-        // Add entity-specific channel
         $entityType = strtolower($this->entityType);
-        $channels[] = new PrivateChannel("{$entityType}s.{$this->entityId}");
 
-        return $channels;
+        return [
+            new PrivateChannel('dashboard'),
+            new PrivateChannel("{$entityType}s.{$this->entityId}"),
+        ];
     }
 
     /**
-     * Get the data to broadcast.
-     *
      * @return array<string, mixed>
      */
-    public function broadcastWith(): array
+    public function toPayload(): array
     {
         return [
             'id' => $this->entityId,
             'type' => $this->entityType,
             'action' => 'deleted',
-            'timestamp' => now()->toIso8601String(),
         ];
-    }
-
-    /**
-     * The event's broadcast name.
-     */
-    public function broadcastAs(): string
-    {
-        return 'entity.deleted';
     }
 }

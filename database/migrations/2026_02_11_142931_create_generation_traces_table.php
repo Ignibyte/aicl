@@ -24,6 +24,10 @@ return new class extends Migration
             $table->boolean('is_processed')->default(false)->index();
             $table->string('aicl_version')->nullable();
             $table->string('laravel_version')->nullable();
+            $table->unsignedInteger('known_failure_count')->default(0);
+            $table->unsignedInteger('novel_failure_count')->default(0);
+            $table->jsonb('surfaced_lesson_codes')->nullable();
+            $table->jsonb('failure_codes_hit')->nullable();
             $table->boolean('is_active')->default(true);
             $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();

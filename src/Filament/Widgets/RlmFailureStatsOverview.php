@@ -2,16 +2,17 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Models\RlmFailure;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
+use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Livewire\Attributes\On;
 
 class RlmFailureStatsOverview extends StatsOverviewWidget
 {
-    protected static ?int $sort = 1;
+    use PausesWhenHidden;
 
-    protected ?string $pollingInterval = '60s';
+    protected static ?int $sort = 1;
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -21,22 +22,22 @@ class RlmFailureStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $total = RlmFailure::query()->count();
-        $critical = RlmFailure::query()->where('severity', 'critical')->count();
-        $high = RlmFailure::query()->where('severity', 'high')->count();
-        $promotable = RlmFailure::query()->promotable()->count();
+        $data = WidgetStatsCacheManager::getOrCompute(
+            'rlm_failure_stats',
+            [WidgetStatsCacheManager::class, 'computeRlmFailureStats'],
+        );
 
         return [
-            Stat::make('Total Failures', $total)
+            Stat::make('Total Failures', $data['total'])
                 ->description('All tracked failures')
                 ->color('primary'),
-            Stat::make('Critical', $critical)
+            Stat::make('Critical', $data['critical'])
                 ->description('Requires immediate attention')
                 ->color('danger'),
-            Stat::make('High Severity', $high)
+            Stat::make('High Severity', $data['high'])
                 ->description('High priority failures')
                 ->color('warning'),
-            Stat::make('Promotable', $promotable)
+            Stat::make('Promotable', $data['promotable'])
                 ->description('Eligible for base promotion')
                 ->color('info'),
         ];

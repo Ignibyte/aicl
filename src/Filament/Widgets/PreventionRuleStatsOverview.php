@@ -2,16 +2,17 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Models\PreventionRule;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
+use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Livewire\Attributes\On;
 
 class PreventionRuleStatsOverview extends StatsOverviewWidget
 {
-    protected static ?int $sort = 1;
+    use PausesWhenHidden;
 
-    protected ?string $pollingInterval = '60s';
+    protected static ?int $sort = 1;
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -21,11 +22,16 @@ class PreventionRuleStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
+        $data = WidgetStatsCacheManager::getOrCompute(
+            'prevention_rule_stats',
+            [WidgetStatsCacheManager::class, 'computePreventionRuleStats'],
+        );
+
         return [
-            Stat::make('Total Rules', PreventionRule::query()->count()),
-            Stat::make('Active Rules', PreventionRule::query()->where('is_active', true)->count()),
-            Stat::make('Avg Confidence', number_format((float) PreventionRule::query()->where('is_active', true)->avg('confidence'), 2)),
-            Stat::make('Total Applied', PreventionRule::query()->sum('applied_count')),
+            Stat::make('Total Rules', $data['total']),
+            Stat::make('Active Rules', $data['active']),
+            Stat::make('Avg Confidence', number_format($data['avg_confidence'], 2)),
+            Stat::make('Total Applied', $data['total_applied']),
         ];
     }
 }

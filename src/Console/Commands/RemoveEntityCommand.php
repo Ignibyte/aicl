@@ -3,6 +3,8 @@
 namespace Aicl\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class RemoveEntityCommand extends Command
@@ -53,14 +55,15 @@ class RemoveEntityCommand extends Command
 
         $this->discoverEntityFiles($name, $plural, $snakePlural);
         $this->discoverSharedFileCleanups($name, $plural, $snakePlural);
+        $hasTable = Schema::hasTable($snakePlural);
 
-        if (empty($this->filesToDelete) && empty($this->dirsToDelete) && empty($this->sharedFileCleanups)) {
+        if (empty($this->filesToDelete) && empty($this->dirsToDelete) && empty($this->sharedFileCleanups) && ! $hasTable) {
             $this->components->warn("No files found for entity '{$name}'. Nothing to remove.");
 
             return self::SUCCESS;
         }
 
-        $this->displayDiscoveredItems();
+        $this->displayDiscoveredItems($snakePlural, $hasTable);
 
         if ($isDryRun) {
             $this->newLine();
@@ -77,9 +80,12 @@ class RemoveEntityCommand extends Command
 
         $deleted = $this->executeRemoval();
         $cleaned = $this->executeSharedFileCleanups();
+        $dbCleaned = $this->executeDatabaseCleanup($snakePlural);
 
         $this->newLine();
-        $this->components->info("Removed {$deleted} file(s)/director(ies). Cleaned {$cleaned} shared file(s).");
+        $this->components->info("Removed {$deleted} file(s)/director(ies). Cleaned {$cleaned} shared file(s).{$dbCleaned}");
+
+        \Aicl\Services\EntityRegistry::flush();
 
         return self::SUCCESS;
     }
@@ -96,6 +102,9 @@ class RemoveEntityCommand extends Command
             'Model' => app_path("Models/{$name}.php"),
             'Policy' => app_path("Policies/{$name}Policy.php"),
             'Observer' => app_path("Observers/{$name}Observer.php"),
+            'Created Event' => app_path("Events/{$name}Created.php"),
+            'Updated Event' => app_path("Events/{$name}Updated.php"),
+            'Deleted Event' => app_path("Events/{$name}Deleted.php"),
             'Exporter' => app_path("Filament/Exporters/{$name}Exporter.php"),
             'API Controller' => app_path("Http/Controllers/Api/{$name}Controller.php"),
             'Store Request' => app_path("Http/Requests/Store{$name}Request.php"),
@@ -284,7 +293,7 @@ class RemoveEntityCommand extends Command
     /**
      * Display all discovered items to be removed.
      */
-    protected function displayDiscoveredItems(): void
+    protected function displayDiscoveredItems(string $snakePlural, bool $hasTable): void
     {
         if (! empty($this->filesToDelete)) {
             $this->components->twoColumnDetail('<fg=yellow>Files to delete</>');
@@ -317,6 +326,20 @@ class RemoveEntityCommand extends Command
                     $this->line("    - Remove: <comment>{$pattern}</comment>");
                 }
             }
+            $this->newLine();
+        }
+
+        if ($hasTable) {
+            $this->components->twoColumnDetail('<fg=yellow>Database cleanup</>');
+            $rowCount = DB::table($snakePlural)->count();
+            $this->components->twoColumnDetail(
+                "  Table '{$snakePlural}' ({$rowCount} rows)",
+                '<fg=red>DROP</>'
+            );
+            $this->components->twoColumnDetail(
+                '  Migration record',
+                '<fg=red>DELETE</>'
+            );
             $this->newLine();
         }
     }
@@ -429,6 +452,31 @@ class RemoveEntityCommand extends Command
         $filtered = array_filter($lines, fn (string $line): bool => ! str_contains($line, $needle));
 
         return implode("\n", $filtered);
+    }
+
+    /**
+     * Drop the entity table and remove its migration record.
+     */
+    protected function executeDatabaseCleanup(string $snakePlural): string
+    {
+        $messages = [];
+
+        if (Schema::hasTable($snakePlural)) {
+            Schema::dropIfExists($snakePlural);
+            $messages[] = "dropped table '{$snakePlural}'";
+        }
+
+        $migrationPattern = "%_create_{$snakePlural}_table";
+        $deleted = DB::table('migrations')->where('migration', 'like', $migrationPattern)->delete();
+        if ($deleted > 0) {
+            $messages[] = "removed {$deleted} migration record(s)";
+        }
+
+        if (empty($messages)) {
+            return '';
+        }
+
+        return ' DB: '.implode(', ', $messages).'.';
     }
 
     /**

@@ -91,7 +91,8 @@ class PatternRegistryTest extends TestCase
             + count(PatternRegistry::policyPatterns())
             + count(PatternRegistry::observerPatterns())
             + count(PatternRegistry::filamentPatterns())
-            + count(PatternRegistry::testPatterns());
+            + count(PatternRegistry::testPatterns())
+            + count(PatternRegistry::specPatterns());
 
         $this->assertCount($total, PatternRegistry::all());
     }

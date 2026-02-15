@@ -7,12 +7,15 @@ use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\LogViewer;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
+use Aicl\Filament\Pages\OpsPanel;
 use Aicl\Filament\Pages\QueueDashboard;
 use Aicl\Filament\Pages\Search;
 use Aicl\Filament\Resources\FailedJobs\FailedJobResource;
 use Aicl\Filament\Widgets\GlobalSearchWidget;
+use Aicl\Filament\Widgets\PresenceIndicator;
 use Aicl\Filament\Widgets\QueueStatsWidget;
 use Aicl\Filament\Widgets\RecentFailedJobsWidget;
+use Aicl\Http\Middleware\TrackPresenceMiddleware;
 use Filament\Contracts\Plugin;
 use PHPUnit\Framework\TestCase;
 
@@ -75,6 +78,7 @@ class AiclPluginTest extends TestCase
         $pages = $reflection->invoke($plugin);
 
         $expectedPages = [
+            OpsPanel::class,
             QueueDashboard::class,
             LogViewer::class,
             ManageSettings::class,
@@ -85,6 +89,20 @@ class AiclPluginTest extends TestCase
 
         foreach ($expectedPages as $page) {
             $this->assertContains($page, $pages, "Expected {$page} in plugin pages");
+        }
+    }
+
+    public function test_get_pages_does_not_include_online_users(): void
+    {
+        $reflection = new \ReflectionMethod(AiclPlugin::class, 'getPages');
+        $reflection->setAccessible(true);
+
+        $plugin = new AiclPlugin;
+        $pages = $reflection->invoke($plugin);
+
+        // OnlineUsers was removed in Sprint H — consolidated into OpsPanel
+        foreach ($pages as $page) {
+            $this->assertStringNotContainsString('OnlineUsers', $page);
         }
     }
 
@@ -100,10 +118,31 @@ class AiclPluginTest extends TestCase
             QueueStatsWidget::class,
             RecentFailedJobsWidget::class,
             GlobalSearchWidget::class,
+            PresenceIndicator::class,
         ];
 
         foreach ($expectedWidgets as $widget) {
             $this->assertContains($widget, $widgets, "Expected {$widget} in plugin widgets");
         }
+    }
+
+    // ── Sprint H: Presence Registration ─────────────────────
+
+    public function test_register_method_accepts_panel_parameter(): void
+    {
+        $reflection = new \ReflectionMethod(AiclPlugin::class, 'register');
+        $params = $reflection->getParameters();
+
+        $this->assertCount(1, $params);
+        $this->assertSame('panel', $params[0]->getName());
+    }
+
+    public function test_register_source_includes_track_presence_middleware(): void
+    {
+        $reflection = new \ReflectionMethod(AiclPlugin::class, 'register');
+        $source = file_get_contents($reflection->getFileName());
+
+        $this->assertStringContainsString(TrackPresenceMiddleware::class, $source);
+        $this->assertStringContainsString('authMiddleware', $source);
     }
 }

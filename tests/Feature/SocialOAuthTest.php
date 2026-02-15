@@ -79,14 +79,14 @@ class SocialOAuthTest extends TestCase
 
     public function test_social_auth_controller_has_redirect_method(): void
     {
-        $controller = new SocialAuthController;
+        $controller = app(SocialAuthController::class);
 
         $this->assertTrue(method_exists($controller, 'redirect'));
     }
 
     public function test_social_auth_controller_has_callback_method(): void
     {
-        $controller = new SocialAuthController;
+        $controller = app(SocialAuthController::class);
 
         $this->assertTrue(method_exists($controller, 'callback'));
     }

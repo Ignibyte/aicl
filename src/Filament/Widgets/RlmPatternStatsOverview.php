@@ -2,16 +2,17 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Models\RlmPattern;
+use Aicl\Filament\Widgets\Traits\PausesWhenHidden;
+use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Livewire\Attributes\On;
 
 class RlmPatternStatsOverview extends StatsOverviewWidget
 {
-    protected static ?int $sort = 1;
+    use PausesWhenHidden;
 
-    protected ?string $pollingInterval = '60s';
+    protected static ?int $sort = 1;
 
     #[On('entity-changed')]
     public function entityChanged(): void
@@ -21,22 +22,19 @@ class RlmPatternStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $total = RlmPattern::query()->count();
-        $active = RlmPattern::query()->where('is_active', true)->count();
-        $inactive = $total - $active;
+        $data = WidgetStatsCacheManager::getOrCompute(
+            'rlm_pattern_stats',
+            [WidgetStatsCacheManager::class, 'computeRlmPatternStats'],
+        );
 
-        $evaluated = RlmPattern::query()
-            ->whereNotNull('last_evaluated_at')
-            ->selectRaw('SUM(pass_count) as total_pass, SUM(pass_count + fail_count) as total_eval')
-            ->first();
-
-        $avgPassRate = ($evaluated->total_eval > 0)
-            ? round(($evaluated->total_pass / $evaluated->total_eval) * 100, 1).'%'
+        $inactive = $data['total'] - $data['active'];
+        $avgPassRate = ($data['total_eval'] > 0)
+            ? round(($data['total_pass'] / $data['total_eval']) * 100, 1).'%'
             : 'N/A';
 
         return [
-            Stat::make('Total Patterns', $total),
-            Stat::make('Active', $active)
+            Stat::make('Total Patterns', $data['total']),
+            Stat::make('Active', $data['active'])
                 ->color('success'),
             Stat::make('Inactive', $inactive)
                 ->color('danger'),

@@ -215,10 +215,20 @@ class LoginPageSocialTest extends TestCase
 
     public function test_has_social_login_returns_true_when_enabled_with_providers(): void
     {
+        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
+
         config([
             'aicl.features.social_login' => true,
             'aicl.social_providers' => ['google'],
         ]);
+
+        // Update the FeatureSettings in the database to enable social login
+        $settings = app(\Aicl\Settings\FeatureSettings::class);
+        $settings->enable_social_login = true;
+        $settings->save();
+
+        // Re-resolve to pick up the saved value
+        app()->forgetInstance(\Aicl\Settings\FeatureSettings::class);
 
         $page = new Login;
 

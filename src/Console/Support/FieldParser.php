@@ -6,6 +6,8 @@ use InvalidArgumentException;
 
 class FieldParser
 {
+    use ParsesCommaSeparatedDefinitions;
+
     /**
      * @var array<int, string>
      */
@@ -39,47 +41,6 @@ class FieldParser
         'enum',
         'foreignId',
     ];
-
-    /**
-     * Parse a comma-separated field definition string into FieldDefinition objects.
-     *
-     * @return array<int, FieldDefinition>
-     *
-     * @throws InvalidArgumentException
-     */
-    public function parse(string $fieldsString): array
-    {
-        $fieldsString = trim($fieldsString);
-
-        if ($fieldsString === '') {
-            return [];
-        }
-
-        $segments = array_map('trim', explode(',', $fieldsString));
-        $definitions = [];
-        $errors = [];
-        $seenNames = [];
-
-        foreach ($segments as $segment) {
-            if ($segment === '') {
-                continue;
-            }
-
-            try {
-                $definition = $this->parseSegment($segment, $seenNames);
-                $seenNames[] = $definition->name;
-                $definitions[] = $definition;
-            } catch (InvalidArgumentException $e) {
-                $errors[] = $e->getMessage();
-            }
-        }
-
-        if (! empty($errors)) {
-            throw new InvalidArgumentException(implode("\n", $errors));
-        }
-
-        return $definitions;
-    }
 
     /**
      * Parse a single field segment like "title:string:nullable".

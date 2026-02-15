@@ -2,7 +2,9 @@
 
 namespace Aicl\Models;
 
+use Aicl\Database\Factories\RlmSemanticCacheFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -18,6 +20,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class RlmSemanticCache extends Model
 {
+    /** @use HasFactory<RlmSemanticCacheFactory> */
+    use HasFactory;
+
     use HasUuids;
 
     protected $table = 'rlm_semantic_cache';
@@ -43,5 +48,10 @@ class RlmSemanticCache extends Model
             'confidence' => 'decimal:2',
             'expires_at' => 'datetime',
         ];
+    }
+
+    protected static function newFactory(): RlmSemanticCacheFactory
+    {
+        return RlmSemanticCacheFactory::new();
     }
 }

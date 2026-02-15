@@ -2,10 +2,27 @@
 
 namespace Aicl\Console\Commands;
 
+use Aicl\Console\Generators\BroadcastEventGenerator;
+use Aicl\Console\Generators\EnumGenerator;
+use Aicl\Console\Generators\MigrationGenerator;
+use Aicl\Console\Generators\PolicyGenerator;
+use Aicl\Console\Generators\StateMachineGenerator;
+use Aicl\Console\Support\BaseSchemaInspector;
+use Aicl\Console\Support\EntityGeneratorContext;
+use Aicl\Console\Support\EntitySpec;
 use Aicl\Console\Support\FieldDefinition;
 use Aicl\Console\Support\FieldParser;
+use Aicl\Console\Support\NotificationSpec;
+use Aicl\Console\Support\NotificationTemplateResolver;
+use Aicl\Console\Support\ObserverRuleSpec;
 use Aicl\Console\Support\RelationshipDefinition;
 use Aicl\Console\Support\RelationshipParser;
+use Aicl\Console\Support\ReportColumnSpec;
+use Aicl\Console\Support\ReportFieldSpec;
+use Aicl\Console\Support\ReportSectionSpec;
+use Aicl\Console\Support\SpecFileParser;
+use Aicl\Console\Support\WidgetQueryParser;
+use Aicl\Console\Support\WidgetSpec;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -28,7 +45,12 @@ class MakeEntityCommand extends Command
         {--widgets : Generate widget stubs}
         {--notifications : Generate notification stubs}
         {--pdf : Generate PDF template stubs}
-        {--all : Shorthand for --widgets --notifications --pdf}';
+        {--ai-context : Include HasAiContext trait with field-aware override}
+        {--base= : Base class to extend (must implement DeclaresBaseSchema)}
+        {--all : Shorthand for --widgets --notifications --pdf --ai-context}
+        {--from-spec : Generate from spec file (default: specs/{Name}.entity.md)}
+        {--spec-path= : Explicit path to spec file (alternative to --from-spec)}
+        {--cleanup : Run Pint on all generated files after scaffolding}';
 
     /**
      * @var string
@@ -63,8 +85,24 @@ class MakeEntityCommand extends Command
 
     protected bool $smartMode = false;
 
+    protected ?BaseSchemaInspector $baseInspector = null;
+
+    protected ?EntitySpec $entitySpec = null;
+
+    /**
+     * Rich enum definitions from spec file.
+     *
+     * @var array<string, array<int, array{case: string, label: string, color?: string, icon?: string}>>
+     */
+    protected array $specEnums = [];
+
     public function handle(): int
     {
+        // Handle --from-spec mode first
+        if ($this->option('from-spec') || $this->option('spec-path') !== null) {
+            return $this->handleFromSpec();
+        }
+
         $name = $this->argument('name') ?? text(
             label: 'What is the entity name?',
             placeholder: 'e.g., Task, Invoice, Customer',
@@ -94,102 +132,29 @@ class MakeEntityCommand extends Command
         $generateWidgets = $this->option('widgets') || $this->option('all');
         $generateNotifications = $this->option('notifications') || $this->option('all');
         $generatePdf = $this->option('pdf') || $this->option('all');
+        $generateAiContext = $this->option('ai-context') || $this->option('all');
 
-        $this->components->info("Scaffolding entity: {$name}".($this->smartMode ? ' (smart mode)' : ''));
+        $modeLabel = $this->smartMode ? ' (smart mode)' : '';
+        $baseLabel = $this->baseInspector !== null ? " extends {$this->baseInspector->shortClassName()}" : '';
+        $this->components->info("Scaffolding entity: {$name}{$baseLabel}{$modeLabel}");
         $this->newLine();
 
-        $files = [];
+        $files = $this->scaffoldEntityFiles(
+            name: $name,
+            tableName: $tableName,
+            traits: $traits,
+            generateAiContext: $generateAiContext,
+            generateFilament: $generateFilament,
+            generateApi: $generateApi,
+            generateWidgets: $generateWidgets && $this->smartMode,
+            generateNotifications: $generateNotifications && $this->smartMode,
+            generatePdf: $generatePdf && $this->smartMode,
+            generateEnums: $this->smartMode,
+        );
 
-        // Enum generation (before model, so model can reference enum)
-        if ($this->smartMode) {
-            foreach ($this->fields as $field) {
-                if ($field->isEnum()) {
-                    $this->components->task("Creating enum: {$field->typeArgument}", function () use ($name, $field, &$files): void {
-                        $files[] = $this->generateEnum($name, $field);
-                    });
-                }
-            }
-        }
-
-        // State machine generation (before model)
-        if (! empty($this->states)) {
-            $this->components->task("Creating state machine: {$name}State", function () use ($name, &$files): void {
-                $files = array_merge($files, $this->generateStateMachine($name));
-            });
-        }
-
-        // Model
-        $this->components->task("Creating model: {$name}", function () use ($name, $tableName, $traits, &$files): void {
-            $files[] = $this->generateModel($name, $tableName, $traits);
-        });
-
-        // Migration
-        $this->components->task("Creating migration for: {$tableName}", function () use ($name, $tableName, &$files): void {
-            $files[] = $this->generateMigration($name, $tableName);
-        });
-
-        // Factory
-        $this->components->task("Creating factory: {$name}Factory", function () use ($name, &$files): void {
-            $files[] = $this->generateFactory($name);
-        });
-
-        // Seeder
-        $this->components->task("Creating seeder: {$name}Seeder", function () use ($name, &$files): void {
-            $files[] = $this->generateSeeder($name);
-        });
-
-        // Policy
-        $this->components->task("Creating policy: {$name}Policy", function () use ($name, &$files): void {
-            $files[] = $this->generatePolicy($name);
-        });
-
-        // Observer
-        $this->components->task("Creating observer: {$name}Observer", function () use ($name, &$files): void {
-            $files[] = $this->generateObserver($name);
-        });
-
-        // Filament Resource
-        if ($generateFilament) {
-            $this->components->task("Creating Filament resource: {$name}Resource", function () use ($name, $traits, &$files): void {
-                $files = array_merge($files, $this->generateFilamentResource($name, $traits));
-            });
-
-            $this->components->task("Creating exporter: {$name}Exporter", function () use ($name, &$files): void {
-                $files[] = $this->generateExporter($name);
-            });
-        }
-
-        // API layer
-        if ($generateApi) {
-            $this->components->task("Creating API controller: {$name}Controller", function () use ($name, $tableName, &$files): void {
-                $files = array_merge($files, $this->generateApiLayer($name, $tableName));
-            });
-        }
-
-        // Test
-        $this->components->task("Creating test: {$name}Test", function () use ($name, $traits, &$files): void {
-            $files[] = $this->generateTest($name, $traits);
-        });
-
-        // Widget stubs
-        if ($generateWidgets && $this->smartMode) {
-            $this->components->task("Creating widgets for: {$name}", function () use ($name, &$files): void {
-                $files = array_merge($files, $this->generateWidgets($name));
-            });
-        }
-
-        // Notification stubs
-        if ($generateNotifications && $this->smartMode) {
-            $this->components->task("Creating notifications for: {$name}", function () use ($name, &$files): void {
-                $files = array_merge($files, $this->generateNotifications($name));
-            });
-        }
-
-        // PDF stubs
-        if ($generatePdf && $this->smartMode) {
-            $this->components->task("Creating PDF templates for: {$name}", function () use ($name, &$files): void {
-                $files = array_merge($files, $this->generatePdfTemplates($name));
-            });
+        // Cleanup: run Pint on generated files
+        if ($this->option('cleanup')) {
+            $this->runCleanup($files);
         }
 
         $this->newLine();
@@ -220,24 +185,407 @@ class MakeEntityCommand extends Command
             ]);
         }
 
+        \Aicl\Services\EntityRegistry::flush();
+
         return self::SUCCESS;
     }
 
     /**
-     * Parse --fields, --states, --relationships options. Returns false on error.
+     * Handle entity generation from a .entity.md spec file.
+     */
+    protected function handleFromSpec(): int
+    {
+        // Reject conflicting CLI flags
+        $conflicting = ['fields', 'states', 'relationships', 'base'];
+
+        foreach ($conflicting as $flag) {
+            if ($this->option($flag) !== null) {
+                $this->components->error("Cannot use --{$flag} with --from-spec. The spec file defines all entity properties.");
+
+                return self::FAILURE;
+            }
+        }
+
+        // Resolve spec file path
+        $specPath = $this->option('spec-path');
+        $name = $this->argument('name');
+
+        if ($specPath === null || $specPath === '') {
+            // Default path: specs/{Name}.entity.md
+            if ($name === null) {
+                $this->components->error('Provide the entity name or use --spec-path=path/to/file.entity.md');
+
+                return self::FAILURE;
+            }
+
+            $specPath = base_path("specs/{$name}.entity.md");
+        }
+
+        // Parse the spec file
+        $parser = new SpecFileParser;
+
+        try {
+            $spec = $parser->parse($specPath);
+        } catch (InvalidArgumentException $e) {
+            $this->components->error("Spec file error: {$e->getMessage()}");
+
+            return self::FAILURE;
+        }
+
+        $this->entitySpec = $spec;
+
+        // Use spec name if no argument was given
+        if ($name === null) {
+            $name = $spec->name;
+        }
+
+        $name = Str::studly($name);
+        $tableName = Str::snake(Str::pluralStudly($name));
+
+        // Transfer spec data to internal command state
+        $this->smartMode = true;
+        $this->fields = $spec->fields;
+        $this->relationships = $spec->relationships;
+        $this->specEnums = $spec->enums;
+
+        // Ensure default state is first in the array (state machine generator uses [0] as default)
+        $states = $spec->states;
+        if (! empty($states) && $spec->defaultState !== '' && $states[0] !== $spec->defaultState) {
+            $states = array_values(array_diff($states, [$spec->defaultState]));
+            array_unshift($states, $spec->defaultState);
+        }
+        $this->states = $states;
+
+        // Handle --base from spec
+        if ($spec->baseClass !== null) {
+            try {
+                $this->baseInspector = new BaseSchemaInspector($spec->baseClass);
+                $this->baseInspector->validate();
+            } catch (InvalidArgumentException $e) {
+                $this->components->error("Base class error: {$e->getMessage()}");
+
+                return self::FAILURE;
+            }
+
+            // Deduplicate fields from base schema
+            $errors = [];
+            $this->fields = $this->deduplicateBaseFields($this->fields, $errors);
+
+            if (! empty($errors)) {
+                foreach ($errors as $error) {
+                    $this->components->error($error);
+                }
+
+                return self::FAILURE;
+            }
+        }
+
+        // Status field / --states conflict
+        if (! empty($this->states)) {
+            $this->fields = array_values(array_filter(
+                $this->fields,
+                function (FieldDefinition $field): bool {
+                    if ($field->name === 'status' && ($field->isEnum() || $field->type === 'string')) {
+                        $this->components->warn("Field 'status' conflicts with states. State machine takes precedence.");
+
+                        return false;
+                    }
+
+                    return true;
+                }
+            ));
+        }
+
+        // Resolve traits from spec
+        $traits = ! empty($spec->traits)
+            ? $spec->traits
+            : ['HasEntityEvents', 'HasAuditTrail', 'HasStandardScopes'];
+
+        // Resolve generation flags from spec options
+        $generateFilament = $spec->wantsFilament();
+        $generateApi = $spec->wantsApi();
+        $generateWidgets = $spec->wantsWidgets();
+        $generateNotifications = $spec->wantsNotifications();
+        $generatePdf = $spec->wantsPdf();
+        $generateAiContext = $spec->wantsAiContext();
+
+        $baseLabel = $this->baseInspector !== null ? " extends {$this->baseInspector->shortClassName()}" : '';
+        $this->components->info("Scaffolding entity from spec: {$name}{$baseLabel}");
+        $this->components->info("Description: {$spec->description}");
+        $this->newLine();
+
+        $files = $this->scaffoldEntityFiles(
+            name: $name,
+            tableName: $tableName,
+            traits: $traits,
+            generateAiContext: $generateAiContext,
+            generateFilament: $generateFilament,
+            generateApi: $generateApi,
+            generateWidgets: $generateWidgets,
+            generateNotifications: $generateNotifications,
+            generatePdf: $generatePdf,
+            generateEnums: true,
+        );
+
+        // Cleanup: run Pint on generated files
+        if ($this->option('cleanup')) {
+            $this->runCleanup($files);
+        }
+
+        $this->newLine();
+        $this->components->info("Entity {$name} scaffolded from spec successfully!");
+        $this->newLine();
+
+        $this->components->bulletList($files);
+
+        $this->newLine();
+        $this->components->warn('Next steps:');
+        $this->components->bulletList([
+            'Run: php artisan migrate',
+            "Customize business logic in {$name} model and observer",
+            'Run: php artisan test --filter='.$name.'Test',
+            'Run: php artisan aicl:validate '.$name,
+        ]);
+
+        \Aicl\Services\EntityRegistry::flush();
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Build an EntityGeneratorContext DTO from current command state.
+     *
+     * @param  array<int, string>  $traits
+     */
+    protected function buildContext(
+        string $name,
+        string $tableName,
+        array $traits,
+        bool $generateAiContext,
+        bool $generateFilament,
+        bool $generateApi,
+        bool $generateWidgets,
+        bool $generateNotifications,
+        bool $generatePdf,
+    ): EntityGeneratorContext {
+        return new EntityGeneratorContext(
+            name: $name,
+            tableName: $tableName,
+            fields: $this->fields,
+            states: $this->states,
+            relationships: $this->relationships,
+            traits: $traits,
+            smartMode: $this->smartMode,
+            baseInspector: $this->baseInspector,
+            entitySpec: $this->entitySpec,
+            specEnums: $this->specEnums,
+            generateFilament: $generateFilament,
+            generateApi: $generateApi,
+            generateWidgets: $generateWidgets,
+            generateNotifications: $generateNotifications,
+            generatePdf: $generatePdf,
+            generateAiContext: $generateAiContext,
+        );
+    }
+
+    /**
+     * Scaffold all entity files (enums, states, model, migration, factory, seeder, policy, observer, etc.).
+     *
+     * Centralizes the file-generation loop used by both interactive and spec-based scaffolding paths.
+     * Uses extracted generator classes where available, falls back to internal methods for the rest.
+     *
+     * @param  array<int, string>  $traits
+     * @return array<int, string> List of generated file paths (relative to base_path)
+     */
+    protected function scaffoldEntityFiles(
+        string $name,
+        string $tableName,
+        array $traits,
+        bool $generateAiContext,
+        bool $generateFilament,
+        bool $generateApi,
+        bool $generateWidgets,
+        bool $generateNotifications,
+        bool $generatePdf,
+        bool $generateEnums,
+    ): array {
+        $files = [];
+
+        $ctx = $this->buildContext(
+            $name, $tableName, $traits, $generateAiContext,
+            $generateFilament, $generateApi, $generateWidgets,
+            $generateNotifications, $generatePdf,
+        );
+
+        // Enum generation (before model, so model can reference enum)
+        if ($generateEnums && $ctx->hasEnums()) {
+            $gen = new EnumGenerator($ctx);
+            $this->components->task($gen->label(), function () use ($gen, &$files): void {
+                $files = array_merge($files, $gen->generate());
+            });
+        }
+
+        // State machine generation (before model)
+        if ($ctx->hasStates()) {
+            $gen = new StateMachineGenerator($ctx);
+            $this->components->task($gen->label(), function () use ($gen, &$files): void {
+                $files = array_merge($files, $gen->generate());
+            });
+        }
+
+        // Model (not yet extracted — uses internal method)
+        $this->components->task("Creating model: {$name}", function () use ($name, $tableName, $traits, $generateAiContext, &$files): void {
+            $files[] = $this->generateModel($name, $tableName, $traits, $generateAiContext);
+        });
+
+        // Migration
+        $migrationGen = new MigrationGenerator($ctx);
+        $this->components->task($migrationGen->label(), function () use ($migrationGen, &$files): void {
+            $files = array_merge($files, $migrationGen->generate());
+        });
+
+        // Factory (not yet extracted — uses internal method)
+        $this->components->task("Creating factory: {$name}Factory", function () use ($name, &$files): void {
+            $files[] = $this->generateFactory($name);
+        });
+
+        // Seeder (not yet extracted — uses internal method)
+        $this->components->task("Creating seeder: {$name}Seeder", function () use ($name, &$files): void {
+            $files[] = $this->generateSeeder($name);
+        });
+
+        // Policy
+        $policyGen = new PolicyGenerator($ctx);
+        $this->components->task($policyGen->label(), function () use ($policyGen, &$files): void {
+            $files = array_merge($files, $policyGen->generate());
+        });
+
+        // Observer (not yet extracted — uses internal method)
+        $this->components->task("Creating observer: {$name}Observer", function () use ($name, &$files): void {
+            $files[] = $this->generateObserver($name);
+        });
+
+        // Broadcast Events
+        $broadcastGen = new BroadcastEventGenerator($ctx);
+        $this->components->task($broadcastGen->label(), function () use ($broadcastGen, &$files): void {
+            $files = array_merge($files, $broadcastGen->generate());
+        });
+
+        // Filament Resource (not yet extracted — uses internal method)
+        if ($generateFilament) {
+            $this->components->task("Creating Filament resource: {$name}Resource", function () use ($name, $traits, &$files): void {
+                $files = array_merge($files, $this->generateFilamentResource($name, $traits));
+            });
+
+            $this->components->task("Creating exporter: {$name}Exporter", function () use ($name, &$files): void {
+                $files[] = $this->generateExporter($name);
+            });
+        }
+
+        // API layer (not yet extracted — uses internal method)
+        if ($generateApi) {
+            $this->components->task("Creating API controller: {$name}Controller", function () use ($name, $tableName, &$files): void {
+                $files = array_merge($files, $this->generateApiLayer($name, $tableName));
+            });
+        }
+
+        // Test (not yet extracted — uses internal method)
+        $this->components->task("Creating test: {$name}Test", function () use ($name, $traits, &$files): void {
+            $files[] = $this->generateTest($name, $traits);
+        });
+
+        // Widget stubs (not yet extracted — uses internal method)
+        if ($generateWidgets) {
+            $this->components->task("Creating widgets for: {$name}", function () use ($name, &$files): void {
+                $files = array_merge($files, $this->generateWidgets($name));
+            });
+        }
+
+        // Notification stubs (not yet extracted — uses internal method)
+        if ($generateNotifications) {
+            $this->components->task("Creating notifications for: {$name}", function () use ($name, &$files): void {
+                $files = array_merge($files, $this->generateNotifications($name));
+            });
+        }
+
+        // PDF stubs (not yet extracted — uses internal method)
+        if ($generatePdf) {
+            $this->components->task("Creating PDF templates for: {$name}", function () use ($name, &$files): void {
+                $files = array_merge($files, $this->generatePdfTemplates($name));
+            });
+        }
+
+        return $files;
+    }
+
+    /**
+     * Run Pint formatting on generated PHP files.
+     *
+     * @param  array<int, string>  $files  Relative file paths from scaffolding
+     */
+    protected function runCleanup(array $files): void
+    {
+        $phpFiles = [];
+
+        foreach ($files as $file) {
+            $absolute = base_path($file);
+
+            if (str_ends_with($file, '.php') && file_exists($absolute)) {
+                $phpFiles[] = $absolute;
+            }
+        }
+
+        if (empty($phpFiles)) {
+            return;
+        }
+
+        $this->newLine();
+        $this->components->task('Running Pint on generated files', function () use ($phpFiles): void {
+            $pintBin = base_path('vendor/bin/pint');
+
+            if (! file_exists($pintBin)) {
+                $this->components->warn('Pint not found at vendor/bin/pint — skipping cleanup.');
+
+                return;
+            }
+
+            $process = new \Symfony\Component\Process\Process(
+                array_merge([$pintBin, '--quiet'], $phpFiles),
+                base_path()
+            );
+
+            $process->setTimeout(60);
+            $process->run();
+        });
+    }
+
+    /**
+     * Parse --fields, --states, --relationships, --base options. Returns false on error.
      */
     protected function parseSmartOptions(string $name, string $tableName): bool
     {
         $fieldsOption = $this->option('fields');
         $statesOption = $this->option('states');
         $relationshipsOption = $this->option('relationships');
+        $baseOption = $this->option('base');
 
-        if ($fieldsOption === null && $statesOption === null && $relationshipsOption === null) {
+        // --base enables smart mode even without --fields
+        if ($fieldsOption === null && $statesOption === null && $relationshipsOption === null && $baseOption === null) {
             return true;
         }
 
         $this->smartMode = true;
         $errors = [];
+
+        // Validate --base first (fail-fast)
+        if ($baseOption !== null) {
+            try {
+                $this->baseInspector = new BaseSchemaInspector($baseOption);
+                $this->baseInspector->validate();
+            } catch (InvalidArgumentException $e) {
+                $errors[] = $e->getMessage();
+            }
+        }
 
         // Parse fields
         if ($fieldsOption !== null) {
@@ -276,6 +624,16 @@ class MakeEntityCommand extends Command
             }
         }
 
+        // Base schema field deduplication
+        if ($this->baseInspector !== null && $this->fields !== null && empty($errors)) {
+            $this->fields = $this->deduplicateBaseFields($this->fields, $errors);
+        }
+
+        // Base schema + --states conflict check
+        if ($this->baseInspector !== null && ! empty($this->states) && $this->baseInspector->hasColumn('status')) {
+            $errors[] = "Cannot use --states when base class already declares 'status' column.";
+        }
+
         // Conflict resolution: status field + --states
         if (! empty($this->states) && $this->fields !== null) {
             foreach ($this->fields as $key => $field) {
@@ -298,6 +656,38 @@ class MakeEntityCommand extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Remove fields that are already declared by the base class schema.
+     *
+     * @param  array<int, FieldDefinition>  $fields
+     * @param  array<int, string>  $errors
+     * @return array<int, FieldDefinition>
+     */
+    protected function deduplicateBaseFields(array $fields, array &$errors): array
+    {
+        $filtered = [];
+
+        foreach ($fields as $field) {
+            if (! $this->baseInspector->hasColumn($field->name)) {
+                $filtered[] = $field;
+
+                continue;
+            }
+
+            $baseType = $this->baseInspector->columnType($field->name);
+
+            if ($baseType !== $field->type) {
+                $errors[] = "Field '{$field->name}' defined as '{$field->type}' in --fields but '{$baseType}' in base class. Remove it from --fields or change the base class.";
+
+                continue;
+            }
+
+            $this->components->warn("Field '{$field->name}' already defined by base class, skipping.");
+        }
+
+        return $filtered;
     }
 
     /**
@@ -353,39 +743,36 @@ class MakeEntityCommand extends Command
         );
     }
 
-    protected function generateModel(string $name, string $tableName, array $traits): string
+    protected function generateModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
         if ($this->smartMode) {
-            return $this->generateSmartModel($name, $tableName, $traits);
+            return $this->generateSmartModel($name, $tableName, $traits, $aiContext);
         }
 
-        return $this->generateLegacyModel($name, $tableName, $traits);
+        return $this->generateLegacyModel($name, $tableName, $traits, $aiContext);
     }
 
-    protected function generateLegacyModel(string $name, string $tableName, array $traits): string
+    protected function generateLegacyModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
-        $traitImports = [];
-        $traitUses = [];
-        $interfaces = [];
-        $interfaceImports = [];
-
-        foreach ($traits as $trait) {
-            $traitImports[] = "use Aicl\\Traits\\{$trait};";
-            $traitUses[] = "    use {$trait};";
-
-            match ($trait) {
-                'HasEntityEvents' => $this->addInterface($interfaces, $interfaceImports, 'HasEntityLifecycle'),
-                'HasAuditTrail' => $this->addInterface($interfaces, $interfaceImports, 'Auditable'),
-                'HasTagging' => $this->addInterface($interfaces, $interfaceImports, 'Taggable'),
-                'HasSearchableFields' => $this->addInterface($interfaces, $interfaceImports, 'Searchable'),
-                'HasMediaCollections' => $this->addExternalInterface($interfaces, $interfaceImports, 'HasMedia', 'Spatie\\MediaLibrary\\HasMedia'),
-                default => null,
-            };
-        }
+        ['traitImports' => $traitImports, 'traitUses' => $traitUses, 'interfaces' => $interfaces, 'interfaceImports' => $interfaceImports] =
+            $this->resolveTraitsAndInterfaces($traits, $aiContext);
 
         $implementsStr = ! empty($interfaces) ? ' implements '.implode(', ', $interfaces) : '';
         $importsStr = implode("\n", array_merge($interfaceImports, $traitImports));
         $traitsStr = implode("\n", $traitUses);
+
+        // Determine extends clause and model import
+        $baseSoftDeletes = $this->baseInspector !== null && $this->baseInspector->hasTrait('SoftDeletes');
+        $softDeletesUse = $baseSoftDeletes ? '' : "\n    use SoftDeletes;";
+        $softDeletesImport = $baseSoftDeletes ? '' : "\nuse Illuminate\\Database\\Eloquent\\SoftDeletes;";
+
+        if ($this->baseInspector !== null) {
+            $extendsClass = $this->baseInspector->shortClassName();
+            $modelImport = "use {$this->baseInspector->fullClassName()};";
+        } else {
+            $extendsClass = 'Model';
+            $modelImport = 'use Illuminate\\Database\\Eloquent\\Model;';
+        }
 
         $hasStandardScopes = in_array('HasStandardScopes', $traits);
         $searchableColumnsMethod = $hasStandardScopes ? <<<'SEARCH'
@@ -399,6 +786,18 @@ class MakeEntityCommand extends Command
     }
 SEARCH : '';
 
+        $aiContextMethod = $aiContext ? <<<'AICONTEXT'
+
+
+    /**
+     * @return array<int, string>
+     */
+    protected function aiContextFields(): array
+    {
+        return ['name', 'description', 'is_active', 'owner_id'];
+    }
+AICONTEXT : '';
+
         $content = <<<PHP
 <?php
 
@@ -407,16 +806,14 @@ namespace App\\Models;
 {$importsStr}
 use Database\\Factories\\{$name}Factory;
 use Illuminate\\Database\\Eloquent\\Factories\\HasFactory;
-use Illuminate\\Database\\Eloquent\\Model;
-use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
-use Illuminate\\Database\\Eloquent\\SoftDeletes;
+{$modelImport}
+use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;{$softDeletesImport}
 
-class {$name} extends Model{$implementsStr}
+class {$name} extends {$extendsClass}{$implementsStr}
 {
     /** @use HasFactory<{$name}Factory> */
     use HasFactory;
-{$traitsStr}
-    use SoftDeletes;
+{$traitsStr}{$softDeletesUse}
 
     /**
      * @var list<string>
@@ -441,7 +838,7 @@ class {$name} extends Model{$implementsStr}
     public function owner(): BelongsTo
     {
         return \$this->belongsTo(User::class, 'owner_id');
-    }{$searchableColumnsMethod}
+    }{$searchableColumnsMethod}{$aiContextMethod}
 
     protected static function newFactory(): {$name}Factory
     {
@@ -457,27 +854,12 @@ PHP;
         return "app/Models/{$name}.php";
     }
 
-    protected function generateSmartModel(string $name, string $tableName, array $traits): string
+    protected function generateSmartModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
-        $traitImports = [];
-        $traitUses = [];
-        $interfaces = [];
-        $interfaceImports = [];
+        ['traitImports' => $traitImports, 'traitUses' => $traitUses, 'interfaces' => $interfaces, 'interfaceImports' => $interfaceImports] =
+            $this->resolveTraitsAndInterfaces($traits, $aiContext);
+
         $relationImports = ['use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;'];
-
-        foreach ($traits as $trait) {
-            $traitImports[] = "use Aicl\\Traits\\{$trait};";
-            $traitUses[] = "    use {$trait};";
-
-            match ($trait) {
-                'HasEntityEvents' => $this->addInterface($interfaces, $interfaceImports, 'HasEntityLifecycle'),
-                'HasAuditTrail' => $this->addInterface($interfaces, $interfaceImports, 'Auditable'),
-                'HasTagging' => $this->addInterface($interfaces, $interfaceImports, 'Taggable'),
-                'HasSearchableFields' => $this->addInterface($interfaces, $interfaceImports, 'Searchable'),
-                'HasMediaCollections' => $this->addExternalInterface($interfaces, $interfaceImports, 'HasMedia', 'Spatie\\MediaLibrary\\HasMedia'),
-                default => null,
-            };
-        }
 
         // State machine imports
         if (! empty($this->states)) {
@@ -496,7 +878,11 @@ PHP;
 
         $implementsStr = ! empty($interfaces) ? ' implements '.implode(', ', $interfaces) : '';
 
-        // Build fillable array
+        // Check if base class provides is_active / owner_id
+        $baseHasIsActive = $this->baseInspector !== null && $this->baseInspector->hasColumn('is_active');
+        $baseHasOwnerId = $this->baseInspector !== null && $this->baseInspector->hasColumn('owner_id');
+
+        // Build fillable array (child fields only — base fillable is on the base class)
         $fillableFields = [];
         foreach ($this->fields as $field) {
             $fillableFields[] = "        '{$field->name}',";
@@ -517,16 +903,16 @@ PHP;
         if (! empty($this->states)) {
             $fillableFields[] = "        'status',";
         }
-        if (! $hasExplicitIsActive) {
+        if (! $hasExplicitIsActive && ! $baseHasIsActive) {
             $fillableFields[] = "        'is_active',";
         }
-        if (! $hasExplicitOwnerId) {
+        if (! $hasExplicitOwnerId && ! $baseHasOwnerId) {
             $fillableFields[] = "        'owner_id',";
         }
 
         $fillableStr = implode("\n", $fillableFields);
 
-        // Build casts
+        // Build casts (child casts only)
         $casts = [];
         foreach ($this->fields as $field) {
             $cast = $this->getCastForField($field, $name);
@@ -538,13 +924,13 @@ PHP;
         if (! empty($this->states)) {
             $casts[] = "            'status' => {$name}State::class,";
         }
-        if (! $hasExplicitIsActive) {
+        if (! $hasExplicitIsActive && ! $baseHasIsActive) {
             $casts[] = "            'is_active' => 'boolean',";
         }
 
         $castsStr = implode("\n", $casts);
 
-        // Build relationships
+        // Build relationships (child only — base relationships are inherited)
         $relationshipMethods = '';
 
         // BelongsTo from foreignId fields
@@ -566,8 +952,8 @@ PHP;
             }
         }
 
-        // Always add owner if not explicit foreignId
-        if (! $hasExplicitOwnerId) {
+        // Add owner only if not explicit foreignId AND not from base class
+        if (! $hasExplicitOwnerId && ! $baseHasOwnerId) {
             $relationshipMethods .= <<<'PHP'
 
 
@@ -598,7 +984,7 @@ PHP;
 PHP;
         }
 
-        // Searchable columns
+        // Searchable columns (always on child — child-specific columns)
         $hasStandardScopes = in_array('HasStandardScopes', $traits);
         $searchableColumnsMethod = '';
         if ($hasStandardScopes) {
@@ -618,6 +1004,24 @@ PHP;
 PHP;
         }
 
+        // AI context fields method
+        $aiContextMethod = '';
+        if ($aiContext) {
+            $contextFields = array_map(fn (FieldDefinition $f): string => "'{$f->name}'", $this->fields);
+            $contextFieldsStr = implode(', ', $contextFields);
+            $aiContextMethod = <<<PHP
+
+
+    /**
+     * @return array<int, string>
+     */
+    protected function aiContextFields(): array
+    {
+        return [{$contextFieldsStr}];
+    }
+PHP;
+        }
+
         // Enum imports
         $enumImports = [];
         foreach ($this->fields as $field) {
@@ -627,11 +1031,14 @@ PHP;
         }
 
         // Model imports for foreignId relationships
-        $modelImports = ['use App\\Models\\User;'];
+        $modelImports = [];
+        if (! $baseHasOwnerId) {
+            $modelImports[] = 'use App\\Models\\User;';
+        }
         foreach ($this->fields as $field) {
             if ($field->isForeignKey()) {
                 $modelName = $field->relatedModelName();
-                if ($modelName !== 'User') {
+                if ($modelName !== 'User' || $baseHasOwnerId) {
                     $import = "use App\\Models\\{$modelName};";
                     if (! in_array($import, $modelImports)) {
                         $modelImports[] = $import;
@@ -640,20 +1047,38 @@ PHP;
             }
         }
 
+        // Determine extends clause
+        $baseSoftDeletes = $this->baseInspector !== null && $this->baseInspector->hasTrait('SoftDeletes');
+
+        if ($this->baseInspector !== null) {
+            $extendsClass = $this->baseInspector->shortClassName();
+            $modelImportLine = "use {$this->baseInspector->fullClassName()};";
+        } else {
+            $extendsClass = 'Model';
+            $modelImportLine = 'use Illuminate\\Database\\Eloquent\\Model;';
+        }
+
         $allImports = array_merge(
             $interfaceImports,
             $traitImports,
             $enumImports,
             ["use Database\\Factories\\{$name}Factory;"],
             ['use Illuminate\\Database\\Eloquent\\Factories\\HasFactory;'],
-            ['use Illuminate\\Database\\Eloquent\\Model;'],
+            [$modelImportLine],
             $relationImports,
-            ['use Illuminate\\Database\\Eloquent\\SoftDeletes;'],
+            $modelImports,
         );
+
+        if (! $baseSoftDeletes) {
+            $allImports[] = 'use Illuminate\\Database\\Eloquent\\SoftDeletes;';
+        }
+
         sort($allImports);
         $allImports = array_unique($allImports);
         $importsStr = implode("\n", $allImports);
         $traitsStr = implode("\n", $traitUses);
+
+        $softDeletesUse = $baseSoftDeletes ? '' : "\n    use SoftDeletes;";
 
         $content = <<<PHP
 <?php
@@ -662,12 +1087,11 @@ namespace App\\Models;
 
 {$importsStr}
 
-class {$name} extends Model{$implementsStr}
+class {$name} extends {$extendsClass}{$implementsStr}
 {
     /** @use HasFactory<{$name}Factory> */
     use HasFactory;
-{$traitsStr}
-    use SoftDeletes;
+{$traitsStr}{$softDeletesUse}
 
     /**
      * @var list<string>
@@ -681,7 +1105,7 @@ class {$name} extends Model{$implementsStr}
         return [
 {$castsStr}
         ];
-    }{$relationshipMethods}{$searchableColumnsMethod}
+    }{$relationshipMethods}{$searchableColumnsMethod}{$aiContextMethod}
 
     protected static function newFactory(): {$name}Factory
     {
@@ -763,9 +1187,14 @@ PHP;
         $lines = [];
         $lines[] = '            $table->id();';
 
+        // Check if base class provides is_active / owner_id
+        $baseHasIsActive = $this->baseInspector !== null && $this->baseInspector->hasColumn('is_active');
+        $baseHasOwnerId = $this->baseInspector !== null && $this->baseInspector->hasColumn('owner_id');
+
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
 
+        // Child fields only (base fields are in the base migration)
         foreach ($this->fields as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
@@ -781,10 +1210,10 @@ PHP;
             $lines[] = "            \$table->string('status')->default('{$defaultState}');";
         }
 
-        if (! $hasExplicitIsActive) {
+        if (! $hasExplicitIsActive && ! $baseHasIsActive) {
             $lines[] = "            \$table->boolean('is_active')->default(true);";
         }
-        if (! $hasExplicitOwnerId) {
+        if (! $hasExplicitOwnerId && ! $baseHasOwnerId) {
             $lines[] = "            \$table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();";
         }
 
@@ -883,9 +1312,32 @@ PHP;
 
     protected function generateSmartFactory(string $name): string
     {
-        $imports = ["use App\\Models\\{$name};", 'use App\\Models\\User;'];
+        $imports = ["use App\\Models\\{$name};"];
         $definitions = [];
         $stateMethods = '';
+
+        // Check if base class provides is_active / owner_id
+        $baseHasIsActive = $this->baseInspector !== null && $this->baseInspector->hasColumn('is_active');
+        $baseHasOwnerId = $this->baseInspector !== null && $this->baseInspector->hasColumn('owner_id');
+
+        // Include base field fakers in the factory definition
+        if ($this->baseInspector !== null) {
+            foreach ($this->baseInspector->columns() as $baseField) {
+                $fakerCall = $this->getFakerForField($baseField);
+                $definitions[] = "            '{$baseField->name}' => {$fakerCall},";
+
+                if ($baseField->isForeignKey()) {
+                    $modelName = $baseField->relatedModelName();
+                    $import = "use App\\Models\\{$modelName};";
+                    if (! in_array($import, $imports)) {
+                        $imports[] = $import;
+                    }
+                }
+                if ($baseField->isEnum()) {
+                    $imports[] = "use App\\Enums\\{$baseField->typeArgument};";
+                }
+            }
+        }
 
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
@@ -913,10 +1365,11 @@ PHP;
             }
         }
 
-        if (! $hasExplicitIsActive) {
+        if (! $hasExplicitIsActive && ! $baseHasIsActive) {
             $definitions[] = "            'is_active' => true,";
         }
-        if (! $hasExplicitOwnerId) {
+        if (! $hasExplicitOwnerId && ! $baseHasOwnerId) {
+            $imports[] = 'use App\\Models\\User;';
             $definitions[] = "            'owner_id' => User::factory(),";
         }
 
@@ -1154,18 +1607,465 @@ PHP;
 
     protected function generateSmartObserver(string $name): string
     {
-        $snakeName = Str::snake($name);
+        // Priority 1: Observer Rules spec — full declarative observer
+        if ($this->entitySpec !== null && $this->entitySpec->hasObserverRules()) {
+            return $this->generateObserverFromRules($name, $this->entitySpec);
+        }
 
-        // Determine first string field for activity log display name
-        $displayField = 'name';
-        if ($this->fields !== null) {
-            foreach ($this->fields as $field) {
-                if ($field->type === 'string') {
-                    $displayField = $field->name;
-                    break;
+        // Priority 2: Notification specs — dispatch logic without full observer control
+        if ($this->entitySpec !== null && $this->entitySpec->hasStructuredNotifications()) {
+            return $this->generateStructuredObserver($name, $this->entitySpec);
+        }
+
+        // Priority 3: Legacy — TODO stubs
+        return $this->generateSmartObserverLegacy($name);
+    }
+
+    /**
+     * Generate observer with real notification dispatch logic from structured specs.
+     */
+    protected function generateStructuredObserver(string $name, EntitySpec $spec): string
+    {
+        $snakeName = Str::snake($name);
+        $displayField = $this->getDisplayField();
+        $resolver = new NotificationTemplateResolver($name);
+
+        // Collect notifications by trigger type
+        $createdNotifs = [];
+        $fieldChangeNotifs = [];
+        $deletedNotifs = [];
+
+        foreach ($spec->notificationSpecs as $notifSpec) {
+            $type = $notifSpec->triggerType();
+            if ($type === 'created') {
+                $createdNotifs[] = $notifSpec;
+            } elseif ($type === 'field_change' || $type === 'state_transition') {
+                $fieldChangeNotifs[] = $notifSpec;
+            } elseif ($type === 'deleted') {
+                $deletedNotifs[] = $notifSpec;
+            }
+        }
+
+        // Build imports
+        $imports = [
+            'use Aicl\\Observers\\BaseObserver;',
+            "use App\\Models\\{$name};",
+            'use Illuminate\\Database\\Eloquent\\Model;',
+        ];
+
+        foreach ($spec->notificationSpecs as $notifSpec) {
+            $className = $name.$notifSpec->name.'Notification';
+            $imports[] = "use App\\Notifications\\{$className};";
+        }
+
+        sort($imports);
+        $importsStr = implode("\n", $imports);
+
+        // Build created() method
+        $createdDispatches = '';
+        foreach ($createdNotifs as $notifSpec) {
+            $className = $name.$notifSpec->name.'Notification';
+            $recipientCode = $resolver->resolveRecipient($notifSpec->recipient);
+            $createdDispatches .= <<<PHP
+
+        {$recipientCode}?->notify(new {$className}(\$model, auth()->user()));
+PHP;
+        }
+
+        // Build updating() method for status transitions
+        $updatingMethod = '';
+        if (! empty($this->states)) {
+            $updatingMethod = <<<PHP
+
+    public function updating(Model \$model): void
+    {
+        /** @var {$name} \$model */
+        if (\$model->isDirty('status')) {
+            \$oldStatus = \$model->getOriginal('status');
+            \$newStatus = \$model->status;
+
+            activity()
+                ->performedOn(\$model)
+                ->withProperties([
+                    'old_status' => \$oldStatus ? (string) \$oldStatus : null,
+                    'new_status' => (string) \$newStatus,
+                ])
+                ->log('{$name} "' . \$model->{$displayField} . '" status changed from ' . (\$oldStatus ? (string) \$oldStatus : 'none') . ' to ' . (string) \$newStatus);
+        }
+    }
+PHP;
+        }
+
+        // Build updated() method with real dispatch logic
+        $updatedMethod = '';
+        if (! empty($fieldChangeNotifs)) {
+            $checks = [];
+            foreach ($fieldChangeNotifs as $notifSpec) {
+                $field = $notifSpec->watchedField();
+                $className = $name.$notifSpec->name.'Notification';
+                $recipientCode = $resolver->resolveRecipient($notifSpec->recipient);
+                $isStatusChange = $field === 'status' && ! empty($this->states);
+
+                if ($isStatusChange) {
+                    $checks[] = <<<PHP
+        if (\$model->isDirty('status')) {
+            \$oldStatus = \$model->getOriginal('status');
+            \$newStatus = \$model->status;
+            {$recipientCode}?->notify(new {$className}(\$model, \$oldStatus, \$newStatus, auth()->user()));
+        }
+PHP;
+                } else {
+                    $checks[] = <<<PHP
+        if (\$model->isDirty('{$field}') && \$model->{$field}) {
+            {$recipientCode}?->notify(new {$className}(\$model, auth()->user()));
+        }
+PHP;
+                }
+            }
+            $checksStr = implode("\n\n", $checks);
+
+            $updatedMethod = <<<PHP
+
+    public function updated(Model \$model): void
+    {
+        /** @var {$name} \$model */
+{$checksStr}
+    }
+PHP;
+        }
+
+        // Build deleted() method
+        $deletedDispatches = '';
+        foreach ($deletedNotifs as $notifSpec) {
+            $className = $name.$notifSpec->name.'Notification';
+            $recipientCode = $resolver->resolveRecipient($notifSpec->recipient);
+            $deletedDispatches .= <<<PHP
+
+        {$recipientCode}?->notify(new {$className}(\$model, auth()->user()));
+PHP;
+        }
+
+        $content = <<<PHP
+<?php
+
+namespace App\\Observers;
+
+{$importsStr}
+
+/**
+ * Observer for {$name} entity lifecycle events.
+ */
+class {$name}Observer extends BaseObserver
+{
+    public function created(Model \$model): void
+    {
+        /** @var {$name} \$model */
+        activity()
+            ->performedOn(\$model)
+            ->log('{$name} "' . \$model->{$displayField} . '" was created');{$createdDispatches}
+    }{$updatingMethod}{$updatedMethod}
+
+    public function deleted(Model \$model): void
+    {
+        /** @var {$name} \$model */
+        activity()
+            ->performedOn(\$model)
+            ->log('{$name} "' . \$model->{$displayField} . '" was deleted');{$deletedDispatches}
+    }
+}
+PHP;
+
+        $path = app_path("Observers/{$name}Observer.php");
+        $this->ensureDirectoryExists(dirname($path));
+        file_put_contents($path, $content);
+
+        return "app/Observers/{$name}Observer.php";
+    }
+
+    /**
+     * Generate observer entirely from ## Observer Rules spec.
+     *
+     * This is the highest-priority observer generation method — when Observer Rules
+     * are defined, they completely control the observer's behavior (both logging
+     * and notification dispatch).
+     */
+    protected function generateObserverFromRules(string $name, EntitySpec $spec): string
+    {
+        $snakeName = Str::snake($name);
+        $displayField = $this->getDisplayField();
+        $resolver = new NotificationTemplateResolver($name);
+
+        // Group rules by event
+        $rulesByEvent = ['created' => [], 'updated' => [], 'deleted' => []];
+
+        foreach ($spec->observerRules as $rule) {
+            if (isset($rulesByEvent[$rule->event])) {
+                $rulesByEvent[$rule->event][] = $rule;
+            }
+        }
+
+        // Collect notification class imports from notify rules
+        $imports = [
+            'use Aicl\\Observers\\BaseObserver;',
+            "use App\\Models\\{$name};",
+            'use Illuminate\\Database\\Eloquent\\Model;',
+        ];
+
+        foreach ($spec->observerRules as $rule) {
+            if ($rule->isNotify()) {
+                $parsed = $rule->parseNotifyDetails();
+
+                if ($parsed['class'] !== '') {
+                    $imports[] = "use App\\Notifications\\{$name}{$parsed['class']}Notification;";
                 }
             }
         }
+
+        $imports = array_unique($imports);
+        sort($imports);
+        $importsStr = implode("\n", $imports);
+
+        // Build created() method
+        $createdBody = $this->buildObserverMethodBody($name, $rulesByEvent['created'], $displayField, $resolver);
+
+        // Build updating() method (for status activity logging) — only if we have status watch rules with log action
+        $updatingMethod = '';
+        $hasStatusLog = false;
+
+        foreach ($rulesByEvent['updated'] as $rule) {
+            if ($rule->isLog() && $rule->watchField === 'status' && ! empty($this->states)) {
+                $hasStatusLog = true;
+
+                break;
+            }
+        }
+
+        if ($hasStatusLog) {
+            $updatingMethod = <<<PHP
+
+    public function updating(Model \$model): void
+    {
+        /** @var {$name} \$model */
+        if (\$model->isDirty('status')) {
+            \$oldStatus = \$model->getOriginal('status');
+            \$newStatus = \$model->status;
+
+            activity()
+                ->performedOn(\$model)
+                ->withProperties([
+                    'old_status' => \$oldStatus ? (string) \$oldStatus : null,
+                    'new_status' => (string) \$newStatus,
+                ])
+                ->log('{$name} "' . \$model->{$displayField} . '" status changed from ' . (\$oldStatus ? (string) \$oldStatus : 'none') . ' to ' . (string) \$newStatus);
+        }
+    }
+PHP;
+        }
+
+        // Build updated() method from update rules
+        $updatedMethod = '';
+        $updateNotifyRules = array_filter($rulesByEvent['updated'], fn ($r) => $r->isNotify());
+
+        if (! empty($updateNotifyRules)) {
+            $checks = [];
+
+            foreach ($updateNotifyRules as $rule) {
+                $parsed = $rule->parseNotifyDetails();
+                $recipientCode = $resolver->resolveRecipient($parsed['recipient']);
+                $className = $name.$parsed['class'].'Notification';
+                $field = $rule->watchField;
+                $isStatusChange = $field === 'status' && ! empty($this->states);
+
+                if ($isStatusChange) {
+                    $check = <<<PHP
+        if (\$model->isDirty('status')) {
+            \$oldStatus = \$model->getOriginal('status');
+            \$newStatus = \$model->status;
+            {$recipientCode}?->notify(new {$className}(\$model, \$oldStatus, \$newStatus, auth()->user()));
+        }
+PHP;
+                } elseif ($field !== null) {
+                    $conditionParts = ["\$model->isDirty('{$field}')"];
+
+                    if ($parsed['condition'] !== null) {
+                        $conditionParts[] = $this->resolveRuleCondition($parsed['condition'], $field);
+                    } else {
+                        $conditionParts[] = "\$model->{$field}";
+                    }
+
+                    $conditionStr = implode(' && ', $conditionParts);
+                    $check = <<<PHP
+        if ({$conditionStr}) {
+            {$recipientCode}?->notify(new {$className}(\$model, auth()->user()));
+        }
+PHP;
+                } else {
+                    $check = "        {$recipientCode}?->notify(new {$className}(\$model, auth()->user()));";
+                }
+
+                $checks[] = $check;
+            }
+
+            $checksStr = implode("\n\n", $checks);
+
+            $updatedMethod = <<<PHP
+
+    public function updated(Model \$model): void
+    {
+        /** @var {$name} \$model */
+{$checksStr}
+    }
+PHP;
+        }
+
+        // Build deleted() method
+        $deletedBody = $this->buildObserverMethodBody($name, $rulesByEvent['deleted'], $displayField, $resolver);
+
+        $content = <<<PHP
+<?php
+
+namespace App\\Observers;
+
+{$importsStr}
+
+/**
+ * Observer for {$name} entity lifecycle events.
+ */
+class {$name}Observer extends BaseObserver
+{
+    public function created(Model \$model): void
+    {
+        /** @var {$name} \$model */
+{$createdBody}
+    }{$updatingMethod}{$updatedMethod}
+
+    public function deleted(Model \$model): void
+    {
+        /** @var {$name} \$model */
+{$deletedBody}
+    }
+}
+PHP;
+
+        $path = app_path("Observers/{$name}Observer.php");
+        $this->ensureDirectoryExists(dirname($path));
+        file_put_contents($path, $content);
+
+        return "app/Observers/{$name}Observer.php";
+    }
+
+    /**
+     * Build the method body for a created() or deleted() observer method from rules.
+     *
+     * @param  array<int, ObserverRuleSpec>  $rules
+     */
+    protected function buildObserverMethodBody(
+        string $name,
+        array $rules,
+        string $displayField,
+        NotificationTemplateResolver $resolver,
+    ): string {
+        $lines = [];
+
+        foreach ($rules as $rule) {
+            if ($rule->isLog()) {
+                $logMessage = $this->resolveLogTemplate($rule->details, $name, $displayField);
+                $lines[] = <<<PHP
+        activity()
+            ->performedOn(\$model)
+            ->log({$logMessage});
+PHP;
+            } elseif ($rule->isNotify()) {
+                $parsed = $rule->parseNotifyDetails();
+                $recipientCode = $resolver->resolveRecipient($parsed['recipient']);
+                $className = $name.$parsed['class'].'Notification';
+
+                $notifyLine = "        {$recipientCode}?->notify(new {$className}(\$model, auth()->user()));";
+
+                if ($parsed['condition'] !== null) {
+                    $conditionCode = $this->resolveRuleCondition($parsed['condition'], null);
+                    $lines[] = <<<PHP
+        if ({$conditionCode}) {
+            {$recipientCode}?->notify(new {$className}(\$model, auth()->user()));
+        }
+PHP;
+                } else {
+                    $lines[] = $notifyLine;
+                }
+            }
+        }
+
+        if (empty($lines)) {
+            $lines[] = '        //';
+        }
+
+        return implode("\n\n", $lines);
+    }
+
+    /**
+     * Resolve a log template string to a PHP expression.
+     *
+     * Replaces:
+     *   {Name} → entity name literal
+     *   {model.field} → $model->field interpolation
+     *   {new.status.label} → $model->status label interpolation
+     */
+    protected function resolveLogTemplate(string $template, string $name, string $displayField): string
+    {
+        // Replace {Name} with the entity name
+        $template = str_replace('{Name}', $name, $template);
+
+        // Replace {model.field} → "' . $model->field . '"
+        $hasModelRef = preg_match('/\{model\.(\w+)\}/', $template);
+
+        if ($hasModelRef) {
+            $template = preg_replace_callback(
+                '/\{model\.(\w+)\}/',
+                fn ($m) => "' . \$model->{$m[1]} . '",
+                $template
+            );
+
+            return "'{$template}'";
+        }
+
+        // Replace {new.status.label} with status casting
+        if (str_contains($template, '{new.status.label}')) {
+            $template = str_replace('{new.status.label}', "' . (string) \$model->status . '", $template);
+
+            return "'{$template}'";
+        }
+
+        return "'{$template}'";
+    }
+
+    /**
+     * Resolve a rule condition to a PHP expression.
+     *
+     * "owner_id set" → $model->owner_id
+     * "field set" → $model->field
+     */
+    protected function resolveRuleCondition(string $condition, ?string $contextField): string
+    {
+        // "{field} set" → $model->{field}
+        if (preg_match('/^(\w+)\s+set$/', $condition, $m)) {
+            return "\$model->{$m[1]}";
+        }
+
+        // Plain field name
+        if (preg_match('/^\w+$/', $condition)) {
+            return "\$model->{$condition}";
+        }
+
+        return "// TODO: condition: {$condition}";
+    }
+
+    /**
+     * Generate smart observer with TODO stubs (no structured notification specs).
+     */
+    protected function generateSmartObserverLegacy(string $name): string
+    {
+        $snakeName = Str::snake($name);
+        $displayField = $this->getDisplayField();
 
         // Build updating() stub for status transitions
         $updatingMethod = '';
@@ -1262,6 +2162,153 @@ PHP;
         file_put_contents($path, $content);
 
         return "app/Observers/{$name}Observer.php";
+    }
+
+    /**
+     * Get the first string field name for activity log display.
+     */
+    protected function getDisplayField(): string
+    {
+        if ($this->fields !== null) {
+            foreach ($this->fields as $field) {
+                if ($field->type === 'string') {
+                    return $field->name;
+                }
+            }
+        }
+
+        return 'name';
+    }
+
+    /**
+     * Generate broadcast events extending BaseBroadcastEvent.
+     *
+     * @return array<int, string>
+     */
+    protected function generateBroadcastEvents(string $name): array
+    {
+        $snakeName = Str::snake($name);
+        $files = [];
+
+        $actions = [
+            'Created' => 'created',
+            'Updated' => 'updated',
+            'Deleted' => 'deleted',
+        ];
+
+        foreach ($actions as $suffix => $action) {
+            $className = "{$name}{$suffix}";
+            $content = $this->buildBroadcastEventContent($name, $className, $snakeName, $action);
+
+            $path = app_path("Events/{$className}.php");
+            $this->ensureDirectoryExists(dirname($path));
+            file_put_contents($path, $content);
+
+            $files[] = "app/Events/{$className}.php";
+        }
+
+        return $files;
+    }
+
+    protected function buildBroadcastEventContent(string $name, string $className, string $snakeName, string $action): string
+    {
+        if ($action === 'deleted') {
+            return <<<PHP
+<?php
+
+namespace App\Events;
+
+use Aicl\Broadcasting\BaseBroadcastEvent;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Database\Eloquent\Model;
+
+class {$className} extends BaseBroadcastEvent
+{
+    public int|string \$entityId;
+
+    public string \$entityType;
+
+    public function __construct(Model \$entity)
+    {
+        parent::__construct();
+
+        \$this->entityId = \$entity->getKey();
+        \$this->entityType = class_basename(\$entity);
+    }
+
+    public static function eventType(): string
+    {
+        return '{$snakeName}.{$action}';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toPayload(): array
+    {
+        return [
+            'id' => \$this->entityId,
+            'type' => \$this->entityType,
+            'action' => '{$action}',
+        ];
+    }
+
+    /**
+     * @return array<int, PrivateChannel>
+     */
+    public function broadcastOn(): array
+    {
+        \$type = strtolower(\$this->entityType);
+
+        return [
+            new PrivateChannel('dashboard'),
+            new PrivateChannel("{\$type}s.{\$this->entityId}"),
+        ];
+    }
+}
+PHP;
+        }
+
+        return <<<PHP
+<?php
+
+namespace App\Events;
+
+use Aicl\Broadcasting\BaseBroadcastEvent;
+use App\Models\\{$name};
+use Illuminate\Database\Eloquent\Model;
+
+class {$className} extends BaseBroadcastEvent
+{
+    public function __construct(
+        public {$name} \$entity,
+    ) {
+        parent::__construct();
+    }
+
+    public static function eventType(): string
+    {
+        return '{$snakeName}.{$action}';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toPayload(): array
+    {
+        return [
+            'id' => \$this->entity->getKey(),
+            'type' => class_basename(\$this->entity),
+            'action' => '{$action}',
+        ];
+    }
+
+    public function getEntity(): ?Model
+    {
+        return \$this->entity;
+    }
+}
+PHP;
     }
 
     /**
@@ -2324,6 +3371,57 @@ PHP;
     }
 
     /**
+     * Resolve trait imports, use statements, and interface mappings for a set of traits.
+     *
+     * Handles HasAiContext injection, base class deduplication, and trait-to-contract mapping.
+     *
+     * @param  array<int, string>  $traits
+     * @return array{traitImports: array<int, string>, traitUses: array<int, string>, interfaces: array<int, string>, interfaceImports: array<int, string>}
+     */
+    protected function resolveTraitsAndInterfaces(array $traits, bool $aiContext): array
+    {
+        $traitImports = [];
+        $traitUses = [];
+        $interfaces = [];
+        $interfaceImports = [];
+
+        if ($aiContext) {
+            $traitImports[] = 'use Aicl\\Traits\\HasAiContext;';
+            $traitUses[] = '    use HasAiContext;';
+        }
+
+        foreach ($traits as $trait) {
+            // Skip traits already provided by the base class
+            if ($this->baseInspector !== null && $this->baseInspector->hasTrait($trait)) {
+                continue;
+            }
+
+            $traitImports[] = "use Aicl\\Traits\\{$trait};";
+            $traitUses[] = "    use {$trait};";
+
+            match ($trait) {
+                'HasEntityEvents' => $this->addInterface($interfaces, $interfaceImports, 'HasEntityLifecycle'),
+                'HasAuditTrail' => $this->addInterface($interfaces, $interfaceImports, 'Auditable'),
+                'HasTagging' => $this->addInterface($interfaces, $interfaceImports, 'Taggable'),
+                'HasSearchableFields' => $this->addInterface($interfaces, $interfaceImports, 'Searchable'),
+                'HasMediaCollections' => $this->addExternalInterface($interfaces, $interfaceImports, 'HasMedia', 'Spatie\\MediaLibrary\\HasMedia'),
+                default => null,
+            };
+        }
+
+        // Remove contracts already provided by base class
+        if ($this->baseInspector !== null) {
+            $baseContracts = $this->baseInspector->contracts();
+            $interfaces = array_values(array_filter(
+                $interfaces,
+                fn (string $iface): bool => ! in_array($iface, $baseContracts, true)
+            ));
+        }
+
+        return compact('traitImports', 'traitUses', 'interfaces', 'interfaceImports');
+    }
+
+    /**
      * @param  array<int, string>  $interfaces
      * @param  array<int, string>  $imports
      */
@@ -2353,6 +3451,30 @@ PHP;
 
     protected function buildSmartFormSchema(string $name): string
     {
+        $sections = [];
+
+        // Inherited Fields section (from base class)
+        if ($this->baseInspector !== null) {
+            $inheritedFields = [];
+            foreach ($this->baseInspector->columns() as $baseField) {
+                if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
+                    continue; // These go in settings section
+                }
+                $inheritedFields[] = $this->getFormComponentForField($baseField, $name);
+            }
+
+            if (! empty($inheritedFields)) {
+                $inheritedStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $inheritedFields));
+                $sections[] = <<<PHP
+            Section::make('Inherited Fields')
+                ->schema([
+{$inheritedStr},
+                ]),
+PHP;
+            }
+        }
+
+        // Child entity detail fields
         $detailFields = [];
         $settingsFields = [];
 
@@ -2381,7 +3503,11 @@ PHP;
 PHP;
         }
 
-        // Always add is_active + owner_id to settings if not in explicit fields
+        // Check if base class provides is_active / owner_id
+        $baseHasIsActive = $this->baseInspector !== null && $this->baseInspector->hasColumn('is_active');
+        $baseHasOwnerId = $this->baseInspector !== null && $this->baseInspector->hasColumn('owner_id');
+
+        // Always add is_active + owner_id to settings if not in explicit fields and not from base
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
         foreach ($this->fields as $field) {
@@ -2393,7 +3519,16 @@ PHP;
             }
         }
 
-        if (! $hasExplicitOwnerId) {
+        // Add base class boolean/foreignId fields to settings section
+        if ($this->baseInspector !== null) {
+            foreach ($this->baseInspector->columns() as $baseField) {
+                if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
+                    $settingsFields[] = $this->getFormComponentForField($baseField, $name);
+                }
+            }
+        }
+
+        if (! $hasExplicitOwnerId && ! $baseHasOwnerId) {
             $settingsFields[] = <<<'PHP'
                     Select::make('owner_id')
                         ->relationship('owner', 'name')
@@ -2403,27 +3538,32 @@ PHP;
 PHP;
         }
 
-        if (! $hasExplicitIsActive) {
+        if (! $hasExplicitIsActive && ! $baseHasIsActive) {
             $settingsFields[] = <<<'PHP'
                     Toggle::make('is_active')
                         ->default(true)
 PHP;
         }
 
-        $detailStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $detailFields));
-        $settingsStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $settingsFields));
-
-        return <<<PHP
+        if (! empty($detailFields)) {
+            $detailStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $detailFields));
+            $sections[] = <<<PHP
             Section::make('{$name} Details')
                 ->schema([
 {$detailStr},
                 ]),
+PHP;
+        }
 
+        $settingsStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $settingsFields));
+        $sections[] = <<<PHP
             Section::make('Settings')
                 ->schema([
 {$settingsStr},
                 ]),
 PHP;
+
+        return implode("\n\n", $sections);
     }
 
     protected function getFormComponentForField(FieldDefinition $field, string $name): string
@@ -2728,6 +3868,11 @@ PHP;
     {
         $enumName = $field->typeArgument;
 
+        // Check for rich enum data from spec file
+        if (! empty($this->specEnums[$enumName])) {
+            return $this->generateEnumFromSpec($enumName, $this->specEnums[$enumName]);
+        }
+
         $content = <<<PHP
 <?php
 
@@ -2758,6 +3903,78 @@ enum {$enumName}: string
     }
 }
 PHP;
+
+        $dir = app_path('Enums');
+        $this->ensureDirectoryExists($dir);
+        file_put_contents("{$dir}/{$enumName}.php", $content);
+
+        return "app/Enums/{$enumName}.php";
+    }
+
+    /**
+     * Generate an enum class from rich spec file data.
+     *
+     * @param  array<int, array{case: string, label: string, color?: string, icon?: string}>  $cases
+     */
+    protected function generateEnumFromSpec(string $enumName, array $cases): string
+    {
+        $caseLines = [];
+        $labelLines = [];
+        $colorLines = [];
+        $hasColor = false;
+        $iconLines = [];
+        $hasIcon = false;
+
+        foreach ($cases as $entry) {
+            $caseName = Str::studly($entry['case']);
+            $caseValue = Str::snake($entry['case']);
+            $label = $entry['label'];
+
+            $caseLines[] = "    case {$caseName} = '{$caseValue}';";
+            $labelLines[] = "            self::{$caseName} => '{$label}',";
+
+            if (isset($entry['color']) && $entry['color'] !== '') {
+                $hasColor = true;
+                $colorLines[] = "            self::{$caseName} => '{$entry['color']}',";
+            }
+
+            if (isset($entry['icon']) && $entry['icon'] !== '') {
+                $hasIcon = true;
+                $iconLines[] = "            self::{$caseName} => '{$entry['icon']}',";
+            }
+        }
+
+        $casesStr = implode("\n", $caseLines);
+        $labelMatchStr = implode("\n", $labelLines);
+
+        $methods = "    public function label(): string\n";
+        $methods .= "    {\n";
+        $methods .= "        return match (\$this) {\n";
+        $methods .= $labelMatchStr."\n";
+        $methods .= "        };\n";
+        $methods .= '    }';
+
+        if ($hasColor) {
+            $colorMatchStr = implode("\n", $colorLines);
+            $methods .= "\n\n    public function color(): string\n";
+            $methods .= "    {\n";
+            $methods .= "        return match (\$this) {\n";
+            $methods .= $colorMatchStr."\n";
+            $methods .= "        };\n";
+            $methods .= '    }';
+        }
+
+        if ($hasIcon) {
+            $iconMatchStr = implode("\n", $iconLines);
+            $methods .= "\n\n    public function icon(): string\n";
+            $methods .= "    {\n";
+            $methods .= "        return match (\$this) {\n";
+            $methods .= $iconMatchStr."\n";
+            $methods .= "        };\n";
+            $methods .= '    }';
+        }
+
+        $content = "<?php\n\nnamespace App\\Enums;\n\nenum {$enumName}: string\n{\n{$casesStr}\n\n{$methods}\n}\n";
 
         $dir = app_path('Enums');
         $this->ensureDirectoryExists($dir);
@@ -2881,6 +4098,347 @@ PHP;
      * @return array<int, string>
      */
     protected function generateWidgets(string $name): array
+    {
+        // Use structured widget specs if available
+        if ($this->entitySpec !== null && $this->entitySpec->hasStructuredWidgets()) {
+            return $this->generateStructuredWidgets($name, $this->entitySpec);
+        }
+
+        return $this->generateLegacyWidgets($name);
+    }
+
+    /**
+     * Generate widgets from structured WidgetSpec definitions.
+     *
+     * @return array<int, string>
+     */
+    protected function generateStructuredWidgets(string $name, EntitySpec $spec): array
+    {
+        $files = [];
+        $dir = app_path('Filament/Widgets');
+        $this->ensureDirectoryExists($dir);
+
+        $queryParser = new WidgetQueryParser(
+            modelName: $name,
+            states: $spec->states,
+            enums: $spec->enums,
+        );
+
+        $sort = 1;
+
+        foreach ($spec->widgetSpecs as $widget) {
+            $files = match ($widget->type) {
+                'stats' => array_merge($files, $this->generateStructuredStatsWidget($name, $widget, $queryParser, $dir, $sort++)),
+                'chart' => array_merge($files, $this->generateStructuredChartWidget($name, $widget, $spec, $dir, $sort++)),
+                default => array_merge($files, $this->generateStructuredTableWidget($name, $widget, $queryParser, $dir, $sort++)),
+            };
+        }
+
+        return $files;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function generateStructuredStatsWidget(
+        string $name,
+        WidgetSpec $widget,
+        WidgetQueryParser $queryParser,
+        string $dir,
+        int $sort,
+    ): array {
+        $statLines = [];
+
+        foreach ($widget->metrics as $metric) {
+            $queryCode = $queryParser->parseAggregate($metric->query);
+            $statLine = "            Stat::make('{$metric->label}', {$queryCode})";
+
+            // Add static color
+            if ($metric->color !== '' && $metric->color !== 'primary') {
+                $statLine .= "\n                ->color('{$metric->color}')";
+            }
+
+            // Add conditional color
+            $conditionExpr = WidgetQueryParser::parseConditionColor($metric->conditionColor ?? '');
+            if ($conditionExpr !== null) {
+                // Wrap in a closure that evaluates the stat value
+                $statLine .= "\n                ->color(fn (): string => ({$queryCode}) > 0 ? '{$this->extractTrueColor($metric->conditionColor)}' : '{$this->extractFalseColor($metric->conditionColor)}')";
+            }
+
+            $statLines[] = $statLine.',';
+        }
+
+        $statsBody = implode("\n", $statLines);
+
+        $content = <<<PHP
+<?php
+
+namespace App\\Filament\\Widgets;
+
+use App\\Models\\{$name};
+use Filament\\Widgets\\StatsOverviewWidget;
+use Filament\\Widgets\\StatsOverviewWidget\\Stat;
+use Livewire\\Attributes\\On;
+
+class {$name}StatsOverview extends StatsOverviewWidget
+{
+    protected static ?int \$sort = {$sort};
+
+    protected ?string \$pollingInterval = '60s';
+
+    #[On('entity-changed')]
+    public function entityChanged(): void
+    {
+        // Stats will refresh on next poll
+    }
+
+    protected function getStats(): array
+    {
+        return [
+{$statsBody}
+        ];
+    }
+}
+PHP;
+
+        file_put_contents("{$dir}/{$name}StatsOverview.php", $content);
+
+        return ["app/Filament/Widgets/{$name}StatsOverview.php"];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function generateStructuredChartWidget(
+        string $name,
+        WidgetSpec $widget,
+        EntitySpec $spec,
+        string $dir,
+        int $sort,
+    ): array {
+        $pluralName = Str::pluralStudly($name);
+        $chartType = $widget->chartType ?? 'doughnut';
+        $groupBy = $widget->groupBy ?? 'status';
+
+        // Build data arrays from colors mapping
+        $dataLines = [];
+        $labelLines = [];
+        $colorLines = [];
+
+        if (! empty($widget->colors)) {
+            foreach ($widget->colors as $stateValue => $colorName) {
+                $resolvedColor = $this->filamentColorToHex($colorName);
+
+                // Determine the where condition based on states vs enums
+                if (! empty($spec->states) && in_array($stateValue, $spec->states, true)) {
+                    $stateClass = Str::studly($stateValue);
+                    $dataLines[] = "                {$name}::query()->where('{$groupBy}', {$stateClass}::getMorphClass())->count()";
+                } else {
+                    $dataLines[] = "                {$name}::query()->where('{$groupBy}', '{$stateValue}')->count()";
+                }
+
+                $labelLines[] = "'".Str::headline($stateValue)."'";
+                $colorLines[] = "'{$resolvedColor}'";
+            }
+        } else {
+            $dataLines[] = "                {$name}::query()->count()";
+            $labelLines[] = "'All'";
+            $colorLines[] = "'#3b82f6'";
+        }
+
+        $dataBody = implode(",\n", $dataLines);
+        $labelsBody = implode(', ', $labelLines);
+        $colorsBody = implode(', ', $colorLines);
+
+        // Build state imports
+        $stateImports = '';
+        if (! empty($spec->states) && ! empty($widget->colors)) {
+            $imports = [];
+
+            foreach (array_keys($widget->colors) as $stateValue) {
+                if (in_array($stateValue, $spec->states, true)) {
+                    $stateClass = Str::studly($stateValue);
+                    $imports[] = "use App\\States\\{$name}\\{$stateClass};";
+                }
+            }
+
+            if (! empty($imports)) {
+                $stateImports = "\n".implode("\n", $imports);
+            }
+        }
+
+        $content = <<<PHP
+<?php
+
+namespace App\\Filament\\Widgets;
+
+use App\\Models\\{$name};
+use Filament\\Widgets\\ChartWidget;
+use Livewire\\Attributes\\On;{$stateImports}
+
+class {$name}ByStatusChart extends ChartWidget
+{
+    protected ?string \$heading = '{$pluralName} by Status';
+
+    protected static ?int \$sort = {$sort};
+
+    protected ?string \$pollingInterval = '60s';
+
+    #[On('entity-changed')]
+    public function entityChanged(): void
+    {
+        \$this->updateChartData();
+    }
+
+    protected function getType(): string
+    {
+        return '{$chartType}';
+    }
+
+    protected function getData(): array
+    {
+        return [
+            'datasets' => [
+                [
+                    'data' => [
+{$dataBody},
+                    ],
+                    'backgroundColor' => [{$colorsBody}],
+                ],
+            ],
+            'labels' => [{$labelsBody}],
+        ];
+    }
+}
+PHP;
+
+        file_put_contents("{$dir}/{$name}ByStatusChart.php", $content);
+
+        return ["app/Filament/Widgets/{$name}ByStatusChart.php"];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function generateStructuredTableWidget(
+        string $name,
+        WidgetSpec $widget,
+        WidgetQueryParser $queryParser,
+        string $dir,
+        int $sort,
+    ): array {
+        $widgetClassName = Str::studly(str_replace(' ', '', $widget->name)).'Widget';
+        $queryCode = $widget->query !== null
+            ? $queryParser->parseTableQuery($widget->query)
+            : "{$name}::query()->latest()->limit(5)";
+
+        // Build columns
+        $columnLines = [];
+
+        foreach ($widget->columns as $column) {
+            $formatChain = WidgetQueryParser::columnFormatToFilament($column->format);
+            $label = Str::headline(str_replace('.', ' ', $column->name));
+            $columnLines[] = "                TextColumn::make('{$column->name}')->label('{$label}'){$formatChain},";
+        }
+
+        if (empty($columnLines)) {
+            $columnLines[] = "                TextColumn::make('id')->label('ID'),";
+            $columnLines[] = "                TextColumn::make('owner.name')->label('Owner'),";
+            $columnLines[] = "                TextColumn::make('created_at')->dateTime(),";
+        }
+
+        $columnsBody = implode("\n", $columnLines);
+
+        $content = <<<PHP
+<?php
+
+namespace App\\Filament\\Widgets;
+
+use App\\Models\\{$name};
+use Filament\\Tables\\Columns\\TextColumn;
+use Filament\\Tables\\Table;
+use Filament\\Widgets\\TableWidget;
+use Livewire\\Attributes\\On;
+
+class {$widgetClassName} extends TableWidget
+{
+    protected static ?int \$sort = {$sort};
+
+    protected int|string|array \$columnSpan = 'full';
+
+    protected ?string \$pollingInterval = '60s';
+
+    #[On('entity-changed')]
+    public function entityChanged(): void
+    {
+        // Table will refresh on next poll
+    }
+
+    public function table(Table \$table): Table
+    {
+        return \$table
+            ->heading('{$widget->name}')
+            ->query({$queryCode})
+            ->columns([
+{$columnsBody}
+            ])
+            ->paginated(false);
+    }
+}
+PHP;
+
+        file_put_contents("{$dir}/{$widgetClassName}.php", $content);
+
+        return ["app/Filament/Widgets/{$widgetClassName}.php"];
+    }
+
+    /**
+     * Extract the "true" color from a condition color expression.
+     */
+    protected function extractTrueColor(?string $expression): string
+    {
+        if ($expression !== null && preg_match('/:\s*(\w+),/', $expression, $m)) {
+            return $m[1];
+        }
+
+        return 'primary';
+    }
+
+    /**
+     * Extract the "false" color from a condition color expression.
+     */
+    protected function extractFalseColor(?string $expression): string
+    {
+        if ($expression !== null && preg_match('/else:\s*(\w+)/', $expression, $m)) {
+            return $m[1];
+        }
+
+        return 'gray';
+    }
+
+    /**
+     * Convert a Filament color name to a hex value for chart backgrounds.
+     */
+    protected function filamentColorToHex(string $color): string
+    {
+        return match ($color) {
+            'primary' => '#6366f1',
+            'success' => '#10b981',
+            'warning' => '#f59e0b',
+            'danger' => '#ef4444',
+            'info' => '#3b82f6',
+            'gray' => '#6b7280',
+            'secondary' => '#64748b',
+            default => '#'.ltrim($color, '#'),
+        };
+    }
+
+    /**
+     * Generate legacy stub widgets (backward-compatible behavior).
+     *
+     * @return array<int, string>
+     */
+    protected function generateLegacyWidgets(string $name): array
     {
         $files = [];
         $pluralName = Str::pluralStudly($name);
@@ -3055,6 +4613,134 @@ PHP;
      */
     protected function generateNotifications(string $name): array
     {
+        // Use structured notification specs if available
+        if ($this->entitySpec !== null && $this->entitySpec->hasStructuredNotifications()) {
+            return $this->generateStructuredNotifications($name, $this->entitySpec);
+        }
+
+        return $this->generateLegacyNotifications($name);
+    }
+
+    /**
+     * Generate notifications from structured NotificationSpec definitions.
+     *
+     * @return array<int, string>
+     */
+    protected function generateStructuredNotifications(string $name, EntitySpec $spec): array
+    {
+        $files = [];
+        $snakeName = Str::snake($name);
+        $dir = app_path('Notifications');
+        $this->ensureDirectoryExists($dir);
+
+        $resolver = new NotificationTemplateResolver($name);
+
+        foreach ($spec->notificationSpecs as $notifSpec) {
+            $className = $name.$notifSpec->name.'Notification';
+            $files = array_merge(
+                $files,
+                $this->generateSingleStructuredNotification($name, $notifSpec, $className, $resolver, $dir)
+            );
+        }
+
+        return $files;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function generateSingleStructuredNotification(
+        string $name,
+        NotificationSpec $notifSpec,
+        string $className,
+        NotificationTemplateResolver $resolver,
+        string $dir,
+    ): array {
+        $snakeName = Str::snake($name);
+        $resolvedBody = $resolver->resolveBody($notifSpec->body);
+        $resolvedColor = $resolver->resolveColor($notifSpec->color);
+        $isStatusChange = $notifSpec->watchedField() === 'status' && ! empty($this->states);
+
+        // Build constructor params and imports
+        $imports = [
+            'use Aicl\\Notifications\\BaseNotification;',
+            "use App\\Models\\{$name};",
+            'use App\\Models\\User;',
+        ];
+        $constructorParams = [
+            "        public {$name} \${$snakeName},",
+        ];
+
+        if ($isStatusChange) {
+            $imports[] = "use App\\States\\{$name}State;";
+            $constructorParams[] = "        public {$name}State \$previousStatus,";
+            $constructorParams[] = "        public {$name}State \$newStatus,";
+            $constructorParams[] = '        public ?User $changedBy = null,';
+        } else {
+            $constructorParams[] = '        public User $changedBy,';
+        }
+
+        sort($imports);
+        $importsStr = implode("\n", $imports);
+        $constructorStr = implode("\n", $constructorParams);
+
+        // Color method body
+        $colorBody = $notifSpec->hasDynamicColor()
+            ? "return {$resolvedColor};"
+            : "return {$resolvedColor};";
+
+        $content = <<<PHP
+<?php
+
+namespace App\\Notifications;
+
+{$importsStr}
+
+class {$className} extends BaseNotification
+{
+    public function __construct(
+{$constructorStr}
+    ) {}
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toDatabase(object \$notifiable): array
+    {
+        return [
+            'title' => '{$notifSpec->title}',
+            'body' => "{$resolvedBody}",
+            'icon' => \$this->getIcon(),
+            'color' => \$this->getColor(),
+            'action_url' => route('filament.admin.resources.{$snakeName}s.view', ['record' => \$this->{$snakeName}]),
+            'action_text' => 'View {$name}',
+        ];
+    }
+
+    public function getIcon(): string
+    {
+        return '{$notifSpec->icon}';
+    }
+
+    public function getColor(): string
+    {
+        {$colorBody}
+    }
+}
+PHP;
+
+        file_put_contents("{$dir}/{$className}.php", $content);
+
+        return ["app/Notifications/{$className}.php"];
+    }
+
+    /**
+     * Generate legacy stub notifications (backward-compatible behavior).
+     *
+     * @return array<int, string>
+     */
+    protected function generateLegacyNotifications(string $name): array
+    {
         $files = [];
         $snakeName = Str::snake($name);
         $dir = app_path('Notifications');
@@ -3175,6 +4861,11 @@ PHP;
      */
     protected function generatePdfTemplates(string $name): array
     {
+        // Structured report layout takes priority over field-based generation
+        if ($this->entitySpec !== null && $this->entitySpec->hasReportLayout()) {
+            return $this->generateStructuredPdfTemplates($name, $this->entitySpec);
+        }
+
         $files = [];
         $snakeName = Str::snake($name);
         $pluralSnake = Str::snake(Str::pluralStudly($name));
@@ -3303,6 +4994,279 @@ BLADE;
         return $files;
     }
 
+    /**
+     * Generate PDF templates from structured ## Report Layout spec.
+     *
+     * @return array<int, string>
+     */
+    protected function generateStructuredPdfTemplates(string $name, EntitySpec $spec): array
+    {
+        $files = [];
+        $snakeName = Str::snake($name);
+        $pluralSnake = Str::snake(Str::pluralStudly($name));
+        $pluralName = Str::pluralStudly($name);
+        $dir = resource_path('views/pdf');
+        $this->ensureDirectoryExists($dir);
+
+        $layout = $spec->reportLayout;
+
+        // Generate single report
+        if ($layout->hasSingleReport()) {
+            $sectionsHtml = '';
+
+            foreach ($layout->singleReport as $section) {
+                $sectionsHtml .= $this->renderReportSection($section, $snakeName, $name);
+            }
+
+            $singleContent = <<<BLADE
+@extends('aicl::pdf.layout')
+
+@section('content'){$sectionsHtml}
+
+    <div class="text-small text-muted mt-10">
+        <p>Last updated: {{ \${$snakeName}->updated_at->format('F j, Y \\a\\t g:i A') }}</p>
+    </div>
+@endsection
+BLADE;
+
+            file_put_contents("{$dir}/{$snakeName}-report.blade.php", $singleContent);
+            $files[] = "resources/views/pdf/{$snakeName}-report.blade.php";
+        }
+
+        // Generate list report
+        if ($layout->hasListReport()) {
+            $tableHeaders = '';
+            $tableCells = '';
+
+            foreach ($layout->listReport as $col) {
+                $label = Str::title(str_replace('_', ' ', explode('.', $col->column)[0]));
+                $widthAttr = $col->width !== '' ? " style=\"width: {$col->width}\"" : '';
+                $tableHeaders .= "\n                <th{$widthAttr}>{$label}</th>";
+                $tableCells .= "\n                    <td>{$this->renderListReportCell($col, $snakeName)}</td>";
+            }
+
+            $totalCols = count($layout->listReport) + 1;
+
+            $listContent = <<<BLADE
+@extends('aicl::pdf.layout')
+
+@section('content')
+    <h1>{$pluralName} Report</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>{$tableHeaders}
+            </tr>
+        </thead>
+        <tbody>
+            @forelse(\${$pluralSnake} as \${$snakeName})
+                <tr>
+                    <td>{{ \${$snakeName}->id }}</td>{$tableCells}
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="{$totalCols}" class="text-center text-muted">No {$pluralSnake} found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <p class="text-small text-muted text-right">
+        Total: {{ \${$pluralSnake}->count() }} {$pluralSnake}
+    </p>
+@endsection
+BLADE;
+
+            file_put_contents("{$dir}/{$pluralSnake}-report.blade.php", $listContent);
+            $files[] = "resources/views/pdf/{$pluralSnake}-report.blade.php";
+        }
+
+        return $files;
+    }
+
+    /**
+     * Render a single report section to Blade HTML.
+     */
+    protected function renderReportSection(ReportSectionSpec $section, string $snakeName, string $entityName): string
+    {
+        return match ($section->type) {
+            'title' => $this->renderTitleSection($section, $snakeName),
+            'badges' => $this->renderBadgesSection($section, $snakeName),
+            'info-grid' => $this->renderInfoGridSection($section, $snakeName),
+            'card' => $this->renderCardSection($section, $snakeName),
+            'timeline' => $this->renderTimelineSection($section, $snakeName),
+            default => "\n    <!-- TODO: Unknown section type '{$section->type}' for {$section->section} -->",
+        };
+    }
+
+    /**
+     * Render a title section (h1 with model field).
+     */
+    protected function renderTitleSection(ReportSectionSpec $section, string $snakeName): string
+    {
+        $field = $section->parsedFields[0] ?? null;
+
+        if ($field === null) {
+            return '';
+        }
+
+        $value = $this->resolveReportFieldValue($field, $snakeName);
+
+        return "\n    <h1>{$value}</h1>";
+    }
+
+    /**
+     * Render a badges section (inline colored spans).
+     */
+    protected function renderBadgesSection(ReportSectionSpec $section, string $snakeName): string
+    {
+        $badges = '';
+
+        foreach ($section->parsedFields as $field) {
+            $value = $this->resolveReportFieldValue($field, $snakeName);
+            $badges .= "\n            <span class=\"badge\">{$value}</span>";
+        }
+
+        return "\n\n    <div class=\"badges\">{$badges}\n    </div>";
+    }
+
+    /**
+     * Render an info-grid section (two-column key-value table).
+     */
+    protected function renderInfoGridSection(ReportSectionSpec $section, string $snakeName): string
+    {
+        $rows = '';
+        $fieldPairs = array_chunk($section->parsedFields, 2);
+
+        foreach ($fieldPairs as $pair) {
+            $cells = '';
+
+            foreach ($pair as $field) {
+                $label = Str::title(str_replace('_', ' ', explode('.', $field->field)[0]));
+                $value = $this->resolveReportFieldValue($field, $snakeName);
+                $cells .= "\n            <td>\n                <div class=\"label\">{$label}</div>\n                <div class=\"value\">{$value}</div>\n            </td>";
+            }
+
+            $rows .= "\n        <tr>{$cells}\n        </tr>";
+        }
+
+        return "\n\n    <h2>{$section->section}</h2>\n    <table class=\"info-grid\">{$rows}\n    </table>";
+    }
+
+    /**
+     * Render a card section (text content block).
+     */
+    protected function renderCardSection(ReportSectionSpec $section, string $snakeName): string
+    {
+        $field = $section->parsedFields[0] ?? null;
+
+        if ($field === null) {
+            return '';
+        }
+
+        return "\n\n    <h2>{$section->section}</h2>\n    <div class=\"card\">{!! nl2br(e(\${$snakeName}->{$field->field})) !!}</div>";
+    }
+
+    /**
+     * Render a timeline section (activity log loop).
+     */
+    protected function renderTimelineSection(ReportSectionSpec $section, string $snakeName): string
+    {
+        $field = $section->parsedFields[0] ?? null;
+        $source = $field !== null ? $field->field : 'activities';
+
+        // Parse limit from field like "activities (limit 10)"
+        $limit = 10;
+        if ($field !== null && preg_match('/\(limit\s+(\d+)\)/', $field->field, $m)) {
+            $limit = (int) $m[1];
+            $source = trim(preg_replace('/\s*\(limit\s+\d+\)/', '', $field->field));
+        }
+
+        return <<<BLADE
+
+
+    <h2>{$section->section}</h2>
+    <div class="timeline">
+        @foreach(\${$snakeName}->{$source}()->latest()->limit({$limit})->get() as \$activity)
+            <div class="timeline-entry">
+                <div class="text-small text-muted">{{ \$activity->created_at->format('M j, Y g:i A') }}</div>
+                <div>{{ \$activity->description }}</div>
+                @if(\$activity->causer)
+                    <div class="text-small">by {{ \$activity->causer->name }}</div>
+                @endif
+            </div>
+        @endforeach
+    </div>
+BLADE;
+    }
+
+    /**
+     * Resolve a ReportFieldSpec into a Blade expression.
+     */
+    protected function resolveReportFieldValue(ReportFieldSpec $field, string $snakeName): string
+    {
+        // Template variable like {model.name}
+        if ($field->isTemplateVariable()) {
+            $inner = trim($field->field, '{}');
+
+            // {model.field} → $model->field
+            if (str_starts_with($inner, 'model.')) {
+                $attr = substr($inner, 6);
+
+                return "{{ \${$snakeName}->{$attr} }}";
+            }
+
+            return "{{ \${$snakeName}->{$inner} }}";
+        }
+
+        // Relationship like owner.name
+        if ($field->isRelationship()) {
+            $rel = $field->relationshipName();
+            $attr = $field->relationshipAttribute();
+
+            return "{{ \${$snakeName}->{$rel}?->{$attr} ?? '—' }}";
+        }
+
+        // Apply format
+        $fieldName = $field->field;
+
+        return match ($field->format) {
+            'date' => "{{ \${$snakeName}->{$fieldName}?->format('F j, Y') ?? '—' }}",
+            'currency' => "{{ \${$snakeName}->{$fieldName} ? '\$' . number_format(\${$snakeName}->{$fieldName}, 2) : '—' }}",
+            'percent' => "{{ \${$snakeName}->{$fieldName} }}%",
+            'badge' => "<span class=\"badge\">{{ \${$snakeName}->{$fieldName}?->label() ?? \${$snakeName}->{$fieldName} }}</span>",
+            'bold', 'text:bold' => "<strong>{{ \${$snakeName}->{$fieldName} }}</strong>",
+            default => "{{ \${$snakeName}->{$fieldName} ?? '—' }}",
+        };
+    }
+
+    /**
+     * Render a list report cell from a ReportColumnSpec.
+     */
+    protected function renderListReportCell(ReportColumnSpec $col, string $snakeName): string
+    {
+        // Relationship column
+        if ($col->isRelationship()) {
+            $rel = $col->relationshipName();
+            $attr = $col->relationshipAttribute();
+
+            return "{{ \${$snakeName}->{$rel}?->{$attr} ?? '—' }}";
+        }
+
+        $fieldName = $col->column;
+
+        return match ($col->format) {
+            'date' => "{{ \${$snakeName}->{$fieldName}?->format('M j, Y') ?? '—' }}",
+            'currency' => "{{ \${$snakeName}->{$fieldName} ? '\$' . number_format(\${$snakeName}->{$fieldName}, 2) : '—' }}",
+            'percent' => "{{ \${$snakeName}->{$fieldName} }}%",
+            'badge' => "<span class=\"badge\">{{ \${$snakeName}->{$fieldName}?->label() ?? \${$snakeName}->{$fieldName} }}</span>",
+            'text:bold' => "<strong>{{ \${$snakeName}->{$fieldName} }}</strong>",
+            'text' => "{{ \${$snakeName}->{$fieldName} }}",
+            default => "{{ \${$snakeName}->{$fieldName} ?? '—' }}",
+        };
+    }
+
     // ========================================================================
     // Helper Methods
     // ========================================================================
@@ -3316,7 +5280,13 @@ BLADE;
             'use Filament\\Schemas\\Schema;',
         ];
 
-        foreach ($this->fields as $field) {
+        // Collect all fields (child + base) for import resolution
+        $allFormFields = $this->fields;
+        if ($this->baseInspector !== null) {
+            $allFormFields = array_merge($this->baseInspector->columns(), $allFormFields);
+        }
+
+        foreach ($allFormFields as $field) {
             match ($field->type) {
                 'string', 'integer', 'float' => $imports[] = 'use Filament\\Forms\\Components\\TextInput;',
                 'text' => $imports[] = 'use Filament\\Forms\\Components\\RichEditor;',

@@ -2,12 +2,17 @@
 
 namespace Aicl\Models;
 
+use Aicl\Database\Factories\SocialAccountFactory;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SocialAccount extends Model
 {
+    /** @use HasFactory<SocialAccountFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'provider',
@@ -39,5 +44,10 @@ class SocialAccount extends Model
         }
 
         return $this->token_expires_at->isPast();
+    }
+
+    protected static function newFactory(): SocialAccountFactory
+    {
+        return SocialAccountFactory::new();
     }
 }

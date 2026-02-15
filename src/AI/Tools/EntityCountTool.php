@@ -1,0 +1,111 @@
+<?php
+
+namespace Aicl\AI\Tools;
+
+use Aicl\Services\EntityRegistry;
+use NeuronAI\Tools\PropertyType;
+use NeuronAI\Tools\ToolProperty;
+
+class EntityCountTool extends BaseTool
+{
+    public function __construct()
+    {
+        parent::__construct(
+            name: 'entity_count',
+            description: 'Count records for registered entity types, optionally grouped by status. Use this when users ask "how many" or want statistics.',
+            properties: [
+                ToolProperty::make(
+                    name: 'entity_type',
+                    type: PropertyType::STRING,
+                    description: 'Optional entity type to count (e.g., "users", "rlm_patterns"). If omitted, counts all entity types.',
+                    required: false,
+                ),
+                ToolProperty::make(
+                    name: 'group_by_status',
+                    type: PropertyType::BOOLEAN,
+                    description: 'Whether to group counts by status (default false)',
+                    required: false,
+                ),
+            ],
+        );
+    }
+
+    public function category(): string
+    {
+        return 'queries';
+    }
+
+    /**
+     * @return string|array<string, mixed>
+     */
+    public function __invoke(?string $entity_type = null, ?bool $group_by_status = null): string|array
+    {
+        $registry = app(EntityRegistry::class);
+        $allTypes = $registry->allTypes();
+
+        if ($allTypes->isEmpty()) {
+            return 'No entity types are registered in this application.';
+        }
+
+        if ($group_by_status) {
+            return $this->countsByStatus($registry, $entity_type);
+        }
+
+        return $this->simpleCounts($allTypes, $entity_type);
+    }
+
+    /**
+     * @return array<string, int>|string
+     */
+    private function simpleCounts(\Illuminate\Support\Collection $allTypes, ?string $entityType): array|string
+    {
+        if ($entityType !== null) {
+            $normalizedType = strtolower(str_replace([' ', '-'], '_', $entityType));
+
+            $entry = $allTypes->first(fn (array $e): bool => strtolower($e['table']) === $normalizedType
+                || strtolower($e['label']) === strtolower($entityType)
+                || strtolower(class_basename($e['class'])) === strtolower($entityType)
+            );
+
+            if ($entry === null) {
+                return "Unknown entity type: '{$entityType}'.";
+            }
+
+            return [$entry['label'] => $entry['class']::query()->count()];
+        }
+
+        $counts = [];
+
+        foreach ($allTypes as $entry) {
+            $counts[$entry['label']] = $entry['class']::query()->count();
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @return array<string, array<string, int>>|string
+     */
+    private function countsByStatus(EntityRegistry $registry, ?string $entityType): array|string
+    {
+        $allCounts = $registry->countsByStatus();
+
+        if (empty($allCounts)) {
+            return 'No entity types with a status column found.';
+        }
+
+        if ($entityType !== null) {
+            $normalizedType = strtolower(str_replace([' ', '-'], '_', $entityType));
+
+            foreach ($allCounts as $label => $statusCounts) {
+                if (strtolower($label) === strtolower($entityType) || strtolower(str_replace(' ', '_', $label)) === $normalizedType) {
+                    return [$label => $statusCounts];
+                }
+            }
+
+            return "Entity type '{$entityType}' has no status column or doesn't exist.";
+        }
+
+        return $allCounts;
+    }
+}

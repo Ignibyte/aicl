@@ -46,7 +46,7 @@ class LogViewer extends Page implements HasForms
 
     public ?string $search = null;
 
-    public bool $autoRefresh = false;
+    public bool $liveMode = false;
 
     public int $limit = 100;
 
@@ -98,11 +98,11 @@ class LogViewer extends Page implements HasForms
                     ])
                     ->default(100)
                     ->live(),
-                Toggle::make('autoRefresh')
-                    ->label('Auto-refresh')
+                Toggle::make('liveMode')
+                    ->label('Live Stream')
                     ->live(),
             ])
-            ->columns(6);
+            ->columns(7);
     }
 
     #[Computed]
@@ -137,6 +137,10 @@ class LogViewer extends Page implements HasForms
                 ->color('gray')
                 ->action(function () {
                     if (! $this->selectedFile) {
+                        return;
+                    }
+
+                    if (! app(LogParser::class)->isValidLogPath($this->selectedFile)) {
                         return;
                     }
 
@@ -229,6 +233,6 @@ class LogViewer extends Page implements HasForms
 
     public function getPollingInterval(): ?string
     {
-        return $this->autoRefresh ? '5s' : null;
+        return $this->liveMode ? '2s' : null;
     }
 }

@@ -2,9 +2,11 @@
 
 namespace Aicl\Models;
 
+use Aicl\Database\Factories\KnowledgeLinkFactory;
 use Aicl\Enums\KnowledgeLinkRelationship;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
@@ -28,6 +30,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class KnowledgeLink extends Model
 {
+    /** @use HasFactory<KnowledgeLinkFactory> */
+    use HasFactory;
+
     use HasUuids;
 
     /**
@@ -122,5 +127,10 @@ class KnowledgeLink extends Model
                 $sub->where('target_type', $morphClass)->where('target_id', $key);
             });
         });
+    }
+
+    protected static function newFactory(): KnowledgeLinkFactory
+    {
+        return KnowledgeLinkFactory::new();
     }
 }

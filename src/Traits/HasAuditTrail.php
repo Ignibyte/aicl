@@ -29,7 +29,6 @@ trait HasAuditTrail
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(function (string $eventName): string {
-                /** @var Model $this */
                 $className = class_basename(static::class);
 
                 return "{$className} was {$eventName}";

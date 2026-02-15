@@ -56,8 +56,8 @@ ddev exec php artisan aicl:validate {EntityName}
 ## Development Environment
 
 - **DDEV** with PHP 8.3, PostgreSQL 17, Redis 7, Swoole 6.0.0
-- **Octane URL:** `https://{project}.ddev.site:8443`
-- **Admin Panel:** `https://{project}.ddev.site:8443/admin`
+- **Site URL:** `https://{project}.ddev.site`
+- **Admin Panel:** `https://{project}.ddev.site/admin`
 - **Login:** `admin@aicl.test` / `password`
 - **Reload workers:** `ddev octane-reload`
 - **Rebuild frontend:** `ddev npm run build`

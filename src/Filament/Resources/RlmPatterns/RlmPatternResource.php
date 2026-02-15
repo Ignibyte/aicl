@@ -9,18 +9,14 @@ use Aicl\Filament\Resources\RlmPatterns\Pages\ViewRlmPattern;
 use Aicl\Filament\Resources\RlmPatterns\Schemas\RlmPatternForm;
 use Aicl\Filament\Resources\RlmPatterns\Tables\RlmPatternsTable;
 use Aicl\Models\RlmPattern;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
 class RlmPatternResource extends Resource
 {
     protected static ?string $model = RlmPattern::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
     protected static string|UnitEnum|null $navigationGroup = 'RLM Hub';
 

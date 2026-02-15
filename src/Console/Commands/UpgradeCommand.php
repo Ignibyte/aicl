@@ -233,7 +233,7 @@ class UpgradeCommand extends Command
     protected function handleEnsureAbsent(string $sectionKey, array $entry, bool $isForce): void
     {
         $target = $entry['target'];
-        $reason = $entry['reason'] ?? '';
+        $reason = $entry['reason'];
         $targetPath = $this->projectRoot.'/'.$target;
 
         $isDirectory = str_ends_with($target, '/');
@@ -504,7 +504,7 @@ class UpgradeCommand extends Command
                 }
             }
 
-            if (! empty($sectionState['files']) || ! empty($sectionState['removed'])) {
+            if (! empty($sectionState['files'])) {
                 $applied[$sectionKey] = $sectionState;
             }
         }

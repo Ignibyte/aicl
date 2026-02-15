@@ -14,6 +14,45 @@ class FieldDefinition
         public bool $indexed,
     ) {}
 
+    /**
+     * Create a FieldDefinition from a base schema column declaration.
+     *
+     * @param  array{name: string, type: string, modifiers?: array<string>, argument?: string}  $column
+     */
+    public static function fromBaseSchema(array $column): self
+    {
+        $modifiers = $column['modifiers'] ?? [];
+        $nullable = in_array('nullable', $modifiers, true);
+        $unique = in_array('unique', $modifiers, true);
+        $indexed = in_array('index', $modifiers, true);
+        $default = null;
+
+        foreach ($modifiers as $modifier) {
+            if (preg_match('/^default\((.+)\)$/', $modifier, $matches)) {
+                $default = $matches[1];
+            }
+        }
+
+        // Apply type-specific defaults (same as FieldParser)
+        if (in_array($column['type'], ['text', 'date', 'datetime', 'json'], true) && ! $nullable) {
+            $nullable = true;
+        }
+
+        if ($column['type'] === 'boolean' && $default === null) {
+            $default = 'true';
+        }
+
+        return new self(
+            name: $column['name'],
+            type: $column['type'],
+            typeArgument: $column['argument'] ?? null,
+            nullable: $nullable,
+            unique: $unique,
+            default: $default,
+            indexed: $indexed,
+        );
+    }
+
     public function isForeignKey(): bool
     {
         return $this->type === 'foreignId';

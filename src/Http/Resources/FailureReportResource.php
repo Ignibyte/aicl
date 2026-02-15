@@ -31,15 +31,15 @@ class FailureReportResource extends JsonResource
             'resolution_notes' => $this->resolution_notes,
             'resolution_method' => $this->resolution_method?->value,
             'time_to_resolve' => $this->time_to_resolve,
-            'reported_at' => $this->reported_at?->toIso8601String(),
+            'reported_at' => $this->reported_at->toIso8601String(),
             'resolved_at' => $this->resolved_at?->toIso8601String(),
             'is_active' => $this->is_active,
             'owner' => $this->whenLoaded('owner', fn () => [
                 'id' => $this->owner->id,
                 'name' => $this->owner->name,
             ]),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'created_at' => $this->resource->created_at?->toIso8601String(),
+            'updated_at' => $this->resource->updated_at?->toIso8601String(),
         ];
     }
 }

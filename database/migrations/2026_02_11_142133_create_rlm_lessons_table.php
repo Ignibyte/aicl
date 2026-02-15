@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('topic')->index();
             $table->string('subtopic')->nullable();
-            $table->string('summary');
+            $table->text('summary');
             $table->text('detail');
             $table->string('tags')->nullable();
             $table->json('context_tags')->nullable();

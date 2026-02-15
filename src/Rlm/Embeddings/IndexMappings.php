@@ -26,6 +26,7 @@ class IndexMappings
             'aicl_rlm_patterns' => self::rlmPatterns(),
             'aicl_prevention_rules' => self::preventionRules(),
             'aicl_golden_annotations' => self::goldenAnnotations(),
+            'aicl_distilled_lessons' => self::distilledLessons(),
         ];
     }
 
@@ -151,6 +152,34 @@ class IndexMappings
                     'trigger_context' => ['type' => 'text', 'analyzer' => 'standard'],
                     'confidence' => ['type' => 'float'],
                     'priority' => ['type' => 'integer'],
+                    'is_active' => ['type' => 'boolean'],
+                    'embedding' => [
+                        'type' => 'dense_vector',
+                        'dims' => self::VECTOR_DIMENSION,
+                        'index' => true,
+                        'similarity' => 'cosine',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function distilledLessons(): array
+    {
+        return [
+            'mappings' => [
+                'properties' => [
+                    'id' => ['type' => 'keyword'],
+                    'lesson_code' => ['type' => 'keyword'],
+                    'title' => ['type' => 'text', 'analyzer' => 'standard'],
+                    'guidance' => ['type' => 'text', 'analyzer' => 'standard'],
+                    'target_agent' => ['type' => 'keyword'],
+                    'target_phase' => ['type' => 'integer'],
+                    'impact_score' => ['type' => 'float'],
+                    'confidence' => ['type' => 'float'],
                     'is_active' => ['type' => 'boolean'],
                     'embedding' => [
                         'type' => 'dense_vector',
