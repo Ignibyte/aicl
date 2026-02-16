@@ -10,11 +10,13 @@ class NotificationChannelSeeder extends Seeder
 {
     public function run(): void
     {
+        // Truncate and re-insert instead of updateOrCreate to avoid
+        // decryption failures when APP_KEY changes between runs
+        // (the 'config' column uses encrypted:array casting).
+        NotificationChannel::query()->truncate();
+
         foreach ($this->channels() as $channel) {
-            NotificationChannel::query()->updateOrCreate(
-                ['slug' => $channel['slug']],
-                $channel,
-            );
+            NotificationChannel::query()->create($channel);
         }
     }
 
