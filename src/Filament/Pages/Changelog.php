@@ -5,13 +5,12 @@ namespace Aicl\Filament\Pages;
 use Aicl\Services\VersionService;
 use BackedEnum;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use UnitEnum;
 
 class Changelog extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 

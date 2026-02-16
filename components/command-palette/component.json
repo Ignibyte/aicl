@@ -1,0 +1,50 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Command Palette",
+  "tag": "x-aicl-command-palette",
+  "category": "action",
+  "status": "stable",
+  "description": "Spotlight-style command palette with keyboard navigation, grouped results, and optional async search.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "items": {
+      "type": "array",
+      "required": false,
+      "default": [],
+      "description": "Static items: [{id, label, icon?, group?, keywords?, shortcut?, url?, action?}]"
+    },
+    "placeholder": {
+      "type": "string",
+      "required": false,
+      "default": "Search...",
+      "description": "Search input placeholder text"
+    },
+    "groups": {
+      "type": "array",
+      "required": false,
+      "default": [],
+      "description": "Group definitions: [{key, label}]"
+    },
+    "searchEndpoint": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "URL for async server-side search"
+    }
+  },
+  "slots": {
+    "footer": {
+      "description": "Custom footer content (replaces default keyboard hints)"
+    }
+  },
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use as global search overlay triggered by Cmd+K. Place once per page layout. In Filament admin, use built-in global search instead.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Panel",
+    "note": "Filament has built-in global search — use that in admin context"
+  }
+}

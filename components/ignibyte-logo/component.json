@@ -1,0 +1,35 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Ignibyte Logo",
+  "tag": "x-aicl-ignibyte-logo",
+  "category": "utility",
+  "status": "stable",
+  "description": "Brand logo with optional text, supporting multiple sizes and icon-only mode.",
+  "context": ["blade", "livewire", "filament-widget", "email", "pdf"],
+  "not_for": ["filament-form", "filament-table"],
+  "props": {
+    "size": {
+      "type": "string",
+      "required": false,
+      "default": "md",
+      "enum": ["sm", "md", "lg", "xl"],
+      "description": "Logo size"
+    },
+    "iconOnly": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Show only the logo icon without brand text"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for brand identity in navigation, auth pages, and footers. Icon-only mode for collapsed sidebar.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Panel",
+    "note": "Filament panels have built-in brand logo support via brandLogo()"
+  }
+}

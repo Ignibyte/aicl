@@ -1,0 +1,45 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Quick Action",
+  "tag": "x-aicl-quick-action",
+  "category": "action",
+  "status": "stable",
+  "description": "Compact icon button with tooltip for secondary actions.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "icon": {
+      "type": "string",
+      "required": true,
+      "description": "Heroicon name"
+    },
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "Tooltip label (for accessibility)"
+    },
+    "href": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "URL for the action (renders as anchor if set)"
+    },
+    "color": {
+      "type": "string",
+      "required": false,
+      "default": "gray",
+      "enum": ["primary", "success", "green", "warning", "yellow", "danger", "red", "info", "blue", "gray"],
+      "description": "Icon color"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["action-bar"],
+  "decision_rule": "Use inside ActionBar for compact icon-only actions. Always include tooltip label for accessibility.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-table",
+    "class": "Filament\\Tables\\Actions\\Action",
+    "note": "In Filament, use Action::make() with icon()"
+  }
+}

@@ -111,6 +111,14 @@ class EntitySpec
     }
 
     /**
+     * Whether the spec requests public Blade views.
+     */
+    public function wantsViews(): bool
+    {
+        return ($this->options['views'] ?? false) === true;
+    }
+
+    /**
      * Whether the spec requests AI context trait.
      */
     public function wantsAiContext(): bool

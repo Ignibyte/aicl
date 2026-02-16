@@ -70,4 +70,24 @@ class StyleguideTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_styleguide_interactive_page_is_accessible(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('super_admin');
+
+        $response = $this->actingAs($user)->get('/admin/interactive-components');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_styleguide_feedback_page_is_accessible(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('super_admin');
+
+        $response = $this->actingAs($user)->get('/admin/feedback-components');
+
+        $response->assertStatus(200);
+    }
 }

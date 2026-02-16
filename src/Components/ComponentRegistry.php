@@ -1,0 +1,302 @@
+<?php
+
+namespace Aicl\Components;
+
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Singleton registry providing a query API for all registered AICL components.
+ *
+ * Used by AI agents, the scaffolder, and RLM validation to discover components,
+ * get field-to-component recommendations, and validate prop usage.
+ */
+class ComponentRegistry
+{
+    /** @var array<string, ComponentDefinition> */
+    private array $components = [];
+
+    private FieldSignalEngine $signalEngine;
+
+    private bool $booted = false;
+
+    public function __construct(
+        private readonly ComponentDiscoveryService $discovery,
+    ) {
+        $this->signalEngine = new FieldSignalEngine;
+    }
+
+    /**
+     * Boot the registry by scanning component directories.
+     * Called by the service provider during boot.
+     */
+    public function boot(array $scanPaths): void
+    {
+        if ($this->booted) {
+            return;
+        }
+
+        // Check for cached registry first
+        $cachePath = $this->cachePath();
+        if (file_exists($cachePath) && ! config('app.debug')) {
+            $this->loadFromCache($cachePath);
+            $this->booted = true;
+
+            return;
+        }
+
+        // Scan directories (framework first, then client — client overrides)
+        foreach ($scanPaths as $path) {
+            $source = $path['source'] ?? 'framework';
+            $namespace = $path['namespace'] ?? 'Aicl\\View\\Components';
+            $this->discovery->scan($path['path'], $source, $namespace);
+        }
+
+        $this->components = $this->discovery->components();
+        $this->booted = true;
+    }
+
+    /**
+     * Register component definitions directly (used for testing and cache restore).
+     */
+    public function register(ComponentDefinition ...$definitions): void
+    {
+        foreach ($definitions as $definition) {
+            $this->components[$definition->shortTag()] = $definition;
+        }
+        $this->booted = true;
+    }
+
+    /**
+     * Get all registered components.
+     *
+     * @return Collection<string, ComponentDefinition>
+     */
+    public function all(): Collection
+    {
+        return collect($this->components);
+    }
+
+    /**
+     * Get a component by its short tag name (e.g., 'stat-card').
+     */
+    public function get(string $tag): ?ComponentDefinition
+    {
+        // Accept both 'stat-card' and 'x-aicl-stat-card'
+        $tag = str_replace('x-aicl-', '', $tag);
+
+        return $this->components[$tag] ?? null;
+    }
+
+    /**
+     * Filter components by category.
+     *
+     * @return Collection<string, ComponentDefinition>
+     */
+    public function forCategory(string $category): Collection
+    {
+        return $this->all()->filter(fn (ComponentDefinition $c): bool => $c->category === $category);
+    }
+
+    /**
+     * Filter components by rendering context.
+     *
+     * @return Collection<string, ComponentDefinition>
+     */
+    public function forContext(string $context): Collection
+    {
+        return $this->all()->filter(fn (ComponentDefinition $c): bool => $c->supportsContext($context) && ! $c->isExcludedFrom($context));
+    }
+
+    /**
+     * AI recommendation: given a field type, what component should be used?
+     */
+    public function recommend(string $fieldType, string $context = 'blade', string $fieldName = '', array $allFields = []): ?ComponentRecommendation
+    {
+        return $this->signalEngine->match($fieldName, $fieldType, $context, $allFields);
+    }
+
+    /**
+     * AI recommendation: given an entity's fields, what components for a view?
+     *
+     * @param  array  $fields  Array of 'name:type' strings or ['name' => 'type'] pairs
+     * @param  string  $context  Rendering context
+     * @param  string  $viewType  View type: index, show, card
+     * @return array<ComponentRecommendation>
+     */
+    public function recommendForEntity(array $fields, string $context = 'blade', string $viewType = 'index'): array
+    {
+        // Normalize field format
+        $normalized = [];
+        foreach ($fields as $key => $value) {
+            if (is_string($key)) {
+                $normalized[$key] = $value;
+            } elseif (is_string($value) && str_contains($value, ':')) {
+                [$name, $type] = explode(':', $value, 2);
+                $normalized[$name] = $type;
+            }
+        }
+
+        return $this->signalEngine->recommendForEntity($normalized, $context, $viewType);
+    }
+
+    /**
+     * Get the full prop schema for a component.
+     */
+    public function schema(string $tag): ?array
+    {
+        $component = $this->get($tag);
+
+        return $component?->props;
+    }
+
+    /**
+     * Validate props against a component's schema (dev-only).
+     *
+     * @return array{valid: bool, errors: array<string>}
+     */
+    public function validateProps(string $tag, array $props): array
+    {
+        $component = $this->get($tag);
+        if ($component === null) {
+            return ['valid' => false, 'errors' => ["Component '{$tag}' not found"]];
+        }
+
+        $errors = [];
+
+        // Check required props
+        foreach ($component->requiredProps() as $requiredProp) {
+            if (! array_key_exists($requiredProp, $props)) {
+                $errors[] = "Missing required prop: {$requiredProp}";
+            }
+        }
+
+        // Check for unknown props (warning only)
+        foreach (array_keys($props) as $propName) {
+            if (! isset($component->props[$propName])) {
+                if (config('app.debug')) {
+                    Log::debug("AICL Component '{$tag}': unknown prop '{$propName}'");
+                }
+            }
+        }
+
+        // Check enum values
+        foreach ($props as $propName => $propValue) {
+            if (isset($component->props[$propName]['enum'])) {
+                $allowed = $component->props[$propName]['enum'];
+                if (! in_array($propValue, $allowed, true)) {
+                    $errors[] = "Prop '{$propName}' value '{$propValue}' not in allowed values: ".implode(', ', $allowed);
+                }
+            }
+        }
+
+        return ['valid' => count($errors) === 0, 'errors' => $errors];
+    }
+
+    /**
+     * Get components that can be children of a given parent component.
+     *
+     * @return Collection<string, ComponentDefinition>
+     */
+    public function composableChildren(string $parentTag): Collection
+    {
+        $parentTag = str_replace('x-aicl-', '', $parentTag);
+
+        return $this->all()->filter(
+            fn (ComponentDefinition $c): bool => in_array($parentTag, $c->composableIn, true)
+        );
+    }
+
+    /**
+     * Get the count of registered components.
+     */
+    public function count(): int
+    {
+        return count($this->components);
+    }
+
+    /**
+     * Get unique categories.
+     *
+     * @return array<string>
+     */
+    public function categories(): array
+    {
+        return $this->all()
+            ->pluck('category')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Write the registry to a cache file.
+     */
+    public function writeCache(): string
+    {
+        $cachePath = $this->cachePath();
+        $data = [];
+
+        foreach ($this->components as $tag => $definition) {
+            $data[$tag] = $definition->toArray();
+        }
+
+        $content = '<?php return '.var_export($data, true).';';
+        file_put_contents($cachePath, $content);
+
+        return $cachePath;
+    }
+
+    /**
+     * Clear the cache file.
+     */
+    public function clearCache(): bool
+    {
+        $cachePath = $this->cachePath();
+        if (file_exists($cachePath)) {
+            return unlink($cachePath);
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if cache exists.
+     */
+    public function isCached(): bool
+    {
+        return file_exists($this->cachePath());
+    }
+
+    /**
+     * Load registry from cache file.
+     */
+    private function loadFromCache(string $cachePath): void
+    {
+        $data = require $cachePath;
+        if (! is_array($data)) {
+            return;
+        }
+
+        foreach ($data as $tag => $componentData) {
+            $this->components[$tag] = ComponentDefinition::fromArray($componentData);
+        }
+    }
+
+    /**
+     * Get the cache file path.
+     */
+    private function cachePath(): string
+    {
+        return base_path('bootstrap/cache/component-registry.php');
+    }
+
+    /**
+     * Get the discovery service (for error reporting).
+     */
+    public function discovery(): ComponentDiscoveryService
+    {
+        return $this->discovery;
+    }
+}

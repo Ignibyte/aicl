@@ -55,6 +55,32 @@ class ValidateEntityCommand extends Command
             $fileMap['migration'] = $migrations[0];
         }
 
+        // Blade view files (for component patterns C01-C10 and view patterns V01-V08)
+        $snakeName = Str::snake($name);
+        $indexView = resource_path("views/{$snakeName}/index.blade.php");
+        $showView = resource_path("views/{$snakeName}/show.blade.php");
+        if (file_exists($indexView)) {
+            $fileMap['blade_view'] = $indexView;
+            $fileMap['blade_index'] = $indexView;
+        } elseif (file_exists($showView)) {
+            $fileMap['blade_view'] = $showView;
+        }
+        if (file_exists($showView)) {
+            $fileMap['blade_show'] = $showView;
+        }
+
+        // ViewController (for V07 pattern)
+        $viewController = app_path("Http/Controllers/{$name}ViewController.php");
+        if (file_exists($viewController)) {
+            $fileMap['view_controller'] = $viewController;
+        }
+
+        // Widget Blade views
+        $widgetViews = glob(resource_path("views/filament/widgets/{$snakeName}*.blade.php"));
+        if (! empty($widgetViews)) {
+            $fileMap['blade_widget'] = $widgetViews[0];
+        }
+
         // Registration files (for Phase 6 re-validation patterns)
         $fileMap['app_service_provider'] = app_path('Providers/AppServiceProvider.php');
         $fileMap['api_routes'] = base_path('routes/api.php');
@@ -97,6 +123,27 @@ class ValidateEntityCommand extends Command
         // Score display
         $scoreColor = $score >= 80 ? 'green' : ($score >= 60 ? 'yellow' : 'red');
         $this->line("  Score: <fg={$scoreColor};options=bold>{$score}%</>");
+
+        // Frontend patterns sub-score (component + view patterns)
+        $frontendResults = array_filter(
+            $validator->results(),
+            fn ($r) => str_starts_with($r->pattern->name, 'component.') || str_starts_with($r->pattern->name, 'view.'),
+        );
+        if ($frontendResults !== []) {
+            $fTotal = 0.0;
+            $fEarned = 0.0;
+            foreach ($frontendResults as $r) {
+                $fTotal += $r->pattern->weight;
+                if ($r->passed) {
+                    $fEarned += $r->pattern->weight;
+                }
+            }
+            $fScore = $fTotal > 0 ? round(($fEarned / $fTotal) * 100, 1) : 100.0;
+            $fPassed = count(array_filter($frontendResults, fn ($r) => $r->passed));
+            $fCount = count($frontendResults);
+            $fColor = $fScore >= 80 ? 'green' : ($fScore >= 60 ? 'yellow' : 'red');
+            $this->line("  Frontend patterns: <fg={$fColor}>{$fPassed}/{$fCount}</> ({$fScore}%)");
+        }
 
         // Summary
         $errors = count($validator->errors());

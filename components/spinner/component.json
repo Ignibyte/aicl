@@ -1,0 +1,36 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Spinner",
+  "tag": "x-aicl-spinner",
+  "category": "utility",
+  "status": "stable",
+  "description": "SVG loading spinner with configurable size and color.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "size": {
+      "type": "string",
+      "required": false,
+      "default": "md",
+      "enum": ["sm", "md", "lg"],
+      "description": "Spinner size"
+    },
+    "color": {
+      "type": "string",
+      "required": false,
+      "default": "primary",
+      "enum": ["primary", "white", "gray"],
+      "description": "Spinner color"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use inside buttons with Alpine x-show during form submission. Use for placeholder content while data loads. Size sm for inline, md for sections, lg for full-page.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Support\\Components\\Component",
+    "note": "Filament has built-in loading indicators"
+  }
+}

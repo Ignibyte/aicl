@@ -1,0 +1,1 @@
+../../../components/accordion-item/accordion-item.blade.php

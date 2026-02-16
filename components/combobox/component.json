@@ -1,0 +1,80 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Combobox",
+  "tag": "x-aicl-combobox",
+  "category": "action",
+  "status": "stable",
+  "description": "Searchable select with single/multi mode, tag display, clearable, and optional async search.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "options": {
+      "type": "array",
+      "required": false,
+      "default": [],
+      "description": "Options: [{value, label, icon?, disabled?}]"
+    },
+    "value": {
+      "type": ["string", "number", "array"],
+      "required": false,
+      "default": null,
+      "description": "Selected value (or array for multiple)"
+    },
+    "placeholder": {
+      "type": "string",
+      "required": false,
+      "default": "Select...",
+      "description": "Placeholder text"
+    },
+    "searchable": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Enable type-ahead search filtering"
+    },
+    "multiple": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Allow multiple selections"
+    },
+    "clearable": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Show clear button when value is selected"
+    },
+    "disabled": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Disable the combobox"
+    },
+    "searchEndpoint": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "URL for async server-side search"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Form field name for hidden input submission"
+    }
+  },
+  "slots": {
+    "empty": {
+      "description": "Custom no-results content"
+    }
+  },
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for searchable select inputs outside Filament. For Filament forms, use Select::make()->searchable() instead. Use multiple for tag-like multi-selection.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Forms\\Components\\Select",
+    "note": "In Filament forms, use Select::make()->searchable()"
+  }
+}

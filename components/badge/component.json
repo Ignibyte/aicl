@@ -1,0 +1,73 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Badge",
+  "tag": "x-aicl-badge",
+  "category": "status",
+  "status": "stable",
+  "description": "Colored badge with solid/soft/outline variants, dot indicator, icons, and optional remove button.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "Badge text content"
+    },
+    "color": {
+      "type": "string",
+      "required": false,
+      "default": "gray",
+      "enum": ["primary", "success", "green", "warning", "yellow", "danger", "red", "info", "blue", "gray"],
+      "description": "Semantic color"
+    },
+    "variant": {
+      "type": "string",
+      "required": false,
+      "default": "soft",
+      "enum": ["solid", "soft", "outline"],
+      "description": "Visual variant"
+    },
+    "size": {
+      "type": "string",
+      "required": false,
+      "default": "default",
+      "enum": ["sm", "default", "lg"],
+      "description": "Badge size"
+    },
+    "shape": {
+      "type": "string",
+      "required": false,
+      "default": "full",
+      "enum": ["full", "md"],
+      "description": "Border radius — full for pill, md for rounded rectangle"
+    },
+    "dot": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Show a dot indicator before the label"
+    },
+    "removable": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Show a remove/dismiss button"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional Heroicon name before the label"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["card-grid", "split-layout", "info-card", "metadata-list"],
+  "decision_rule": "Use for tags, labels, counts, and inline indicators. For entity status fields, prefer status-badge instead. Use dot for connection status, removable for filter chips.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-table",
+    "class": "Filament\\Tables\\Columns\\TextColumn",
+    "note": "In Filament, use TextColumn::make()->badge() or BadgeEntry"
+  }
+}

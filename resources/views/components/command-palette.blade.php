@@ -1,0 +1,1 @@
+../../../components/command-palette/command-palette.blade.php

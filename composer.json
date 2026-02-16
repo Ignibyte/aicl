@@ -38,7 +38,10 @@
             "Aicl\\": "src/",
             "Aicl\\Database\\Seeders\\": "database/seeders/",
             "Aicl\\Database\\Factories\\": "database/factories/"
-        }
+        },
+        "classmap": [
+            "components/"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

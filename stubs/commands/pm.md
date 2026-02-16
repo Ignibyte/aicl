@@ -51,10 +51,17 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read every `PIPELINE-*.md` and `PROJECT-*.md` file. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failures (this project's history)
-4. **`.claude/golden-example/README.md`** — Understand the entity stack
-5. **`.claude/planning/rlm/world-model.md`** — Pattern definitions and decision rules
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **`.claude/golden-example/README.md`** — Understand the entity stack
+4. **`.claude/planning/rlm/world-model.md`** — Pattern definitions and decision rules
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -85,7 +92,7 @@ If ANY of these are true, you may be operating after a context continuation (tok
 When the human asks you to start a new entity pipeline:
 
 #### Step 1: Read Context
-1. Read `.claude/planning/rlm/failures.md` — check for known pitfalls
+1. Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
 2. Read `.claude/golden-example/README.md` — understand the target
 3. Read `.claude/planning/rlm/world-model.md` — check existing patterns and decision rules
 
@@ -149,7 +156,7 @@ Fill in:
 
 Present the entity spec and pipeline document location. Tell the human:
 - What you classified it as (Tier 1, fields, relationships, etc.)
-- Any potential issues from `failures.md` that apply
+- Any potential issues from RLM recall that apply
 - "Review the spec. When confirmed, next step: `/solutions design {Name}`"
 
 Wait for human confirmation before they proceed.

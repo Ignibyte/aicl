@@ -1,15 +1,15 @@
 <?php
 
 // PATTERN: Feature test covers CRUD, authorization, scopes, and relationships.
-// PATTERN: Uses RefreshDatabase for clean state.
-// PATTERN: Seeds permissions in setUp() since RefreshDatabase wipes them.
+// PATTERN: Uses DatabaseTransactions for clean state without destroying existing data.
+// PATTERN: Seeds permissions in setUp() for each test.
 // PATTERN: Tests follow naming convention: test_{entity}_{action}
 
 namespace Tests\Feature\Entities;
 
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -17,7 +17,7 @@ use Tests\TestCase;
 
 class ProjectTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {

@@ -1,0 +1,32 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Timeline",
+  "tag": "x-aicl-timeline",
+  "category": "timeline",
+  "status": "stable",
+  "description": "Vertical event timeline for audit logs, activity history, and change tracking.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "entries": {
+      "type": "array",
+      "required": false,
+      "default": [],
+      "description": "Array of timeline entries with date, title, description, color, and icon"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Custom timeline content (alternative to entries prop)"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use for audit logs, activity history, and change tracking. Each entry should have timestamp and description.",
+  "field_signals": ["audit_trail", "activity_log"],
+  "filament_equivalent": {
+    "context": "filament-infolist",
+    "class": "Filament\\Schemas\\Components\\Section",
+    "note": "In Filament infolists, build a custom section for timeline data"
+  }
+}

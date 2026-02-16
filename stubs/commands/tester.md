@@ -42,10 +42,18 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
-1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity being tested. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failure patterns to target
+1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=tester --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing tests. Search when: writing Livewire test assertions, testing Filament resource pages, mocking Spatie package behavior, or verifying test helper method signatures. Example: `search-docs queries=["testing Livewire components assertSee"] packages=["livewire/livewire"]`
 4. **`.claude/golden-example/test.php`** — The canonical test pattern for entity tests
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -96,7 +104,16 @@ Update Phase 4 → **Tester Validation** subsection with Status, Test Count, Fai
 Update header: Last Updated, Last Agent = `/tester`, Next Step.
 
 ### Step 5: Log Failures
-If tests fail, log to `.claude/planning/rlm/failures.md`.
+If tests fail, log to the RLM knowledge base via `ddev artisan aicl:rlm learn "{failure description}" --topic=testing --tags="{entity-name,phase-4,test-failure}"`.
+
+### Step 6: Submit Feedback (MANDATORY)
+After test validation completes, report which distilled lessons were useful and which failures were encountered:
+```bash
+ddev artisan aicl:rlm feedback --entity={Name} --phase=4 --surfaced="{DL-codes}" --failures="{BF-codes}"
+```
+- **surfaced** = comma-separated distilled lesson codes (e.g., `DL-001,DL-003,DL-007`) from the cheat sheet delivered at Phase 3. These are the lessons the architect was briefed on before generation.
+- **failures** = comma-separated failure codes (e.g., `BF-012,BF-015`) for actual test failures found during validation. Use "none" if all tests passed.
+- Record the feedback result (N prevented, M ignored, K uncovered) in the pipeline document's Phase 4 Feedback subsection.
 
 ## Phase 6: RE-VALIDATE (Post-Registration Testing)
 
@@ -104,6 +121,15 @@ Same as Phase 4 but:
 - Gate: Phase 6 RLM must be PASS
 - Update Phase 6 section (NOT Phase 4)
 - Compare results to Phase 4 — report regressions
+
+### Submit Feedback (MANDATORY)
+After re-validation test runs complete, submit feedback for Phase 6:
+```bash
+ddev artisan aicl:rlm feedback --entity={Name} --phase=6 --surfaced="{DL-codes}" --failures="{BF-codes}"
+```
+- **surfaced** = the same distilled lesson codes from the Phase 3 cheat sheet (carried forward from Phase 4).
+- **failures** = actual failure codes for test failures found during re-validation. Use "none" if all tests passed.
+- Record the feedback result in the pipeline document's Phase 6 Feedback subsection.
 
 ## Phase 7: VERIFY (Full Suite)
 
@@ -125,7 +151,7 @@ After full suite passes, optionally run `/test-dusk` for end-to-end browser test
 
 1. **Always update the pipeline document** before finishing.
 2. **Never mark PASS if tests didn't actually run.**
-3. **Always log failures** to `failures.md`.
+3. **Always log failures** via `aicl:rlm learn`.
 4. **Always report actual counts.** Don't estimate.
 5. **Always check the gate** before starting.
 
@@ -143,7 +169,7 @@ After full suite passes, optionally run `/test-dusk` for end-to-end browser test
 3. **Use factories** — always use model factories, check for custom states
 4. **Follow AAA pattern**: Arrange, Act, Assert
 5. **Cover all paths**: happy, failure, edge cases, authorization
-6. **Use `RefreshDatabase`** trait for database tests
+6. **Use `DatabaseTransactions`** trait for database tests — NEVER use `RefreshDatabase` (it runs `migrate:fresh` and destroys all existing data including user accounts)
 7. **Mock external services** — never hit real APIs in tests
 
 ## Commands

@@ -1,0 +1,40 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Status Badge",
+  "tag": "x-aicl-status-badge",
+  "category": "status",
+  "status": "stable",
+  "description": "Colored badge for displaying status, state, or category values.",
+  "context": ["blade", "livewire", "filament-widget", "email", "pdf"],
+  "not_for": ["filament-form"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "Badge text"
+    },
+    "color": {
+      "type": "string",
+      "required": false,
+      "default": "gray",
+      "enum": ["primary", "success", "green", "warning", "yellow", "danger", "red", "info", "blue", "gray"],
+      "description": "Semantic color"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional leading Heroicon"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["stats-row", "card-grid", "split-layout", "info-card", "metadata-list"],
+  "decision_rule": "Use for any status, state, or category field in display contexts. Color should match the enum/state's defined color.",
+  "field_signals": ["enum", "state", "status"],
+  "filament_equivalent": {
+    "context": "filament-table",
+    "class": "Filament\\Tables\\Columns\\TextColumn",
+    "note": "In Filament tables, use TextColumn::make()->badge()"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Avatar",
+  "tag": "x-aicl-avatar",
+  "category": "data",
+  "status": "stable",
+  "description": "User avatar with image, initials fallback, size variants, and optional status indicator.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email"],
+  "props": {
+    "src": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Image URL for the avatar"
+    },
+    "alt": {
+      "type": "string",
+      "required": false,
+      "default": "",
+      "description": "Alt text for the image"
+    },
+    "name": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Full name for initials fallback (takes first letter of first + last word)"
+    },
+    "size": {
+      "type": "string",
+      "required": false,
+      "default": "md",
+      "enum": ["xs", "sm", "md", "lg", "xl"],
+      "description": "Avatar size"
+    },
+    "rounded": {
+      "type": "string",
+      "required": false,
+      "default": "full",
+      "enum": ["full", "lg"],
+      "description": "Border radius — full for circle, lg for rounded square"
+    },
+    "status": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "enum": ["online", "offline", "busy", "away"],
+      "description": "Status indicator dot color"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["card-grid", "split-layout", "info-card", "metadata-list"],
+  "decision_rule": "Use for user/profile display in cards, lists, and headers. Provide name prop for initials fallback. Use status for presence indicators.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Panel",
+    "note": "Filament has built-in avatar support in user menus"
+  }
+}

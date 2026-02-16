@@ -1,0 +1,55 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Empty State",
+  "tag": "x-aicl-empty-state",
+  "category": "layout",
+  "status": "stable",
+  "description": "No-data placeholder with optional action button for empty lists and tables.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form"],
+  "props": {
+    "heading": {
+      "type": "string",
+      "required": true,
+      "description": "Main heading text"
+    },
+    "description": {
+      "type": "string",
+      "required": false,
+      "default": "",
+      "description": "Descriptive text below the heading"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": "heroicon-o-inbox",
+      "description": "Heroicon name for the empty state illustration"
+    },
+    "actionUrl": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "URL for the action button"
+    },
+    "actionLabel": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Label for the action button"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Optional custom content below the description"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use when a list, table, or section has no data. Always include heading and description. Include action button when user can create the missing item.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-table",
+    "class": "Filament\\Tables\\Table",
+    "note": "In Filament tables, use $table->emptyStateActions() and emptyStateHeading()"
+  }
+}

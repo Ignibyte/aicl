@@ -230,6 +230,19 @@ class RlmCommand extends Command
             $this->newLine();
         }
 
+        // Component recommendations (compact for cheatsheet)
+        $componentRecs = $result['component_recommendations'] ?? [];
+        if (! empty($componentRecs['field_recommendations'])) {
+            $total = $componentRecs['total_components'] ?? 0;
+            $this->line("COMPONENTS ({$total} available):");
+            foreach (array_slice($componentRecs['field_recommendations'], 0, 5) as $rec) {
+                $confidence = sprintf('%.0f%%', $rec['confidence'] * 100);
+                $this->line("  {$rec['component']} [{$confidence}] {$rec['reason']}");
+            }
+            $this->line('  Run: aicl:components recommend {fields} | aicl:pipeline-context {Entity} --components');
+            $this->newLine();
+        }
+
         return self::SUCCESS;
     }
 
@@ -364,6 +377,34 @@ class RlmCommand extends Command
                 }
             }
 
+            $this->newLine();
+        }
+
+        // Render component recommendations
+        $componentRecs = $result['component_recommendations'] ?? [];
+        if (! empty($componentRecs['field_recommendations'])) {
+            $total = $componentRecs['total_components'] ?? 0;
+            $this->line("=== COMPONENT RECOMMENDATIONS ({$total} registered) ===");
+            $this->newLine();
+
+            $this->line('CONTEXT RULES:');
+            foreach ($componentRecs['context_rules'] as $ctx => $rule) {
+                $this->line("  {$ctx}: {$rule}");
+            }
+            $this->newLine();
+
+            $this->line('FIELD RECOMMENDATIONS:');
+            foreach ($componentRecs['field_recommendations'] as $rec) {
+                $confidence = sprintf('%.0f%%', $rec['confidence'] * 100);
+                $this->line("  {$rec['component']} [{$confidence}] — {$rec['reason']}");
+                if (! empty($rec['filament_alternative'])) {
+                    $this->line("    Filament: {$rec['filament_alternative']}");
+                }
+            }
+            $this->newLine();
+
+            $categories = implode(', ', $componentRecs['categories'] ?? []);
+            $this->line("Available categories: {$categories}");
             $this->newLine();
         }
 

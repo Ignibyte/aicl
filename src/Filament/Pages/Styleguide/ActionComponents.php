@@ -4,12 +4,11 @@ namespace Aicl\Filament\Pages\Styleguide;
 
 use BackedEnum;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
 class ActionComponents extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCursorArrowRays;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'Styleguide';
 

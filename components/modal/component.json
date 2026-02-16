@@ -1,0 +1,63 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Modal",
+  "tag": "x-aicl-modal",
+  "category": "feedback",
+  "status": "stable",
+  "description": "Dialog overlay with backdrop, focus trap, size variants, and keyboard navigation.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "size": {
+      "type": "string",
+      "required": false,
+      "default": "md",
+      "enum": ["sm", "md", "lg", "xl", "full"],
+      "description": "Modal panel width"
+    },
+    "closeable": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Whether the modal can be closed by the user"
+    },
+    "closeOnEscape": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Close modal when Escape key is pressed"
+    },
+    "closeOnClickOutside": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Close modal when backdrop is clicked"
+    },
+    "trapFocus": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Trap keyboard focus within the modal"
+    }
+  },
+  "slots": {
+    "header": {
+      "description": "Modal title content displayed in the header bar"
+    },
+    "default": {
+      "description": "Modal body content"
+    },
+    "footer": {
+      "description": "Modal footer with action buttons"
+    }
+  },
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for confirmations, detail views, and overlaid content. Size md for confirmations, lg for forms, xl for detail views. In Filament admin, use Action::make()->modal() instead.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Actions\\Action",
+    "note": "In Filament, use Action::make()->modal() for modal dialogs"
+  }
+}

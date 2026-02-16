@@ -40,11 +40,18 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
-1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity being documented. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failure patterns and preventive rules
-4. **`.claude/planning/rlm/world-model.md`** — The canonical source of truth for entity patterns
-5. **`.claude/golden-example/README.md`** — Understand the full file manifest and golden patterns
+1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=docs --phase=8` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **`.claude/planning/rlm/world-model.md`** — The canonical source of truth for entity patterns
+4. **`.claude/golden-example/README.md`** — Understand the full file manifest and golden patterns
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -88,15 +95,27 @@ Create `docs/entities/{name}.md` with:
 Update Phase 8 section with Status, Entity Doc path, API Doc Updated, Changelog Updated.
 Update header: Status = `Phase 8: Complete`, Last Agent = `/docs`, Next Step = "Done".
 
-### Step 5: Delete Pipeline Document
+### Step 5: Save Generation Trace
+Record the pipeline trace to the RLM knowledge base for pattern discovery:
+```bash
+ddev artisan aicl:rlm trace-save \
+  --entity="{Name}" \
+  --scaffolder-args="{original scaffolder command from Phase 3}" \
+  --file-manifest='{JSON of files created}' \
+  --structural-score={score from Phase 4/6} \
+  --fixes='{JSON array of fixes applied, or omit if none}' \
+  --fix-iterations={number of fix rounds, 0 if none}
+```
+
+### Step 6: Delete Pipeline Document
 Delete `PIPELINE-{Name}.md` from `.claude/planning/pipeline/active/`.
 
-### Step 6: Reload and Rebuild
+### Step 7: Reload and Rebuild
 ```bash
 ddev octane-reload && ddev npm run build
 ```
 
-### Step 7: Report
+### Step 8: Report
 Tell the human: entity name, files created, validation score, test results, confirm Octane reloaded.
 
 ## Changelog Ownership

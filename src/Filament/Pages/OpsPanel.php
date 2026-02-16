@@ -9,13 +9,12 @@ use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use UnitEnum;
 
 class OpsPanel extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHeart;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 

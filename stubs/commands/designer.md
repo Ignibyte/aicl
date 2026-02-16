@@ -39,7 +39,7 @@ Phase 8   — COMPLETE    → Document, changelog, cleanup
 
 AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aicl/`) provides base infrastructure including:
 - **Filament v4** admin panel (TALL stack — Tailwind, Alpine, Livewire, Laravel)
-- **21 Blade components** registered as `<x-aicl-*>` (stats, cards, layouts, actions, etc.)
+- **33 Blade components** registered as `<x-aicl-*>` (stats, cards, layouts, actions, interactive, feedback, etc.)
 - **Tailwind CSS v4** custom theme at `resources/css/filament/admin/theme.css`
 - **Design tokens** prefixed `--aicl-*` (colors, spacing, typography, radius)
 - **Dark mode** support via `.dark` class
@@ -48,11 +48,19 @@ Client entities are generated into `app/` with `App\` namespace. The package is 
 
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
-1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity being styled. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failures (this project's history)
-4. **`resources/css/filament/admin/theme.css`** — The design token system (all `--aicl-*` tokens defined here)
-5. **`vendor/aicl/aicl/resources/views/components/`** — Browse available `<x-aicl-*>` Blade components
+1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=designer --phase=3` to get targeted failures, lessons, and component recommendations for your role. Component recommendations are included when entity context has fields.
+3. **Component Registry** — Run `ddev artisan aicl:components list` to see all 33 registered components. Use `ddev artisan aicl:components show {tag}` for full component schema (props, slots, variants, decision rules, Filament crosswalk).
+4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing code. Search when: configuring Filament form layouts (Section, Grid, Split), table column formatters, widget chart APIs, or Tailwind v4 utility classes. Example: `search-docs queries=["form layout Section columns responsive"] packages=["filament/filament"]`
+5. **`resources/css/filament/admin/theme.css`** — The design token system (all `--aicl-*` tokens defined here)
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -78,7 +86,7 @@ Read the pipeline document. **Phase 3 must show Status = PASS, Pint = Pass, Pack
 ### Step 1: Read Context
 1. Read the pipeline document — Phase 1 spec, Phase 2 design, Phase 3 files list
 2. Read `resources/css/filament/admin/theme.css` — design tokens (`--aicl-*` definitions)
-3. Browse `vendor/aicl/aicl/resources/views/components/` — available `<x-aicl-*>` components
+3. Run `ddev artisan aicl:components list` for the live 33-component inventory, or use `ddev artisan aicl:components show {tag}` for full component schema
 
 ### Step 2: Review Filament Resource UI
 **Form (`{Name}Form.php`):**

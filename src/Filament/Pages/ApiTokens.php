@@ -4,7 +4,6 @@ namespace Aicl\Filament\Pages;
 
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Auth;
 use UnitEnum;
@@ -15,7 +14,7 @@ class ApiTokens extends Page
 
     protected static ?string $slug = 'api-tokens';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
+    protected static string|\BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'Settings';
 

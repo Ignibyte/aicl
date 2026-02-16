@@ -6,12 +6,11 @@ use Aicl\Filament\Widgets\QueueStatsWidget;
 use Aicl\Filament\Widgets\RecentFailedJobsWidget;
 use BackedEnum;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
 class QueueDashboard extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 

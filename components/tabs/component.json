@@ -1,0 +1,58 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Tabs",
+  "tag": "x-aicl-tabs",
+  "category": "layout",
+  "status": "stable",
+  "description": "Tab container with Alpine.js switching, supporting underline, pills, boxed, and vertical variants with URL hash sync.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "defaultTab": {
+      "type": "string",
+      "required": false,
+      "default": "",
+      "description": "Name of the initially active tab"
+    },
+    "variant": {
+      "type": "string",
+      "required": false,
+      "default": "underline",
+      "enum": ["underline", "pills", "boxed", "vertical"],
+      "description": "Visual variant for the tab layout"
+    },
+    "hashSync": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Sync active tab with URL hash for bookmarkable tabs"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "TabPanel components"
+    }
+  },
+  "variants": {
+    "underline": {
+      "description": "Border-bottom tab indicators — use for page-level tabs"
+    },
+    "pills": {
+      "description": "Rounded pill tab buttons — use for card-level or compact tabs"
+    },
+    "boxed": {
+      "description": "Segmented control style — use for compact toggles within a card"
+    },
+    "vertical": {
+      "description": "Side navigation tabs — use for settings pages and long option lists"
+    }
+  },
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use to organize related content into switchable panels. Prefer tabs over accordions for 2-5 sections of equal importance. Use underline for page-level, pills for card-level, boxed for toggles, vertical for settings.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Schemas\\Components\\Tabs",
+    "note": "In Filament forms/infolists, use Filament's Tabs component"
+  }
+}

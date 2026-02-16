@@ -25,8 +25,10 @@ class ProjectResource extends Resource
 {
     protected static ?string $model = Project::class;
 
-    // PATTERN: Navigation icon uses Heroicon enum constant.
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
+    // PATTERN: When resource belongs to a $navigationGroup, set $navigationIcon = null.
+    // The group icon is defined in AdminPanelProvider via NavigationGroup::make()->icon().
+    // Only set a Heroicon constant here if the resource does NOT belong to any group.
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     // PATTERN: $navigationGroup type is string|UnitEnum|null (not ?string).
     protected static string|UnitEnum|null $navigationGroup = 'Data';

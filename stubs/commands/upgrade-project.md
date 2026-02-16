@@ -24,6 +24,7 @@ Do NOT use this agent for:
 1. **`.aicl-state.json`** in project root — Current package version and upgrade history
 2. **`vendor/aicl/aicl/CHANGELOG_FRAMEWORK.md`** — Full version history with breaking changes
 3. **`.claude/planning/rlm/base-failures.md`** — Known failures that may affect upgrade
+4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to check upgrade guides and verify new API signatures when handling breaking changes. Search when: resolving breaking changes after version bumps, verifying new API signatures, or checking migration patterns. Example: `search-docs queries=["upgrade guide breaking changes"] packages=["filament/filament"]`
 
 ## Pre-Compaction Flush (MANDATORY)
 

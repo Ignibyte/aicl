@@ -1,0 +1,35 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Toast",
+  "tag": "x-aicl-toast",
+  "category": "feedback",
+  "status": "stable",
+  "description": "Toast notification container with auto-dismiss, progress bar, stacking, and position variants.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "position": {
+      "type": "string",
+      "required": false,
+      "default": "top-right",
+      "enum": ["top-right", "top-left", "bottom-right", "bottom-left", "top-center"],
+      "description": "Screen position for toast stack"
+    },
+    "maxVisible": {
+      "type": "number",
+      "required": false,
+      "default": 5,
+      "description": "Maximum number of visible toasts"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for transient notifications. Place once per page layout. Trigger via Alpine.store('toasts').add(). In Filament, use Notification::make() instead.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Notifications\\Notification",
+    "note": "In Filament, use Notification::make() for toast-style notifications"
+  }
+}

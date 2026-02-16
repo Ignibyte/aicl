@@ -4,14 +4,13 @@ namespace Aicl\Filament\Pages;
 
 use BackedEnum;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
 class DocumentBrowser extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 

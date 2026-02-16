@@ -92,7 +92,9 @@ class PatternRegistryTest extends TestCase
             + count(PatternRegistry::observerPatterns())
             + count(PatternRegistry::filamentPatterns())
             + count(PatternRegistry::testPatterns())
-            + count(PatternRegistry::specPatterns());
+            + count(PatternRegistry::specPatterns())
+            + count(PatternRegistry::componentPatterns())
+            + count(PatternRegistry::viewPatterns());
 
         $this->assertCount($total, PatternRegistry::all());
     }
@@ -124,7 +126,7 @@ class PatternRegistryTest extends TestCase
         foreach (PatternRegistry::all() as $pattern) {
             $this->assertContains(
                 $pattern->severity,
-                ['error', 'warning'],
+                ['error', 'warning', 'info'],
                 "Pattern {$pattern->name} has invalid severity: {$pattern->severity}",
             );
         }

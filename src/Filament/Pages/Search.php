@@ -4,7 +4,6 @@ namespace Aicl\Filament\Pages;
 
 use BackedEnum;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use UnitEnum;
@@ -16,7 +15,7 @@ use UnitEnum;
  */
 class Search extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMagnifyingGlass;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 

@@ -1,0 +1,49 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Dropdown",
+  "tag": "x-aicl-dropdown",
+  "category": "action",
+  "status": "stable",
+  "description": "Dropdown menu with Floating UI positioning, keyboard navigation, and grouped items.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "align": {
+      "type": "string",
+      "required": false,
+      "default": "bottom-start",
+      "enum": ["bottom-start", "bottom-end", "top-start", "top-end"],
+      "description": "Floating UI placement for the dropdown panel"
+    },
+    "width": {
+      "type": "string",
+      "required": false,
+      "default": "auto",
+      "enum": ["auto", "sm", "md", "lg"],
+      "description": "Minimum width of the dropdown panel"
+    },
+    "closeOnClick": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Close dropdown when an item is clicked"
+    }
+  },
+  "slots": {
+    "trigger": {
+      "description": "The button or element that triggers the dropdown"
+    },
+    "default": {
+      "description": "Menu items with role=menuitem"
+    }
+  },
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for context menus, action lists, and option selectors. For searchable selection, use combobox. In Filament, use Action::make()->dropdown().",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Actions\\Action",
+    "note": "In Filament, use native dropdown menus or Action::make()->dropdown()"
+  }
+}

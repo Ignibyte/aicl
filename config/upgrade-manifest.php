@@ -67,6 +67,43 @@ return [
                     'target' => '.claude/commands/upgrade-project.md',
                     'source' => 'stubs/commands/upgrade-project.md',
                 ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/project-setup.md',
+                    'source' => 'stubs/commands/project-setup.md',
+                ],
+
+                // Utility agents that ship to client projects
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/remove-entity.md',
+                    'source' => 'stubs/commands/remove-entity.md',
+                ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/scan-all.md',
+                    'source' => 'stubs/commands/scan-all.md',
+                ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/scan-phpstan.md',
+                    'source' => 'stubs/commands/scan-phpstan.md',
+                ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/scan-semgrep.md',
+                    'source' => 'stubs/commands/scan-semgrep.md',
+                ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/scan-snyk.md',
+                    'source' => 'stubs/commands/scan-snyk.md',
+                ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/test-dusk.md',
+                    'source' => 'stubs/commands/test-dusk.md',
+                ],
 
                 // Framework-only agents that should NOT exist in client projects
                 [
@@ -96,16 +133,6 @@ return [
                 ],
                 [
                     'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/remove-entity.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/scan-all.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
                     'target' => '.claude/commands/scan-architecture.md',
                     'reason' => 'Framework-only agent, not for client projects',
                 ],
@@ -116,27 +143,7 @@ return [
                 ],
                 [
                     'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/scan-phpstan.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/scan-semgrep.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/scan-snyk.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
                     'target' => '.claude/commands/scan-unused.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/test-dusk.md',
                     'reason' => 'Framework-only agent, not for client projects',
                 ],
 

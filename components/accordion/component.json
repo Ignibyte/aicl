@@ -1,0 +1,38 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Accordion",
+  "tag": "x-aicl-accordion",
+  "category": "layout",
+  "status": "stable",
+  "description": "Collapsible content container with single or multi-expand mode.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "allowMultiple": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Allow multiple items to be open simultaneously"
+    },
+    "defaultOpen": {
+      "type": ["string", "array"],
+      "required": false,
+      "default": null,
+      "description": "Item name(s) to open by default"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Contains <x-aicl-accordion-item> children"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use for FAQ sections, grouped settings, and progressive disclosure. Prefer tabs for 2-5 equally-important sections. In Filament forms, use Section with collapsible() instead.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Schemas\\Components\\Section",
+    "note": "In Filament, use Section::make()->collapsible() for collapsible sections"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Tooltip",
+  "tag": "x-aicl-tooltip",
+  "category": "utility",
+  "status": "stable",
+  "description": "Tooltip with Floating UI positioning, arrow, configurable delay, and auto-flip.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "content": {
+      "type": "string",
+      "required": true,
+      "description": "Tooltip text content"
+    },
+    "position": {
+      "type": "string",
+      "required": false,
+      "default": "top",
+      "enum": ["top", "bottom", "left", "right"],
+      "description": "Preferred position (auto-flips if viewport edge)"
+    },
+    "delay": {
+      "type": "number",
+      "required": false,
+      "default": 200,
+      "description": "Milliseconds before showing tooltip on hover"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "The trigger element"
+    }
+  },
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for supplementary info on hover/focus (icons, abbreviations, truncated text). Keep content short. In Filament, use ->tooltip() method instead.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-table",
+    "class": "Filament\\Tables\\Columns\\Column",
+    "note": "In Filament, use Column::make()->tooltip() for tooltips"
+  }
+}

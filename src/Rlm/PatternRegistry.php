@@ -24,6 +24,8 @@ class PatternRegistry
             static::filamentPatterns(),
             static::testPatterns(),
             static::specPatterns(),
+            static::componentPatterns(),
+            static::viewPatterns(),
         );
 
         if ($entityName !== null) {
@@ -453,10 +455,10 @@ class PatternRegistry
                 weight: 2.0,
             ),
             new EntityPattern(
-                name: 'test.refresh_database',
-                description: 'Test must use RefreshDatabase trait',
+                name: 'test.database_transactions',
+                description: 'Test must use DatabaseTransactions trait (not RefreshDatabase which destroys data)',
                 target: 'test',
-                check: 'use RefreshDatabase;',
+                check: 'use DatabaseTransactions;',
                 severity: 'error',
                 weight: 2.0,
             ),
@@ -522,6 +524,194 @@ class PatternRegistry
                 check: '# [A-Z].*\n\n[A-Za-z]',
                 severity: 'warning',
                 weight: 0.5,
+            ),
+        ];
+    }
+
+    /**
+     * Component patterns (C01-C10) validate that Blade views use the
+     * AICL component library correctly. Only scored for entities with
+     * --views or custom Blade views.
+     *
+     * Targets: blade_view (public views), blade_widget (widget views)
+     *
+     * @return array<int, EntityPattern>
+     */
+    public static function componentPatterns(): array
+    {
+        return [
+            // C01: Views should use registered AICL components, not raw HTML for known patterns
+            new EntityPattern(
+                name: 'component.uses_aicl_components',
+                description: 'View uses <x-aicl-*> library components for UI patterns',
+                target: 'blade_view',
+                check: '<x-aicl-',
+                severity: 'warning',
+                weight: 1.5,
+            ),
+            // C02: Status display should use status-badge or badge, not inline styling
+            new EntityPattern(
+                name: 'component.status_uses_badge',
+                description: 'Status display uses <x-aicl-status-badge> or <x-aicl-badge>, not raw HTML',
+                target: 'blade_view',
+                check: '<x-aicl-(status-badge|badge)',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // C03: Metric displays should use stat/kpi/progress/trend cards
+            new EntityPattern(
+                name: 'component.metrics_use_cards',
+                description: 'Metric displays use <x-aicl-stat-card>, <x-aicl-kpi-card>, or <x-aicl-progress-card>',
+                target: 'blade_widget',
+                check: '<x-aicl-(stat-card|kpi-card|progress-card|trend-card)',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // C04: Stats row only contains metric-category children
+            new EntityPattern(
+                name: 'component.statsrow_children',
+                description: 'Stats row contains metric components (stat-card, kpi-card, progress-card, trend-card)',
+                target: 'blade_widget',
+                check: '<x-aicl-stats-row',
+                severity: 'warning',
+                weight: 0.5,
+            ),
+            // C05: Data tables should use the data-table component
+            new EntityPattern(
+                name: 'component.collection_uses_table',
+                description: 'Collection/list views use <x-aicl-data-table> for tabular data',
+                target: 'blade_view',
+                check: '<x-aicl-data-table',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // C06: Empty states should have an action CTA
+            new EntityPattern(
+                name: 'component.empty_state_has_cta',
+                description: 'Empty state component includes actionLabel for user guidance',
+                target: 'blade_view',
+                check: '<x-aicl-empty-state',
+                severity: 'warning',
+                weight: 0.5,
+            ),
+            // C07: Views should support dark mode via dark: classes
+            new EntityPattern(
+                name: 'component.dark_mode_support',
+                description: 'Blade views include dark: variant classes for dark mode support',
+                target: 'blade_view',
+                check: 'dark:',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // C08: Responsive grid layout
+            new EntityPattern(
+                name: 'component.responsive_grid',
+                description: 'Grid layouts use responsive classes (sm:, md:, lg: grid columns)',
+                target: 'blade_view',
+                check: '(sm:|md:|lg:)(grid-cols|col-span)',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // C09: Layout uses split-layout or card-grid for structure
+            new EntityPattern(
+                name: 'component.layout_structure',
+                description: 'Show views use <x-aicl-split-layout> or <x-aicl-card-grid> for page structure',
+                target: 'blade_view',
+                check: '<x-aicl-(split-layout|card-grid)',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // C10: Widget views use AICL components, not raw HTML metrics
+            new EntityPattern(
+                name: 'component.widget_uses_components',
+                description: 'Widget Blade views use <x-aicl-*> components for metric display',
+                target: 'blade_widget',
+                check: '<x-aicl-',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+        ];
+    }
+
+    /**
+     * View patterns validate generated public Blade views (V01-V08).
+     *
+     * @return array<int, EntityPattern>
+     */
+    public static function viewPatterns(): array
+    {
+        return [
+            // V01: Index view extends a layout and has proper page structure
+            new EntityPattern(
+                name: 'view.blade_structure',
+                description: 'Blade view extends a layout or uses a component-based page wrapper',
+                target: 'blade_index',
+                check: '(<x-|@extends|@section)',
+                severity: 'error',
+                weight: 2.0,
+            ),
+            // V02: Alpine component has x-data for interactive behavior
+            new EntityPattern(
+                name: 'view.alpine_component',
+                description: 'Interactive views use x-data for Alpine.js component state',
+                target: 'blade_index',
+                check: 'x-data',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // V03: Views compose AICL library components (not raw HTML)
+            new EntityPattern(
+                name: 'view.component_composition',
+                description: 'Views compose <x-aicl-*> components for reusable UI patterns',
+                target: 'blade_show',
+                check: '<x-aicl-',
+                severity: 'warning',
+                weight: 1.5,
+            ),
+            // V04: Tailwind classes use token-friendly values (not arbitrary)
+            new EntityPattern(
+                name: 'view.tailwind_tokens',
+                description: 'Views use standard Tailwind classes, not arbitrary values like [#hex]',
+                target: 'blade_show',
+                check: '(bg-|text-|border-|rounded-)',
+                severity: 'warning',
+                weight: 1.0,
+            ),
+            // V05: Accessibility — semantic HTML and ARIA attributes present
+            new EntityPattern(
+                name: 'view.accessibility',
+                description: 'Views use semantic HTML (main, section, article, nav) or ARIA attributes',
+                target: 'blade_index',
+                check: '(<main|<section|<article|<nav|aria-|role=)',
+                severity: 'warning',
+                weight: 1.5,
+            ),
+            // V06: Echo/Reverb binding for real-time updates
+            new EntityPattern(
+                name: 'view.echo_binding',
+                description: 'Real-time views use Echo.channel() or wire:poll for live updates',
+                target: 'blade_index',
+                check: '(Echo\\.channel|wire:poll|x-init)',
+                severity: 'info',
+                weight: 0.5,
+            ),
+            // V07: View has a paired controller
+            new EntityPattern(
+                name: 'view.controller_pair',
+                description: 'ViewController exists with index() and show() methods',
+                target: 'view_controller',
+                check: 'function (index|show)\\(',
+                severity: 'error',
+                weight: 2.0,
+            ),
+            // V08: Responsive layout classes in views
+            new EntityPattern(
+                name: 'view.responsive_layout',
+                description: 'Views use responsive breakpoint classes (sm:, md:, lg:) for mobile-first layout',
+                target: 'blade_index',
+                check: '(sm:|md:|lg:)',
+                severity: 'warning',
+                weight: 1.0,
             ),
         ];
     }

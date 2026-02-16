@@ -1,0 +1,28 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Divider",
+  "tag": "x-aicl-divider",
+  "category": "utility",
+  "status": "stable",
+  "description": "Horizontal rule with optional label for separating content sections.",
+  "context": ["blade", "livewire", "filament-widget", "email", "pdf"],
+  "not_for": ["filament-form", "filament-table"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional label text centered on the divider"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use to separate content sections within page or card. Use with label for named section breaks.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Schemas\\Components\\Section",
+    "note": "In Filament forms, use Section headings to separate content"
+  }
+}

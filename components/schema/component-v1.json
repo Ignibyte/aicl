@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aicl-component-v1",
+  "title": "AICL Component Manifest v1",
+  "description": "Schema for validating AICL SDC component.json manifests",
+  "type": "object",
+  "required": ["$schema", "name", "tag", "category", "status", "description", "context", "props", "decision_rule"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "aicl-component-v1"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable component name",
+      "minLength": 1
+    },
+    "tag": {
+      "type": "string",
+      "description": "Blade component tag (e.g., x-aicl-stat-card)",
+      "pattern": "^x-aicl-[a-z][a-z0-9-]*$"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["metric", "data", "collection", "action", "status", "timeline", "layout", "feedback", "utility"],
+      "description": "Component category for grouping and discovery"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["experimental", "stable", "deprecated"],
+      "description": "Component maturity status"
+    },
+    "description": {
+      "type": "string",
+      "description": "One-sentence description of what this component does",
+      "minLength": 1
+    },
+    "context": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["blade", "livewire", "filament-widget", "email", "pdf"]
+      },
+      "minItems": 1,
+      "description": "Valid rendering contexts"
+    },
+    "not_for": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["filament-form", "filament-table", "filament-infolist"]
+      },
+      "description": "Explicit context exclusions"
+    },
+    "props": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "PHP-style type (string, number, boolean, array, object, or union with |)"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "default": {
+            "description": "Default value for the prop"
+          },
+          "description": {
+            "type": "string"
+          },
+          "enum": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Allowed values for enum-type props"
+          }
+        }
+      },
+      "description": "Typed prop definitions"
+    },
+    "slots": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Named slot definitions"
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "props_override": {
+            "type": "object",
+            "description": "Prop overrides for this variant"
+          }
+        }
+      },
+      "description": "Named presets with optional prop overrides"
+    },
+    "composable_in": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Parent component tags this can be nested inside"
+    },
+    "decision_rule": {
+      "type": "string",
+      "description": "When the AI should select this component (plain English)",
+      "minLength": 1
+    },
+    "field_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Entity field types/patterns that trigger this recommendation"
+    },
+    "filament_equivalent": {
+      "type": "object",
+      "properties": {
+        "context": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "description": "What to use instead when in a Filament declarative context"
+    }
+  }
+}

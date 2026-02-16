@@ -1,0 +1,50 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Progress Card",
+  "tag": "x-aicl-progress-card",
+  "category": "metric",
+  "status": "stable",
+  "description": "Displays a value with a progress bar for completion tracking.",
+  "context": ["blade", "livewire", "filament-widget", "email", "pdf"],
+  "not_for": ["filament-form", "filament-table", "filament-infolist"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "The metric label"
+    },
+    "value": {
+      "type": "string|number",
+      "required": true,
+      "description": "Display value"
+    },
+    "progress": {
+      "type": "number",
+      "required": true,
+      "description": "Progress percentage (0-100)"
+    },
+    "color": {
+      "type": "string",
+      "required": false,
+      "default": "primary",
+      "enum": ["primary", "success", "green", "warning", "yellow", "danger", "red", "info", "blue"],
+      "description": "Progress bar color"
+    },
+    "description": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional description text"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["stats-row", "card-grid", "split-layout"],
+  "decision_rule": "Use for completion tracking and capacity/usage metrics. Simpler than KpiCard when you only have a percentage, not target/actual.",
+  "field_signals": ["progress_percentage", "integer"],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Widgets\\StatsOverviewWidget",
+    "note": "In Filament admin, use StatsOverviewWidget with Stat progress"
+  }
+}

@@ -1,0 +1,1 @@
+../../../components/data-table/data-table.blade.php

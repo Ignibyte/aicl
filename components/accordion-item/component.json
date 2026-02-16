@@ -1,0 +1,42 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Accordion Item",
+  "tag": "x-aicl-accordion-item",
+  "category": "layout",
+  "status": "stable",
+  "description": "Individual collapsible item within an Accordion container.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "Unique identifier for this accordion item"
+    },
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "Text displayed in the accordion header"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional Heroicon for the header"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Collapsible content"
+    }
+  },
+  "variants": {},
+  "composable_in": ["accordion"],
+  "decision_rule": "Each item must have a unique name within its parent Accordion. Keep labels short (1-5 words).",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Schemas\\Components\\Section",
+    "note": "In Filament, each Section with collapsible() acts as an accordion item"
+  }
+}

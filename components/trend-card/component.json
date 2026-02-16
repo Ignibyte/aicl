@@ -1,0 +1,51 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Trend Card",
+  "tag": "x-aicl-trend-card",
+  "category": "metric",
+  "status": "stable",
+  "description": "Displays a value with sparkline chart showing trend over time.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "filament-infolist", "email", "pdf"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "The metric label"
+    },
+    "value": {
+      "type": "string|number",
+      "required": true,
+      "description": "Current value"
+    },
+    "data": {
+      "type": "array",
+      "required": false,
+      "default": [],
+      "description": "Array of numeric values for the sparkline (7-30 data points recommended)"
+    },
+    "color": {
+      "type": "string",
+      "required": false,
+      "default": "primary",
+      "enum": ["primary", "success", "green", "warning", "yellow", "danger", "red", "info", "blue"],
+      "description": "Sparkline color"
+    },
+    "description": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional description text"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["stats-row", "card-grid", "split-layout"],
+  "decision_rule": "Use when entity has created_at and user wants trends over time. Provide 7-30 data points for sparkline.",
+  "field_signals": ["datetime", "created_at_trend"],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Widgets\\ChartWidget",
+    "note": "In Filament admin, use ChartWidget for trend charts"
+  }
+}

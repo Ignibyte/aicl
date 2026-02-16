@@ -42,10 +42,19 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
-1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity being generated. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failures (this project's history)
-4. **`.claude/golden-example/README.md`** — Understand the target pattern
+1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures, lessons, and component recommendations for your role. Component recommendations are included when entity context has fields.
+3. **Component Registry** — For entity views, run `ddev artisan aicl:pipeline-context {Entity} --components` to get field-specific component recommendations. Use `ddev artisan aicl:components recommend {fields}` to test the field signal engine. Use `ddev artisan aicl:components show {tag}` for full component schema (props, slots, variants, decision rules).
+4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring Passport/Socialite, or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
+5. **`.claude/golden-example/README.md`** — Understand the target pattern
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -75,7 +84,7 @@ Read the pipeline document. **Phase 2 must show Status = PASS and Human Confirme
 ### Step 1: Read Context
 1. Read the pipeline document — Phase 1 spec + Phase 2 design
 2. Read `.claude/golden-example/README.md` and relevant golden example files
-3. Read `.claude/planning/rlm/failures.md`
+3. Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
 
 ### Step 2: Scaffold with Smart Scaffolder
 Build the smart scaffolder command from the Phase 2 design blueprint:
@@ -134,10 +143,11 @@ Update the header: Status, Last Updated, Last Agent = `/architect`, Next Step.
 Read the pipeline document. **Phase 4 must show PASS for BOTH RLM (100% score) and tests (all pass).** If not, STOP.
 
 ### Step 1: Register
-1. Add `Gate::policy(Entity::class, EntityPolicy::class)` to `AppServiceProvider::boot()`
-2. Add `Entity::observe(EntityObserver::class)` to `AppServiceProvider::boot()`
-3. Add API routes to `routes/api.php`
-4. Verify Filament resource is auto-discovered
+1. Run `ddev artisan migrate` — **mandatory**, creates the entity's table in the application database. Tests pass without it (`RefreshDatabase` runs migrations in transactions), but the live app will throw "Undefined table" errors without it.
+2. Add `Gate::policy(Entity::class, EntityPolicy::class)` to `AppServiceProvider::boot()`
+3. Add `Entity::observe(EntityObserver::class)` to `AppServiceProvider::boot()`
+4. Add API routes to `routes/api.php`
+5. Verify Filament resource is auto-discovered
 
 ### Step 2: Format and Update Pipeline Document
 Run Pint, update Phase 5 section, update header.

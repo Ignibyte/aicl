@@ -2,6 +2,8 @@
 
 namespace Aicl\Rlm;
 
+use Aicl\Components\ComponentRecommendation;
+use Aicl\Components\ComponentRegistry;
 use Aicl\Models\GenerationTrace;
 use Aicl\Models\GoldenAnnotation;
 use Aicl\Models\PreventionRule;
@@ -28,7 +30,7 @@ class RecallService
      * Agent-facing context retrieval with risk briefing.
      *
      * @param  array<string, mixed>|null  $entityContext
-     * @return array{failures: Collection, lessons: Collection, scores: Collection, prevention_rules: Collection, golden_annotations: Collection, risk_briefing: array}
+     * @return array{failures: Collection, lessons: Collection, scores: Collection, prevention_rules: Collection, golden_annotations: Collection, risk_briefing: array, component_recommendations: array}
      */
     public function recall(
         string $agent,
@@ -68,6 +70,9 @@ class RecallService
         // 7. Build risk briefing
         $riskBriefing = $this->buildRiskBriefing($failures, $preventionRules, $recentOutcomes, $entityContext);
 
+        // 8. Component recommendations (for architect/designer on generate/style phases)
+        $componentRecommendations = $this->getComponentRecommendations($agent, $phase, $entityContext);
+
         return [
             'failures' => $failures,
             'lessons' => $lessons,
@@ -75,6 +80,7 @@ class RecallService
             'prevention_rules' => $preventionRules,
             'golden_annotations' => $goldenAnnotations,
             'risk_briefing' => $riskBriefing,
+            'component_recommendations' => $componentRecommendations,
         ];
     }
 
@@ -349,11 +355,11 @@ class RecallService
     public function getTopicsForAgentPhase(string $agent, int $phase): array
     {
         $baseTopics = match ($agent) {
-            'architect' => ['scaffolder', 'filament', 'laravel', 'testing', 'octane'],
+            'architect' => ['scaffolder', 'filament', 'laravel', 'testing', 'octane', 'components'],
             'solutions' => ['architecture', 'design', 'patterns'],
             'designer' => ['filament', 'tailwind', 'components', 'theming'],
             'tester' => ['testing', 'phpunit', 'dusk', 'factories'],
-            'rlm' => ['validation', 'patterns', 'scoring'],
+            'rlm' => ['validation', 'patterns', 'scoring', 'components'],
             'pm' => ['pipeline', 'process', 'coordination'],
             'docs' => ['documentation', 'architecture'],
             default => ['general'],
@@ -362,7 +368,7 @@ class RecallService
         $phaseTopics = match ($phase) {
             1 => ['planning', 'classification'],
             2 => ['design', 'architecture', 'relationships'],
-            3 => ['scaffolder', 'generation', 'filament', 'models', 'migrations'],
+            3 => ['scaffolder', 'generation', 'filament', 'models', 'migrations', 'components'],
             4 => ['validation', 'patterns', 'testing'],
             5 => ['registration', 'routes', 'policies', 'observers'],
             6 => ['validation', 'testing'],
@@ -413,6 +419,62 @@ class RecallService
         }
 
         return implode(' ', $parts);
+    }
+
+    // ─── Component Recommendations ────────────────────────────
+
+    /**
+     * Get component recommendations for entity fields via ComponentRegistry.
+     *
+     * Only returns recommendations for agents/phases that deal with UI generation.
+     *
+     * @param  array<string, mixed>|null  $entityContext
+     * @return array<string, mixed>
+     */
+    public function getComponentRecommendations(string $agent, int $phase, ?array $entityContext): array
+    {
+        // Only relevant for architect (generate/register) and designer (style)
+        if (! in_array($agent, ['architect', 'designer', 'rlm']) || ! in_array($phase, [3, 4, 5, 6])) {
+            return [];
+        }
+
+        // Need entity fields to make recommendations
+        $fields = $entityContext['fields'] ?? [];
+        if ($fields === []) {
+            return [];
+        }
+
+        try {
+            $registry = app(ComponentRegistry::class);
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $recommendations = $registry->recommendForEntity($fields, 'blade', 'index');
+        if ($recommendations === []) {
+            return [];
+        }
+
+        return [
+            'context_rules' => [
+                'blade' => 'Use <x-aicl-*> components',
+                'filament-form' => 'Use Filament form components, NOT <x-aicl-*>',
+                'filament-table' => 'Use Filament table columns, NOT <x-aicl-*>',
+                'filament-widget' => 'Can use <x-aicl-*> in widget Blade views',
+            ],
+            'field_recommendations' => array_map(
+                fn (ComponentRecommendation $r): array => [
+                    'component' => $r->tag,
+                    'reason' => $r->reason,
+                    'confidence' => $r->confidence,
+                    'suggested_props' => $r->suggestedProps,
+                    'filament_alternative' => $r->alternative,
+                ],
+                $recommendations,
+            ),
+            'categories' => $registry->categories(),
+            'total_components' => $registry->count(),
+        ];
     }
 
     // ─── Private Helpers ────────────────────────────────────────

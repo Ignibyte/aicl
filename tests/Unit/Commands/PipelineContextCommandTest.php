@@ -85,6 +85,42 @@ class PipelineContextCommandTest extends TestCase
             ->expectsOutputToContain('Phase 1: Plan');
     }
 
+    public function test_components_flag_outputs_recommendations(): void
+    {
+        // Overwrite with a pipeline that has fields
+        file_put_contents($this->pipelineFile, $this->getSamplePipelineContentWithFields());
+
+        $this->artisan('aicl:pipeline-context', [
+            'entity' => 'TestEntity',
+            '--components' => true,
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Component Recommendations for TestEntity');
+    }
+
+    public function test_components_flag_warns_when_no_fields(): void
+    {
+        // Default pipeline has no fields
+        $this->artisan('aicl:pipeline-context', [
+            'entity' => 'TestEntity',
+            '--components' => true,
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('No fields found');
+    }
+
+    public function test_components_flag_shows_context_rules(): void
+    {
+        file_put_contents($this->pipelineFile, $this->getSamplePipelineContentWithFields());
+
+        $this->artisan('aicl:pipeline-context', [
+            'entity' => 'TestEntity',
+            '--components' => true,
+        ])
+            ->assertSuccessful()
+            ->expectsOutputToContain('Context Rules');
+    }
+
     private function getSamplePipelineContent(): string
     {
         return <<<'MD'
@@ -147,6 +183,42 @@ Standard golden pattern.
 ## Phase 8: Complete
 **Agent:** /docs
 **Status:** Not Started
+MD;
+    }
+
+    private function getSamplePipelineContentWithFields(): string
+    {
+        return <<<'MD'
+# Pipeline: TestEntity
+
+| Field | Value |
+|-------|-------|
+| **Status** | Phase 3: Generate |
+| **Created** | 2026-02-10 |
+| **Last Agent** | /solutions |
+
+---
+
+## Phase 1: Plan
+**Agent:** /pm
+**Status:** PASS
+**Completed:** 2026-02-10
+
+### Entity Spec
+- **Name:** TestEntity
+- **Table:** test_entities
+- Fields: name:string,description:text:nullable,status:enum:TestEntityStatus,amount:float,progress:integer
+
+---
+
+## Phase 3: Generate
+**Agent:** /architect
+**Status:** Not Started
+
+### Scaffolder Command
+```
+aicl:make-entity TestEntity --fields="name:string,description:text:nullable,status:enum:TestEntityStatus"
+```
 MD;
     }
 }

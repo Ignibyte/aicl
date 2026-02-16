@@ -614,7 +614,7 @@ namespace Tests\Feature;
 
 use Aicl\Models\{Name};
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -622,7 +622,7 @@ use Tests\TestCase;
 
 class {Name}Test extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -780,6 +780,85 @@ class {Name}Exporter extends Exporter
 | Entity has a table/list view | Yes |
 | Entity is admin-only config | No |
 | Entity has > 5 columns | Yes (column selection is useful) |
+
+---
+
+## Component Registry (SDC Architecture)
+
+The AICL component system uses a **Single Directory Component (SDC)** architecture where each `<x-aicl-*>` Blade component is co-located in a single directory with its PHP class, Blade template, optional JS module, and a `component.json` manifest.
+
+**Registry query:** `app(ComponentRegistry::class)` or `artisan aicl:components list|show|recommend|tree`
+
+### Component Categories (9)
+
+| Category | Components | When to Use |
+|----------|-----------|-------------|
+| **metric** | stat-card, kpi-card, trend-card, progress-card | Dashboard metrics, KPIs, progress tracking |
+| **data** | metadata-list, info-card, avatar | Structured data display, user presence |
+| **collection** | data-table | Lists, grids, paginated data sets |
+| **action** | action-bar, quick-action, dropdown, command-palette, combobox | User actions, selections, global search |
+| **status** | status-badge, badge | Status indicators, labels, tags |
+| **timeline** | timeline | Audit logs, activity feeds, histories |
+| **layout** | split-layout, card-grid, stats-row, empty-state, auth-split-layout, accordion, accordion-item, tabs, tab-panel, drawer | Page structure, content organization |
+| **feedback** | alert-banner, modal, toast | Alerts, dialogs, notifications |
+| **utility** | spinner, divider, tooltip, ignibyte-logo | UI utilities, loading states, separators |
+
+### Context Rules (AI Decision Key)
+
+| Context | Meaning | Use Component? |
+|---------|---------|---------------|
+| `blade` | Standard Blade views (public-facing, CMS) | YES — use `<x-aicl-*>` |
+| `livewire` | Livewire component views | YES — use `<x-aicl-*>` |
+| `filament-widget` | Filament dashboard widget views | YES — use `<x-aicl-*>` in widget Blade |
+| `filament-form` | Filament form schema (PHP) | NO — use Filament form components |
+| `filament-table` | Filament table schema (PHP) | NO — use Filament table columns |
+| `email` | Email templates | SOME — only static components (no JS) |
+| `pdf` | PDF templates | SOME — only static components (no JS) |
+
+### Composition Hierarchy
+
+Components declare valid parents via `composable_in` in their `component.json`:
+- **`stats-row`** accepts: stat-card, kpi-card, trend-card, progress-card, status-badge
+- **`card-grid`** accepts: info-card, stat-card, kpi-card, trend-card, progress-card, status-badge, metadata-list, timeline, alert-banner, empty-state, action-bar, divider, tabs, badge, avatar, accordion
+- **`split-layout`** accepts: Most content components (all except overlays/global)
+- **`info-card`** accepts: metadata-list, status-badge, badge, avatar
+- **`metadata-list`** accepts: status-badge, badge, avatar
+- **`accordion`** accepts: accordion-item
+- **`tabs`** accepts: tab-panel
+- **`action-bar`** accepts: quick-action
+
+### Filament Crosswalk
+
+When generating code for **Filament admin context**, DO NOT use `<x-aicl-*>` components in form/table schemas. Instead:
+
+| AICL Component | Filament Equivalent | When |
+|---------------|--------------------|----- |
+| stat-card / kpi-card | `StatsOverviewWidget` | Dashboard widgets |
+| status-badge | `TextColumn::make()->badge()` | Table columns |
+| data-table | `Filament\Tables\Table` | Admin tables |
+| combobox | `Select::make()->searchable()` | Form fields |
+| modal | `Filament\Actions\Action::make()->modal()` | Action modals |
+| accordion | `Section::make()->collapsible()` | Form sections |
+| tabs | `Filament\Schemas\Components\Tabs` | Form/infolist tabs |
+| command-palette | Built-in global search | Admin search |
+| tooltip | Native `->tooltip()` method | Column/action hints |
+
+### Field Signal Engine
+
+The `FieldSignalEngine` maps entity field patterns to component recommendations:
+
+| Field Pattern | Recommended Component | Confidence |
+|--------------|----------------------|-----------|
+| `status:enum` or `*_status:enum` | status-badge | 0.95 |
+| `progress:integer` | progress-card | 0.95 |
+| `starts_at + ends_at` (datetime range) | data-table | 0.95 |
+| `target + actual` (numeric pair) | kpi-card | 0.90 |
+| `*_count:integer` or `total_*:integer` | stat-card | 0.90 |
+| `budget:float`, `amount:float`, etc. | stat-card | 0.80 |
+| `is_*:boolean` | status-badge | 0.70 |
+| `*_at:datetime` or `*_date:date` | trend-card | 0.60 |
+
+Query: `artisan aicl:components recommend --fields="name:string,status:enum,budget:float"`
 
 ---
 

@@ -1,0 +1,76 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Stat Card",
+  "tag": "x-aicl-stat-card",
+  "category": "metric",
+  "status": "stable",
+  "description": "Displays a single metric with label, value, trend indicator, and optional icon.",
+  "context": ["blade", "livewire", "filament-widget", "email", "pdf"],
+  "not_for": ["filament-form", "filament-table", "filament-infolist"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "The metric label displayed above the value"
+    },
+    "value": {
+      "type": "string|number",
+      "required": true,
+      "description": "The metric value (formatted for display)"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": "heroicon-o-chart-bar",
+      "description": "Heroicon name for the icon"
+    },
+    "description": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional subtext below the value"
+    },
+    "trend": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "enum": ["up", "down"],
+      "description": "Trend direction indicator"
+    },
+    "trendValue": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Trend value text (e.g., '+12%')"
+    },
+    "color": {
+      "type": "string",
+      "required": false,
+      "default": "primary",
+      "enum": ["primary", "success", "green", "warning", "yellow", "danger", "red", "info", "blue"],
+      "description": "Semantic color for the icon background"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Optional custom content below the value"
+    }
+  },
+  "variants": {
+    "compact": {
+      "description": "Smaller version for dense dashboards",
+      "props_override": { "icon": null }
+    },
+    "large": {
+      "description": "Hero-sized stat for spotlight displays"
+    }
+  },
+  "composable_in": ["stats-row", "card-grid", "split-layout"],
+  "decision_rule": "Use when displaying a single count, total, or summary metric. Use for countable relationships, monetary fields, or status counts.",
+  "field_signals": ["integer", "float", "count_aggregate"],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Widgets\\StatsOverviewWidget",
+    "note": "In Filament admin resources, use StatsOverviewWidget with Stat::make() instead"
+  }
+}

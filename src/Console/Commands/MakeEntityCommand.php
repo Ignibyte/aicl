@@ -7,6 +7,7 @@ use Aicl\Console\Generators\EnumGenerator;
 use Aicl\Console\Generators\MigrationGenerator;
 use Aicl\Console\Generators\PolicyGenerator;
 use Aicl\Console\Generators\StateMachineGenerator;
+use Aicl\Console\Generators\ViewGenerator;
 use Aicl\Console\Support\BaseSchemaInspector;
 use Aicl\Console\Support\EntityGeneratorContext;
 use Aicl\Console\Support\EntitySpec;
@@ -47,6 +48,7 @@ class MakeEntityCommand extends Command
         {--pdf : Generate PDF template stubs}
         {--ai-context : Include HasAiContext trait with field-aware override}
         {--base= : Base class to extend (must implement DeclaresBaseSchema)}
+        {--views : Generate public Blade views (index, show, card, filters, ViewController, web routes)}
         {--all : Shorthand for --widgets --notifications --pdf --ai-context}
         {--from-spec : Generate from spec file (default: specs/{Name}.entity.md)}
         {--spec-path= : Explicit path to spec file (alternative to --from-spec)}
@@ -133,6 +135,7 @@ class MakeEntityCommand extends Command
         $generateNotifications = $this->option('notifications') || $this->option('all');
         $generatePdf = $this->option('pdf') || $this->option('all');
         $generateAiContext = $this->option('ai-context') || $this->option('all');
+        $generateViews = (bool) $this->option('views');
 
         $modeLabel = $this->smartMode ? ' (smart mode)' : '';
         $baseLabel = $this->baseInspector !== null ? " extends {$this->baseInspector->shortClassName()}" : '';
@@ -150,6 +153,7 @@ class MakeEntityCommand extends Command
             generateNotifications: $generateNotifications && $this->smartMode,
             generatePdf: $generatePdf && $this->smartMode,
             generateEnums: $this->smartMode,
+            generateViews: $generateViews && $this->smartMode,
         );
 
         // Cleanup: run Pint on generated files
@@ -314,6 +318,8 @@ class MakeEntityCommand extends Command
         $this->components->info("Description: {$spec->description}");
         $this->newLine();
 
+        $generateViews = $spec->wantsViews() || (bool) $this->option('views');
+
         $files = $this->scaffoldEntityFiles(
             name: $name,
             tableName: $tableName,
@@ -325,6 +331,7 @@ class MakeEntityCommand extends Command
             generateNotifications: $generateNotifications,
             generatePdf: $generatePdf,
             generateEnums: true,
+            generateViews: $generateViews,
         );
 
         // Cleanup: run Pint on generated files
@@ -408,6 +415,7 @@ class MakeEntityCommand extends Command
         bool $generateNotifications,
         bool $generatePdf,
         bool $generateEnums,
+        bool $generateViews = false,
     ): array {
         $files = [];
 
@@ -512,6 +520,14 @@ class MakeEntityCommand extends Command
         if ($generatePdf) {
             $this->components->task("Creating PDF templates for: {$name}", function () use ($name, &$files): void {
                 $files = array_merge($files, $this->generatePdfTemplates($name));
+            });
+        }
+
+        // Public Blade views (registry-driven)
+        if ($generateViews) {
+            $viewGen = new ViewGenerator($ctx);
+            $this->components->task($viewGen->label(), function () use ($viewGen, &$files): void {
+                $files = array_merge($files, $viewGen->generate());
             });
         }
 
@@ -2350,7 +2366,8 @@ class {$name}Resource extends Resource
 {
     protected static ?string \$model = {$name}::class;
 
-    protected static string|BackedEnum|null \$navigationIcon = Heroicon::OutlinedRectangleStack;
+    // Icon is set on the NavigationGroup in AdminPanelProvider, not on child resources.
+    protected static string|BackedEnum|null \$navigationIcon = null;
 
     protected static string|UnitEnum|null \$navigationGroup = 'Content';
 
@@ -2977,7 +2994,7 @@ namespace Tests\\Feature\\Entities;
 
 use App\\Models\\{$name};
 use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use Illuminate\\Foundation\\Testing\\DatabaseTransactions;
 use Spatie\\Permission\\Models\\Permission;
 use Spatie\\Permission\\Models\\Role;
 use Spatie\\Permission\\PermissionRegistrar;
@@ -2985,7 +3002,7 @@ use Tests\\TestCase;
 
 class {$name}Test extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {
@@ -3266,7 +3283,7 @@ PHP;
         $baseImports = [
             "use App\\Models\\{$name};",
             'use App\\Models\\User;',
-            'use Illuminate\\Foundation\\Testing\\RefreshDatabase;',
+            'use Illuminate\\Foundation\\Testing\\DatabaseTransactions;',
             'use Spatie\\Permission\\Models\\Permission;',
             'use Spatie\\Permission\\Models\\Role;',
             'use Spatie\\Permission\\PermissionRegistrar;',
@@ -3284,7 +3301,7 @@ namespace Tests\\Feature\\Entities;
 
 use App\\Models\\{$name};
 use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use Illuminate\\Foundation\\Testing\\DatabaseTransactions;
 use Spatie\\Permission\\Models\\Permission;
 use Spatie\\Permission\\Models\\Role;
 use Spatie\\Permission\\PermissionRegistrar;
@@ -3292,7 +3309,7 @@ use Tests\\TestCase;{$importStr}
 
 class {$name}Test extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected function setUp(): void
     {

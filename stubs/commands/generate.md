@@ -18,10 +18,18 @@ For step-by-step control with human review at each phase gate, use `/pm` instead
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read any existing `PIPELINE-*.md` for this entity. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failures (this project's history)
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring form layouts (Section, Grid), or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
 4. **`.claude/golden-example/README.md`** — The target pattern for all files
 5. **`.claude/planning/rlm/world-model.md`** — Pattern definitions and decision rules
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -157,17 +165,18 @@ If the entity has widgets, PDF templates, or complex form layouts:
 2. Run `ddev artisan test --compact --filter={Name}Test` — all tests must pass
 3. If either fails:
    - Fix the issues (max 3 retries per tool)
-   - Log failures to `.claude/planning/rlm/failures.md`
+   - Log failures via `ddev artisan aicl:rlm learn "{failure description}" --topic=validation --tags="{entity-name,phase,failure-type}"`
 4. Update pipeline document Phase 4 (both RLM and Tester subsections)
 
 ### Phase 5: REGISTER
 
-1. Add `Gate::policy()` to `AppServiceProvider::boot()`
-2. Add `Model::observe()` to `AppServiceProvider::boot()`
-3. Add API routes to `routes/api.php`
-4. Verify Filament resource is auto-discovered
-5. Run `ddev exec vendor/bin/pint --dirty --format agent`
-6. Update pipeline document Phase 5
+1. Run `ddev artisan migrate` — **mandatory**, creates the entity's table in the application database. Tests pass without it (`RefreshDatabase` runs migrations in transactions), but the live app will throw "Undefined table" errors without it.
+2. Add `Gate::policy()` to `AppServiceProvider::boot()`
+3. Add `Model::observe()` to `AppServiceProvider::boot()`
+4. Add API routes to `routes/api.php`
+5. Verify Filament resource is auto-discovered
+6. Run `ddev exec vendor/bin/pint --dirty --format agent`
+7. Update pipeline document Phase 5
 
 **GUARDRAIL:** Only modify `AppServiceProvider.php` and `routes/api.php`.
 
@@ -178,7 +187,7 @@ If the entity has widgets, PDF templates, or complex form layouts:
 3. Compare results to Phase 4 — report any regressions
 4. If failures:
    - Fix the issues (max 2 retries per tool)
-   - Log failures to `.claude/planning/rlm/failures.md`
+   - Log failures via `ddev artisan aicl:rlm learn "{failure description}" --topic=validation --tags="{entity-name,phase,failure-type}"`
 5. Update pipeline document Phase 6 (both RLM and Tester subsections)
 
 ### Phase 7: VERIFY (Full Suite)
@@ -198,13 +207,14 @@ If the entity has widgets, PDF templates, or complex form layouts:
    - Widgets (stats, charts, tables)
    - Testing summary (test count, coverage)
 2. Update `CHANGELOG.md` (project root) — bump version per SemVer (new entity = MINOR bump), update "Current version" line
-3. Report to human:
+3. Save generation trace: `ddev artisan aicl:rlm trace-save --entity="{Name}" --structural-score={score} --fix-iterations={count}` (include `--fixes` and `--scaffolder-args` if available)
+4. Report to human:
    - Entity name and full file list
    - Validation score (from Phase 4/6)
    - Test results (count, assertions)
-4. Update pipeline document Phase 8
-5. Delete pipeline document from `active/`
-6. Run `ddev octane-reload && ddev npm run build` to reload workers and rebuild frontend CSS
+5. Update pipeline document Phase 8
+6. Delete pipeline document from `active/`
+7. Run `ddev octane-reload && ddev npm run build` to reload workers and rebuild frontend CSS
 
 ## Pipeline Document Rules
 
@@ -213,7 +223,7 @@ Even in single-agent mode, you MUST:
 2. **Update each phase section** as you complete it — set Status, record results
 3. **Update the header** after each phase (Status, Last Updated, Last Agent = `/generate`, Next Step)
 4. **Never mark a phase PASS if it didn't actually pass** — no phantom completions
-5. **Log all failures** to `.claude/planning/rlm/failures.md`
+5. **Log all failures** via `aicl:rlm learn` to the RLM knowledge base
 
 ## File Placement Rules
 

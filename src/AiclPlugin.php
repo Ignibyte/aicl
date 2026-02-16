@@ -22,6 +22,8 @@ use Aicl\Filament\Pages\RlmDashboard;
 use Aicl\Filament\Pages\Search;
 use Aicl\Filament\Pages\Styleguide\ActionComponents;
 use Aicl\Filament\Pages\Styleguide\DataDisplayComponents;
+use Aicl\Filament\Pages\Styleguide\FeedbackComponents;
+use Aicl\Filament\Pages\Styleguide\InteractiveComponents;
 use Aicl\Filament\Pages\Styleguide\LayoutComponents;
 use Aicl\Filament\Pages\Styleguide\MetricComponents;
 use Aicl\Filament\Pages\Styleguide\StyleguideOverview;
@@ -192,6 +194,8 @@ class AiclPlugin implements Plugin
             MetricComponents::class,
             DataDisplayComponents::class,
             ActionComponents::class,
+            InteractiveComponents::class,
+            FeedbackComponents::class,
             NotFound::class,
             Forbidden::class,
             ServerError::class,

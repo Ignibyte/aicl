@@ -1,0 +1,33 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Action Bar",
+  "tag": "x-aicl-action-bar",
+  "category": "action",
+  "status": "stable",
+  "description": "Button group container for entity actions with configurable alignment.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "align": {
+      "type": "string",
+      "required": false,
+      "default": "end",
+      "enum": ["start", "center", "end", "between"],
+      "description": "Button alignment"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Buttons and QuickAction components"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use at top of detail pages for entity actions (Edit, Delete, Export). Use in card headers for section-specific actions.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-table",
+    "class": "Filament\\Tables\\Actions\\ActionGroup",
+    "note": "In Filament resources, use table actions and header actions"
+  }
+}

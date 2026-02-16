@@ -1,0 +1,1 @@
+../../../components/drawer/drawer.blade.php

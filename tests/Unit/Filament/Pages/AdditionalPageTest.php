@@ -14,7 +14,6 @@ use Aicl\Filament\Widgets\RecentFailedJobsWidget;
 use App\Models\User;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Contracts\HasTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use ShuvroRoy\FilamentSpatieLaravelBackup\Pages\Backups as BaseBackups;
@@ -63,7 +62,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(Search::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(Heroicon::OutlinedMagnifyingGlass, $defaults['navigationIcon']);
+        $this->assertNull($defaults['navigationIcon']);
     }
 
     public function test_search_navigation_group(): void
@@ -167,7 +166,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(ManageSettings::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(Heroicon::OutlinedCog6Tooth, $defaults['navigationIcon']);
+        $this->assertNull($defaults['navigationIcon']);
     }
 
     public function test_manage_settings_navigation_group(): void
@@ -250,7 +249,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(NotificationCenter::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(Heroicon::OutlinedBell, $defaults['navigationIcon']);
+        $this->assertNull($defaults['navigationIcon']);
     }
 
     public function test_notification_center_navigation_group(): void
@@ -315,7 +314,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(LogViewer::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(Heroicon::OutlinedDocumentText, $defaults['navigationIcon']);
+        $this->assertNull($defaults['navigationIcon']);
     }
 
     public function test_log_viewer_navigation_group(): void
@@ -396,7 +395,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(QueueDashboard::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(Heroicon::OutlinedQueueList, $defaults['navigationIcon']);
+        $this->assertNull($defaults['navigationIcon']);
     }
 
     public function test_queue_dashboard_navigation_sort(): void
@@ -490,7 +489,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(ApiTokens::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(Heroicon::OutlinedKey, $defaults['navigationIcon']);
+        $this->assertNull($defaults['navigationIcon']);
     }
 
     public function test_api_tokens_navigation_group(): void

@@ -1,0 +1,38 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Auth Split Layout",
+  "tag": "x-aicl-auth-split-layout",
+  "category": "layout",
+  "status": "stable",
+  "description": "50/50 split layout for authentication pages with branded background.",
+  "context": ["blade"],
+  "not_for": ["filament-form", "filament-table", "filament-infolist", "email", "pdf"],
+  "props": {
+    "backgroundImage": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Background image URL for the right panel"
+    },
+    "overlayOpacity": {
+      "type": "string",
+      "required": false,
+      "default": "30",
+      "description": "Opacity of the dark overlay on the background image"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Form content for the left panel"
+    }
+  },
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for login, registration, and password reset pages. Right side hidden on mobile (< lg breakpoint).",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Pages\\Auth\\Login",
+    "note": "Filament has built-in auth pages — use this for custom auth layouts"
+  }
+}

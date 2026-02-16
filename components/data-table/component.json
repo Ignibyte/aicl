@@ -1,0 +1,90 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Data Table",
+  "tag": "x-aicl-data-table",
+  "category": "collection",
+  "status": "stable",
+  "description": "Client-side data table with sorting, search filtering, pagination, and row selection.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "columns": {
+      "type": "array",
+      "required": true,
+      "description": "Column definitions: [{key, label, sortable?, filterable?, width?, align?}]"
+    },
+    "data": {
+      "type": "array",
+      "required": true,
+      "description": "Row data as array of objects"
+    },
+    "sortable": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Enable column sorting"
+    },
+    "filterable": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Show search input"
+    },
+    "paginated": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Enable pagination"
+    },
+    "perPage": {
+      "type": "number",
+      "required": false,
+      "default": 10,
+      "description": "Default rows per page"
+    },
+    "perPageOptions": {
+      "type": "array",
+      "required": false,
+      "default": [5, 10, 25, 50],
+      "description": "Available per-page options"
+    },
+    "selectable": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Enable row checkbox selection"
+    },
+    "emptyMessage": {
+      "type": "string",
+      "required": false,
+      "default": "No data available",
+      "description": "Message shown when no data matches"
+    },
+    "emptyIcon": {
+      "type": "string",
+      "required": false,
+      "default": "heroicon-o-table-cells",
+      "description": "Icon shown in empty state"
+    }
+  },
+  "slots": {
+    "empty": {
+      "description": "Custom empty state content"
+    },
+    "header": {
+      "description": "Content above the table, in the header bar"
+    },
+    "actions": {
+      "description": "Bulk action bar shown when rows are selected"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout"],
+  "decision_rule": "Use for static/pre-loaded data display outside Filament. In Filament admin, use the declarative Table builder instead. Keep column count to 4-8 for readability.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-table",
+    "class": "Filament\\Tables\\Table",
+    "note": "In Filament, use the declarative table builder Table::make()"
+  }
+}

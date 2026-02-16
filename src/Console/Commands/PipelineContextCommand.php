@@ -2,6 +2,7 @@
 
 namespace Aicl\Console\Commands;
 
+use Aicl\Components\ComponentRegistry;
 use Illuminate\Console\Command;
 
 class PipelineContextCommand extends Command
@@ -13,7 +14,8 @@ class PipelineContextCommand extends Command
         {entity : Entity name (e.g., Project, Task)}
         {--phase= : Pipeline phase number (1-8)}
         {--agent= : Agent role (architect, rlm, tester, solutions, designer, pm, docs)}
-        {--header : Include pipeline header metadata}';
+        {--header : Include pipeline header metadata}
+        {--components : Include component recommendations from registry}';
 
     /**
      * @var string
@@ -45,6 +47,11 @@ class PipelineContextCommand extends Command
                 $this->line($header);
                 $this->newLine();
             }
+        }
+
+        // Include component recommendations if requested
+        if ($this->option('components')) {
+            $this->outputComponentRecommendations($content, $entity);
         }
 
         // If a specific phase is requested, extract just that section
@@ -208,5 +215,99 @@ class PipelineContextCommand extends Command
             'docs' => [8],
             default => [],
         };
+    }
+
+    /**
+     * Output component recommendations for an entity based on its pipeline spec fields.
+     */
+    private function outputComponentRecommendations(string $content, string $entity): void
+    {
+        // Extract fields from the Phase 1 spec section
+        $fields = $this->extractFieldsFromSpec($content);
+
+        if ($fields === []) {
+            $this->components->warn('No fields found in pipeline spec for component recommendations.');
+
+            return;
+        }
+
+        try {
+            $registry = app(ComponentRegistry::class);
+        } catch (\Throwable) {
+            $this->components->warn('ComponentRegistry not available.');
+
+            return;
+        }
+
+        $this->info("Component Recommendations for {$entity}");
+        $this->newLine();
+
+        // Context rules
+        $this->line('Context Rules:');
+        $this->line('  blade/livewire → Use <x-aicl-*> components');
+        $this->line('  filament-form  → Use Filament form components (NOT <x-aicl-*>)');
+        $this->line('  filament-table → Use Filament table columns (NOT <x-aicl-*>)');
+        $this->line('  filament-widget → Can use <x-aicl-*> in widget Blade views');
+        $this->newLine();
+
+        // Field-specific recommendations
+        foreach (['index', 'show', 'card'] as $viewType) {
+            $recommendations = $registry->recommendForEntity($fields, 'blade', $viewType);
+            if ($recommendations === []) {
+                continue;
+            }
+
+            $this->info("  View type: {$viewType}");
+            $rows = [];
+            foreach ($recommendations as $rec) {
+                $rows[] = [
+                    $rec->tag,
+                    number_format($rec->confidence, 2),
+                    $rec->reason,
+                    $rec->alternative ?? '-',
+                ];
+            }
+            $this->table(['Component', 'Confidence', 'Reason', 'Filament Alternative'], $rows);
+            $this->newLine();
+        }
+
+        // Available categories
+        $this->line('Available categories: '.implode(', ', $registry->categories()));
+        $this->line("Total components: {$registry->count()}");
+        $this->newLine();
+    }
+
+    /**
+     * Extract field definitions from the Phase 1 spec in the pipeline document.
+     *
+     * @return array<string, string>
+     */
+    private function extractFieldsFromSpec(string $content): array
+    {
+        $fields = [];
+
+        // Look for field definitions in the spec (various formats)
+        // Format 1: "- Fields: name:string, description:text:nullable, ..."
+        if (preg_match('/Fields:\s*(.+)/i', $content, $matches)) {
+            $fieldLine = trim($matches[1]);
+            foreach (explode(',', $fieldLine) as $field) {
+                $parts = explode(':', trim($field), 3);
+                if (count($parts) >= 2) {
+                    $fields[$parts[0]] = $parts[1];
+                }
+            }
+        }
+
+        // Format 2: "--fields=" in scaffolder command
+        if (preg_match('/--fields="([^"]+)"/', $content, $matches)) {
+            foreach (explode(',', $matches[1]) as $field) {
+                $parts = explode(':', trim($field), 3);
+                if (count($parts) >= 2) {
+                    $fields[$parts[0]] = $parts[1];
+                }
+            }
+        }
+
+        return $fields;
     }
 }

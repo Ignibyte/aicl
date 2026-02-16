@@ -1,0 +1,43 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Info Card",
+  "tag": "x-aicl-info-card",
+  "category": "data",
+  "status": "stable",
+  "description": "Card with heading and metadata content for grouped information display.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table"],
+  "props": {
+    "heading": {
+      "type": "string",
+      "required": true,
+      "description": "Card heading text"
+    },
+    "items": {
+      "type": "array",
+      "required": false,
+      "default": [],
+      "description": "Key-value metadata items"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional Heroicon for the heading"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Custom card content (alternative to items prop)"
+    }
+  },
+  "variants": {},
+  "composable_in": ["card-grid", "split-layout"],
+  "decision_rule": "Use for grouped metadata sections within detail pages. Combine with CardGrid for multiple info sections side by side.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-infolist",
+    "class": "Filament\\Schemas\\Components\\Section",
+    "note": "In Filament infolists, use Section with entries inside"
+  }
+}

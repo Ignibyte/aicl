@@ -1,0 +1,54 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Tab Panel",
+  "tag": "x-aicl-tab-panel",
+  "category": "layout",
+  "status": "stable",
+  "description": "Individual tab content panel used inside Tabs container, with badge and disabled support.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "Unique identifier for this tab panel"
+    },
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "Text displayed in the tab button"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Optional Heroicon for the tab button"
+    },
+    "badge": {
+      "type": ["string", "number"],
+      "required": false,
+      "default": null,
+      "description": "Badge/count displayed next to the tab label"
+    },
+    "disabled": {
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "Prevent tab selection"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Tab content"
+    }
+  },
+  "variants": {},
+  "composable_in": ["tabs"],
+  "decision_rule": "Each TabPanel must have unique name within parent Tabs. Label displayed in tab button (keep short, 1-3 words). Use badge for counts.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Schemas\\Components\\Tabs\\Tab",
+    "note": "In Filament, use Tabs\\Tab::make()"
+  }
+}

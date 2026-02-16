@@ -1,0 +1,38 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Card Grid",
+  "tag": "x-aicl-card-grid",
+  "category": "layout",
+  "status": "stable",
+  "description": "Responsive grid container for equal-weight card items.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table"],
+  "props": {
+    "cols": {
+      "type": "number",
+      "required": false,
+      "default": 3,
+      "description": "Number of columns on desktop (1 on mobile)"
+    },
+    "gap": {
+      "type": "string",
+      "required": false,
+      "default": "6",
+      "description": "Gap size (Tailwind spacing scale)"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Grid items (cards, stat cards, info cards, etc.)"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout"],
+  "decision_rule": "Use for displaying multiple equal-weight items in a grid. Use cols=2 for paired items, cols=3 for dashboards, cols=4 for compact grids.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Schemas\\Components\\Grid",
+    "note": "In Filament forms, use Grid with columns() for multi-column layouts"
+  }
+}

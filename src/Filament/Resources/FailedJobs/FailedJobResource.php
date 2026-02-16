@@ -8,7 +8,6 @@ use Aicl\Models\FailedJob;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
@@ -16,7 +15,7 @@ class FailedJobResource extends Resource
 {
     protected static ?string $model = FailedJob::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedExclamationTriangle;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 

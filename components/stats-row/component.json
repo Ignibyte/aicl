@@ -1,0 +1,25 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Stats Row",
+  "tag": "x-aicl-stats-row",
+  "category": "layout",
+  "status": "stable",
+  "description": "Horizontal row container for stat cards at the top of dashboards.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table"],
+  "props": {},
+  "slots": {
+    "default": {
+      "description": "Stat cards (StatCard, KpiCard, TrendCard, ProgressCard)"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use at the top of dashboards or detail pages for key metrics. Always use 3-4 stats per row.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Widgets\\StatsOverviewWidget",
+    "note": "In Filament admin, use StatsOverviewWidget with Stat::make() instead"
+  }
+}

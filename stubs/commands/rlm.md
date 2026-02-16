@@ -24,14 +24,15 @@ You also operate outside the pipeline for ad-hoc validation and pattern maintena
 ## The Full 8-Phase Pipeline (For Context)
 
 ```
-Phase 1 — PLAN        → /pm         → Parse request, classify, produce spec
-Phase 2 — DESIGN      → /pm         → Design blueprint inline
-Phase 3 — GENERATE    → /pm or /generate → Scaffold + customize code
-Phase 4 — VALIDATE    → /rlm (YOU)  → Score patterns + run tests
-Phase 5 — REGISTER    → /pm or /generate → Wire up policy, observer, routes
-Phase 6 — RE-VALIDATE → /rlm (YOU)  → Re-score + re-run tests
-Phase 7 — VERIFY      → Full test suite
-Phase 8 — COMPLETE    → Document and archive
+Phase 1   — PLAN        → /pm         → Parse request, classify, produce spec
+Phase 2   — DESIGN      → /solutions  → Design blueprint (relationships, states, rules)
+Phase 3   — GENERATE    → /architect  → Scaffold + customize code
+Phase 3.5 — STYLE       → /designer   → Review + enhance UI layer (conditional)
+Phase 4   — VALIDATE    → /rlm (YOU) + /tester → Score patterns + run tests
+Phase 5   — REGISTER    → /architect  → Wire up policy, observer, routes
+Phase 6   — RE-VALIDATE → /rlm (YOU) + /tester → Re-score + re-run tests
+Phase 7   — VERIFY      → /tester     → Full test suite
+Phase 8   — COMPLETE    → /docs       → Document and archive
 ```
 
 ## Context
@@ -40,10 +41,17 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
-1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity being validated. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failures (this project's history)
-4. **`.claude/golden-example/README.md`** — Understand the target pattern for all validation
+1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=rlm --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **`.claude/golden-example/README.md`** — Understand the target pattern for all validation
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -84,7 +92,7 @@ ddev artisan aicl:validate {Name}
 ### Step 2: Score and Report
 - Must score **100%** (42/42 patterns minimum — 40 base + 2 media)
 - If < 100%, report each failing pattern with explanation and suggested fix
-- Log any new failure patterns to `.claude/planning/rlm/failures.md`
+- Log any new failure patterns via `ddev artisan aicl:rlm learn "{failure description}" --topic=validation --tags="{entity-name,phase-4,pattern-failure}"`
 
 ### Step 3: Update Pipeline Document (MANDATORY)
 Update the Phase 4 -> **RLM Validation** subsection in the pipeline document:
@@ -128,27 +136,29 @@ Review a proposed pattern change, validate against golden example, update patter
 
 ## Failure Logging
 
-### Two-Tier Failure System
+### Failure Logging via RLM Knowledge Base
 
-- **`base-failures.md`** — Universal failures shipped with AICL. **NEVER modify this file in client projects.** Only the dev repo maintains it.
-- **`failures.md`** — Project-specific failures. Log new failures here.
+Failures are stored in the RLM knowledge base (PostgreSQL), which consolidates both base (universal) and project-specific failures. Use `aicl:rlm recall` to retrieve them and `aicl:rlm learn` to record new ones.
 
-### Writing to `failures.md`
+### Recording a Failure
 
-Every failure is logged to `.claude/planning/rlm/failures.md` with:
-- Failure ID (F-NNN, sequential — check existing entries for the next number)
+Log every failure via:
+```bash
+ddev artisan aicl:rlm learn "{failure description + root cause + fix applied + preventive rule}" --topic=validation --tags="{entity-name,phase,failure-type}"
+```
+Include in the description:
 - Date, entity/component name
 - Phase where failure occurred (Phase 4 = `Pattern`, Phase 6 = `Pattern`)
 - Failure description + root cause
 - Fix applied (or "redesigned")
 - Preventive rule for future generations
-- If the failure is universal (affects all AICL projects), tag it: `[CANDIDATE: base-failure]`
+- If the failure is universal (affects all AICL projects), include `[CANDIDATE: base-failure]` in the description
 
 ## Agent Completion Rules (NON-NEGOTIABLE)
 
 1. **Always update the pipeline document** before finishing. Set Status, update header.
 2. **Never mark PASS if validation didn't actually run.** If `aicl:validate` errored or wasn't executed, write "Not Run".
-3. **Never skip reading `base-failures.md` and `failures.md`** before any operation.
+3. **Never skip running `aicl:rlm recall`** before any operation to retrieve targeted failures and lessons.
 4. **Always report the actual score.** Don't round, estimate, or assume.
 
 ## You Do NOT

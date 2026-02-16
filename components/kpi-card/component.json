@@ -1,0 +1,49 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "KPI Card",
+  "tag": "x-aicl-kpi-card",
+  "category": "metric",
+  "status": "stable",
+  "description": "Displays target vs actual metric with progress bar and percentage.",
+  "context": ["blade", "livewire", "filament-widget", "email", "pdf"],
+  "not_for": ["filament-form", "filament-table", "filament-infolist"],
+  "props": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "description": "The KPI metric label"
+    },
+    "actual": {
+      "type": "string|number",
+      "required": true,
+      "description": "Current/actual value"
+    },
+    "target": {
+      "type": "string|number",
+      "required": true,
+      "description": "Target/goal value"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": "heroicon-o-flag",
+      "description": "Heroicon name"
+    },
+    "format": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Number format (e.g., 'currency', 'percentage')"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["stats-row", "card-grid", "split-layout"],
+  "decision_rule": "Use when entity has target/goal field alongside actual/current value. Use for budget tracking, completion rates, quota progress.",
+  "field_signals": ["target_actual_pair"],
+  "filament_equivalent": {
+    "context": "filament-widget",
+    "class": "Filament\\Widgets\\StatsOverviewWidget",
+    "note": "In Filament admin, use StatsOverviewWidget with progress Stat::make()"
+  }
+}

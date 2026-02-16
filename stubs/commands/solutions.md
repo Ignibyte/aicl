@@ -40,11 +40,19 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
-1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity being designed. Verify current state before doing anything else.
-2. **`.claude/planning/rlm/base-failures.md`** — Universal failures (shipped with AICL)
-3. **`.claude/planning/rlm/failures.md`** — Project-specific failures (this project's history)
+1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
+2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=solutions --phase=2` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package capabilities before specifying them in the design blueprint. Search when: confirming relationship types or state machine APIs exist, checking widget/notification API constraints, or validating that a proposed approach is supported by the installed version. Example: `search-docs queries=["model states transitions"] packages=["spatie/laravel-model-states"]`
 4. **`.claude/golden-example/README.md`** — Understand the entity stack
 5. **`.claude/planning/rlm/world-model.md`** — Pattern definitions and decision rules
+
+## Pre-Compaction Flush (MANDATORY)
+
+Before completing your phase or handing off to the next agent, persist your findings:
+```bash
+ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
+```
+This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
 
@@ -74,7 +82,7 @@ Read the pipeline document. **Phase 1 must show Status = PASS and Human Confirme
 ### Step 1: Read Context
 1. Read the pipeline document — Phase 1 entity spec
 2. Read `.claude/golden-example/README.md` and relevant golden example files
-3. Read `.claude/planning/rlm/failures.md`
+3. Run `ddev artisan aicl:rlm recall --agent=solutions --phase=2` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
 4. Read `.claude/planning/rlm/world-model.md` — decision rules for traits, widgets, etc.
 
 ### Step 2: Design the Blueprint

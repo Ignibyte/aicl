@@ -1,0 +1,45 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Alert Banner",
+  "tag": "x-aicl-alert-banner",
+  "category": "feedback",
+  "status": "stable",
+  "description": "Dismissible alert message for system-wide or contextual notifications.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "type": {
+      "type": "string",
+      "required": false,
+      "default": "info",
+      "enum": ["info", "success", "warning", "danger"],
+      "description": "Alert type determines color and default icon"
+    },
+    "icon": {
+      "type": "string",
+      "required": false,
+      "default": null,
+      "description": "Override the default icon for the alert type"
+    },
+    "dismissible": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Show dismiss button"
+    }
+  },
+  "slots": {
+    "default": {
+      "description": "Alert message content"
+    }
+  },
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use for system-wide messages or contextual warnings within a section. Type determines color: info (blue), success (green), warning (yellow), danger (red).",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Schemas\\Components\\Placeholder",
+    "note": "In Filament forms, use Placeholder with custom HTML content"
+  }
+}

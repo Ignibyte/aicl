@@ -1,0 +1,58 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Drawer",
+  "tag": "x-aicl-drawer",
+  "category": "layout",
+  "status": "stable",
+  "description": "Slide-over panel from left or right edge with backdrop overlay and width variants.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "position": {
+      "type": "string",
+      "required": false,
+      "default": "right",
+      "enum": ["left", "right"],
+      "description": "Edge to slide from"
+    },
+    "width": {
+      "type": "string",
+      "required": false,
+      "default": "md",
+      "enum": ["sm", "md", "lg", "xl"],
+      "description": "Panel width"
+    },
+    "overlay": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Show backdrop overlay"
+    },
+    "closeable": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "description": "Whether the drawer can be closed by the user"
+    }
+  },
+  "slots": {
+    "header": {
+      "description": "Drawer title in the header bar"
+    },
+    "default": {
+      "description": "Drawer body content (scrollable)"
+    },
+    "footer": {
+      "description": "Optional footer with action buttons"
+    }
+  },
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use for detail panels, filters, and forms that don't need full-page context. Position right for detail/edit, left for navigation. In Filament, use Action::make()->slideOver() instead.",
+  "field_signals": [],
+  "filament_equivalent": {
+    "context": "filament-form",
+    "class": "Filament\\Actions\\Action",
+    "note": "In Filament, use Action::make()->slideOver() for slide-over panels"
+  }
+}

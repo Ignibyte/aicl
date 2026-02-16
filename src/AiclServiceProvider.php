@@ -3,6 +3,8 @@
 namespace Aicl;
 
 use Aicl\Auth\SamlAttributeMapper;
+use Aicl\Components\ComponentDiscoveryService;
+use Aicl\Components\ComponentRegistry;
 use Aicl\Events\DomainEventSubscriber;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
@@ -149,6 +151,8 @@ class AiclServiceProvider extends ServiceProvider
         $this->app->singleton(KnowledgeService::class);
         $this->app->singleton(EntityRegistry::class);
         $this->app->singleton(PresenceRegistry::class);
+        $this->app->singleton(ComponentDiscoveryService::class);
+        $this->app->singleton(ComponentRegistry::class);
 
         $this->app->singleton(AI\AiToolRegistry::class, function ($app): AI\AiToolRegistry {
             $registry = new AI\AiToolRegistry($app);
@@ -280,29 +284,10 @@ class AiclServiceProvider extends ServiceProvider
             Js::make('aicl-widgets', __DIR__.'/../resources/js/aicl-widgets.js'),
         ], package: 'aicl/aicl');
 
-        $this->loadViewComponentsAs('aicl', [
-            View\Components\SplitLayout::class,
-            View\Components\CardGrid::class,
-            View\Components\StatsRow::class,
-            View\Components\EmptyState::class,
-            View\Components\StatCard::class,
-            View\Components\KpiCard::class,
-            View\Components\TrendCard::class,
-            View\Components\ProgressCard::class,
-            View\Components\MetadataList::class,
-            View\Components\InfoCard::class,
-            View\Components\StatusBadge::class,
-            View\Components\Timeline::class,
-            View\Components\ActionBar::class,
-            View\Components\QuickAction::class,
-            View\Components\AlertBanner::class,
-            View\Components\Divider::class,
-            View\Components\Spinner::class,
-            View\Components\AuthSplitLayout::class,
-            View\Components\Tabs::class,
-            View\Components\TabPanel::class,
-            View\Components\IgnibyteLogo::class,
-        ]);
+        $this->bootComponentRegistry();
+
+        // Register non-SDC utility view components (no component.json)
+        $this->loadViewComponentsAs('aicl', []);
 
         Livewire::component('aicl-activity-feed', \Aicl\Livewire\ActivityFeed::class);
         Livewire::component('toolbar-presence', Filament\Widgets\ToolbarPresence::class);
@@ -330,6 +315,7 @@ class AiclServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                Console\Commands\ComponentsCommand::class,
                 Console\Commands\DiscoverPatternsCommand::class,
                 Console\Commands\HubSeedCommand::class,
                 Console\Commands\InstallCommand::class,
@@ -342,6 +328,45 @@ class AiclServiceProvider extends ServiceProvider
                 Console\Commands\ValidateEntityCommand::class,
                 Console\Commands\ValidateSpecCommand::class,
             ]);
+        }
+    }
+
+    /**
+     * Boot the SDC Component Registry.
+     *
+     * Scans framework components from packages/aicl/components/ and registers
+     * each as a Blade component. Client components in app/Components/ can
+     * override framework components by using the same tag name.
+     */
+    protected function bootComponentRegistry(): void
+    {
+        /** @var ComponentRegistry $registry */
+        $registry = $this->app->make(ComponentRegistry::class);
+
+        $scanPaths = [
+            [
+                'path' => dirname(__DIR__).'/components',
+                'source' => 'framework',
+                'namespace' => 'Aicl\\View\\Components',
+            ],
+        ];
+
+        // Support client-side component directory
+        $clientPath = app_path('Components');
+        if (is_dir($clientPath)) {
+            $scanPaths[] = [
+                'path' => $clientPath,
+                'source' => 'client',
+                'namespace' => 'App\\Components',
+            ];
+        }
+
+        $registry->boot($scanPaths);
+
+        // Register discovered components as Blade components
+        foreach ($registry->all() as $definition) {
+            $shortTag = $definition->shortTag();
+            \Illuminate\Support\Facades\Blade::component($definition->class, "aicl-{$shortTag}");
         }
     }
 

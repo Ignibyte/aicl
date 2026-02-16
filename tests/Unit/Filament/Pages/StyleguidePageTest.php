@@ -4,6 +4,8 @@ namespace Aicl\Tests\Unit\Filament\Pages;
 
 use Aicl\Filament\Pages\Styleguide\ActionComponents;
 use Aicl\Filament\Pages\Styleguide\DataDisplayComponents;
+use Aicl\Filament\Pages\Styleguide\FeedbackComponents;
+use Aicl\Filament\Pages\Styleguide\InteractiveComponents;
 use Aicl\Filament\Pages\Styleguide\LayoutComponents;
 use Aicl\Filament\Pages\Styleguide\MetricComponents;
 use Aicl\Filament\Pages\Styleguide\StyleguideOverview;
@@ -167,6 +169,68 @@ class StyleguidePageTest extends TestCase
         $this->assertEquals('aicl::filament.pages.styleguide.action-components', $defaults['view']);
     }
 
+    // ─── InteractiveComponents ─────────────────────────────────
+
+    public function test_interactive_extends_page(): void
+    {
+        $this->assertTrue(is_subclass_of(InteractiveComponents::class, Page::class));
+    }
+
+    public function test_interactive_navigation_sort(): void
+    {
+        $reflection = new \ReflectionClass(InteractiveComponents::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertEquals(105, $defaults['navigationSort']);
+    }
+
+    public function test_interactive_navigation_label(): void
+    {
+        $reflection = new \ReflectionClass(InteractiveComponents::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertEquals('Interactive', $defaults['navigationLabel']);
+    }
+
+    public function test_interactive_view(): void
+    {
+        $reflection = new \ReflectionClass(InteractiveComponents::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertEquals('aicl::filament.pages.styleguide.interactive-components', $defaults['view']);
+    }
+
+    // ─── FeedbackComponents ─────────────────────────────────────
+
+    public function test_feedback_extends_page(): void
+    {
+        $this->assertTrue(is_subclass_of(FeedbackComponents::class, Page::class));
+    }
+
+    public function test_feedback_navigation_sort(): void
+    {
+        $reflection = new \ReflectionClass(FeedbackComponents::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertEquals(106, $defaults['navigationSort']);
+    }
+
+    public function test_feedback_navigation_label(): void
+    {
+        $reflection = new \ReflectionClass(FeedbackComponents::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertEquals('Feedback', $defaults['navigationLabel']);
+    }
+
+    public function test_feedback_view(): void
+    {
+        $reflection = new \ReflectionClass(FeedbackComponents::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertEquals('aicl::filament.pages.styleguide.feedback-components', $defaults['view']);
+    }
+
     // ─── All pages share Styleguide group ──────────────────────
 
     public function test_all_styleguide_pages_in_same_group(): void
@@ -177,6 +241,8 @@ class StyleguidePageTest extends TestCase
             MetricComponents::class,
             DataDisplayComponents::class,
             ActionComponents::class,
+            InteractiveComponents::class,
+            FeedbackComponents::class,
         ];
 
         foreach ($pages as $page) {
@@ -194,6 +260,8 @@ class StyleguidePageTest extends TestCase
             MetricComponents::class => 102,
             DataDisplayComponents::class => 103,
             ActionComponents::class => 104,
+            InteractiveComponents::class => 105,
+            FeedbackComponents::class => 106,
         ];
 
         foreach ($pages as $page => $expectedSort) {
