@@ -56,22 +56,6 @@ class InstallCommand extends Command
             $this->callSilently('vendor:publish', $params);
         });
 
-        // Publish activity log migrations
-        $this->components->task('Publishing activity log migrations', function (): void {
-            $this->callSilently('vendor:publish', [
-                '--provider' => 'Spatie\Activitylog\ActivitylogServiceProvider',
-                '--tag' => 'activitylog-migrations',
-            ]);
-        });
-
-        // Publish media library migrations
-        $this->components->task('Publishing media library migrations', function (): void {
-            $this->callSilently('vendor:publish', [
-                '--provider' => 'Spatie\MediaLibrary\MediaLibraryServiceProvider',
-                '--tag' => 'medialibrary-migrations',
-            ]);
-        });
-
         // Run migrations
         $this->components->task('Running migrations', function (): void {
             $this->callSilently('migrate', ['--force' => true]);
