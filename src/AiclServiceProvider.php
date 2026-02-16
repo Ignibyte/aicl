@@ -187,6 +187,13 @@ class AiclServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Force HTTPS URL generation when APP_URL uses https.
+        // This prevents mixed-content issues when nginx proxies HTTPS
+        // to Swoole/Octane over internal HTTP.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         Gate::policy(\App\Models\User::class, \Aicl\Policies\UserPolicy::class);
         Gate::policy(\Spatie\Permission\Models\Role::class, \Aicl\Policies\RolePolicy::class);
 
