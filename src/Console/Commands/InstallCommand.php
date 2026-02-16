@@ -22,6 +22,7 @@ class InstallCommand extends Command
     {
         if (! $this->option('force') && $this->isAlreadyInstalled()) {
             $this->components->info('AICL is already installed. Use --force to re-run.');
+            $this->ensureMigrated();
             $this->ensureSettingsSeeded();
 
             return self::SUCCESS;
@@ -179,9 +180,15 @@ class InstallCommand extends Command
     }
 
     /**
-     * Check if AICL has already been installed by verifying
-     * the roles table exists and has the expected roles.
+     * Run any pending migrations on subsequent starts (e.g. after package update).
      */
+    protected function ensureMigrated(): void
+    {
+        $this->components->task('Running pending migrations', function (): void {
+            $this->callSilently('migrate', ['--force' => true]);
+        });
+    }
+
     /**
      * Ensure settings are seeded even on subsequent runs (idempotent).
      */
