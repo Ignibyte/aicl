@@ -1,0 +1,29 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Code Block",
+  "tag": "x-aicl-code-block",
+  "category": "utility",
+  "status": "stable",
+  "description": "Code snippet display with show/hide toggle and copy-to-clipboard button.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "code": {
+      "type": "string",
+      "required": true,
+      "description": "The code string to display"
+    },
+    "language": {
+      "type": "string",
+      "required": false,
+      "default": "blade",
+      "description": "Language hint for the code snippet"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": ["split-layout", "card-grid"],
+  "decision_rule": "Use for displaying code snippets with copy functionality. Pass code as a raw string via the :code prop.",
+  "field_signals": [],
+  "filament_equivalent": null
+}

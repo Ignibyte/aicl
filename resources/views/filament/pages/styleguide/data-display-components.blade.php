@@ -16,6 +16,18 @@
                     'Priority' => 'High',
                 ]" />
             </div>
+
+            @php
+$metadataListCode = <<<'BLADE'
+<x-aicl-metadata-list :items="[
+    'Project Name' => 'AICL Framework',
+    'Status' => 'Active',
+    'Owner' => 'Admin User',
+]" />
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$metadataListCode" />
+            <x-aicl-component-reference component="metadata-list" />
         </div>
 
         <x-aicl-divider label="Next Component" />
@@ -39,6 +51,18 @@
                     'Sprint' => 'Sprint 5',
                 ]" />
             </x-aicl-card-grid>
+
+            @php
+$infoCardCode = <<<'BLADE'
+<x-aicl-info-card
+    heading="Project Details"
+    icon="heroicon-o-document-text"
+    :items="['Name' => 'AICL', 'Status' => 'Active']"
+/>
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$infoCardCode" />
+            <x-aicl-component-reference component="info-card" />
         </div>
 
         <x-aicl-divider label="Next Component" />
@@ -58,14 +82,20 @@
             </div>
 
             <div class="mt-3">
-                <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Color aliases</h3>
+                <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">With icon</h3>
                 <div class="flex flex-wrap gap-3">
-                    <x-aicl-status-badge label="Green" color="green" />
-                    <x-aicl-status-badge label="Yellow" color="yellow" />
-                    <x-aicl-status-badge label="Red" color="red" />
-                    <x-aicl-status-badge label="Blue" color="blue" />
+                    <x-aicl-status-badge label="Active" color="success" icon="heroicon-m-check-circle" />
+                    <x-aicl-status-badge label="Warning" color="warning" icon="heroicon-m-exclamation-triangle" />
                 </div>
             </div>
+
+            @php
+$statusBadgeCode = <<<'BLADE'
+<x-aicl-status-badge label="Active" color="success" icon="heroicon-m-check-circle" />
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$statusBadgeCode" />
+            <x-aicl-component-reference component="status-badge" />
         </div>
 
         <x-aicl-divider label="Next Component" />
@@ -83,6 +113,17 @@
                     ['date' => 'Jan 15, 2026 — 9:00 AM', 'title' => 'Project created', 'description' => 'Created by Admin User', 'color' => 'green'],
                 ]" />
             </div>
+
+            @php
+$timelineCode = <<<'BLADE'
+<x-aicl-timeline :entries="[
+    ['date' => 'Feb 1', 'title' => 'Completed', 'description' => 'All done', 'color' => 'green'],
+    ['date' => 'Jan 15', 'title' => 'Created', 'description' => 'By Admin', 'color' => 'blue'],
+]" />
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$timelineCode" />
+            <x-aicl-component-reference component="timeline" />
         </div>
     </div>
 </x-filament-panels::page>

@@ -69,9 +69,7 @@ class OpsPanelPageTest extends TestCase
     {
         $response = $this->actingAs($this->viewer)->get('/admin/ops-panel');
 
-        // MustTwoFactor middleware returns 500 due to Breezy return type issue;
-        // canAccess() returns false for viewer (tested below), so the intent is correct.
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_ops_panel_redirects_guest(): void

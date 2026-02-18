@@ -24,20 +24,45 @@ class Changelog extends Page
 
     public function getTitle(): string
     {
-        $version = app(VersionService::class)->current();
+        $versionService = app(VersionService::class);
+        $framework = $versionService->frameworkVersion();
+        $project = $versionService->projectVersion();
 
-        return "Changelog — v{$version}";
-    }
+        $title = "Changelog — Framework v{$framework}";
 
-    public function getChangelogHtml(): string
-    {
-        $path = base_path('CHANGELOG_FRAMEWORK.md');
-
-        if (! file_exists($path)) {
-            return '<p class="text-gray-500">No changelog found.</p>';
+        if ($project !== 'unknown') {
+            $title .= " | Project v{$project}";
         }
 
-        return Str::markdown(file_get_contents($path), ['html_input' => 'strip']);
+        return $title;
+    }
+
+    public function getFrameworkChangelogHtml(): string
+    {
+        return $this->renderChangelog(base_path('CHANGELOG_FRAMEWORK.md'));
+    }
+
+    public function getProjectChangelogHtml(): string
+    {
+        return $this->renderChangelog(base_path('CHANGELOG.md'));
+    }
+
+    public function hasProjectChangelog(): bool
+    {
+        return file_exists(base_path('CHANGELOG.md'));
+    }
+
+    public function hasFrameworkChangelog(): bool
+    {
+        return file_exists(base_path('CHANGELOG_FRAMEWORK.md'));
+    }
+
+    /**
+     * @deprecated Use getFrameworkChangelogHtml() instead.
+     */
+    public function getChangelogHtml(): string
+    {
+        return $this->getFrameworkChangelogHtml();
     }
 
     public static function canAccess(): bool
@@ -49,5 +74,14 @@ class Changelog extends Page
         }
 
         return $user->hasRole(['super_admin', 'admin']);
+    }
+
+    private function renderChangelog(string $path): string
+    {
+        if (! file_exists($path)) {
+            return '<p class="text-gray-500">No changelog found.</p>';
+        }
+
+        return Str::markdown(file_get_contents($path), ['html_input' => 'strip']);
     }
 }

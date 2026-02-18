@@ -2354,8 +2354,11 @@ use App\\Filament\\Resources\\{$pluralName}\\Pages\\Edit{$name};
 use App\\Filament\\Resources\\{$pluralName}\\Pages\\List{$pluralName};
 use App\\Filament\\Resources\\{$pluralName}\\Pages\\View{$name};
 use App\\Filament\\Resources\\{$pluralName}\\Schemas\\{$name}Form;
+use App\\Filament\\Resources\\{$pluralName}\\Schemas\\{$name}Infolist;
 use App\\Filament\\Resources\\{$pluralName}\\Tables\\{$pluralName}Table;
 use BackedEnum;
+use Filament\\Pages\\Enums\\SubNavigationPosition;
+use Filament\\Resources\\Pages\\Page;
 use Filament\\Resources\\Resource;
 use Filament\\Schemas\\Schema;
 use Filament\\Support\\Icons\\Heroicon;
@@ -2375,14 +2378,29 @@ class {$name}Resource extends Resource
 
     protected static ?string \$recordTitleAttribute = 'name';
 
+    protected static ?SubNavigationPosition \$subNavigationPosition = SubNavigationPosition::Top;
+
     public static function form(Schema \$schema): Schema
     {
         return {$name}Form::configure(\$schema);
     }
 
+    public static function infolist(Schema \$schema): Schema
+    {
+        return {$name}Infolist::configure(\$schema);
+    }
+
     public static function table(Table \$table): Table
     {
         return {$pluralName}Table::configure(\$table);
+    }
+
+    public static function getRecordSubNavigation(Page \$page): array
+    {
+        return \$page->generateNavigationItems([
+            Pages\\View{$name}::class,
+            Pages\\Edit{$name}::class,
+        ]);
     }
 
     public static function getPages(): array
@@ -2407,6 +2425,8 @@ PHP;
 
 
             Section::make('Media')
+                ->columnSpanFull()
+                ->columns(2)
                 ->schema([
                     MediaManagerPicker::make('documents')
                         ->label('Documents')
@@ -2427,6 +2447,8 @@ MEDIA : '';
         } else {
             $formBody = <<<PHP
             Section::make('{$name} Details')
+                ->columnSpanFull()
+                ->columns(2)
                 ->schema([
                     TextInput::make('name')
                         ->required()
@@ -2436,6 +2458,8 @@ MEDIA : '';
                 ]),
 
             Section::make('Settings')
+                ->columnSpanFull()
+                ->columns(2)
                 ->schema([
                     Select::make('owner_id')
                         ->relationship('owner', 'name')
@@ -2476,6 +2500,55 @@ PHP;
 
         file_put_contents("{$baseDir}/Schemas/{$name}Form.php", $formContent);
         $files[] = "app/Filament/Resources/{$pluralName}/Schemas/{$name}Form.php";
+
+        // Infolist schema (for View page — card-based data display)
+        if ($this->smartMode) {
+            $infolistBody = $this->buildSmartInfolistSchema($name);
+            $smartInfolistImports = $this->getSmartInfolistImports($name);
+        } else {
+            $infolistBody = <<<PHP
+            Section::make('{$name} Details')
+                ->columnSpanFull()
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('name'),
+                    TextEntry::make('owner.name')
+                        ->label('Owner'),
+                    IconEntry::make('is_active')
+                        ->boolean(),
+                    TextEntry::make('description')
+                        ->html()
+                        ->columnSpanFull(),
+                ]),
+PHP;
+            $smartInfolistImports = <<<'PHP'
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+PHP;
+        }
+
+        $infolistContent = <<<PHP
+<?php
+
+namespace App\\Filament\\Resources\\{$pluralName}\\Schemas;
+
+{$smartInfolistImports}
+
+class {$name}Infolist
+{
+    public static function configure(Schema \$schema): Schema
+    {
+        return \$schema->components([
+{$infolistBody}
+        ]);
+    }
+}
+PHP;
+
+        file_put_contents("{$baseDir}/Schemas/{$name}Infolist.php", $infolistContent);
+        $files[] = "app/Filament/Resources/{$pluralName}/Schemas/{$name}Infolist.php";
 
         // Table
         $snakeName = Str::snake($name);
@@ -2562,14 +2635,7 @@ PHP;
         file_put_contents("{$baseDir}/Tables/{$pluralName}Table.php", $tableContent);
         $files[] = "app/Filament/Resources/{$pluralName}/Tables/{$pluralName}Table.php";
 
-        // Pages
-        $pages = [
-            "Create{$name}" => 'CreateRecord',
-            "Edit{$name}" => 'EditRecord',
-            "View{$name}" => 'ViewRecord',
-        ];
-
-        // List page with CreateAction header action
+        // Pages — List
         $listContent = <<<PHP
 <?php
 
@@ -2595,24 +2661,81 @@ PHP;
         file_put_contents("{$baseDir}/Pages/List{$pluralName}.php", $listContent);
         $files[] = "app/Filament/Resources/{$pluralName}/Pages/List{$pluralName}.php";
 
-        foreach ($pages as $pageName => $baseClass) {
-            $pageContent = <<<PHP
+        // Pages — Create
+        $createContent = <<<PHP
 <?php
 
 namespace App\\Filament\\Resources\\{$pluralName}\\Pages;
 
 use App\\Filament\\Resources\\{$pluralName}\\{$name}Resource;
-use Filament\\Resources\\Pages\\{$baseClass};
+use Filament\\Resources\\Pages\\CreateRecord;
 
-class {$pageName} extends {$baseClass}
+class Create{$name} extends CreateRecord
 {
     protected static string \$resource = {$name}Resource::class;
 }
 PHP;
 
-            file_put_contents("{$baseDir}/Pages/{$pageName}.php", $pageContent);
-            $files[] = "app/Filament/Resources/{$pluralName}/Pages/{$pageName}.php";
-        }
+        file_put_contents("{$baseDir}/Pages/Create{$name}.php", $createContent);
+        $files[] = "app/Filament/Resources/{$pluralName}/Pages/Create{$name}.php";
+
+        // Pages — View (with header actions and sub-navigation label)
+        $viewContent = <<<PHP
+<?php
+
+namespace App\\Filament\\Resources\\{$pluralName}\\Pages;
+
+use App\\Filament\\Resources\\{$pluralName}\\{$name}Resource;
+use Filament\\Actions\\EditAction;
+use Filament\\Resources\\Pages\\ViewRecord;
+
+class View{$name} extends ViewRecord
+{
+    protected static string \$resource = {$name}Resource::class;
+
+    protected static ?string \$navigationLabel = 'Details';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            EditAction::make(),
+        ];
+    }
+}
+PHP;
+
+        file_put_contents("{$baseDir}/Pages/View{$name}.php", $viewContent);
+        $files[] = "app/Filament/Resources/{$pluralName}/Pages/View{$name}.php";
+
+        // Pages — Edit (with header actions and sub-navigation label)
+        $editContent = <<<PHP
+<?php
+
+namespace App\\Filament\\Resources\\{$pluralName}\\Pages;
+
+use App\\Filament\\Resources\\{$pluralName}\\{$name}Resource;
+use Filament\\Actions\\DeleteAction;
+use Filament\\Actions\\ViewAction;
+use Filament\\Resources\\Pages\\EditRecord;
+
+class Edit{$name} extends EditRecord
+{
+    protected static string \$resource = {$name}Resource::class;
+
+    protected static ?string \$navigationLabel = 'Edit';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            ViewAction::make(),
+            DeleteAction::make(),
+        ];
+    }
+}
+PHP;
+
+        file_put_contents("{$baseDir}/Pages/Edit{$name}.php", $editContent);
+        $files[] = "app/Filament/Resources/{$pluralName}/Pages/Edit{$name}.php";
 
         return $files;
     }
@@ -3484,6 +3607,8 @@ PHP;
                 $inheritedStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $inheritedFields));
                 $sections[] = <<<PHP
             Section::make('Inherited Fields')
+                ->columnSpanFull()
+                ->columns(2)
                 ->schema([
 {$inheritedStr},
                 ]),
@@ -3566,6 +3691,8 @@ PHP;
             $detailStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $detailFields));
             $sections[] = <<<PHP
             Section::make('{$name} Details')
+                ->columnSpanFull()
+                ->columns(2)
                 ->schema([
 {$detailStr},
                 ]),
@@ -3575,6 +3702,8 @@ PHP;
         $settingsStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $settingsFields));
         $sections[] = <<<PHP
             Section::make('Settings')
+                ->columnSpanFull()
+                ->columns(2)
                 ->schema([
 {$settingsStr},
                 ]),
@@ -3601,6 +3730,166 @@ PHP;
             'foreignId' => "                    Select::make('{$field->name}')\n                        ->relationship('{$field->relationshipMethodName()}', 'name'){$nullable}\n                        ->searchable()\n                        ->preload()",
             default => "                    TextInput::make('{$field->name}')",
         };
+    }
+
+    // ========================================================================
+    // Smart Filament Infolist Generation
+    // ========================================================================
+
+    protected function buildSmartInfolistSchema(string $name): string
+    {
+        $sections = [];
+
+        // Inherited Fields section (from base class)
+        if ($this->baseInspector !== null) {
+            $inheritedEntries = [];
+            foreach ($this->baseInspector->columns() as $baseField) {
+                if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
+                    continue; // These go in settings section
+                }
+                $inheritedEntries[] = $this->getInfolistEntryForField($baseField);
+            }
+
+            if (! empty($inheritedEntries)) {
+                $inheritedStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $inheritedEntries));
+                $sections[] = <<<PHP
+            Section::make('Inherited Fields')
+                ->columnSpanFull()
+                ->columns(2)
+                ->schema([
+{$inheritedStr},
+                ]),
+PHP;
+            }
+        }
+
+        // Child entity detail entries
+        $detailEntries = [];
+        $settingsEntries = [];
+
+        foreach ($this->fields as $field) {
+            if ($field->type === 'boolean' || $field->isForeignKey()) {
+                $settingsEntries[] = $this->getInfolistEntryForField($field);
+            } else {
+                $detailEntries[] = $this->getInfolistEntryForField($field);
+            }
+        }
+
+        // State machine entry
+        if (! empty($this->states)) {
+            $detailEntries[] = "                    TextEntry::make('status')\n                        ->badge()";
+        }
+
+        // Check if base class provides is_active / owner_id
+        $baseHasIsActive = $this->baseInspector !== null && $this->baseInspector->hasColumn('is_active');
+        $baseHasOwnerId = $this->baseInspector !== null && $this->baseInspector->hasColumn('owner_id');
+
+        $hasExplicitIsActive = false;
+        $hasExplicitOwnerId = false;
+        foreach ($this->fields as $field) {
+            if ($field->name === 'is_active') {
+                $hasExplicitIsActive = true;
+            }
+            if ($field->name === 'owner_id') {
+                $hasExplicitOwnerId = true;
+            }
+        }
+
+        // Add base class boolean/foreignId entries to settings section
+        if ($this->baseInspector !== null) {
+            foreach ($this->baseInspector->columns() as $baseField) {
+                if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
+                    $settingsEntries[] = $this->getInfolistEntryForField($baseField);
+                }
+            }
+        }
+
+        if (! $hasExplicitOwnerId && ! $baseHasOwnerId) {
+            $settingsEntries[] = "                    TextEntry::make('owner.name')\n                        ->label('Owner')";
+        }
+
+        if (! $hasExplicitIsActive && ! $baseHasIsActive) {
+            $settingsEntries[] = "                    IconEntry::make('is_active')\n                        ->boolean()";
+        }
+
+        if (! empty($detailEntries)) {
+            $detailStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $detailEntries));
+            $sections[] = <<<PHP
+            Section::make('{$name} Details')
+                ->columnSpanFull()
+                ->columns(2)
+                ->schema([
+{$detailStr},
+                ]),
+PHP;
+        }
+
+        $settingsStr = implode(",\n", array_map(fn ($s) => rtrim($s, ','), $settingsEntries));
+        $sections[] = <<<PHP
+            Section::make('Settings')
+                ->columnSpanFull()
+                ->columns(2)
+                ->schema([
+{$settingsStr},
+                ]),
+PHP;
+
+        return implode("\n\n", $sections);
+    }
+
+    protected function getInfolistEntryForField(FieldDefinition $field): string
+    {
+        return match ($field->type) {
+            'string' => "                    TextEntry::make('{$field->name}')",
+            'text' => "                    TextEntry::make('{$field->name}')\n                        ->html()\n                        ->columnSpanFull()",
+            'integer' => "                    TextEntry::make('{$field->name}')\n                        ->numeric()",
+            'float' => "                    TextEntry::make('{$field->name}')\n                        ->numeric()",
+            'boolean' => "                    IconEntry::make('{$field->name}')\n                        ->boolean()",
+            'date' => "                    TextEntry::make('{$field->name}')\n                        ->date()",
+            'datetime' => "                    TextEntry::make('{$field->name}')\n                        ->dateTime()",
+            'enum' => "                    TextEntry::make('{$field->name}')\n                        ->badge()",
+            'json' => "                    KeyValueEntry::make('{$field->name}')\n                        ->columnSpanFull()",
+            'foreignId' => "                    TextEntry::make('{$field->relationshipMethodName()}.name')\n                        ->label('".Str::title(str_replace('_', ' ', Str::beforeLast($field->name, '_id')))."')",
+            default => "                    TextEntry::make('{$field->name}')",
+        };
+    }
+
+    protected function getSmartInfolistImports(string $name): string
+    {
+        $imports = [
+            'use Filament\\Infolists\\Components\\TextEntry;',
+            'use Filament\\Schemas\\Components\\Section;',
+            'use Filament\\Schemas\\Schema;',
+        ];
+
+        $allFields = $this->fields;
+        if ($this->baseInspector !== null) {
+            $allFields = array_merge($this->baseInspector->columns(), $allFields);
+        }
+
+        $hasBoolean = false;
+        $hasJson = false;
+
+        foreach ($allFields as $field) {
+            if ($field->type === 'boolean') {
+                $hasBoolean = true;
+            }
+            if ($field->type === 'json') {
+                $hasJson = true;
+            }
+        }
+
+        // Always include IconEntry for is_active
+        $imports[] = 'use Filament\\Infolists\\Components\\IconEntry;';
+
+        if ($hasJson) {
+            $imports[] = 'use Filament\\Infolists\\Components\\KeyValueEntry;';
+        }
+
+        $imports = array_unique($imports);
+        sort($imports);
+
+        return implode("\n", $imports);
     }
 
     // ========================================================================

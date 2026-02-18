@@ -37,16 +37,16 @@ class ComponentPatternRegistrationTest extends TestCase
         $this->assertCount(8, $viewPatterns);
     }
 
-    public function test_total_pattern_count_is_64(): void
+    public function test_total_pattern_count_is_70(): void
     {
         $all = PatternRegistry::all();
-        $this->assertCount(64, $all);
+        $this->assertCount(70, $all);
     }
 
-    public function test_total_with_registration_patterns_is_68(): void
+    public function test_total_with_registration_patterns_is_74(): void
     {
         $all = PatternRegistry::all('TestEntity');
-        $this->assertCount(68, $all);
+        $this->assertCount(74, $all);
     }
 
     // ─── Component Patterns (C01-C10) ──────────────────────────

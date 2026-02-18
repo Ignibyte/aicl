@@ -26,7 +26,7 @@ class RlmCommand extends Command
      * @var string
      */
     protected $signature = 'aicl:rlm
-        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, embed, index, aar, cleanup, distill, feedback, health)}
+        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, sync-knowledge, embed, index, aar, cleanup, distill, feedback, health)}
         {query? : Search query or lesson summary}
         {--agent= : Agent role for recall (architect, rlm, tester, solutions, designer, pm)}
         {--phase= : Pipeline phase number for recall}
@@ -85,6 +85,7 @@ class RlmCommand extends Command
             'export' => $this->handleExport(),
             'trace-save' => $this->handleTraceSave(),
             'sync' => $this->handleSync(),
+            'sync-knowledge' => $this->handleSyncKnowledge(),
             'embed' => $this->handleEmbed(),
             'index' => $this->handleIndex(),
             'aar' => $this->handleAar(),
@@ -799,6 +800,79 @@ class RlmCommand extends Command
         return self::SUCCESS;
     }
 
+    // ─── Sync Knowledge (Local) ────────────────────────────────
+
+    private function handleSyncKnowledge(): int
+    {
+        $this->components->info('Syncing RLM knowledge from package seeders...');
+        $this->newLine();
+
+        $seeders = [
+            'Patterns' => [
+                'seeder' => \Aicl\Database\Seeders\PatternRegistrySeeder::class,
+                'model' => RlmPattern::class,
+            ],
+            'Base Failures' => [
+                'seeder' => \Aicl\Database\Seeders\BaseFailureSeeder::class,
+                'model' => RlmFailure::class,
+            ],
+            'Lessons' => [
+                'seeder' => \Aicl\Database\Seeders\RlmLessonSeeder::class,
+                'model' => RlmLesson::class,
+            ],
+            'Prevention Rules' => [
+                'seeder' => \Aicl\Database\Seeders\PreventionRuleSeeder::class,
+                'model' => PreventionRule::class,
+            ],
+            'Golden Annotations' => [
+                'seeder' => \Aicl\Database\Seeders\GoldenAnnotationSeeder::class,
+                'model' => GoldenAnnotation::class,
+            ],
+            'Distilled Lessons' => [
+                'seeder' => \Aicl\Database\Seeders\DistilledLessonSeeder::class,
+                'model' => DistilledLesson::class,
+            ],
+        ];
+
+        $rows = [];
+        foreach ($seeders as $label => $config) {
+            $countBefore = $config['model']::query()->count();
+            $maxUpdatedBefore = $config['model']::query()->max('updated_at');
+
+            app($config['seeder'])->run();
+
+            $countAfter = $config['model']::query()->count();
+            $newRecords = $countAfter - $countBefore;
+            $updated = $maxUpdatedBefore
+                ? $config['model']::query()->where('updated_at', '>', $maxUpdatedBefore)->count() - $newRecords
+                : 0;
+            $updated = max(0, $updated);
+
+            $rows[] = [$label, $countAfter, $newRecords, $updated];
+        }
+
+        $this->table(['Seeder', 'Total', 'New', 'Updated'], $rows);
+
+        // Optionally re-index ES
+        if ($this->option('all') || $this->hasOption('recreate') && $this->option('recreate')) {
+            $this->newLine();
+            $this->components->info('Re-indexing Elasticsearch...');
+            $this->call('aicl:rlm', ['action' => 'index', '--all' => true]);
+        }
+
+        // Optionally backfill embeddings
+        if ($this->option('backfill')) {
+            $this->newLine();
+            $this->components->info('Backfilling embeddings...');
+            $this->call('aicl:rlm', ['action' => 'embed', '--backfill' => true]);
+        }
+
+        $this->newLine();
+        $this->components->info('Knowledge sync complete.');
+
+        return self::SUCCESS;
+    }
+
     // ─── Embed (NEW) ────────────────────────────────────────────
 
     private function handleEmbed(): int
@@ -1495,6 +1569,7 @@ class RlmCommand extends Command
         $this->line('  export                   Export to markdown/JSON from PostgreSQL');
         $this->line('  trace-save               Save a generation trace (requires --entity)');
         $this->line('  sync                     Sync data with hub (requires --push or --pull)');
+        $this->line('  sync-knowledge           Re-run RLM seeders to update local knowledge (--backfill for embeddings)');
         $this->line('  cleanup                  Remove faker-generated records (requires --remove-faker-records)');
         $this->line('  distill                  Run distillation pipeline (--dry-run, --agent=, --stats)');
         $this->line('  feedback                 Record feedback on surfaced lessons (--entity, --surfaced, --failures)');

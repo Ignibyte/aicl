@@ -12,6 +12,20 @@
                 <x-aicl-stat-card label="Open Issues" value="17" icon="heroicon-o-exclamation-triangle" trend="down" trend-value="-2" />
                 <x-aicl-stat-card label="Revenue" value="$45,200" icon="heroicon-o-currency-dollar" description="Last 30 days" />
             </x-aicl-card-grid>
+
+            @php
+$statCardCode = <<<'BLADE'
+<x-aicl-stat-card
+    label="Total Users"
+    value="1,234"
+    icon="heroicon-o-users"
+    trend="up"
+    trend-value="+12%"
+/>
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$statCardCode" />
+            <x-aicl-component-reference component="stat-card" />
         </div>
 
         <x-aicl-divider label="Next Component" />
@@ -32,6 +46,19 @@
                 <span class="font-semibold text-yellow-600">Yellow (50-79%)</span> |
                 <span class="font-semibold text-red-600">Red (&lt;50%)</span>
             </div>
+
+            @php
+$kpiCardCode = <<<'BLADE'
+<x-aicl-kpi-card
+    label="Budget Spent"
+    :actual="85000"
+    :target="100000"
+    icon="heroicon-o-currency-dollar"
+/>
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$kpiCardCode" />
+            <x-aicl-component-reference component="kpi-card" />
         </div>
 
         <x-aicl-divider label="Next Component" />
@@ -62,6 +89,20 @@
                     description="Trending down"
                 />
             </x-aicl-card-grid>
+
+            @php
+$trendCardCode = <<<'BLADE'
+<x-aicl-trend-card
+    label="Signups"
+    value="342"
+    :data="[12, 15, 18, 22, 19, 25, 30, 28, 35, 42]"
+    color="success"
+    description="Last 10 days"
+/>
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$trendCardCode" />
+            <x-aicl-component-reference component="trend-card" />
         </div>
 
         <x-aicl-divider label="Next Component" />
@@ -76,6 +117,19 @@
                 <x-aicl-progress-card label="Tasks Done" value="45/50" :progress="90" color="success" />
                 <x-aicl-progress-card label="Upload Progress" value="23%" :progress="23" color="warning" />
             </x-aicl-card-grid>
+
+            @php
+$progressCardCode = <<<'BLADE'
+<x-aicl-progress-card
+    label="Storage Used"
+    value="7.2 GB"
+    :progress="72"
+    description="of 10 GB"
+/>
+BLADE;
+            @endphp
+            <x-aicl-code-block :code="$progressCardCode" />
+            <x-aicl-component-reference component="progress-card" />
         </div>
     </div>
 </x-filament-panels::page>

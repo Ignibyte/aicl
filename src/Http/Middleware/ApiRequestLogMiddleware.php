@@ -15,12 +15,16 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ApiRequestLogMiddleware
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
         $startTime = microtime(true);
 
-        /** @var Response $response */
         $response = $next($request);
+
+        // Guard against non-Response objects (e.g., Livewire Redirector)
+        if (! $response instanceof Response) {
+            return $response;
+        }
 
         $duration = round((microtime(true) - $startTime) * 1000, 2);
 

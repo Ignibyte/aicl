@@ -31,6 +31,8 @@ class PatternRegistryTest extends TestCase
         $this->assertContains('policy', $targets);
         $this->assertContains('observer', $targets);
         $this->assertContains('filament', $targets);
+        $this->assertContains('form', $targets);
+        $this->assertContains('infolist', $targets);
         $this->assertContains('test', $targets);
     }
 
@@ -73,7 +75,7 @@ class PatternRegistryTest extends TestCase
     {
         $patterns = PatternRegistry::filamentPatterns();
 
-        $this->assertCount(6, $patterns);
+        $this->assertCount(12, $patterns);
     }
 
     public function test_test_patterns_has_expected_count(): void

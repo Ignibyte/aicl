@@ -1,8 +1,8 @@
 # AICL Component Decision Tree
 
 > Auto-generated from `component.json` manifests via `artisan aicl:components tree`
-> Generated: 2026-02-16 17:44:26
-> Components: 33
+> Generated: 2026-02-18 12:54:36
+> Components: 35
 
 ## metric (4)
 
@@ -251,7 +251,20 @@
 - **Not For:** filament-form, filament-table, email, pdf
 - **Filament Equivalent:** `Filament\Notifications\Notification` (In Filament, use Notification::make() for toast-style notifications)
 
-## utility (4)
+## utility (6)
+
+### `x-aicl-code-block`
+
+- **Decision Rule:** Use for displaying code snippets with copy functionality. Pass code as a raw string via the :code prop.
+- **Context:** blade, livewire, filament-widget
+- **Not For:** filament-form, filament-table, email, pdf
+- **Composable In:** split-layout, card-grid
+
+### `x-aicl-component-reference`
+
+- **Decision Rule:** Use in styleguide pages below each component demo to show props, decision rules, and context tags.
+- **Context:** blade, livewire, filament-widget
+- **Not For:** filament-form, filament-table, email, pdf
 
 ### `x-aicl-divider`
 
@@ -288,10 +301,10 @@ Components define which parents they can be nested in via `composable_in`:
 
 - **`accordion`** accepts: `x-aicl-accordion-item`
 - **`action-bar`** accepts: `x-aicl-quick-action`
-- **`card-grid`** accepts: `x-aicl-accordion`, `x-aicl-action-bar`, `x-aicl-alert-banner`, `x-aicl-avatar`, `x-aicl-badge`, `x-aicl-divider`, `x-aicl-empty-state`, `x-aicl-info-card`, `x-aicl-kpi-card`, `x-aicl-metadata-list`, `x-aicl-progress-card`, `x-aicl-stat-card`, `x-aicl-stats-row`, `x-aicl-status-badge`, `x-aicl-tabs`, `x-aicl-timeline`, `x-aicl-trend-card`
+- **`card-grid`** accepts: `x-aicl-accordion`, `x-aicl-action-bar`, `x-aicl-alert-banner`, `x-aicl-avatar`, `x-aicl-badge`, `x-aicl-code-block`, `x-aicl-divider`, `x-aicl-empty-state`, `x-aicl-info-card`, `x-aicl-kpi-card`, `x-aicl-metadata-list`, `x-aicl-progress-card`, `x-aicl-stat-card`, `x-aicl-stats-row`, `x-aicl-status-badge`, `x-aicl-tabs`, `x-aicl-timeline`, `x-aicl-trend-card`
 - **`info-card`** accepts: `x-aicl-avatar`, `x-aicl-badge`, `x-aicl-metadata-list`, `x-aicl-status-badge`
 - **`metadata-list`** accepts: `x-aicl-avatar`, `x-aicl-badge`, `x-aicl-status-badge`
-- **`split-layout`** accepts: `x-aicl-accordion`, `x-aicl-action-bar`, `x-aicl-alert-banner`, `x-aicl-avatar`, `x-aicl-badge`, `x-aicl-card-grid`, `x-aicl-data-table`, `x-aicl-divider`, `x-aicl-empty-state`, `x-aicl-info-card`, `x-aicl-kpi-card`, `x-aicl-metadata-list`, `x-aicl-progress-card`, `x-aicl-stat-card`, `x-aicl-stats-row`, `x-aicl-status-badge`, `x-aicl-tabs`, `x-aicl-timeline`, `x-aicl-trend-card`
+- **`split-layout`** accepts: `x-aicl-accordion`, `x-aicl-action-bar`, `x-aicl-alert-banner`, `x-aicl-avatar`, `x-aicl-badge`, `x-aicl-card-grid`, `x-aicl-code-block`, `x-aicl-data-table`, `x-aicl-divider`, `x-aicl-empty-state`, `x-aicl-info-card`, `x-aicl-kpi-card`, `x-aicl-metadata-list`, `x-aicl-progress-card`, `x-aicl-stat-card`, `x-aicl-stats-row`, `x-aicl-status-badge`, `x-aicl-tabs`, `x-aicl-timeline`, `x-aicl-trend-card`
 - **`stats-row`** accepts: `x-aicl-kpi-card`, `x-aicl-progress-card`, `x-aicl-stat-card`, `x-aicl-status-badge`, `x-aicl-trend-card`
 - **`tabs`** accepts: `x-aicl-tab-panel`
 
@@ -307,8 +320,10 @@ Components define which parents they can be nested in via `composable_in`:
 `x-aicl-avatar` | Y | Y | Y | - | - | - | - |
 `x-aicl-badge` | Y | Y | Y | - | - | - | - |
 `x-aicl-card-grid` | Y | Y | Y | - | - | - | - |
+`x-aicl-code-block` | Y | Y | Y | - | - | - | - |
 `x-aicl-combobox` | Y | Y | Y | - | - | - | - |
 `x-aicl-command-palette` | Y | Y | Y | - | - | - | - |
+`x-aicl-component-reference` | Y | Y | Y | - | - | - | - |
 `x-aicl-data-table` | Y | Y | Y | - | - | - | - |
 `x-aicl-divider` | Y | Y | Y | - | - | Y | Y |
 `x-aicl-drawer` | Y | Y | Y | - | - | - | - |

@@ -72,9 +72,7 @@ class AdminPageAccessTest extends TestCase
     {
         $response = $this->actingAs($this->viewer)->get('/admin/queue-dashboard');
 
-        // MustTwoFactor middleware returns 500 due to Breezy return type issue;
-        // canAccess() returns false for viewer, so the intent is correct.
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_queue_dashboard_can_access_returns_false_for_null_user(): void
@@ -118,7 +116,7 @@ class AdminPageAccessTest extends TestCase
     {
         $response = $this->actingAs($this->viewer)->get('/admin/log-viewer');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_log_viewer_can_access_returns_false_for_null_user(): void
@@ -176,14 +174,14 @@ class AdminPageAccessTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->get('/admin/settings');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_settings_forbidden_for_viewer(): void
     {
         $response = $this->actingAs($this->viewer)->get('/admin/settings');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_settings_can_access_returns_false_for_null_user(): void
@@ -241,14 +239,14 @@ class AdminPageAccessTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->get('/admin/notification-log');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_notification_log_forbidden_for_viewer(): void
     {
         $response = $this->actingAs($this->viewer)->get('/admin/notification-log');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_notification_log_can_access_returns_false_for_null_user(): void
@@ -269,14 +267,14 @@ class AdminPageAccessTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->get('/admin/audit-log');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_audit_log_forbidden_for_viewer(): void
     {
         $response = $this->actingAs($this->viewer)->get('/admin/audit-log');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_audit_log_can_access_returns_false_for_null_user(): void
@@ -301,8 +299,7 @@ class AdminPageAccessTest extends TestCase
 
         $response = $this->actingAs($this->viewer)->get('/admin/api-tokens');
 
-        // May get 404 (feature disabled) or 500 (Breezy middleware issue)
-        $this->assertContains($response->getStatusCode(), [404, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_api_tokens_redirects_guest(): void
@@ -392,14 +389,14 @@ class AdminPageAccessTest extends TestCase
     {
         $response = $this->actingAs($this->admin)->get('/admin/domain-events');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_domain_events_forbidden_for_viewer(): void
     {
         $response = $this->actingAs($this->viewer)->get('/admin/domain-events');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_domain_events_can_access_returns_false_for_null_user(): void
@@ -434,7 +431,7 @@ class AdminPageAccessTest extends TestCase
     {
         $response = $this->actingAs($this->viewer)->get('/admin/ai-assistant');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_ai_assistant_can_access_returns_false_for_null_user(): void

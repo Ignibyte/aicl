@@ -12,17 +12,25 @@ class VersionService
      */
     public function current(): string
     {
-        return Cache::rememberForever('aicl.version', fn () => $this->parse());
+        return $this->frameworkVersion();
+    }
+
+    public function frameworkVersion(): string
+    {
+        return Cache::rememberForever('aicl.version.framework', fn () => $this->parseVersionFrom(base_path('CHANGELOG_FRAMEWORK.md')));
+    }
+
+    public function projectVersion(): string
+    {
+        return Cache::rememberForever('aicl.version.project', fn () => $this->parseVersionFrom(base_path('CHANGELOG.md')));
     }
 
     /**
-     * Parse the version from CHANGELOG_FRAMEWORK.md.
+     * Parse the version from a changelog file.
      * Looks for the first `## [x.y.z]` heading pattern.
      */
-    public function parse(): string
+    private function parseVersionFrom(string $path): string
     {
-        $path = base_path('CHANGELOG_FRAMEWORK.md');
-
         if (! file_exists($path)) {
             return 'unknown';
         }

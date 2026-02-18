@@ -1,0 +1,23 @@
+{
+  "$schema": "aicl-component-v1",
+  "name": "Component Reference",
+  "tag": "x-aicl-component-reference",
+  "category": "utility",
+  "status": "stable",
+  "description": "Renders structured reference documentation for an AICL component from its component.json metadata.",
+  "context": ["blade", "livewire", "filament-widget"],
+  "not_for": ["filament-form", "filament-table", "email", "pdf"],
+  "props": {
+    "component": {
+      "type": "string",
+      "required": true,
+      "description": "Component short tag name, e.g. 'status-badge'"
+    }
+  },
+  "slots": {},
+  "variants": {},
+  "composable_in": [],
+  "decision_rule": "Use in styleguide pages below each component demo to show props, decision rules, and context tags.",
+  "field_signals": [],
+  "filament_equivalent": null
+}

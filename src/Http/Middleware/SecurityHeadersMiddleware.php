@@ -14,10 +14,15 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SecurityHeadersMiddleware
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        /** @var Response $response */
         $response = $next($request);
+
+        // Filament/Livewire may return a Redirector (not a Symfony Response)
+        // when authorization fails. Only apply headers to proper responses.
+        if (! $response instanceof Response) {
+            return $response;
+        }
 
         if (! config('aicl.security.headers.enabled', true)) {
             return $response;

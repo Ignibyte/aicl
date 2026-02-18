@@ -6,6 +6,7 @@ use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
 use Aicl\Filament\Pages\Changelog;
+use Aicl\Services\VersionService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -46,13 +47,20 @@ class ChangelogPageTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_changelog_page_renders_markdown_content(): void
+    public function test_changelog_page_renders_framework_changelog(): void
     {
         $response = $this->actingAs($this->superAdmin)->get('/admin/changelog');
 
         $response->assertOk();
-        // The changelog should contain version numbers rendered as HTML
         $response->assertSee('AICL Framework Changelog', false);
+    }
+
+    public function test_changelog_page_shows_framework_tab(): void
+    {
+        $response = $this->actingAs($this->superAdmin)->get('/admin/changelog');
+
+        $response->assertOk();
+        $response->assertSee('Framework', false);
     }
 
     public function test_changelog_page_shows_version_in_title(): void
@@ -67,8 +75,7 @@ class ChangelogPageTest extends TestCase
     {
         $response = $this->actingAs($this->viewer)->get('/admin/changelog');
 
-        // Viewer should not get 200 — may get 403 or 500 (pre-existing MustTwoFactor Breezy bug)
-        $this->assertNotEquals(200, $response->getStatusCode());
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_changelog_page_class_structure(): void
@@ -77,15 +84,164 @@ class ChangelogPageTest extends TestCase
 
         $this->assertSame('aicl::filament.pages.changelog', (new \ReflectionProperty($page, 'view'))->getValue($page));
 
-        $html = $page->getChangelogHtml();
+        $html = $page->getFrameworkChangelogHtml();
         $this->assertStringContainsString('AICL Framework Changelog', $html);
     }
 
     public function test_changelog_page_can_access_returns_false_for_guests(): void
     {
-        // Ensure no user is authenticated
         auth()->logout();
 
         $this->assertFalse(Changelog::canAccess());
+    }
+
+    public function test_framework_changelog_html_returns_no_changelog_when_missing(): void
+    {
+        $page = new Changelog;
+
+        // Move the file temporarily to test missing file handling
+        $path = base_path('CHANGELOG_FRAMEWORK.md');
+        $backup = $path.'.bak';
+        $exists = file_exists($path);
+
+        if ($exists) {
+            rename($path, $backup);
+        }
+
+        try {
+            $html = $page->getFrameworkChangelogHtml();
+            $this->assertStringContainsString('No changelog found', $html);
+        } finally {
+            if ($exists) {
+                rename($backup, $path);
+            }
+        }
+    }
+
+    public function test_project_changelog_html_returns_no_changelog_when_missing(): void
+    {
+        $page = new Changelog;
+
+        // Project changelog typically doesn't exist in test env
+        $path = base_path('CHANGELOG.md');
+        $backup = $path.'.bak';
+        $exists = file_exists($path);
+
+        if ($exists) {
+            rename($path, $backup);
+        }
+
+        try {
+            $html = $page->getProjectChangelogHtml();
+            $this->assertStringContainsString('No changelog found', $html);
+        } finally {
+            if ($exists) {
+                rename($backup, $path);
+            }
+        }
+    }
+
+    public function test_has_framework_changelog_returns_true_when_file_exists(): void
+    {
+        $page = new Changelog;
+        $this->assertTrue($page->hasFrameworkChangelog());
+    }
+
+    public function test_has_project_changelog_returns_correct_value(): void
+    {
+        $page = new Changelog;
+        $expected = file_exists(base_path('CHANGELOG.md'));
+        $this->assertSame($expected, $page->hasProjectChangelog());
+    }
+
+    public function test_version_service_framework_version(): void
+    {
+        $service = app(VersionService::class);
+        $version = $service->frameworkVersion();
+        $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', $version);
+    }
+
+    public function test_version_service_current_delegates_to_framework_version(): void
+    {
+        $service = app(VersionService::class);
+        $this->assertSame($service->frameworkVersion(), $service->current());
+    }
+
+    public function test_version_service_project_version_returns_unknown_when_missing(): void
+    {
+        $path = base_path('CHANGELOG.md');
+        $backup = $path.'.bak';
+        $exists = file_exists($path);
+
+        if ($exists) {
+            rename($path, $backup);
+        }
+
+        try {
+            // Clear cached version
+            cache()->forget('aicl.version.project');
+
+            $service = new VersionService;
+            $this->assertSame('unknown', $service->projectVersion());
+        } finally {
+            if ($exists) {
+                rename($backup, $path);
+            }
+        }
+    }
+
+    public function test_title_shows_both_versions_when_project_changelog_exists(): void
+    {
+        // Create a temporary project changelog
+        $path = base_path('CHANGELOG.md');
+        $existed = file_exists($path);
+        $originalContent = $existed ? file_get_contents($path) : null;
+
+        file_put_contents($path, "# Changelog\n\n## [1.0.0] - 2026-02-17\n\n- Initial release\n");
+        cache()->forget('aicl.version.project');
+
+        try {
+            $page = new Changelog;
+            $title = $page->getTitle();
+            $this->assertStringContainsString('Framework v', $title);
+            $this->assertStringContainsString('Project v1.0.0', $title);
+        } finally {
+            if ($existed) {
+                file_put_contents($path, $originalContent);
+            } else {
+                @unlink($path);
+            }
+            cache()->forget('aicl.version.project');
+        }
+    }
+
+    public function test_title_only_shows_framework_version_when_no_project_changelog(): void
+    {
+        $path = base_path('CHANGELOG.md');
+        $backup = $path.'.bak';
+        $exists = file_exists($path);
+
+        if ($exists) {
+            rename($path, $backup);
+        }
+        cache()->forget('aicl.version.project');
+
+        try {
+            $page = new Changelog;
+            $title = $page->getTitle();
+            $this->assertStringContainsString('Framework v', $title);
+            $this->assertStringNotContainsString('Project v', $title);
+        } finally {
+            if ($exists) {
+                rename($backup, $path);
+            }
+            cache()->forget('aicl.version.project');
+        }
+    }
+
+    public function test_deprecated_get_changelog_html_delegates_to_framework(): void
+    {
+        $page = new Changelog;
+        $this->assertSame($page->getFrameworkChangelogHtml(), $page->getChangelogHtml());
     }
 }

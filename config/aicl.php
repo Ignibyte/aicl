@@ -77,6 +77,7 @@ return [
         'mfa' => true,
         'social_login' => env('AICL_SOCIAL_LOGIN', false),
         'saml' => env('AICL_SAML', false),
+        'allow_registration' => env('AICL_ALLOW_REGISTRATION', false),
         'api' => true,
         'websockets' => env('AICL_WEBSOCKETS', true),
         'scout_driver' => env('AICL_SCOUT_DRIVER', false),

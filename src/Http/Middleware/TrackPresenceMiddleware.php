@@ -13,6 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Writes are throttled to once per 30 seconds per session to avoid
  * excessive Redis writes on every request.
+ *
+ * No return type hint: Filament/Livewire may return a Redirector (not a
+ * Symfony Response) when access is denied, so the middleware must pass
+ * through whatever $next() returns.
  */
 class TrackPresenceMiddleware
 {
@@ -20,10 +24,15 @@ class TrackPresenceMiddleware
 
     public function __construct(protected PresenceRegistry $registry) {}
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        /** @var Response $response */
         $response = $next($request);
+
+        // Filament/Livewire may return a Redirector (not a Symfony Response)
+        // when authorization fails. Only track presence for proper responses.
+        if (! $response instanceof Response) {
+            return $response;
+        }
 
         $user = $request->user();
 

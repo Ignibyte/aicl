@@ -43,6 +43,12 @@ class ValidateEntityCommand extends Command
                 : base_path("packages/aicl/src/Observers/{$name}Observer.php"),
             'factory' => database_path("factories/{$name}Factory.php"),
             'filament' => app_path("Filament/Resources/{$pluralName}/{$name}Resource.php"),
+            'form' => file_exists(app_path("Filament/Resources/{$pluralName}/Schemas/{$name}Form.php"))
+                ? app_path("Filament/Resources/{$pluralName}/Schemas/{$name}Form.php")
+                : base_path("packages/aicl/src/Filament/Resources/{$pluralName}/Schemas/{$name}Form.php"),
+            'infolist' => file_exists(app_path("Filament/Resources/{$pluralName}/Schemas/{$name}Infolist.php"))
+                ? app_path("Filament/Resources/{$pluralName}/Schemas/{$name}Infolist.php")
+                : base_path("packages/aicl/src/Filament/Resources/{$pluralName}/Schemas/{$name}Infolist.php"),
             'test' => file_exists(base_path("tests/Feature/Entities/{$name}Test.php"))
                 ? base_path("tests/Feature/Entities/{$name}Test.php")
                 : base_path("tests/Feature/{$name}Test.php"),

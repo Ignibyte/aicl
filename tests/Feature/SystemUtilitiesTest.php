@@ -39,8 +39,7 @@ class SystemUtilitiesTest extends TestCase
 
         $response = $this->actingAs($user)->get('/admin/failed-jobs');
 
-        // MustTwoFactor middleware returns 500 due to Breezy return type issue
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_queue_dashboard_is_accessible_to_admin(): void
@@ -60,7 +59,7 @@ class SystemUtilitiesTest extends TestCase
 
         $response = $this->actingAs($user)->get('/admin/queue-dashboard');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_log_viewer_is_accessible_to_admin(): void
@@ -80,7 +79,7 @@ class SystemUtilitiesTest extends TestCase
 
         $response = $this->actingAs($user)->get('/admin/log-viewer');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_settings_page_is_accessible_to_super_admin(): void
@@ -100,7 +99,7 @@ class SystemUtilitiesTest extends TestCase
 
         $response = $this->actingAs($user)->get('/admin/settings');
 
-        $this->assertContains($response->getStatusCode(), [403, 500]);
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_notification_center_is_accessible_to_authenticated_user(): void

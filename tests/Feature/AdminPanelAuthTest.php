@@ -30,14 +30,16 @@ class AdminPanelAuthTest extends TestCase
         $response->assertSee('Sign in to your account');
         $response->assertSee('Welcome Back!');
         $response->assertSee('fi-aicl-login-split', false);
-        $response->assertSee('Register');
     }
 
-    public function test_registration_page_is_accessible(): void
+    public function test_registration_page_redirects_when_disabled(): void
     {
+        // Registration is disabled by default (config aicl.features.allow_registration = false).
+        // The panel registration route is only registered at boot time, so runtime
+        // config changes cannot toggle it — we test the default (disabled) behavior.
         $response = $this->get('/admin/register');
 
-        $response->assertStatus(200);
+        $response->assertRedirect();
     }
 
     public function test_password_reset_page_is_accessible(): void
@@ -95,6 +97,7 @@ class AdminPanelAuthTest extends TestCase
 
     public function test_user_can_register(): void
     {
+        config()->set('aicl.features.allow_registration', true);
         Notification::fake();
 
         Livewire::test(Register::class)
@@ -115,6 +118,7 @@ class AdminPanelAuthTest extends TestCase
 
     public function test_user_cannot_register_with_existing_email(): void
     {
+        config()->set('aicl.features.allow_registration', true);
         $user = User::factory()->create();
 
         Livewire::test(Register::class)

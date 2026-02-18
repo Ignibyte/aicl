@@ -67,8 +67,7 @@ class DocumentBrowserTest extends TestCase
     {
         $response = $this->actingAs($this->viewer)->get('/admin/documents');
 
-        // Viewer should not get 200 — may get 403 or 500 (pre-existing MustTwoFactor Breezy bug)
-        $this->assertNotEquals(200, $response->getStatusCode());
+        $this->assertFilamentAccessDenied($response);
     }
 
     public function test_document_browser_page_class_structure(): void

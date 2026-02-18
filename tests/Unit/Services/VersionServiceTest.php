@@ -8,11 +8,13 @@ use Tests\TestCase;
 
 class VersionServiceTest extends TestCase
 {
-    public function test_parse_extracts_version_from_changelog(): void
+    public function test_framework_version_extracts_version_from_changelog(): void
     {
+        Cache::forget('aicl.version.framework');
+
         $service = new VersionService;
 
-        $version = $service->parse();
+        $version = $service->frameworkVersion();
 
         // The CHANGELOG_FRAMEWORK.md always starts with a version heading
         $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', $version);
@@ -20,7 +22,7 @@ class VersionServiceTest extends TestCase
 
     public function test_current_returns_cached_version(): void
     {
-        Cache::flush();
+        Cache::forget('aicl.version.framework');
 
         $service = new VersionService;
 
@@ -28,38 +30,40 @@ class VersionServiceTest extends TestCase
 
         $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', $version);
 
-        // Verify it was cached
-        $this->assertSame($version, Cache::get('aicl.version'));
+        // Verify it was cached under the new key
+        $this->assertSame($version, Cache::get('aicl.version.framework'));
     }
 
-    public function test_current_returns_same_value_as_parse(): void
+    public function test_current_delegates_to_framework_version(): void
     {
-        Cache::flush();
+        Cache::forget('aicl.version.framework');
 
         $service = new VersionService;
 
-        $this->assertSame($service->parse(), $service->current());
+        $this->assertSame($service->frameworkVersion(), $service->current());
     }
 
-    public function test_parse_returns_unknown_when_changelog_missing(): void
+    public function test_project_version_returns_unknown_when_changelog_missing(): void
     {
-        // Use a mock to test missing file scenario
-        $service = new class extends VersionService
-        {
-            public function parse(): string
-            {
-                // Simulate file not found
-                $path = base_path('NONEXISTENT_CHANGELOG.md');
+        $path = base_path('CHANGELOG.md');
+        $backup = $path.'.bak';
+        $exists = file_exists($path);
 
-                if (! file_exists($path)) {
-                    return 'unknown';
-                }
+        if ($exists) {
+            rename($path, $backup);
+        }
 
-                return parent::parse();
+        Cache::forget('aicl.version.project');
+
+        try {
+            $service = new VersionService;
+            $this->assertSame('unknown', $service->projectVersion());
+        } finally {
+            if ($exists) {
+                rename($backup, $path);
             }
-        };
-
-        $this->assertSame('unknown', $service->parse());
+            Cache::forget('aicl.version.project');
+        }
     }
 
     public function test_version_badge_view_exists(): void
