@@ -30,10 +30,13 @@ class DistillationServiceTest extends TestCase
 
     public function test_cluster_groups_failures_by_pattern_id(): void
     {
+        // Explicitly null preventive_rule so these failures lack rule_hash
+        // and fall through to the pattern_id clustering pass (Pass 2).
         RlmFailure::factory()->create([
             'failure_code' => 'BF-001',
             'pattern_id' => 'P-012',
             'category' => FailureCategory::Scaffolding,
+            'preventive_rule' => null,
             'owner_id' => $this->admin->id,
         ]);
 
@@ -41,6 +44,7 @@ class DistillationServiceTest extends TestCase
             'failure_code' => 'BF-005',
             'pattern_id' => 'P-012',
             'category' => FailureCategory::Filament,
+            'preventive_rule' => null,
             'owner_id' => $this->admin->id,
         ]);
 
@@ -102,6 +106,7 @@ class DistillationServiceTest extends TestCase
             'category' => FailureCategory::Scaffolding,
             'severity' => FailureSeverity::Critical,
             'pattern_id' => 'P-100',
+            'preventive_rule' => null,
             'owner_id' => $this->admin->id,
         ]);
 
@@ -110,6 +115,7 @@ class DistillationServiceTest extends TestCase
             'category' => FailureCategory::Scaffolding,
             'severity' => FailureSeverity::Low,
             'pattern_id' => 'P-100',
+            'preventive_rule' => null,
             'owner_id' => $this->admin->id,
         ]);
 

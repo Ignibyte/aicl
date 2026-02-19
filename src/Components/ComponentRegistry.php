@@ -109,6 +109,33 @@ class ComponentRegistry
     }
 
     /**
+     * Get a display component for a specific content type and display mode.
+     *
+     * Filters entity-display context components by their entity_display manifest section.
+     */
+    public function displayComponent(string $contentType, string $displayMode): ?ComponentDefinition
+    {
+        return $this->forContext('entity-display')
+            ->first(fn (ComponentDefinition $c): bool => $c->entityDisplay !== null
+                && ($c->entityDisplay['content_type'] ?? '') === $contentType
+                && ($c->entityDisplay['display_mode'] ?? '') === $displayMode
+            );
+    }
+
+    /**
+     * Get all display components for a specific content type.
+     *
+     * @return Collection<string, ComponentDefinition>
+     */
+    public function displayComponents(string $contentType): Collection
+    {
+        return $this->forContext('entity-display')
+            ->filter(fn (ComponentDefinition $c): bool => $c->entityDisplay !== null
+                && ($c->entityDisplay['content_type'] ?? '') === $contentType
+            );
+    }
+
+    /**
      * AI recommendation: given a field type, what component should be used?
      */
     public function recommend(string $fieldType, string $context = 'blade', string $fieldName = '', array $allFields = []): ?ComponentRecommendation

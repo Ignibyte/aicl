@@ -20,6 +20,8 @@ class EntityPattern
         public string $check,
         public string $severity = 'error',
         public float $weight = 1.0,
+        public string $introducedIn = 'v1',
+        public ?string $removedIn = null,
     ) {}
 
     public function isError(): bool
@@ -30,5 +32,21 @@ class EntityPattern
     public function isWarning(): bool
     {
         return $this->severity === 'warning';
+    }
+
+    /**
+     * Check if this pattern is active in the given version.
+     */
+    public function isActiveInVersion(string $version): bool
+    {
+        if (version_compare($version, $this->introducedIn, '<')) {
+            return false;
+        }
+
+        if ($this->removedIn !== null && version_compare($version, $this->removedIn, '>=')) {
+            return false;
+        }
+
+        return true;
     }
 }

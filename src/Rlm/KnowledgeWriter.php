@@ -2,12 +2,14 @@
 
 namespace Aicl\Rlm;
 
+use Aicl\Enums\LessonType;
 use Aicl\Models\GenerationTrace;
 use Aicl\Models\RlmFailure;
 use Aicl\Models\RlmLesson;
 use Aicl\Models\RlmScore;
 use Aicl\Repositories\RlmFailureRepository;
 use Aicl\Rlm\Exceptions\RlmInvalidArgumentException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Write operations for the RLM knowledge system.
@@ -21,6 +23,10 @@ class KnowledgeWriter
      * Add a lesson to the knowledge base.
      *
      * Scout auto-indexes → observer dispatches embedding job.
+     *
+     * Completeness enforcement by lesson_type:
+     * - observation: allow partial fields (summary sufficient)
+     * - instruction/prevention_rule: warn if summary doesn't contain rule+fix indicators
      */
     public function addLesson(
         string $topic,
@@ -30,7 +36,20 @@ class KnowledgeWriter
         ?string $tags = null,
         ?string $source = null,
         float $confidence = 1.0,
+        LessonType $lessonType = LessonType::Observation,
     ): RlmLesson {
+        // Completeness warning for instruction/prevention_rule types
+        if ($lessonType->requiresProof()) {
+            $hasRuleIndicators = str_contains(mb_strtolower($detail), 'rule') || str_contains(mb_strtolower($detail), 'fix');
+            if (! $hasRuleIndicators) {
+                Log::warning('KnowledgeWriter: instruction/prevention_rule lesson created without rule/fix indicators', [
+                    'topic' => $topic,
+                    'lesson_type' => $lessonType->value,
+                    'summary' => $summary,
+                ]);
+            }
+        }
+
         return RlmLesson::query()->create([
             'topic' => $topic,
             'subtopic' => $subtopic,
@@ -38,9 +57,11 @@ class KnowledgeWriter
             'detail' => $detail,
             'tags' => $tags,
             'source' => $source,
+            'lesson_type' => $lessonType,
             'confidence' => $confidence,
-            'is_verified' => false,
+            'is_verified' => $lessonType->requiresProof(),
             'is_active' => true,
+            'needs_review' => false,
             'owner_id' => $this->getDefaultOwnerId(),
         ]);
     }

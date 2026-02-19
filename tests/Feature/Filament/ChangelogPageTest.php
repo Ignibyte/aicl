@@ -99,21 +99,30 @@ class ChangelogPageTest extends TestCase
     {
         $page = new Changelog;
 
-        // Move the file temporarily to test missing file handling
-        $path = base_path('CHANGELOG_FRAMEWORK.md');
-        $backup = $path.'.bak';
-        $exists = file_exists($path);
+        // Move both possible changelog locations to test missing file handling
+        $devPath = base_path('CHANGELOG_FRAMEWORK.md');
+        $vendorPath = base_path('vendor/aicl/aicl/CHANGELOG_FRAMEWORK.md');
+        $devBackup = $devPath.'.bak';
+        $vendorBackup = $vendorPath.'.bak';
+        $devExists = file_exists($devPath);
+        $vendorExists = file_exists($vendorPath);
 
-        if ($exists) {
-            rename($path, $backup);
+        if ($devExists) {
+            rename($devPath, $devBackup);
+        }
+        if ($vendorExists) {
+            rename($vendorPath, $vendorBackup);
         }
 
         try {
             $html = $page->getFrameworkChangelogHtml();
             $this->assertStringContainsString('No changelog found', $html);
         } finally {
-            if ($exists) {
-                rename($backup, $path);
+            if ($devExists) {
+                rename($devBackup, $devPath);
+            }
+            if ($vendorExists) {
+                rename($vendorBackup, $vendorPath);
             }
         }
     }

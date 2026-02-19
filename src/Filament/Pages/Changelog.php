@@ -39,7 +39,13 @@ class Changelog extends Page
 
     public function getFrameworkChangelogHtml(): string
     {
-        return $this->renderChangelog(base_path('CHANGELOG_FRAMEWORK.md'));
+        $path = $this->frameworkChangelogPath();
+
+        if ($path === null) {
+            return '<p class="text-gray-500">No changelog found.</p>';
+        }
+
+        return $this->renderChangelog($path);
     }
 
     public function getProjectChangelogHtml(): string
@@ -54,7 +60,30 @@ class Changelog extends Page
 
     public function hasFrameworkChangelog(): bool
     {
-        return file_exists(base_path('CHANGELOG_FRAMEWORK.md'));
+        return $this->frameworkChangelogPath() !== null;
+    }
+
+    /**
+     * Resolve the framework changelog path.
+     * Dev: project root. Shipped: vendor package directory.
+     */
+    private function frameworkChangelogPath(): ?string
+    {
+        // Dev environment: changelog at project root
+        $devPath = base_path('CHANGELOG_FRAMEWORK.md');
+
+        if (file_exists($devPath)) {
+            return $devPath;
+        }
+
+        // Shipped projects: look inside the installed package
+        $vendorPath = base_path('vendor/aicl/aicl/CHANGELOG_FRAMEWORK.md');
+
+        if (file_exists($vendorPath)) {
+            return $vendorPath;
+        }
+
+        return null;
     }
 
     /**

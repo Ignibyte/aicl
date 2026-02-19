@@ -133,11 +133,16 @@ class RecallService
      */
     public function searchLessonsForRecall(string $contextString, array $topicMap, bool $esAvailable): Collection
     {
-        // Deterministic: topic-based lessons
+        // Deterministic: topic-based lessons — only surfaceable + verified
         $topicLessons = collect();
         foreach ($topicMap as $topic) {
             $topicLessons = $topicLessons->merge(
-                RlmLesson::query()->byTopic($topic)->where('is_active', true)->get(),
+                RlmLesson::query()
+                    ->byTopic($topic)
+                    ->where('is_active', true)
+                    ->surfaceable()
+                    ->verified()
+                    ->get(),
             );
         }
 
@@ -153,7 +158,11 @@ class RecallService
                 $ids = collect($esResults)->pluck('_id')->all();
 
                 $esLessons = $ids !== []
-                    ? RlmLesson::query()->whereIn('id', $ids)->get()
+                    ? RlmLesson::query()
+                        ->whereIn('id', $ids)
+                        ->surfaceable()
+                        ->verified()
+                        ->get()
                     : collect();
 
                 return $topicLessons->merge($esLessons)->unique('id')->values();

@@ -31,6 +31,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $is_processed Whether trace has been analyzed by pattern discovery
  * @property string|null $aicl_version AICL package version
  * @property string|null $laravel_version Laravel framework version
+ * @property string|null $scaffolder_version AICL scaffolder version
+ * @property string|null $pattern_set_version Pattern set version used for validation
  * @property int $known_failure_count Count of failures covered by existing lessons
  * @property int $novel_failure_count Count of failures not covered by any lesson
  * @property array|null $surfaced_lesson_codes DL codes surfaced during generation
@@ -72,6 +74,8 @@ class GenerationTrace extends Model implements Auditable, HasEntityLifecycle
         'is_processed',
         'aicl_version',
         'laravel_version',
+        'scaffolder_version',
+        'pattern_set_version',
         'known_failure_count',
         'novel_failure_count',
         'surfaced_lesson_codes',

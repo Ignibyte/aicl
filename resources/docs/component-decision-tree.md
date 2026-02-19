@@ -1,8 +1,8 @@
 # AICL Component Decision Tree
 
 > Auto-generated from `component.json` manifests via `artisan aicl:components tree`
-> Generated: 2026-02-18 12:54:36
-> Components: 35
+> Generated: 2026-02-19 12:24:52
+> Components: 55
 
 ## metric (4)
 
@@ -42,7 +42,7 @@
 - **Composable In:** stats-row, card-grid, split-layout
 - **Filament Equivalent:** `Filament\Widgets\ChartWidget` (In Filament admin, use ChartWidget for trend charts)
 
-## data (3)
+## data (16)
 
 ### `x-aicl-avatar`
 
@@ -69,7 +69,72 @@
 - **Composable In:** split-layout, card-grid, info-card
 - **Filament Equivalent:** `Filament\Infolists\Infolist` (In Filament infoolists, use TextEntry, IconEntry, etc.)
 
-## collection (1)
+### `x-aicl-cms-category-badge`
+
+- **Decision Rule:** Use Category Badge for inline category labels within other display components or content areas.
+- **Context:** entity-display
+
+### `x-aicl-cms-category-card`
+
+- **Decision Rule:** Use Category Card for category listing pages and sidebar widgets where each category needs a visual card with context.
+- **Context:** entity-display
+
+### `x-aicl-cms-code`
+
+- **Decision Rule:** Use Code for displaying source code, configuration snippets, or terminal output. Supports syntax highlighting via language attribute.
+- **Context:** cms-builder
+
+### `x-aicl-cms-entity-listing`
+
+- **Decision Rule:** Use Entity Listing for dynamic content sections like 'Recent Posts', 'Featured Pages', or 'Category Showcase'. Replaces the need for a separate Views subsystem.
+- **Context:** cms-builder
+
+### `x-aicl-cms-heading`
+
+- **Decision Rule:** Use Heading for section titles and page headings. Prefer h1 for page title (one per page), h2 for sections, h3 for subsections.
+- **Context:** cms-builder
+
+### `x-aicl-cms-image`
+
+- **Decision Rule:** Use Image for standalone images with optional captions. For inline images within text, use Rich Text instead. For image galleries, use CardGrid with image cards.
+- **Context:** cms-builder
+
+### `x-aicl-cms-menu`
+
+- **Decision Rule:** Use Menu to render a registered CMS menu in any region. Best for navigation menus in sidebars, footer link lists, or header navigation.
+- **Context:** cms-builder
+
+### `x-aicl-cms-page-card`
+
+- **Decision Rule:** Use Page Card for grid-based page listings where a compact, visually contained card is preferred over a teaser.
+- **Context:** entity-display
+
+### `x-aicl-cms-page-teaser`
+
+- **Decision Rule:** Use Page Teaser for page listings and search results where a compact preview with excerpt is needed.
+- **Context:** entity-display
+
+### `x-aicl-cms-post-card`
+
+- **Decision Rule:** Use Post Card for grid-based blog listings where a compact, visually contained card is preferred.
+- **Context:** entity-display
+
+### `x-aicl-cms-post-teaser`
+
+- **Decision Rule:** Use Post Teaser for blog listing pages and search results where author and category context is needed.
+- **Context:** entity-display
+
+### `x-aicl-cms-rich-text`
+
+- **Decision Rule:** Use Rich Text for paragraph-level content with formatting. This is the primary content block for body text, supporting inline styles, lists, and links.
+- **Context:** cms-builder
+
+### `x-aicl-cms-video`
+
+- **Decision Rule:** Use Video for embedding video content. Supports YouTube and Vimeo embeds with responsive aspect ratio. Use custom provider for self-hosted videos.
+- **Context:** cms-builder
+
+## collection (2)
 
 ### `x-aicl-data-table`
 
@@ -79,7 +144,12 @@
 - **Composable In:** split-layout
 - **Filament Equivalent:** `Filament\Tables\Table` (In Filament, use the declarative table builder Table::make())
 
-## action (5)
+### `x-aicl-cms-card-grid`
+
+- **Decision Rule:** Use Card Grid for feature showcases, service listings, or team member grids. Each card is a repeatable item with consistent styling.
+- **Context:** cms-builder
+
+## action (6)
 
 ### `x-aicl-action-bar`
 
@@ -118,6 +188,11 @@
 - **Composable In:** action-bar
 - **Filament Equivalent:** `Filament\Tables\Actions\Action` (In Filament, use Action::make() with icon())
 
+### `x-aicl-cms-call-to-action`
+
+- **Decision Rule:** Use Call to Action for conversion-focused blocks. Place in hero zones, footer CTAs, or between content sections. One per visible area for maximum impact.
+- **Context:** cms-builder
+
 ## status (2)
 
 ### `x-aicl-badge`
@@ -148,7 +223,7 @@
 - **Composable In:** split-layout, card-grid
 - **Filament Equivalent:** `Filament\Schemas\Components\Section` (In Filament infolists, build a custom section for timeline data)
 
-## layout (10)
+## layout (15)
 
 ### `x-aicl-accordion`
 
@@ -226,6 +301,31 @@
 - **Not For:** filament-form, filament-table, email, pdf
 - **Composable In:** split-layout, card-grid
 - **Filament Equivalent:** `Filament\Schemas\Components\Tabs` (In Filament forms/infolists, use Filament's Tabs component)
+
+### `x-aicl-cms-accordion`
+
+- **Decision Rule:** Use Accordion for FAQ sections, collapsible content groups, or progressive disclosure. Each panel title has its own drop zone for rich content.
+- **Context:** cms-builder
+
+### `x-aicl-cms-columns`
+
+- **Decision Rule:** Use Columns for side-by-side content layouts. Each column is an independent drop zone. Prefer 2 columns for content+sidebar, 3 for feature grids, 4 for icon rows.
+- **Context:** cms-builder
+
+### `x-aicl-cms-container`
+
+- **Decision Rule:** Use Container to constrain content width and center it. Simpler than Section — no background image support. Best for wrapping text-heavy content areas.
+- **Context:** cms-builder
+
+### `x-aicl-cms-hero`
+
+- **Decision Rule:** Use Hero for prominent page-top banners with background imagery. Best for landing pages and feature pages. Place heading and CTA blocks inside its content zone.
+- **Context:** cms-builder
+
+### `x-aicl-cms-section`
+
+- **Decision Rule:** Use Section for full-width page areas that need background styling or controlled content width. Wraps other blocks in a visually distinct band.
+- **Context:** cms-builder
 
 ## feedback (3)
 
@@ -347,3 +447,23 @@ Components define which parents they can be nested in via `composable_in`:
 `x-aicl-toast` | Y | Y | Y | - | - | - | - |
 `x-aicl-tooltip` | Y | Y | Y | - | - | - | - |
 `x-aicl-trend-card` | Y | Y | Y | - | - | - | - |
+`x-aicl-cms-accordion` | - | - | - | - | - | - | - |
+`x-aicl-cms-call-to-action` | - | - | - | - | - | - | - |
+`x-aicl-cms-card-grid` | - | - | - | - | - | - | - |
+`x-aicl-cms-category-badge` | - | - | - | - | - | - | - |
+`x-aicl-cms-category-card` | - | - | - | - | - | - | - |
+`x-aicl-cms-code` | - | - | - | - | - | - | - |
+`x-aicl-cms-columns` | - | - | - | - | - | - | - |
+`x-aicl-cms-container` | - | - | - | - | - | - | - |
+`x-aicl-cms-entity-listing` | - | - | - | - | - | - | - |
+`x-aicl-cms-heading` | - | - | - | - | - | - | - |
+`x-aicl-cms-hero` | - | - | - | - | - | - | - |
+`x-aicl-cms-image` | - | - | - | - | - | - | - |
+`x-aicl-cms-menu` | - | - | - | - | - | - | - |
+`x-aicl-cms-page-card` | - | - | - | - | - | - | - |
+`x-aicl-cms-page-teaser` | - | - | - | - | - | - | - |
+`x-aicl-cms-post-card` | - | - | - | - | - | - | - |
+`x-aicl-cms-post-teaser` | - | - | - | - | - | - | - |
+`x-aicl-cms-rich-text` | - | - | - | - | - | - | - |
+`x-aicl-cms-section` | - | - | - | - | - | - | - |
+`x-aicl-cms-video` | - | - | - | - | - | - | - |

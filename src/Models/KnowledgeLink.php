@@ -4,6 +4,7 @@ namespace Aicl\Models;
 
 use Aicl\Database\Factories\KnowledgeLinkFactory;
 use Aicl\Enums\KnowledgeLinkRelationship;
+use Aicl\Enums\KnowledgeLinkType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string $target_type
  * @property string $target_id
  * @property KnowledgeLinkRelationship $relationship
+ * @property KnowledgeLinkType|null $link_type
+ * @property string|null $reference
  * @property float|null $confidence
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -27,6 +30,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static Builder<static> highConfidence(float $threshold = 0.7)
  * @method static Builder<static> forSource(Model $model)
  * @method static Builder<static> forTarget(Model $model)
+ * @method static Builder<static> ofLinkType(KnowledgeLinkType|string $type)
+ * @method static Builder<static> proofLinks()
  */
 class KnowledgeLink extends Model
 {
@@ -44,6 +49,8 @@ class KnowledgeLink extends Model
         'target_type',
         'target_id',
         'relationship',
+        'link_type',
+        'reference',
         'confidence',
     ];
 
@@ -51,6 +58,7 @@ class KnowledgeLink extends Model
     {
         return [
             'relationship' => KnowledgeLinkRelationship::class,
+            'link_type' => KnowledgeLinkType::class,
             'confidence' => 'decimal:2',
         ];
     }
@@ -127,6 +135,28 @@ class KnowledgeLink extends Model
                 $sub->where('target_type', $morphClass)->where('target_id', $key);
             });
         });
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeOfLinkType(Builder $query, KnowledgeLinkType|string $type): Builder
+    {
+        $value = $type instanceof KnowledgeLinkType ? $type->value : $type;
+
+        return $query->where('link_type', $value);
+    }
+
+    /**
+     * Filter to only links that have a proof type set.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeProofLinks(Builder $query): Builder
+    {
+        return $query->whereNotNull('link_type');
     }
 
     protected static function newFactory(): KnowledgeLinkFactory

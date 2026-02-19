@@ -40,7 +40,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["blade", "livewire", "filament-widget", "email", "pdf"]
+        "enum": ["blade", "livewire", "filament-widget", "email", "pdf", "cms-builder", "entity-display"]
       },
       "minItems": 1,
       "description": "Valid rendering contexts"
@@ -145,6 +145,58 @@
         }
       },
       "description": "What to use instead when in a Filament declarative context"
+    },
+    "cms_block": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["layout", "content"],
+          "description": "Block tier: layout blocks have drop zones, content blocks are leaf nodes"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Heroicon name for the builder palette"
+        },
+        "drop_zones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Named drop zones for layout blocks (empty array for content blocks)"
+        },
+        "allowed_in_regions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Which template regions this block can be placed in"
+        }
+      },
+      "required": ["tier", "icon", "drop_zones"],
+      "description": "CMS page builder configuration. If present, component appears in the builder palette."
+    },
+    "entity_display": {
+      "type": "object",
+      "properties": {
+        "content_type": {
+          "type": "string",
+          "description": "Content type machine name this component displays (matches ContentType::machineName())"
+        },
+        "display_mode": {
+          "type": "string",
+          "description": "Display mode name (e.g., teaser, card, badge, row)"
+        },
+        "field_mapping": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Maps component props to entity model fields. Keys are prop names, values are model field paths (supports dot notation for relations)"
+        }
+      },
+      "required": ["content_type", "display_mode", "field_mapping"],
+      "description": "Entity display configuration. If present, component renders a specific entity type in a specific display mode."
     }
   }
 }

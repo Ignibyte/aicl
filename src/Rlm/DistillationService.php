@@ -4,8 +4,11 @@ namespace Aicl\Rlm;
 
 use Aicl\Enums\FailureCategory;
 use Aicl\Enums\FailureSeverity;
+use Aicl\Enums\LessonType;
 use Aicl\Models\DistilledLesson;
+use Aicl\Models\KnowledgeLink;
 use Aicl\Models\RlmFailure;
+use Aicl\Models\RlmLesson;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,9 +21,10 @@ class DistillationService
      *
      * Algorithm (deterministic, no LLM):
      * 1. Load all active base failures (BF-*)
-     * 2. Group by exact pattern_id match
-     * 3. Group by same category + subcategory
-     * 4. Each cluster becomes one set of distilled lessons
+     * 2. Group by rule_hash (deterministic — same normalized rule = same cluster)
+     * 3. Group remaining by exact pattern_id match
+     * 4. Group remaining by category + subcategory with root_cause similarity (legacy fallback)
+     * 5. Any remaining unclustered failures become single-failure clusters
      *
      * @return Collection<int, array{canonical: RlmFailure, failures: Collection<int, RlmFailure>}>
      */
@@ -35,8 +39,25 @@ class DistillationService
         $clusters = collect();
         $clustered = collect();
 
-        // Pass 1: Group by exact pattern_id (if set)
-        $withPatternId = $failures->filter(fn (RlmFailure $f) => $f->pattern_id !== null);
+        // Pass 1: Group by rule_hash (deterministic — Phase B.1)
+        // This is the primary clustering mechanism. Failures with the same normalized
+        // preventive_rule text produce the same rule_hash and cluster together,
+        // regardless of minor wording variations.
+        $withRuleHash = $failures->filter(fn (RlmFailure $f) => $f->rule_hash !== null);
+        $hashGroups = $withRuleHash->groupBy('rule_hash');
+
+        foreach ($hashGroups as $group) {
+            $canonical = $this->selectCanonical($group);
+            $clusters->push([
+                'canonical' => $canonical,
+                'failures' => $group,
+            ]);
+            $clustered = $clustered->merge($group->pluck('id'));
+        }
+
+        // Pass 2: Group remaining by exact pattern_id (legacy records without rule_hash)
+        $remaining = $failures->reject(fn (RlmFailure $f) => $clustered->contains($f->id));
+        $withPatternId = $remaining->filter(fn (RlmFailure $f) => $f->pattern_id !== null);
         $patternGroups = $withPatternId->groupBy('pattern_id');
 
         foreach ($patternGroups as $group) {
@@ -50,7 +71,7 @@ class DistillationService
             }
         }
 
-        // Pass 2: Group remaining by category + subcategory
+        // Pass 3: Group remaining by category + subcategory (legacy fuzzy fallback)
         $remaining = $failures->reject(fn (RlmFailure $f) => $clustered->contains($f->id));
         $categoryGroups = $remaining->groupBy(function (RlmFailure $f) {
             $category = $f->category->value;
@@ -74,7 +95,7 @@ class DistillationService
             }
         }
 
-        // Pass 3: Any unclustered failures become single-failure clusters
+        // Pass 4: Any unclustered failures become single-failure clusters
         $unclustered = $failures->reject(fn (RlmFailure $f) => $clustered->contains($f->id));
         foreach ($unclustered as $failure) {
             $clusters->push([
@@ -246,6 +267,10 @@ class DistillationService
     /**
      * Generate When-Then rules from distilled lessons for an agent/phase.
      *
+     * Phase B.2: When lessons have structured guidance with WHEN/THEN format,
+     * extract those directly. Falls back to trigger_context-based grouping
+     * for lessons without structured guidance.
+     *
      * @return Collection<int, array{when: string, then: array<mixed>}>
      */
     public function generateWhenThenRules(string $agent, int $phase): Collection
@@ -253,11 +278,26 @@ class DistillationService
         $lessons = DistilledLesson::query()
             ->where('target_agent', $agent)
             ->where('target_phase', $phase)
-            ->whereNotNull('trigger_context')
             ->where('is_active', true)
             ->get();
 
-        return $lessons
+        // Phase B.2: Split lessons into structured (WHEN/THEN guidance) and legacy
+        $structured = $lessons->filter(fn (DistilledLesson $l) => Str::startsWith($l->guidance ?? '', 'WHEN:'));
+        $legacy = $lessons->reject(fn (DistilledLesson $l) => Str::startsWith($l->guidance ?? '', 'WHEN:'))
+            ->filter(fn (DistilledLesson $l) => $l->trigger_context !== null);
+
+        $rules = collect();
+
+        // Extract WHEN/THEN from structured guidance text
+        foreach ($structured as $lesson) {
+            $parsed = $this->parseStructuredGuidance($lesson->guidance);
+            if ($parsed !== null) {
+                $rules->push($parsed);
+            }
+        }
+
+        // Legacy: group by trigger_context
+        $legacyRules = $legacy
             ->groupBy(fn (DistilledLesson $lesson) => json_encode($lesson->trigger_context))
             ->map(function (Collection $group) {
                 $context = $group->first()->trigger_context;
@@ -271,6 +311,41 @@ class DistillationService
                 ];
             })
             ->values();
+
+        return $rules->merge($legacyRules)->values();
+    }
+
+    /**
+     * Parse structured WHEN/THEN/RULE guidance into a when-then rule array.
+     *
+     * @return array{when: string, then: array<string>}|null
+     */
+    private function parseStructuredGuidance(string $guidance): ?array
+    {
+        $when = null;
+        $then = [];
+
+        foreach (explode("\n", $guidance) as $line) {
+            $line = trim($line);
+            if (Str::startsWith($line, 'WHEN:')) {
+                $when = trim(Str::after($line, 'WHEN:'));
+            } elseif (Str::startsWith($line, 'THEN:')) {
+                $then[] = trim(Str::after($line, 'THEN:'));
+            } elseif (Str::startsWith($line, 'RULE:')) {
+                $then[] = trim(Str::after($line, 'RULE:'));
+            } elseif (Str::startsWith($line, 'FIX:')) {
+                $then[] = trim(Str::after($line, 'FIX:'));
+            }
+        }
+
+        if ($when === null || empty($then)) {
+            return null;
+        }
+
+        return [
+            'when' => $when,
+            'then' => $then,
+        ];
     }
 
     /**
@@ -321,6 +396,117 @@ class DistillationService
         $lesson->update(['confidence' => $confidence]);
 
         return $confidence;
+    }
+
+    /**
+     * Auto-deactivate distilled lessons with confidence below threshold.
+     *
+     * @return int Number of lessons deactivated
+     */
+    public function autoDeactivateLowConfidence(float $threshold = 0.2): int
+    {
+        $deactivated = DistilledLesson::query()
+            ->where('is_active', true)
+            ->where('confidence', '<', $threshold)
+            ->update(['is_active' => false]);
+
+        if ($deactivated > 0) {
+            Log::info('DistillationService: auto-deactivated low-confidence lessons', [
+                'count' => $deactivated,
+                'threshold' => $threshold,
+            ]);
+        }
+
+        return $deactivated;
+    }
+
+    /**
+     * Flag stale RlmLesson records that have had no positive signal (prevented_count=0 on
+     * linked distilled lessons) within the last N generations of distillation.
+     *
+     * @return int Number of lessons flagged for review
+     */
+    public function flagStaleLessons(int $generationThreshold = 10): int
+    {
+        // Find RlmLessons that are active instructions/prevention_rules
+        // but have never been surfaced or had positive signal
+        $staleLessons = RlmLesson::query()
+            ->where('is_active', true)
+            ->where('needs_review', false)
+            ->whereIn('lesson_type', [LessonType::Instruction->value, LessonType::PreventionRule->value])
+            ->where('view_count', 0)
+            ->where('created_at', '<', now()->subDays($generationThreshold * 7))
+            ->get();
+
+        $flagged = 0;
+        foreach ($staleLessons as $lesson) {
+            $lesson->update(['needs_review' => true]);
+            $flagged++;
+        }
+
+        if ($flagged > 0) {
+            Log::info('DistillationService: flagged stale lessons for review', [
+                'count' => $flagged,
+                'generation_threshold' => $generationThreshold,
+            ]);
+        }
+
+        return $flagged;
+    }
+
+    /**
+     * Promote an observation to instruction when it clusters with >= $minOccurrences
+     * in the failure data.
+     *
+     * Requires at least one KnowledgeLink OR marks needs_review.
+     *
+     * @return array{promoted: bool, reason: string}
+     */
+    public function promoteObservation(RlmLesson $lesson, int $clusterSize, int $minOccurrences = 3): array
+    {
+        if ($lesson->lesson_type !== LessonType::Observation) {
+            return ['promoted' => false, 'reason' => 'Not an observation'];
+        }
+
+        if ($clusterSize < $minOccurrences) {
+            return ['promoted' => false, 'reason' => "Cluster size {$clusterSize} below threshold {$minOccurrences}"];
+        }
+
+        // Check for proof hooks (KnowledgeLinks)
+        $hasProof = KnowledgeLink::query()
+            ->where('source_type', $lesson->getMorphClass())
+            ->where('source_id', $lesson->getKey())
+            ->exists();
+
+        $promotionReason = "Cluster size: {$clusterSize} (threshold: {$minOccurrences})";
+
+        if ($hasProof) {
+            $lesson->update([
+                'lesson_type' => LessonType::Instruction,
+                'promotion_reason' => $promotionReason.'. Proof hooks: present.',
+                'is_verified' => true,
+            ]);
+
+            Log::info('DistillationService: promoted observation to instruction', [
+                'lesson_id' => $lesson->id,
+                'cluster_size' => $clusterSize,
+            ]);
+
+            return ['promoted' => true, 'reason' => 'Promoted with proof hooks'];
+        }
+
+        // No proof → flag for review instead of promoting
+        $lesson->update([
+            'needs_review' => true,
+            'promotion_reason' => $promotionReason.'. Proof hooks: missing — flagged for review.',
+        ]);
+
+        Log::info('DistillationService: observation promotion blocked — no proof hooks', [
+            'lesson_id' => $lesson->id,
+            'cluster_size' => $clusterSize,
+        ]);
+
+        return ['promoted' => false, 'reason' => 'Missing proof hooks — flagged for review'];
     }
 
     /**
@@ -547,9 +733,19 @@ class DistillationService
 
     /**
      * Generate guidance text for a distilled lesson.
+     *
+     * When structured reflection fields are available (Phase B.2), derives
+     * WHEN/THEN guidance from feedback/fix fields. Falls back to template-based
+     * guidance for legacy records without structured fields.
      */
     private function generateGuidance(RlmFailure $canonical, string $template, string $agent): string
     {
+        // Phase B.2: Use structured fields when available
+        if ($canonical->preventive_rule !== null && ($canonical->feedback !== null || $canonical->fix !== null)) {
+            return $this->generateStructuredGuidance($canonical, $agent);
+        }
+
+        // Legacy fallback: template substitution
         $component = $this->inferComponent($canonical);
         $rule = $canonical->preventive_rule ?? $canonical->description;
 
@@ -563,6 +759,36 @@ class DistillationService
             ->replace('{process_rule}', $rule)
             ->replace('{pattern_id}', $canonical->pattern_id ?? 'N/A')
             ->toString();
+    }
+
+    /**
+     * Generate structured WHEN/THEN guidance from reflection fields.
+     *
+     * Derives WHEN condition from feedback, THEN condition from fix,
+     * with the preventive_rule as the core lesson text.
+     * Falls back to RULE-only format if WHEN/THEN extraction fails.
+     */
+    private function generateStructuredGuidance(RlmFailure $canonical, string $agent): string
+    {
+        $rule = $canonical->preventive_rule;
+        $when = $canonical->feedback !== null ? Str::limit(trim($canonical->feedback), 200) : null;
+        $then = $canonical->fix !== null ? Str::limit(trim($canonical->fix), 200) : null;
+
+        // Best-effort WHEN/THEN derivation
+        if ($when !== null && $then !== null) {
+            return "WHEN: {$when}\nTHEN: {$then}\nRULE: {$rule}";
+        }
+
+        if ($when !== null) {
+            return "WHEN: {$when}\nRULE: {$rule}";
+        }
+
+        if ($then !== null) {
+            return "RULE: {$rule}\nFIX: {$then}";
+        }
+
+        // RULE-only fallback
+        return "RULE: {$rule}";
     }
 
     /**

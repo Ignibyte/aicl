@@ -3,6 +3,7 @@
 namespace Aicl\Console\Commands;
 
 use Aicl\Models\DistilledLesson;
+use Aicl\Models\EntityWaiver;
 use Aicl\Models\FailureReport;
 use Aicl\Models\GenerationTrace;
 use Aicl\Models\GoldenAnnotation;
@@ -15,6 +16,7 @@ use Aicl\Rlm\DistillationService;
 use Aicl\Rlm\EmbeddingService;
 use Aicl\Rlm\KnowledgeService;
 use Aicl\Rlm\KpiCalculator;
+use Aicl\Rlm\PatternRegistry;
 use Aicl\Traits\HasEmbeddings;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +28,7 @@ class RlmCommand extends Command
      * @var string
      */
     protected $signature = 'aicl:rlm
-        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, sync-knowledge, embed, index, aar, cleanup, distill, feedback, health)}
+        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, sync-knowledge, embed, index, aar, cleanup, distill, feedback, health, waiver)}
         {query? : Search query or lesson summary}
         {--agent= : Agent role for recall (architect, rlm, tester, solutions, designer, pm)}
         {--phase= : Pipeline phase number for recall}
@@ -39,6 +41,15 @@ class RlmCommand extends Command
         {--tags= : Comma-separated tags for learn action}
         {--source= : Source reference for learn action}
         {--confidence=1.0 : Confidence level for learn action (0.0-1.0)}
+        {--attempt= : Structured reflection: what was generated/tried}
+        {--feedback= : Structured reflection: what the validator reported}
+        {--fix= : Structured reflection: what change resolved it}
+        {--rule= : Structured reflection: what general rule prevents this}
+        {--validator-layer= : Identity: L1|L2|PHPSTAN|OTHER}
+        {--validator-id= : Identity: pattern/check ID (e.g., P-012)}
+        {--file= : Identity: file path where failure occurred}
+        {--trace-id= : Identity: GenerationTrace UUID}
+        {--json= : JSON input: inline string, @filepath, or - for stdin}
         {--context= : Context filter for failures (has_states,has_enum,...)}
         {--severity= : Severity filter for failures (critical,high,...)}
         {--tier= : Tier filter for failures (base, project, all)}
@@ -64,7 +75,12 @@ class RlmCommand extends Command
         {--remove-faker-records : Remove faker-generated records from RLM tables (cleanup action)}
         {--surfaced= : Comma-separated DL codes of lessons surfaced during generation (feedback action)}
         {--failures= : Comma-separated BF/F codes of failures that actually occurred (feedback action)}
-        {--verdict : Include system verdict in health output (health action)}';
+        {--verdict : Include system verdict in health output (health action)}
+        {--pattern= : Pattern ID for waiver action}
+        {--reason= : Reason for waiver}
+        {--justification= : Scope justification for waiver}
+        {--ticket= : Ticket URL for waiver}
+        {--expires-in= : Days until waiver expires}';
 
     /**
      * @var string
@@ -93,6 +109,7 @@ class RlmCommand extends Command
             'distill' => $this->handleDistill(),
             'feedback' => $this->handleFeedback(),
             'health' => $this->handleHealth(),
+            'waiver' => $this->handleWaiver(),
             default => $this->showUsage(),
         };
     }
@@ -429,14 +446,36 @@ class RlmCommand extends Command
 
     private function handleLearn(): int
     {
+        // Determine ingestion mode
+        $jsonInput = $this->option('json');
+        $hasStructuredFlags = $this->option('attempt')
+            || $this->option('feedback')
+            || $this->option('fix')
+            || $this->option('rule');
         $summary = $this->argument('query');
-        $topic = $this->option('topic');
 
-        if (! $summary) {
-            $this->components->error('Learn requires a summary as the query argument.');
-
-            return self::FAILURE;
+        if ($jsonInput !== null) {
+            return $this->handleLearnJson($jsonInput);
         }
+
+        if ($hasStructuredFlags) {
+            return $this->handleLearnStructured();
+        }
+
+        if ($summary) {
+            return $this->handleLearnFreeText($summary);
+        }
+
+        // No args/options — interactive mode
+        return $this->handleLearnInteractive();
+    }
+
+    /**
+     * Mode 1: Free-text (legacy) — positional message → RlmLesson.
+     */
+    private function handleLearnFreeText(string $summary): int
+    {
+        $topic = $this->option('topic');
 
         if (! $topic) {
             $this->components->error('Learn requires --topic option.');
@@ -466,6 +505,320 @@ class RlmCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Mode 2: Structured flags — reflection fields → RlmFailure.
+     */
+    private function handleLearnStructured(): int
+    {
+        $data = $this->buildStructuredData([
+            'attempt' => $this->option('attempt'),
+            'feedback' => $this->option('feedback'),
+            'fix' => $this->option('fix'),
+            'preventive_rule' => $this->option('rule'),
+            'topic' => $this->option('topic'),
+            'tags' => $this->option('tags'),
+            'validator_layer' => $this->option('validator-layer'),
+            'validator_id' => $this->option('validator-id'),
+            'entity_name' => $this->option('entity'),
+            'phase' => $this->option('phase'),
+            'file_path' => $this->option('file'),
+            'trace_id' => $this->option('trace-id'),
+        ]);
+
+        return $this->persistStructuredFailure($data);
+    }
+
+    /**
+     * Mode 3: JSON input — inline string, @filepath, or stdin → RlmFailure.
+     */
+    private function handleLearnJson(string $jsonInput): int
+    {
+        $raw = $this->resolveJsonInput($jsonInput);
+
+        if ($raw === null) {
+            $this->components->error('Failed to read JSON input.');
+
+            return self::FAILURE;
+        }
+
+        /** @var array<string, mixed>|null $parsed */
+        $parsed = json_decode($raw, true);
+
+        if (! is_array($parsed)) {
+            $this->components->error('Invalid JSON: '.json_last_error_msg());
+
+            return self::FAILURE;
+        }
+
+        // Map JSON keys to internal field names
+        $data = $this->buildStructuredData([
+            'attempt' => $parsed['attempt'] ?? null,
+            'feedback' => $parsed['feedback'] ?? null,
+            'fix' => $parsed['fix'] ?? null,
+            'preventive_rule' => $parsed['rule'] ?? $parsed['preventive_rule'] ?? null,
+            'topic' => $parsed['topic'] ?? $this->option('topic'),
+            'tags' => is_array($parsed['tags'] ?? null) ? implode(',', $parsed['tags']) : ($parsed['tags'] ?? $this->option('tags')),
+            'validator_layer' => $parsed['validator_layer'] ?? null,
+            'validator_id' => $parsed['validator_id'] ?? null,
+            'entity_name' => $parsed['entity'] ?? $parsed['entity_name'] ?? $this->option('entity'),
+            'phase' => $parsed['phase'] ?? $this->option('phase'),
+            'file_path' => $parsed['file_path'] ?? $parsed['file'] ?? null,
+            'trace_id' => $parsed['trace_id'] ?? null,
+        ]);
+
+        // Allow JSON to override description directly
+        if (isset($parsed['description'])) {
+            $data['description'] = $parsed['description'];
+        }
+
+        return $this->persistStructuredFailure($data);
+    }
+
+    /**
+     * Mode 4: Interactive — prompt for each field sequentially.
+     */
+    private function handleLearnInteractive(): int
+    {
+        $this->components->info('Interactive failure recording. Press Enter to skip optional fields.');
+        $this->newLine();
+
+        $attempt = $this->ask('What was generated/tried? (attempt)');
+        $feedback = $this->ask('What did the validator report? (feedback)');
+        $fix = $this->ask('What change resolved it? (fix)');
+        $rule = $this->ask('What general rule prevents this? (rule)');
+        $topic = $this->ask('Topic', 'validation');
+        $tags = $this->ask('Tags (comma-separated)');
+        $validatorLayer = $this->choice('Validator layer', ['L1', 'L2', 'PHPSTAN', 'OTHER', 'skip'], 4);
+        $validatorId = $this->ask('Validator/pattern ID (e.g., P-012)');
+        $entityName = $this->ask('Entity name');
+        $phase = $this->ask('Pipeline phase (e.g., phase-4)');
+        $filePath = $this->ask('File path');
+
+        $data = $this->buildStructuredData([
+            'attempt' => $attempt,
+            'feedback' => $feedback,
+            'fix' => $fix,
+            'preventive_rule' => $rule,
+            'topic' => $topic !== '' ? $topic : null,
+            'tags' => $tags,
+            'validator_layer' => $validatorLayer !== 'skip' ? $validatorLayer : null,
+            'validator_id' => $validatorId,
+            'entity_name' => $entityName,
+            'phase' => $phase,
+            'file_path' => $filePath,
+        ]);
+
+        return $this->persistStructuredFailure($data);
+    }
+
+    /**
+     * Read JSON from inline string, @filepath, or - for stdin.
+     */
+    private function resolveJsonInput(string $input): ?string
+    {
+        if ($input === '-') {
+            return file_get_contents('php://stdin') ?: null;
+        }
+
+        if (str_starts_with($input, '@')) {
+            $path = substr($input, 1);
+
+            return file_exists($path) ? file_get_contents($path) ?: null : null;
+        }
+
+        return $input;
+    }
+
+    /**
+     * Build structured data array, filtering out null/empty values.
+     *
+     * @param  array<string, string|null>  $fields
+     * @return array<string, mixed>
+     */
+    private function buildStructuredData(array $fields): array
+    {
+        $data = [];
+
+        foreach ($fields as $key => $value) {
+            if ($value !== null && $value !== '') {
+                $data[$key] = $value;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Auto-generate description from structured fields.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function generateDescription(array $data): string
+    {
+        $parts = [];
+
+        if (isset($data['feedback'])) {
+            $parts[] = $data['feedback'];
+        }
+
+        if (isset($data['preventive_rule'])) {
+            $parts[] = 'Rule: '.$data['preventive_rule'];
+        }
+
+        if (isset($data['fix'])) {
+            $parts[] = 'Fix: '.$data['fix'];
+        }
+
+        if (! empty($parts)) {
+            return implode(' | ', $parts);
+        }
+
+        // Fallback: use attempt or any available field
+        return $data['attempt'] ?? $data['description'] ?? 'Structured failure recorded';
+    }
+
+    /**
+     * Auto-generate a title from structured fields.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function generateTitle(array $data): string
+    {
+        // Prefer rule as title (concise preventive statement)
+        if (isset($data['preventive_rule'])) {
+            return \Illuminate\Support\Str::limit($data['preventive_rule'], 200);
+        }
+
+        // Fallback to feedback
+        if (isset($data['feedback'])) {
+            return \Illuminate\Support\Str::limit($data['feedback'], 200);
+        }
+
+        return 'Structured failure recorded';
+    }
+
+    /**
+     * Persist a structured failure record.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function persistStructuredFailure(array $data): int
+    {
+        $ks = $this->getKnowledgeService();
+
+        // Generate failure_code from validator_id or auto-increment
+        $failureCode = $this->generateFailureCode($data);
+
+        // Auto-generate title and description if not provided
+        $title = $data['title'] ?? $this->generateTitle($data);
+        $description = $data['description'] ?? $this->generateDescription($data);
+
+        $failureData = [
+            'failure_code' => $failureCode,
+            'title' => $title,
+            'description' => $description,
+            'attempt' => $data['attempt'] ?? null,
+            'feedback' => $data['feedback'] ?? null,
+            'fix' => $data['fix'] ?? null,
+            'preventive_rule' => $data['preventive_rule'] ?? null,
+            'validator_layer' => $data['validator_layer'] ?? null,
+            'validator_id' => $data['validator_id'] ?? null,
+            'entity_name' => $data['entity_name'] ?? null,
+            'phase' => $data['phase'] ?? null,
+            'file_path' => $data['file_path'] ?? null,
+            'trace_id' => $data['trace_id'] ?? null,
+            'category' => $this->inferCategory($data),
+            'severity' => $data['severity'] ?? 'medium',
+        ];
+
+        $failure = $ks->recordFailure($failureData);
+
+        $this->line("Failure {$failure->failure_code} recorded: {$title}");
+
+        if (isset($data['preventive_rule'])) {
+            $this->line("Rule: {$data['preventive_rule']}");
+            $this->line("Rule hash: {$failure->rule_hash}");
+        }
+
+        if (isset($data['validator_id'])) {
+            $layer = $data['validator_layer'] ?? 'unknown';
+            $this->line("Validator: {$layer}/{$data['validator_id']}");
+        }
+
+        if (isset($data['entity_name'])) {
+            $this->line("Entity: {$data['entity_name']}");
+        }
+
+        if ($this->option('tags') || isset($data['tags'])) {
+            $tags = $data['tags'] ?? $this->option('tags');
+            $this->line("Tags: {$tags}");
+        }
+
+        // Also record as lesson if topic is provided (dual recording)
+        $topic = $data['topic'] ?? $this->option('topic');
+        if ($topic) {
+            $lesson = $ks->addLesson(
+                topic: $topic,
+                summary: $title,
+                detail: $description,
+                subtopic: $this->option('subtopic'),
+                tags: $data['tags'] ?? $this->option('tags'),
+                source: $this->option('source') ?? $failure->failure_code,
+                confidence: (float) $this->option('confidence'),
+            );
+            $this->line("Lesson {$lesson->id} also recorded under topic: {$topic}");
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Generate a failure code. Uses validator_id if available, otherwise auto-increments.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function generateFailureCode(array $data): string
+    {
+        // If validator_id is provided, use it as base for failure code
+        if (isset($data['validator_id'])) {
+            $prefix = 'SF'; // Structured Failure
+            $validatorId = str_replace(['-', '_', '.'], '', $data['validator_id']);
+
+            return $prefix.'-'.$validatorId.'-'.now()->format('ymd');
+        }
+
+        // Auto-increment: find the highest SF-### code
+        $latest = RlmFailure::query()
+            ->where('failure_code', 'like', 'SF-%')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($latest && preg_match('/SF-(\d+)/', $latest->failure_code, $matches)) {
+            $next = (int) $matches[1] + 1;
+        } else {
+            $next = 1;
+        }
+
+        return 'SF-'.str_pad((string) $next, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Infer failure category from structured data.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function inferCategory(array $data): string
+    {
+        $layer = $data['validator_layer'] ?? '';
+
+        return match ($layer) {
+            'L1' => 'scaffolding',
+            'L2' => 'other',
+            'PHPSTAN' => 'other',
+            default => 'other',
+        };
     }
 
     // ─── Failures ───────────────────────────────────────────────
@@ -1550,6 +1903,158 @@ class RlmCommand extends Command
         ]);
     }
 
+    // ─── Waivers ────────────────────────────────────────────────
+
+    private function handleWaiver(): int
+    {
+        $subcommand = $this->argument('query');
+
+        return match ($subcommand) {
+            'add', 'create' => $this->handleWaiverAdd(),
+            'list' => $this->handleWaiverList(),
+            'remove', 'delete' => $this->handleWaiverRemove(),
+            default => $this->handleWaiverUsage(),
+        };
+    }
+
+    private function handleWaiverAdd(): int
+    {
+        $entityName = $this->option('entity');
+        $patternId = $this->option('pattern');
+        $reason = $this->option('reason');
+        $justification = $this->option('justification');
+
+        if (! $entityName || ! $patternId || ! $reason || ! $justification) {
+            $this->components->error('Required: --entity, --pattern, --reason, --justification');
+
+            return self::FAILURE;
+        }
+
+        // Check budget
+        $budget = (float) config('aicl.rlm.waiver_budget', 5.0);
+        $currentWeight = EntityWaiver::query()
+            ->forEntity($entityName)
+            ->active()
+            ->get()
+            ->sum(fn (EntityWaiver $w): float => $this->getPatternWeight($w->pattern_id));
+
+        $patternWeight = $this->getPatternWeight($patternId);
+
+        if ($currentWeight + $patternWeight > $budget) {
+            $this->components->error(
+                "Budget exceeded: current {$currentWeight} + {$patternWeight} > {$budget} budget. Cannot add waiver."
+            );
+
+            return self::FAILURE;
+        }
+
+        $expiresIn = $this->option('expires-in');
+        $expiresAt = $expiresIn ? now()->addDays((int) $expiresIn) : null;
+
+        $waiver = EntityWaiver::query()->create([
+            'entity_name' => $entityName,
+            'pattern_id' => $patternId,
+            'reason' => $reason,
+            'scope_justification' => $justification,
+            'ticket_url' => $this->option('ticket'),
+            'expires_at' => $expiresAt,
+            'created_by' => 1,
+        ]);
+
+        $remaining = $budget - $currentWeight - $patternWeight;
+        $this->components->info("Waiver created for {$entityName}:{$patternId}");
+        $this->line("  Budget: {$remaining} remaining of {$budget}");
+        if ($expiresAt) {
+            $this->line("  Expires: {$expiresAt->toDateString()}");
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function handleWaiverList(): int
+    {
+        $entityName = $this->option('entity');
+
+        $query = EntityWaiver::query();
+        if ($entityName) {
+            $query->forEntity($entityName);
+        }
+
+        $waivers = $query->latest()->get();
+
+        if ($waivers->isEmpty()) {
+            $this->components->info('No waivers found.');
+
+            return self::SUCCESS;
+        }
+
+        $budget = (float) config('aicl.rlm.waiver_budget', 5.0);
+
+        foreach ($waivers as $waiver) {
+            $expired = $waiver->isExpired() ? ' [EXPIRED]' : '';
+            $expires = $waiver->expires_at ? " expires:{$waiver->expires_at->toDateString()}" : ' permanent';
+            $weight = $this->getPatternWeight($waiver->pattern_id);
+            $this->line("  {$waiver->entity_name}:{$waiver->pattern_id} (weight:{$weight}{$expires}){$expired}");
+            $this->line("    Reason: {$waiver->reason}");
+        }
+
+        if ($entityName) {
+            $activeWeight = $waivers->reject->isExpired()
+                ->sum(fn (EntityWaiver $w): float => $this->getPatternWeight($w->pattern_id));
+            $this->newLine();
+            $this->line("  Budget: {$activeWeight} used / {$budget} total — ".($budget - $activeWeight).' remaining');
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function handleWaiverRemove(): int
+    {
+        $entityName = $this->option('entity');
+        $patternId = $this->option('pattern');
+
+        if (! $entityName || ! $patternId) {
+            $this->components->error('Required: --entity, --pattern');
+
+            return self::FAILURE;
+        }
+
+        $deleted = EntityWaiver::query()
+            ->forEntity($entityName)
+            ->where('pattern_id', $patternId)
+            ->delete();
+
+        if ($deleted > 0) {
+            $this->components->info("Waiver removed for {$entityName}:{$patternId}");
+        } else {
+            $this->components->warn("No waiver found for {$entityName}:{$patternId}");
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function handleWaiverUsage(): int
+    {
+        $this->line('Waiver subcommands:');
+        $this->line('  aicl:rlm waiver add    --entity=Ticket --pattern=model.soft_deletes --reason="..." --justification="..."');
+        $this->line('  aicl:rlm waiver list   [--entity=Ticket]');
+        $this->line('  aicl:rlm waiver remove --entity=Ticket --pattern=model.soft_deletes');
+
+        return self::SUCCESS;
+    }
+
+    private function getPatternWeight(string $patternId): float
+    {
+        $patterns = PatternRegistry::all();
+        foreach ($patterns as $pattern) {
+            if ($pattern->name === $patternId) {
+                return $pattern->weight;
+            }
+        }
+
+        return 1.0; // Default weight for unknown patterns
+    }
+
     // ─── Helpers ────────────────────────────────────────────────
 
     private function showUsage(): int
@@ -1559,7 +2064,12 @@ class RlmCommand extends Command
         $this->line('Available actions:');
         $this->line('  search {query}           Cross-table search (ES hybrid or deterministic)');
         $this->line('  recall                   Agent cheat sheet (default) or full risk briefing (--format=full|json)');
-        $this->line('  learn {summary}          Record a new lesson');
+        $this->line('  learn {summary}          Record a lesson (free-text mode)');
+        $this->line('  learn --attempt=... --feedback=... --fix=... --rule=...');
+        $this->line('                           Record a structured failure (structured mode)');
+        $this->line('  learn --json=\'{"attempt":"...","rule":"..."}\'');
+        $this->line('                           Record via JSON (inline, @filepath, or - for stdin)');
+        $this->line('  learn                    Interactive mode (prompted fields)');
         $this->line('  failures                 Query failures with filters');
         $this->line('  scores {entity?}         View validation score history');
         $this->line('  stats                    Aggregate knowledge system statistics');
@@ -1574,6 +2084,9 @@ class RlmCommand extends Command
         $this->line('  distill                  Run distillation pipeline (--dry-run, --agent=, --stats)');
         $this->line('  feedback                 Record feedback on surfaced lessons (--entity, --surfaced, --failures)');
         $this->line('  health                   RLM system health KPIs and diagnostics (--verdict for system verdict)');
+        $this->line('  waiver add               Create a pattern waiver (--entity, --pattern, --reason, --justification)');
+        $this->line('  waiver list              List waivers (--entity to filter)');
+        $this->line('  waiver remove            Remove a waiver (--entity, --pattern)');
 
         return self::FAILURE;
     }

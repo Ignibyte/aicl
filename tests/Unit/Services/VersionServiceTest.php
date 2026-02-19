@@ -66,6 +66,33 @@ class VersionServiceTest extends TestCase
         }
     }
 
+    public function test_framework_version_falls_back_to_composer_when_changelog_missing(): void
+    {
+        $path = base_path('CHANGELOG_FRAMEWORK.md');
+        $backup = $path.'.bak';
+        $exists = file_exists($path);
+
+        if ($exists) {
+            rename($path, $backup);
+        }
+
+        Cache::forget('aicl.version.framework');
+
+        try {
+            $service = new VersionService;
+            $version = $service->frameworkVersion();
+
+            // Should get version from Composer InstalledVersions (dev path repo)
+            // or 'unknown' if not resolvable — but never crash
+            $this->assertMatchesRegularExpression('/^(\d+\.\d+\.\d+|unknown)$/', $version);
+        } finally {
+            if ($exists) {
+                rename($backup, $path);
+            }
+            Cache::forget('aicl.version.framework');
+        }
+    }
+
     public function test_version_badge_view_exists(): void
     {
         $this->assertTrue(view()->exists('aicl::components.version-badge'));

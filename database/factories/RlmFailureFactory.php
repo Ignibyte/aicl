@@ -33,6 +33,8 @@ class RlmFailureFactory extends Factory
             'subcategory' => fake()->optional(0.5)->word(),
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
+            'attempt' => fake()->optional(0.4)->paragraph(),
+            'feedback' => fake()->optional(0.4)->paragraph(),
             'root_cause' => fake()->optional(0.7)->paragraph(),
             'fix' => fake()->optional(0.6)->paragraph(),
             'preventive_rule' => fake()->optional(0.4)->sentence(),
@@ -49,6 +51,10 @@ class RlmFailureFactory extends Factory
             'promoted_at' => null,
             'aicl_version' => fake()->optional(0.8)->semver(),
             'laravel_version' => fake()->optional(0.8)->semver(),
+            'validator_layer' => fake()->optional(0.3)->randomElement(['L1', 'L2', 'PHPSTAN', 'OTHER']),
+            'validator_id' => fake()->optional(0.3)->regexify('[A-Z]{1,2}-\d{3}'),
+            'entity_name' => fake()->optional(0.3)->word(),
+            'phase' => fake()->optional(0.3)->randomElement(['phase-3', 'phase-4', 'phase-5', 'phase-6']),
             'is_active' => true,
             'owner_id' => User::factory(),
         ];
@@ -124,6 +130,20 @@ class RlmFailureFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'scaffolding_fixed' => true,
+        ]);
+    }
+
+    public function structured(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'attempt' => fake()->paragraph(),
+            'feedback' => fake()->paragraph(),
+            'fix' => fake()->paragraph(),
+            'preventive_rule' => fake()->sentence(),
+            'validator_layer' => fake()->randomElement(['L1', 'L2', 'PHPSTAN']),
+            'validator_id' => fake()->regexify('[A-Z]{1,2}-\d{3}'),
+            'entity_name' => fake()->word(),
+            'phase' => fake()->randomElement(['phase-3', 'phase-4', 'phase-5', 'phase-6']),
         ]);
     }
 }

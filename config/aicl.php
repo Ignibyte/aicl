@@ -211,10 +211,10 @@ return [
         'logo' => env('AICL_LOGO_PATH', 'vendor/aicl/images/logo.png'),
         'favicon' => env('AICL_FAVICON_PATH', 'vendor/aicl/images/favicon.png'),
 
-        // Navigation layout: 'sidebar' (default), 'topbar', or 'switchable'
+        // Navigation layout: 'sidebar', 'topbar', or 'switchable' (default)
         // When 'switchable', a toggle button appears allowing users to switch
         // between sidebar and topbar navigation. Preference is stored in localStorage.
-        'navigation_layout' => env('AICL_NAV_LAYOUT', 'sidebar'),
+        'navigation_layout' => env('AICL_NAV_LAYOUT', 'switchable'),
     ],
 
     /*
@@ -423,5 +423,7 @@ return [
             'timeout' => 30,
             'sync_on_validate' => false,
         ],
+
+        'waiver_budget' => (float) env('AICL_WAIVER_BUDGET', 5.0),
     ],
 ];

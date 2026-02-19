@@ -120,4 +120,104 @@ class ComponentDiscoveryServiceTest extends TestCase
             );
         }
     }
+
+    // ─── entity-display context validation ──────────────────────
+
+    public function test_validates_entity_display_as_valid_context(): void
+    {
+        $manifest = $this->validManifest(['context' => ['entity-display']]);
+        $errors = $this->service->validateManifest($manifest, 'test');
+        $this->assertEmpty($errors, 'entity-display should be a valid context');
+    }
+
+    public function test_validates_entity_display_alongside_other_contexts(): void
+    {
+        $manifest = $this->validManifest(['context' => ['entity-display', 'blade', 'livewire']]);
+        $errors = $this->service->validateManifest($manifest, 'test');
+        $this->assertEmpty($errors, 'entity-display combined with other contexts should be valid');
+    }
+
+    // ─── ComponentDefinition entity_display ─────────────────────
+
+    public function test_from_manifest_extracts_entity_display(): void
+    {
+        $manifest = $this->validManifest([
+            'entity_display' => [
+                'content_type' => 'page',
+                'display_mode' => 'teaser',
+                'field_mapping' => ['title' => 'title', 'url' => 'slug'],
+            ],
+        ]);
+
+        $definition = ComponentDefinition::fromManifest(
+            $manifest,
+            'Aicl\\View\\Components\\Test',
+            'test.blade.php',
+            null,
+            'test',
+        );
+
+        $this->assertNotNull($definition->entityDisplay);
+        $this->assertSame('page', $definition->entityDisplay['content_type']);
+        $this->assertSame('teaser', $definition->entityDisplay['display_mode']);
+        $this->assertSame(['title' => 'title', 'url' => 'slug'], $definition->entityDisplay['field_mapping']);
+    }
+
+    public function test_from_manifest_entity_display_is_null_when_absent(): void
+    {
+        $manifest = $this->validManifest();
+
+        $definition = ComponentDefinition::fromManifest(
+            $manifest,
+            'Aicl\\View\\Components\\Test',
+            'test.blade.php',
+            null,
+            'test',
+        );
+
+        $this->assertNull($definition->entityDisplay);
+    }
+
+    public function test_entity_display_survives_to_array_and_from_array(): void
+    {
+        $entityDisplay = [
+            'content_type' => 'post',
+            'display_mode' => 'card',
+            'field_mapping' => ['title' => 'title', 'author' => 'author.name'],
+        ];
+
+        $manifest = $this->validManifest(['entity_display' => $entityDisplay]);
+        $definition = ComponentDefinition::fromManifest(
+            $manifest,
+            'Aicl\\View\\Components\\Test',
+            'test.blade.php',
+            null,
+            'test',
+        );
+
+        $array = $definition->toArray();
+        $this->assertArrayHasKey('entityDisplay', $array);
+        $this->assertSame($entityDisplay, $array['entityDisplay']);
+
+        $restored = ComponentDefinition::fromArray($array);
+        $this->assertSame($entityDisplay, $restored->entityDisplay);
+    }
+
+    /**
+     * Create a valid manifest array with optional overrides.
+     */
+    private function validManifest(array $overrides = []): array
+    {
+        return array_merge([
+            '$schema' => 'aicl-component-v1',
+            'name' => 'Test Component',
+            'tag' => 'x-aicl-test',
+            'category' => 'data',
+            'status' => 'stable',
+            'description' => 'Test component for unit tests',
+            'context' => ['blade'],
+            'props' => ['title' => ['type' => 'string', 'required' => true]],
+            'decision_rule' => 'Never use — test only',
+        ], $overrides);
+    }
 }

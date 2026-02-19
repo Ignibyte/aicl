@@ -7,6 +7,7 @@ use Aicl\Contracts\HasEntityLifecycle;
 use Aicl\Database\Factories\RlmFailureFactory;
 use Aicl\Enums\FailureCategory;
 use Aicl\Enums\FailureSeverity;
+use Aicl\Rlm\RuleNormalizer;
 use Aicl\States\RlmFailureState;
 use Aicl\Traits\HasAuditTrail;
 use Aicl\Traits\HasEmbeddings;
@@ -48,9 +49,20 @@ use Spatie\ModelStates\HasStates;
  * @property string|null $aicl_version
  * @property string|null $laravel_version
  * @property RlmFailureState $status
+ * @property string|null $attempt
+ * @property string|null $feedback
+ * @property string|null $rule_norm
+ * @property string|null $rule_hash
+ * @property string|null $validator_layer
+ * @property string|null $validator_id
+ * @property string|null $entity_name
+ * @property string|null $phase
+ * @property string|null $file_path
+ * @property string|null $trace_id
  * @property bool $is_active
  * @property int $owner_id
  * @property-read User $owner
+ * @property-read GenerationTrace|null $trace
  * @property-read float $computed_resolution_rate
  */
 class RlmFailure extends Model implements Auditable, HasEntityLifecycle
@@ -78,9 +90,13 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
         'subcategory',
         'title',
         'description',
+        'attempt',
+        'feedback',
         'root_cause',
         'fix',
         'preventive_rule',
+        'rule_norm',
+        'rule_hash',
         'severity',
         'entity_context',
         'scaffolding_fixed',
@@ -94,6 +110,12 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
         'promoted_at',
         'aicl_version',
         'laravel_version',
+        'validator_layer',
+        'validator_id',
+        'entity_name',
+        'phase',
+        'file_path',
+        'trace_id',
         'status',
         'is_active',
         'owner_id',
@@ -120,6 +142,22 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
     }
 
     /**
+     * Auto-compute rule_norm and rule_hash when preventive_rule is set.
+     */
+    public function setPreventiveRuleAttribute(?string $value): void
+    {
+        $this->attributes['preventive_rule'] = $value;
+
+        if ($value !== null && $value !== '') {
+            $this->attributes['rule_norm'] = RuleNormalizer::normalize($value);
+            $this->attributes['rule_hash'] = RuleNormalizer::hash($value);
+        } else {
+            $this->attributes['rule_norm'] = null;
+            $this->attributes['rule_hash'] = null;
+        }
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function owner(): BelongsTo
@@ -141,6 +179,14 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
     public function preventionRules(): HasMany
     {
         return $this->hasMany(PreventionRule::class, 'rlm_failure_id');
+    }
+
+    /**
+     * @return BelongsTo<GenerationTrace, $this>
+     */
+    public function trace(): BelongsTo
+    {
+        return $this->belongsTo(GenerationTrace::class, 'trace_id');
     }
 
     /**
@@ -187,7 +233,10 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
         return implode(' ', array_filter([
             $this->title,
             $this->description,
+            $this->attempt,
+            $this->feedback,
             $this->root_cause,
+            $this->fix,
             $this->preventive_rule,
         ]));
     }
@@ -205,9 +254,16 @@ class RlmFailure extends Model implements Auditable, HasEntityLifecycle
             'status' => (string) $this->status,
             'title' => $this->title,
             'description' => $this->description,
+            'attempt' => $this->attempt,
+            'feedback' => $this->feedback,
             'root_cause' => $this->root_cause,
             'fix' => $this->fix,
             'preventive_rule' => $this->preventive_rule,
+            'rule_hash' => $this->rule_hash,
+            'validator_layer' => $this->validator_layer,
+            'validator_id' => $this->validator_id,
+            'entity_name' => $this->entity_name,
+            'phase' => $this->phase,
             'scaffolding_fixed' => $this->scaffolding_fixed,
             'promoted_to_base' => $this->promoted_to_base,
             'report_count' => $this->report_count,

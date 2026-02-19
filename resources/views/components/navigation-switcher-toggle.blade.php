@@ -17,14 +17,14 @@
         x-bind:title="mode === 'sidebar' ? 'Switch to top navigation' : 'Switch to sidebar navigation'"
     >
         {{-- Sidebar icon (shown when in topbar mode → click to switch to sidebar) --}}
-        <x-fas-table-columns
+        <x-heroicon-o-view-columns
             x-show="mode === 'topbar'"
             x-cloak
             class="h-5 w-5"
         />
 
         {{-- Top bar icon (shown when in sidebar mode → click to switch to topbar) --}}
-        <x-fas-bars
+        <x-heroicon-o-bars-3
             x-show="mode === 'sidebar'"
             class="h-5 w-5"
         />

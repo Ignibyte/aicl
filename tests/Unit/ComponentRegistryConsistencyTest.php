@@ -99,10 +99,15 @@ class ComponentRegistryConsistencyTest extends TestCase
             ->reject(fn (string $name): bool => in_array($name, ['_shared', 'schema']))
             ->count();
 
+        // Only count framework-source components (excludes CMS and client components)
+        $frameworkCount = $registry->all()
+            ->filter(fn ($c) => $c->source === 'framework')
+            ->count();
+
         $this->assertEquals(
             $dirCount,
-            $registry->count(),
-            "Registry has {$registry->count()} components but found {$dirCount} component directories"
+            $frameworkCount,
+            "Framework registry has {$frameworkCount} components but found {$dirCount} component directories"
         );
     }
 

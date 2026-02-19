@@ -2,6 +2,8 @@
 
 namespace Aicl\Rlm;
 
+use Aicl\Models\EntityWaiver;
+
 /**
  * Validates AI-generated entity code against AICL patterns.
  *
@@ -21,8 +23,15 @@ class EntityValidator
      */
     protected array $results = [];
 
+    protected bool $versionWarning = false;
+
+    protected int $waivedCount = 0;
+
+    protected float $waivedWeight = 0.0;
+
     public function __construct(
         protected string $entityName,
+        protected ?string $patternVersion = null,
     ) {}
 
     /**
@@ -43,9 +52,36 @@ class EntityValidator
     public function validate(): array
     {
         $this->results = [];
-        $patterns = PatternRegistry::all($this->entityName);
+        $this->versionWarning = false;
+        $this->waivedCount = 0;
+        $this->waivedWeight = 0.0;
+
+        if ($this->patternVersion !== null) {
+            $patterns = PatternRegistry::getPatternSet($this->patternVersion, $this->entityName);
+        } else {
+            $patterns = PatternRegistry::all($this->entityName);
+            $this->versionWarning = true;
+        }
+
+        // Load active waivers for this entity
+        $waivers = $this->loadActiveWaivers();
 
         foreach ($patterns as $pattern) {
+            // Check for waiver before file check
+            if (isset($waivers[$pattern->name])) {
+                $waiver = $waivers[$pattern->name];
+                $this->waivedCount++;
+                $this->waivedWeight += $pattern->weight;
+                $this->results[] = new ValidationResult(
+                    pattern: $pattern,
+                    passed: true,
+                    message: "WAIVED ({$waiver->reason})",
+                    waived: true,
+                );
+
+                continue;
+            }
+
             if (! isset($this->files[$pattern->target])) {
                 continue;
             }
@@ -174,5 +210,67 @@ class EntityValidator
     public function results(): array
     {
         return $this->results;
+    }
+
+    /**
+     * Whether validation used unpinned (latest) patterns.
+     */
+    public function hasVersionWarning(): bool
+    {
+        return $this->versionWarning;
+    }
+
+    /**
+     * Get the pattern version used for validation.
+     */
+    public function patternVersion(): string
+    {
+        return $this->patternVersion ?? PatternRegistry::currentVersion();
+    }
+
+    /**
+     * Get count of waived patterns.
+     */
+    public function waivedCount(): int
+    {
+        return $this->waivedCount;
+    }
+
+    /**
+     * Get total weight consumed by waivers.
+     */
+    public function waivedWeight(): float
+    {
+        return $this->waivedWeight;
+    }
+
+    /**
+     * Get remaining waiver budget for this entity.
+     */
+    public function remainingBudget(): float
+    {
+        $budget = (float) config('aicl.rlm.waiver_budget', 5.0);
+
+        return max(0, $budget - $this->waivedWeight);
+    }
+
+    /**
+     * Load active (non-expired) waivers for this entity, keyed by pattern_id.
+     *
+     * @return array<string, EntityWaiver>
+     */
+    private function loadActiveWaivers(): array
+    {
+        try {
+            return EntityWaiver::query()
+                ->forEntity($this->entityName)
+                ->active()
+                ->get()
+                ->keyBy('pattern_id')
+                ->all();
+        } catch (\Throwable) {
+            // Table may not exist yet (pre-migration)
+            return [];
+        }
     }
 }

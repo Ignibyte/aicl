@@ -28,6 +28,7 @@ class ComponentDefinition
         public readonly string $decisionRule,
         public readonly array $fieldSignals,
         public readonly ?array $filamentEquivalent,
+        public readonly ?array $entityDisplay,
         public readonly string $source,
     ) {}
 
@@ -54,6 +55,7 @@ class ComponentDefinition
             decisionRule: $manifest['decision_rule'],
             fieldSignals: $manifest['field_signals'] ?? [],
             filamentEquivalent: $manifest['filament_equivalent'] ?? null,
+            entityDisplay: $manifest['entity_display'] ?? null,
             source: $source,
         );
     }
@@ -113,6 +115,7 @@ class ComponentDefinition
             'decisionRule' => $this->decisionRule,
             'fieldSignals' => $this->fieldSignals,
             'filamentEquivalent' => $this->filamentEquivalent,
+            'entityDisplay' => $this->entityDisplay,
             'source' => $this->source,
         ];
     }
@@ -140,6 +143,7 @@ class ComponentDefinition
             decisionRule: $data['decisionRule'],
             fieldSignals: $data['fieldSignals'],
             filamentEquivalent: $data['filamentEquivalent'],
+            entityDisplay: $data['entityDisplay'] ?? null,
             source: $data['source'],
         );
     }

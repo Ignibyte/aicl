@@ -11,6 +11,11 @@ namespace Aicl\Rlm;
 class PatternRegistry
 {
     /**
+     * Current pattern set version.
+     */
+    public const VERSION = 'v1';
+
+    /**
      * @return array<int, EntityPattern>
      */
     public static function all(?string $entityName = null): array
@@ -33,6 +38,27 @@ class PatternRegistry
         }
 
         return $patterns;
+    }
+
+    /**
+     * Get patterns filtered by version range.
+     *
+     * @return array<int, EntityPattern>
+     */
+    public static function getPatternSet(string $version, ?string $entityName = null): array
+    {
+        return array_values(array_filter(
+            static::all($entityName),
+            fn (EntityPattern $p): bool => $p->isActiveInVersion($version),
+        ));
+    }
+
+    /**
+     * Get the current pattern set version string.
+     */
+    public static function currentVersion(): string
+    {
+        return static::VERSION;
     }
 
     /**

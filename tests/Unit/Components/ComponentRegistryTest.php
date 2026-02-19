@@ -231,6 +231,7 @@ class ComponentRegistryTest extends TestCase
             decisionRule: 'Never use — test only',
             fieldSignals: [],
             filamentEquivalent: null,
+            entityDisplay: null,
             source: 'test',
         );
 
@@ -257,5 +258,246 @@ class ComponentRegistryTest extends TestCase
 
         $this->registry->clearCache();
         $this->assertFalse($this->registry->isCached());
+    }
+
+    // ─── displayComponent() ─────────────────────────────────────
+
+    public function test_display_component_resolves_by_content_type_and_mode(): void
+    {
+        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+
+        $definition = new ComponentDefinition(
+            name: 'Page Teaser',
+            tag: 'x-aicl-page-teaser',
+            class: 'Aicl\\View\\Components\\PageTeaser',
+            template: 'page-teaser.blade.php',
+            jsModule: null,
+            category: 'data',
+            status: 'stable',
+            description: 'Page teaser display',
+            context: ['entity-display', 'blade'],
+            notFor: [],
+            props: ['title' => ['type' => 'string', 'required' => true]],
+            slots: [],
+            variants: [],
+            composableIn: [],
+            decisionRule: 'Use to display a Page in teaser mode',
+            fieldSignals: [],
+            filamentEquivalent: null,
+            entityDisplay: [
+                'content_type' => 'page',
+                'display_mode' => 'teaser',
+                'field_mapping' => ['title' => 'title', 'url' => 'slug'],
+            ],
+            source: 'test',
+        );
+
+        $registry->register($definition);
+
+        $result = $registry->displayComponent('page', 'teaser');
+        $this->assertNotNull($result);
+        $this->assertSame('x-aicl-page-teaser', $result->tag);
+    }
+
+    public function test_display_component_returns_null_for_unknown_content_type(): void
+    {
+        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+
+        $definition = new ComponentDefinition(
+            name: 'Page Teaser',
+            tag: 'x-aicl-page-teaser',
+            class: 'Aicl\\View\\Components\\PageTeaser',
+            template: 'page-teaser.blade.php',
+            jsModule: null,
+            category: 'data',
+            status: 'stable',
+            description: 'Page teaser display',
+            context: ['entity-display'],
+            notFor: [],
+            props: [],
+            slots: [],
+            variants: [],
+            composableIn: [],
+            decisionRule: 'Use to display a Page in teaser mode',
+            fieldSignals: [],
+            filamentEquivalent: null,
+            entityDisplay: [
+                'content_type' => 'page',
+                'display_mode' => 'teaser',
+                'field_mapping' => ['title' => 'title'],
+            ],
+            source: 'test',
+        );
+
+        $registry->register($definition);
+
+        $this->assertNull($registry->displayComponent('event', 'teaser'));
+    }
+
+    public function test_display_component_returns_null_for_unknown_display_mode(): void
+    {
+        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+
+        $definition = new ComponentDefinition(
+            name: 'Page Teaser',
+            tag: 'x-aicl-page-teaser',
+            class: 'Aicl\\View\\Components\\PageTeaser',
+            template: 'page-teaser.blade.php',
+            jsModule: null,
+            category: 'data',
+            status: 'stable',
+            description: 'Page teaser display',
+            context: ['entity-display'],
+            notFor: [],
+            props: [],
+            slots: [],
+            variants: [],
+            composableIn: [],
+            decisionRule: 'Use to display a Page in teaser mode',
+            fieldSignals: [],
+            filamentEquivalent: null,
+            entityDisplay: [
+                'content_type' => 'page',
+                'display_mode' => 'teaser',
+                'field_mapping' => ['title' => 'title'],
+            ],
+            source: 'test',
+        );
+
+        $registry->register($definition);
+
+        $this->assertNull($registry->displayComponent('page', 'card'));
+    }
+
+    // ─── displayComponents() ────────────────────────────────────
+
+    public function test_display_components_returns_all_modes_for_content_type(): void
+    {
+        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+
+        $teaser = new ComponentDefinition(
+            name: 'Post Teaser',
+            tag: 'x-aicl-post-teaser',
+            class: 'Aicl\\View\\Components\\PostTeaser',
+            template: 'post-teaser.blade.php',
+            jsModule: null,
+            category: 'data',
+            status: 'stable',
+            description: 'Post teaser display',
+            context: ['entity-display'],
+            notFor: [],
+            props: [],
+            slots: [],
+            variants: [],
+            composableIn: [],
+            decisionRule: 'Use to display a Post in teaser mode',
+            fieldSignals: [],
+            filamentEquivalent: null,
+            entityDisplay: [
+                'content_type' => 'post',
+                'display_mode' => 'teaser',
+                'field_mapping' => ['title' => 'title'],
+            ],
+            source: 'test',
+        );
+
+        $card = new ComponentDefinition(
+            name: 'Post Card',
+            tag: 'x-aicl-post-card',
+            class: 'Aicl\\View\\Components\\PostCard',
+            template: 'post-card.blade.php',
+            jsModule: null,
+            category: 'data',
+            status: 'stable',
+            description: 'Post card display',
+            context: ['entity-display'],
+            notFor: [],
+            props: [],
+            slots: [],
+            variants: [],
+            composableIn: [],
+            decisionRule: 'Use to display a Post in card mode',
+            fieldSignals: [],
+            filamentEquivalent: null,
+            entityDisplay: [
+                'content_type' => 'post',
+                'display_mode' => 'card',
+                'field_mapping' => ['title' => 'title'],
+            ],
+            source: 'test',
+        );
+
+        $unrelated = new ComponentDefinition(
+            name: 'Page Teaser',
+            tag: 'x-aicl-page-teaser',
+            class: 'Aicl\\View\\Components\\PageTeaser',
+            template: 'page-teaser.blade.php',
+            jsModule: null,
+            category: 'data',
+            status: 'stable',
+            description: 'Page teaser display',
+            context: ['entity-display'],
+            notFor: [],
+            props: [],
+            slots: [],
+            variants: [],
+            composableIn: [],
+            decisionRule: 'Use to display a Page in teaser mode',
+            fieldSignals: [],
+            filamentEquivalent: null,
+            entityDisplay: [
+                'content_type' => 'page',
+                'display_mode' => 'teaser',
+                'field_mapping' => ['title' => 'title'],
+            ],
+            source: 'test',
+        );
+
+        $registry->register($teaser, $card, $unrelated);
+
+        $postComponents = $registry->displayComponents('post');
+        $this->assertCount(2, $postComponents);
+
+        $modes = $postComponents->map(fn (ComponentDefinition $c) => $c->entityDisplay['display_mode'])->sort()->values()->all();
+        $this->assertSame(['card', 'teaser'], $modes);
+    }
+
+    public function test_display_components_returns_empty_for_unknown_content_type(): void
+    {
+        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+
+        $this->assertTrue($registry->displayComponents('nonexistent')->isEmpty());
+    }
+
+    public function test_display_component_ignores_components_without_entity_display(): void
+    {
+        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+
+        $blade = new ComponentDefinition(
+            name: 'Stat Card',
+            tag: 'x-aicl-stat-card',
+            class: 'Aicl\\View\\Components\\StatCard',
+            template: 'stat-card.blade.php',
+            jsModule: null,
+            category: 'metric',
+            status: 'stable',
+            description: 'Stat card',
+            context: ['blade', 'entity-display'],
+            notFor: [],
+            props: [],
+            slots: [],
+            variants: [],
+            composableIn: [],
+            decisionRule: 'Use for stats',
+            fieldSignals: [],
+            filamentEquivalent: null,
+            entityDisplay: null,
+            source: 'test',
+        );
+
+        $registry->register($blade);
+
+        $this->assertNull($registry->displayComponent('page', 'teaser'));
+        $this->assertTrue($registry->displayComponents('page')->isEmpty());
     }
 }

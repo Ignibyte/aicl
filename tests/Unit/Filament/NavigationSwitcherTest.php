@@ -15,12 +15,12 @@ class NavigationSwitcherTest extends TestCase
         $this->assertArrayHasKey('navigation_layout', $config['theme']);
     }
 
-    public function test_navigation_layout_env_default_is_sidebar(): void
+    public function test_navigation_layout_env_default_is_switchable(): void
     {
-        // Verify the config file uses env() with 'sidebar' as the default
+        // Verify the config file uses env() with 'switchable' as the default
         $configSource = file_get_contents(__DIR__.'/../../../config/aicl.php');
 
-        $this->assertStringContainsString("env('AICL_NAV_LAYOUT', 'sidebar')", $configSource);
+        $this->assertStringContainsString("env('AICL_NAV_LAYOUT', 'switchable')", $configSource);
     }
 
     public function test_switcher_init_view_exists(): void
@@ -65,13 +65,13 @@ class NavigationSwitcherTest extends TestCase
         $this->assertStringContainsString('x-on:click="toggle()"', $content);
     }
 
-    public function test_switcher_toggle_uses_fontawesome_icons(): void
+    public function test_switcher_toggle_uses_heroicons(): void
     {
         $viewPath = __DIR__.'/../../../resources/views/components/navigation-switcher-toggle.blade.php';
         $content = file_get_contents($viewPath);
 
-        $this->assertStringContainsString('x-fas-table-columns', $content);
-        $this->assertStringContainsString('x-fas-bars', $content);
+        $this->assertStringContainsString('x-heroicon-o-view-columns', $content);
+        $this->assertStringContainsString('x-heroicon-o-bars-3', $content);
     }
 
     public function test_js_file_contains_navigation_switcher_function(): void

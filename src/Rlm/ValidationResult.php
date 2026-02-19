@@ -12,5 +12,6 @@ class ValidationResult
         public bool $passed,
         public string $message = '',
         public ?string $file = null,
+        public bool $waived = false,
     ) {}
 }

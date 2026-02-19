@@ -328,6 +328,8 @@ class AiclServiceProvider extends ServiceProvider
                 Console\Commands\ValidateEntityCommand::class,
                 Console\Commands\ValidateSpecCommand::class,
             ]);
+
+            $this->registerRlmSchedule();
         }
     }
 
@@ -528,6 +530,76 @@ class AiclServiceProvider extends ServiceProvider
         /** @var \Illuminate\Routing\Router $router */
         $router = $this->app['router'];
         $router->aliasMiddleware('track-presence', Http\Middleware\TrackPresenceMiddleware::class);
+    }
+
+    /**
+     * Register RLM maintenance schedule.
+     *
+     * Runs stale pattern detection weekly, cleanup weekly, and health stats daily.
+     * All scheduled tasks use onOneServer() + withoutOverlapping() for safety.
+     */
+    protected function registerRlmSchedule(): void
+    {
+        $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
+            $gcLogPath = storage_path('logs/rlm-gc-'.date('Y-W').'.log');
+            $healthLogPath = storage_path('logs/rlm-health-'.date('Y-m').'.log');
+
+            // Weekly: stale pattern detection
+            $schedule->command('aicl:discover-patterns --stale')
+                ->weeklyOn(\Illuminate\Console\Scheduling\Schedule::SUNDAY, '02:00')
+                ->onOneServer()
+                ->withoutOverlapping()
+                ->appendOutputTo($gcLogPath);
+
+            // Weekly: knowledge base cleanup
+            $schedule->command('aicl:rlm cleanup --remove-faker-records')
+                ->weeklyOn(\Illuminate\Console\Scheduling\Schedule::SUNDAY, '02:30')
+                ->onOneServer()
+                ->withoutOverlapping()
+                ->appendOutputTo($gcLogPath);
+
+            // Weekly: proof link integrity check
+            $schedule->call(fn () => Jobs\ProofLinkIntegrityJob::dispatch())
+                ->name('rlm-proof-link-integrity')
+                ->weeklyOn(\Illuminate\Console\Scheduling\Schedule::SUNDAY, '03:00')
+                ->onOneServer()
+                ->withoutOverlapping();
+
+            // Daily: health metrics snapshot
+            $schedule->command('aicl:rlm stats')
+                ->dailyAt('06:00')
+                ->onOneServer()
+                ->appendOutputTo($healthLogPath);
+
+            // Monthly: log rotation — prune old GC and health logs
+            $schedule->call(function () {
+                $this->pruneRlmLogs();
+            })
+                ->name('rlm-log-rotation')
+                ->monthlyOn(1, '03:00')
+                ->onOneServer();
+        });
+    }
+
+    /**
+     * Prune old RLM log files.
+     */
+    protected function pruneRlmLogs(): void
+    {
+        $logsPath = storage_path('logs');
+        $now = now();
+
+        foreach (glob($logsPath.'/rlm-gc-*.log') as $file) {
+            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file))) > 90) {
+                @unlink($file);
+            }
+        }
+
+        foreach (glob($logsPath.'/rlm-health-*.log') as $file) {
+            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file))) > 365) {
+                @unlink($file);
+            }
+        }
     }
 
     protected function configureElasticsearch(): void

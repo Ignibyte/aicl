@@ -162,7 +162,7 @@ class ComponentDiscoveryService
         if (! is_array($manifest['context']) || count($manifest['context']) === 0) {
             $errors[] = 'Context must be a non-empty array';
         } else {
-            $validContexts = ['blade', 'livewire', 'filament-widget', 'email', 'pdf'];
+            $validContexts = ['blade', 'livewire', 'filament-widget', 'email', 'pdf', 'cms-builder', 'entity-display'];
             foreach ($manifest['context'] as $ctx) {
                 if (! in_array($ctx, $validContexts, true)) {
                     $errors[] = "Invalid context: '{$ctx}'";
