@@ -26,7 +26,14 @@ class VersionService
                 return $version;
             }
 
-            // 2. Shipped projects: read from Composer's installed package metadata
+            // 2. Shipped projects: changelog inside vendor package
+            $version = $this->parseVersionFrom(base_path('vendor/aicl/aicl/CHANGELOG_FRAMEWORK.md'));
+
+            if ($version !== 'unknown') {
+                return $version;
+            }
+
+            // 3. Fallback: read from Composer's installed package metadata
             return $this->parseComposerVersion('aicl/aicl');
         });
     }
@@ -67,7 +74,7 @@ class VersionService
 
         $version = InstalledVersions::getPrettyVersion($package);
 
-        if ($version && preg_match('/^(\d+\.\d+\.\d+)/', $version, $matches)) {
+        if ($version && preg_match('/^v?(\d+\.\d+\.\d+)/', $version, $matches)) {
             return $matches[1];
         }
 

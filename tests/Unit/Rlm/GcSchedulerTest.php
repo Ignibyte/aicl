@@ -36,7 +36,8 @@ class GcSchedulerTest extends TestCase
         });
 
         $this->assertNotNull($staleEvent, 'discover-patterns --stale should be scheduled');
-        $this->assertStringContainsString('02:00', $staleEvent->expression);
+        // Cron: minute=0, hour=2, day=*, month=*, dow=0 (Sunday)
+        $this->assertSame('0 2 * * 0', $staleEvent->expression);
     }
 
     public function test_rlm_cleanup_is_scheduled_weekly(): void
@@ -51,7 +52,8 @@ class GcSchedulerTest extends TestCase
         });
 
         $this->assertNotNull($cleanupEvent, 'aicl:rlm cleanup should be scheduled');
-        $this->assertStringContainsString('02:30', $cleanupEvent->expression);
+        // Cron: minute=30, hour=2, day=*, month=*, dow=0 (Sunday)
+        $this->assertSame('30 2 * * 0', $cleanupEvent->expression);
     }
 
     public function test_rlm_stats_is_scheduled_daily(): void
@@ -66,7 +68,8 @@ class GcSchedulerTest extends TestCase
         });
 
         $this->assertNotNull($statsEvent, 'aicl:rlm stats should be scheduled');
-        $this->assertStringContainsString('6:00', $statsEvent->expression);
+        // Cron: minute=0, hour=6, daily
+        $this->assertSame('0 6 * * *', $statsEvent->expression);
     }
 
     public function test_scheduled_events_use_one_server(): void
@@ -89,18 +92,20 @@ class GcSchedulerTest extends TestCase
     public function test_prune_rlm_logs_removes_old_gc_logs(): void
     {
         $logsPath = storage_path('logs');
+        $futureTime = Carbon::now()->addDays(100);
 
-        // Create an old GC log (>90 days)
-        $oldFile = $logsPath.'/rlm-gc-2024-01.log';
+        // Create "old" file with current real timestamp
+        $oldFile = $logsPath.'/rlm-gc-test-old.log';
         file_put_contents($oldFile, 'old gc log');
-        touch($oldFile, Carbon::now()->subDays(100)->timestamp);
 
-        // Create a recent GC log (<90 days)
-        $recentFile = $logsPath.'/rlm-gc-2026-06.log';
+        // Create "recent" file with future timestamp (within 90 days of shifted now)
+        $recentFile = $logsPath.'/rlm-gc-test-recent.log';
         file_put_contents($recentFile, 'recent gc log');
-        touch($recentFile, Carbon::now()->subDays(10)->timestamp);
+        touch($recentFile, $futureTime->timestamp);
 
-        // Call pruneRlmLogs via reflection
+        // Shift now forward 100 days — old file is 100 days old, recent is 0 days old
+        Carbon::setTestNow($futureTime);
+
         $provider = $this->app->getProvider(AiclServiceProvider::class);
         $method = new \ReflectionMethod($provider, 'pruneRlmLogs');
         $method->setAccessible(true);
@@ -111,23 +116,26 @@ class GcSchedulerTest extends TestCase
 
         // Cleanup
         @unlink($recentFile);
+        Carbon::setTestNow();
     }
 
     public function test_prune_rlm_logs_removes_old_health_logs(): void
     {
         $logsPath = storage_path('logs');
+        $futureTime = Carbon::now()->addDays(400);
 
-        // Create an old health log (>365 days)
-        $oldFile = $logsPath.'/rlm-health-2024-01.log';
+        // Create "old" file with current real timestamp
+        $oldFile = $logsPath.'/rlm-health-test-old.log';
         file_put_contents($oldFile, 'old health log');
-        touch($oldFile, Carbon::now()->subDays(400)->timestamp);
 
-        // Create a recent health log (<365 days)
-        $recentFile = $logsPath.'/rlm-health-2026-01.log';
+        // Create "recent" file with future timestamp
+        $recentFile = $logsPath.'/rlm-health-test-recent.log';
         file_put_contents($recentFile, 'recent health log');
-        touch($recentFile, Carbon::now()->subDays(30)->timestamp);
+        touch($recentFile, $futureTime->timestamp);
 
-        // Call pruneRlmLogs via reflection
+        // Shift now forward 400 days — old file is 400 days old, recent is 0 days old
+        Carbon::setTestNow($futureTime);
+
         $provider = $this->app->getProvider(AiclServiceProvider::class);
         $method = new \ReflectionMethod($provider, 'pruneRlmLogs');
         $method->setAccessible(true);
@@ -138,21 +146,18 @@ class GcSchedulerTest extends TestCase
 
         // Cleanup
         @unlink($recentFile);
+        Carbon::setTestNow();
     }
 
     public function test_prune_rlm_logs_keeps_recent_files(): void
     {
         $logsPath = storage_path('logs');
 
-        // Recent GC log (30 days old)
-        $gcFile = $logsPath.'/rlm-gc-2026-07.log';
+        // Create files — they will be recent (created "now")
+        $gcFile = $logsPath.'/rlm-gc-test-keep.log';
+        $healthFile = $logsPath.'/rlm-health-test-keep.log';
         file_put_contents($gcFile, 'recent gc');
-        touch($gcFile, Carbon::now()->subDays(30)->timestamp);
-
-        // Recent health log (100 days old)
-        $healthFile = $logsPath.'/rlm-health-2026-05.log';
         file_put_contents($healthFile, 'recent health');
-        touch($healthFile, Carbon::now()->subDays(100)->timestamp);
 
         $provider = $this->app->getProvider(AiclServiceProvider::class);
         $method = new \ReflectionMethod($provider, 'pruneRlmLogs');
@@ -184,7 +189,7 @@ class GcSchedulerTest extends TestCase
 
     public function test_rlm_maintenance_complete_event_defaults_to_zero(): void
     {
-        $event = new RlmMaintenanceComplete();
+        $event = new RlmMaintenanceComplete;
 
         $this->assertSame(0, $event->stalePatternCount);
         $this->assertSame(0, $event->cleanedRecordCount);

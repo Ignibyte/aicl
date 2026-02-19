@@ -26,6 +26,7 @@
         {{-- Top bar icon (shown when in sidebar mode → click to switch to topbar) --}}
         <x-heroicon-o-bars-3
             x-show="mode === 'sidebar'"
+            x-cloak
             class="h-5 w-5"
         />
     </button>

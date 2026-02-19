@@ -2,7 +2,10 @@
 
 namespace Aicl\Console\Commands;
 
+use Aicl\Models\DistilledLesson;
+use Aicl\Models\RlmFailure;
 use Aicl\Rlm\EntityValidator;
+use Aicl\Rlm\PatternRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -12,7 +15,9 @@ class ValidateEntityCommand extends Command
      * @var string
      */
     protected $signature = 'aicl:validate
-        {name : The entity name to validate (e.g., Project, Task)}';
+        {name : The entity name to validate (e.g., Project, Task)}
+        {--target=* : Target file types to validate (e.g., model, migration, factory, filament, policy, observer, test, api)}
+        {--quick : Output single-line pass/fail format for inline assertions}';
 
     /**
      * @var string
@@ -24,11 +29,17 @@ class ValidateEntityCommand extends Command
         $name = Str::studly($this->argument('name'));
         $pluralName = Str::pluralStudly($name);
         $tableName = Str::snake($pluralName);
+        $targets = $this->option('target');
+        $quick = (bool) $this->option('quick');
 
-        $this->components->info("Validating entity: {$name}");
-        $this->newLine();
+        $patternVersion = PatternRegistry::currentVersion();
 
-        $validator = new EntityValidator($name);
+        if (! $quick) {
+            $this->components->info("Validating entity: {$name}");
+            $this->newLine();
+        }
+
+        $validator = new EntityValidator($name, $patternVersion);
 
         // Register files that exist — check app/ first (generated entities), then package (golden entity)
         $fileMap = [
@@ -101,19 +112,35 @@ class ValidateEntityCommand extends Command
         }
 
         if ($foundFiles === 0) {
-            $this->components->error("No files found for entity: {$name}");
+            if ($quick) {
+                $this->line("FAIL: {$name} — no files found");
+            } else {
+                $this->components->error("No files found for entity: {$name}");
+            }
 
             return self::FAILURE;
         }
 
-        // Run validation
-        $validator->validate();
+        // Run validation (filtered by targets if provided)
+        $validator->validate($targets !== [] ? $targets : null);
         $score = $validator->score();
+
+        if ($quick) {
+            return $this->renderQuickOutput($validator, $targets);
+        }
+
+        // ─── Enriched Score Card Header ────────────────────────────────
+        $this->line("  <fg=cyan;options=bold>Entity:</> {$name} — <fg=cyan>Pattern Set:</> {$patternVersion}");
 
         // Display results table
         $rows = [];
         foreach ($validator->results() as $result) {
-            $status = $result->passed ? '<fg=green>PASS</>' : ($result->pattern->isError() ? '<fg=red>FAIL</>' : '<fg=yellow>WARN</>');
+            $status = match (true) {
+                $result->waived => '<fg=blue>WAIVED</>',
+                $result->passed => '<fg=green>PASS</>',
+                $result->pattern->isError() => '<fg=red>FAIL</>',
+                default => '<fg=yellow>WARN</>',
+            };
             $rows[] = [
                 $status,
                 $result->pattern->name,
@@ -126,9 +153,19 @@ class ValidateEntityCommand extends Command
 
         $this->newLine();
 
-        // Score display
+        // ─── Convention (L1) Score ──────────────────────────────────────
+        $total = count($validator->results());
+        $passed = count(array_filter($validator->results(), fn ($r) => $r->passed));
+        $errors = count($validator->errors());
+        $warnings = count($validator->warnings());
         $scoreColor = $score >= 80 ? 'green' : ($score >= 60 ? 'yellow' : 'red');
-        $this->line("  Score: <fg={$scoreColor};options=bold>{$score}%</>");
+
+        $conventionLine = "  Conventions (L1):  <fg={$scoreColor};options=bold>{$passed}/{$total} ({$score}%)</>";
+        if ($validator->waivedCount() > 0) {
+            $remaining = $validator->remainingBudget();
+            $conventionLine .= " — <fg=blue>{$validator->waivedCount()} WAIVED</> (budget: {$remaining} remaining)";
+        }
+        $this->line($conventionLine);
 
         // Frontend patterns sub-score (component + view patterns)
         $frontendResults = array_filter(
@@ -151,12 +188,19 @@ class ValidateEntityCommand extends Command
             $this->line("  Frontend patterns: <fg={$fColor}>{$fPassed}/{$fCount}</> ({$fScore}%)");
         }
 
-        // Summary
-        $errors = count($validator->errors());
-        $warnings = count($validator->warnings());
-        $passed = count(array_filter($validator->results(), fn ($r) => $r->passed));
+        // ─── File Count ────────────────────────────────────────────────
+        $this->line("  Files:             {$foundFiles} registered");
 
+        // ─── Learning Summary ──────────────────────────────────────────
+        $this->renderLearningSummary($name);
+
+        // ─── Summary ───────────────────────────────────────────────────
         $this->line("  Passed: {$passed} | Errors: {$errors} | Warnings: {$warnings}");
+
+        if ($validator->hasVersionWarning()) {
+            $this->line('  <fg=yellow>⚠ Using unpinned (latest) pattern set — consider pinning to a specific version</>');
+        }
+
         $this->newLine();
 
         if ($errors > 0) {
@@ -178,5 +222,86 @@ class ValidateEntityCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Render quick single-line pass/fail output for inline assertions.
+     *
+     * @param  array<int, string>  $targets
+     */
+    private function renderQuickOutput(EntityValidator $validator, array $targets): int
+    {
+        $results = $validator->results();
+        $hasFailure = false;
+
+        if ($targets !== []) {
+            // Group results by target and show per-target line
+            $byTarget = [];
+            foreach ($results as $result) {
+                $target = $result->pattern->target;
+                $byTarget[$target][] = $result;
+            }
+
+            foreach ($targets as $target) {
+                if (! isset($byTarget[$target])) {
+                    $this->line("SKIP: {$target} — no patterns matched");
+
+                    continue;
+                }
+
+                $targetResults = $byTarget[$target];
+                $total = count($targetResults);
+                $passed = count(array_filter($targetResults, fn ($r) => $r->passed));
+
+                if ($passed === $total) {
+                    $this->line("PASS: {$target} ({$passed}/{$total})");
+                } else {
+                    $hasFailure = true;
+                    $failures = array_filter($targetResults, fn ($r) => ! $r->passed);
+                    $failNames = implode(', ', array_map(fn ($r) => $r->pattern->name, $failures));
+                    $this->line("FAIL: {$target} ({$passed}/{$total}) — {$failNames}");
+                }
+            }
+        } else {
+            // No targets specified — show overall single line
+            $total = count($results);
+            $passed = count(array_filter($results, fn ($r) => $r->passed));
+
+            if ($passed === $total) {
+                $this->line("PASS: all ({$passed}/{$total})");
+            } else {
+                $hasFailure = true;
+                $failures = array_filter($results, fn ($r) => ! $r->passed);
+                $failNames = implode(', ', array_map(fn ($r) => $r->pattern->name, $failures));
+                $this->line("FAIL: all ({$passed}/{$total}) — {$failNames}");
+            }
+        }
+
+        return $hasFailure ? self::FAILURE : self::SUCCESS;
+    }
+
+    /**
+     * Render learning summary — instructions recalled + entity failures.
+     */
+    private function renderLearningSummary(string $entityName): void
+    {
+        try {
+            $instructionCount = DistilledLesson::query()
+                ->where('is_active', true)
+                ->count();
+
+            $entityFailures = RlmFailure::query()
+                ->where('entity_name', $entityName)
+                ->where('is_active', true)
+                ->count();
+
+            $parts = [];
+            $parts[] = "{$instructionCount} active lessons";
+            $parts[] = "{$entityFailures} entity failures";
+
+            $this->line('  Learning:          '.implode(', ', $parts));
+        } catch (\Throwable) {
+            // Tables may not exist yet
+        }
     }
 }

@@ -5,9 +5,6 @@
  * These functions are referenced by x-data attributes in widget Blade views.
  */
 
-// Auto-import SDC component JS modules (Alpine data/stores)
-import './components';
-
 
 window.pollingWidget = function ({ interval, pauseWhenHidden }) {
     return {

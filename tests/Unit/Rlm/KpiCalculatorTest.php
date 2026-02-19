@@ -563,4 +563,59 @@ class KpiCalculatorTest extends TestCase
         // failCount = 1, borderlineCount = 1 -> MARGINAL
         $this->assertSame('MARGINAL', $result['verdict']);
     }
+
+    // ─── lessonRelevanceRates (Sprint X Phase B) ──────────────
+
+    public function test_lesson_relevance_rates_computes_prevention_rate(): void
+    {
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-REL-001',
+            'is_active' => true,
+            'surfaced_count' => 10,
+            'prevented_count' => 9,
+            'ignored_count' => 1,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $result = $this->calculator->lessonRelevanceRates();
+
+        $this->assertSame(1, $result['active_count']);
+        $this->assertEqualsWithDelta(90.0, $result['overall_avg'], 0.1);
+        $this->assertCount(1, $result['top_relevant']);
+        $this->assertSame('DL-REL-001', $result['top_relevant']->first()['lesson_code']);
+        $this->assertEqualsWithDelta(90.0, $result['top_relevant']->first()['prevention_rate'], 0.1);
+    }
+
+    public function test_lesson_relevance_rates_excludes_zero_surfaced(): void
+    {
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-ZERO-001',
+            'is_active' => true,
+            'surfaced_count' => 0,
+            'prevented_count' => 0,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $result = $this->calculator->lessonRelevanceRates();
+
+        $this->assertSame(0, $result['active_count']);
+        $this->assertSame(0.0, $result['overall_avg']);
+    }
+
+    public function test_lesson_relevance_rates_detects_stale_by_surfacing(): void
+    {
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-STALE-001',
+            'is_active' => true,
+            'surfaced_count' => 60,
+            'prevented_count' => 0,
+            'ignored_count' => 0,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $result = $this->calculator->lessonRelevanceRates();
+
+        $this->assertCount(1, $result['stale_by_surfacing']);
+        $this->assertSame('DL-STALE-001', $result['stale_by_surfacing']->first()['lesson_code']);
+    }
 }

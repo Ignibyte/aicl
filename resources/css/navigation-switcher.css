@@ -1,0 +1,51 @@
+/* ==========================================================================
+   Navigation Layout Switcher — Sidebar ↔ Topbar Runtime Toggle
+   Only active when config('aicl.theme.navigation_layout') === 'switchable'.
+   The data-nav-mode attribute is set on <html> by an early-init script
+   and toggled by the Alpine navigationSwitcher component.
+
+   Since ->topNavigation(true) is set in AiclPlugin for switchable mode,
+   Filament renders fi-body-has-top-navigation on the body. The CSS below
+   overrides Filament's top-nav defaults when the user prefers sidebar mode.
+   ========================================================================== */
+
+/* --- Sidebar Mode Overrides ---
+   Replicate Filament's :not(.fi-body-has-top-navigation) sidebar rules
+   but scoped to [data-nav-mode="sidebar"], since the class IS present. */
+
+/* Undo the sidebar hide (Filament: lg:-translate-x-full for top-nav) */
+@media (min-width: 1024px) {
+    [data-nav-mode="sidebar"] .fi-body.fi-body-has-top-navigation .fi-sidebar {
+        translate: 0 !important;
+    }
+
+    /* Sticky sidebar when open */
+    [data-nav-mode="sidebar"] .fi-body.fi-body-has-top-navigation .fi-sidebar.fi-sidebar-open {
+        position: sticky !important;
+    }
+
+    /* Collapsible sidebar: show collapsed rail with proper width + position */
+    [data-nav-mode="sidebar"] .fi-body.fi-body-has-top-navigation.fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar:not(.fi-sidebar-open) {
+        position: sticky !important;
+        translate: 0 !important;
+    }
+
+    /* Hide topbar nav items when in sidebar mode */
+    [data-nav-mode="sidebar"] .fi-topbar-nav-groups {
+        display: none !important;
+    }
+}
+
+/* --- Topbar Mode Overrides ---
+   When user prefers topbar, Filament's default topNavigation CSS applies
+   naturally. Hide sidebar artifacts that shouldn't be visible. */
+@media (min-width: 1024px) {
+    [data-nav-mode="topbar"] .fi-sidebar-close-overlay {
+        display: none !important;
+    }
+
+    /* Hide sidebar collapse button — no sidebar visible in topbar mode */
+    [data-nav-mode="topbar"] .fi-topbar-collapse-sidebar-btn-ctn {
+        display: none !important;
+    }
+}

@@ -532,6 +532,8 @@ class ModelCoverageTest extends TestCase
             'target_type',
             'target_id',
             'relationship',
+            'link_type',
+            'reference',
             'confidence',
         ];
 

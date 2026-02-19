@@ -28,7 +28,7 @@ class RlmCommand extends Command
      * @var string
      */
     protected $signature = 'aicl:rlm
-        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, sync-knowledge, embed, index, aar, cleanup, distill, feedback, health, waiver)}
+        {action : The action to perform (search, recall, learn, failures, scores, stats, export, trace-save, sync, sync-knowledge, embed, index, aar, cleanup, distill, feedback, health, waiver, optimize)}
         {query? : Search query or lesson summary}
         {--agent= : Agent role for recall (architect, rlm, tester, solutions, designer, pm)}
         {--phase= : Pipeline phase number for recall}
@@ -67,6 +67,8 @@ class RlmCommand extends Command
         {--push : Push local data to hub (sync action)}
         {--pull : Pull hub data to local (sync action)}
         {--dry-run : Show what would be synced without executing}
+        {--apply : Apply optimization changes (optimize action)}
+        {--reset : Reset impact scores to base values (optimize action)}
         {--backfill : Generate embeddings for all records missing them (embed action)}
         {--model= : Specific model class for embed/index (e.g., RlmFailure)}
         {--stats : Show embedding/index stats instead of running (embed/index action)}
@@ -110,6 +112,7 @@ class RlmCommand extends Command
             'feedback' => $this->handleFeedback(),
             'health' => $this->handleHealth(),
             'waiver' => $this->handleWaiver(),
+            'optimize' => $this->handleOptimize(),
             default => $this->showUsage(),
         };
     }
@@ -960,6 +963,30 @@ class RlmCommand extends Command
             $this->line('  '.implode(' | ', $topicParts));
         }
 
+        // Lesson relevance rates (Sprint X)
+        $kpi = app(KpiCalculator::class);
+        $relevance = $kpi->lessonRelevanceRates();
+        if ($relevance['active_count'] > 0) {
+            $this->newLine();
+            $this->line('Lesson Relevance (prevention rate = prevented / surfaced):');
+            $this->line("  Overall average:   {$relevance['overall_avg']}%");
+            $this->line("  Lessons with surfacing data: {$relevance['active_count']}");
+
+            if ($relevance['top_relevant']->isNotEmpty()) {
+                $this->line('  Top relevant:');
+                foreach ($relevance['top_relevant'] as $l) {
+                    $this->line("    {$l['lesson_code']}: {$l['prevention_rate']}% ({$l['prevented']}/{$l['surfaced']})");
+                }
+            }
+
+            if ($relevance['stale_by_surfacing']->isNotEmpty()) {
+                $this->line('  Stale by surfacing (50+ shown, 0 interactions):');
+                foreach ($relevance['stale_by_surfacing'] as $l) {
+                    $this->line("    {$l['lesson_code']}: surfaced {$l['surfaced_count']}x");
+                }
+            }
+        }
+
         return self::SUCCESS;
     }
 
@@ -1639,6 +1666,196 @@ class RlmCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    // ─── Optimize ────────────────────────────────────────────────
+
+    private function handleOptimize(): int
+    {
+        $apply = (bool) $this->option('apply');
+        $reset = (bool) $this->option('reset');
+        $dryRun = ! $apply && ! $reset;
+
+        if ($reset) {
+            return $this->handleOptimizeReset();
+        }
+
+        // Load traces with surfaced_lesson_codes
+        $traces = GenerationTrace::query()
+            ->whereNotNull('surfaced_lesson_codes')
+            ->whereJsonLength('surfaced_lesson_codes', '>', 0)
+            ->get();
+
+        if ($traces->count() < 5) {
+            $this->components->warn("Insufficient traces for optimization: {$traces->count()}/5 minimum required.");
+            $this->line('  Run more entity generation pipelines to accumulate trace data.');
+
+            return self::SUCCESS;
+        }
+
+        $this->components->info("Analyzing {$traces->count()} generation traces...");
+
+        // Group traces by outcome quality
+        $grouped = ['GOOD' => collect(), 'FAIR' => collect(), 'POOR' => collect()];
+        foreach ($traces as $trace) {
+            $quality = $this->classifyOutcome($trace);
+            $grouped[$quality]->push($trace);
+        }
+
+        $this->line("  Outcome distribution: GOOD={$grouped['GOOD']->count()}, FAIR={$grouped['FAIR']->count()}, POOR={$grouped['POOR']->count()}");
+        $this->newLine();
+
+        // Collect all lesson codes that appeared in traces
+        $lessonAppearances = [];
+        foreach ($traces as $trace) {
+            $codes = $trace->surfaced_lesson_codes ?? [];
+            $quality = $this->classifyOutcome($trace);
+            foreach ($codes as $code) {
+                if (! isset($lessonAppearances[$code])) {
+                    $lessonAppearances[$code] = ['good' => 0, 'fair' => 0, 'poor' => 0, 'total' => 0];
+                }
+                $lessonAppearances[$code][strtolower($quality)]++;
+                $lessonAppearances[$code]['total']++;
+            }
+        }
+
+        if (empty($lessonAppearances)) {
+            $this->components->info('No lessons appeared in trace data. Nothing to optimize.');
+
+            return self::SUCCESS;
+        }
+
+        // Compute adjustments
+        $adjustments = [];
+        $lessons = DistilledLesson::query()
+            ->where('is_active', true)
+            ->whereIn('lesson_code', array_keys($lessonAppearances))
+            ->get()
+            ->keyBy('lesson_code');
+
+        foreach ($lessonAppearances as $code => $counts) {
+            $lesson = $lessons->get($code);
+            if (! $lesson) {
+                continue;
+            }
+
+            $goodRate = $counts['total'] > 0 ? $counts['good'] / $counts['total'] : 0;
+            $poorRate = $counts['total'] > 0 ? $counts['poor'] / $counts['total'] : 0;
+            $boost = $goodRate - $poorRate;
+
+            $currentScore = (float) $lesson->impact_score;
+            $baseScore = (float) ($lesson->base_impact_score ?? $currentScore);
+
+            $adjustmentPct = 0.0;
+            if ($boost > 0.3) {
+                $adjustmentPct = 0.10; // +10%
+            } elseif ($boost < -0.2) {
+                $adjustmentPct = -0.10; // -10%
+            }
+
+            if ($adjustmentPct === 0.0) {
+                continue;
+            }
+
+            $newScore = $currentScore * (1 + $adjustmentPct);
+
+            // Clamp to [0.1, base * 2.0]
+            $maxScore = $baseScore * 2.0;
+            $newScore = max(0.1, min($newScore, $maxScore));
+            $newScore = round($newScore, 2);
+
+            if ($newScore === $currentScore) {
+                continue;
+            }
+
+            $adjustments[] = [
+                'lesson_code' => $code,
+                'lesson' => $lesson,
+                'current_score' => $currentScore,
+                'new_score' => $newScore,
+                'base_score' => $baseScore,
+                'boost' => round($boost, 3),
+                'good' => $counts['good'],
+                'fair' => $counts['fair'],
+                'poor' => $counts['poor'],
+                'total' => $counts['total'],
+            ];
+        }
+
+        if (empty($adjustments)) {
+            $this->components->info('No adjustments needed — all lessons within acceptable ranges.');
+
+            return self::SUCCESS;
+        }
+
+        // Display adjustments
+        $this->line($dryRun ? 'Proposed adjustments (dry-run):' : 'Applying adjustments:');
+        foreach ($adjustments as $adj) {
+            $direction = $adj['new_score'] > $adj['current_score'] ? "\u{2191}" : "\u{2193}";
+            $this->line("  {$adj['lesson_code']}: {$adj['current_score']} -> {$adj['new_score']} {$direction} (boost: {$adj['boost']}, {$adj['good']}/{$adj['total']} GOOD)");
+        }
+
+        if ($dryRun) {
+            $this->newLine();
+            $this->components->info('Dry-run complete. Use --apply to persist changes.');
+
+            return self::SUCCESS;
+        }
+
+        // Apply adjustments
+        foreach ($adjustments as $adj) {
+            $lesson = $adj['lesson'];
+            $updateData = ['impact_score' => $adj['new_score']];
+
+            // Set base_impact_score on first optimization run
+            if ($lesson->base_impact_score === null) {
+                $updateData['base_impact_score'] = $adj['current_score'];
+            }
+
+            $lesson->update($updateData);
+        }
+
+        $this->newLine();
+        $this->components->info(count($adjustments).' lesson(s) optimized.');
+
+        return self::SUCCESS;
+    }
+
+    private function handleOptimizeReset(): int
+    {
+        $lessons = DistilledLesson::query()
+            ->where('is_active', true)
+            ->whereNotNull('base_impact_score')
+            ->get();
+
+        if ($lessons->isEmpty()) {
+            $this->components->info('No lessons have base impact scores to reset to.');
+
+            return self::SUCCESS;
+        }
+
+        foreach ($lessons as $lesson) {
+            $lesson->update([
+                'impact_score' => $lesson->base_impact_score,
+                'base_impact_score' => null,
+            ]);
+        }
+
+        $this->components->info("{$lessons->count()} lesson(s) reset to base impact scores.");
+
+        return self::SUCCESS;
+    }
+
+    private function classifyOutcome(GenerationTrace $trace): string
+    {
+        $structuralScore = (float) ($trace->structural_score ?? 0);
+        $fixIterations = (int) ($trace->fix_iterations ?? 0);
+
+        return match (true) {
+            $structuralScore >= 100 && $fixIterations <= 1 => 'GOOD',
+            $structuralScore >= 90 && $fixIterations <= 3 => 'FAIR',
+            default => 'POOR',
+        };
     }
 
     // ─── Feedback ──────────────────────────────────────────────

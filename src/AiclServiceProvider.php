@@ -85,6 +85,7 @@ use Aicl\Rlm\RecallService;
 use Aicl\Services\EntityRegistry;
 use Aicl\Services\NotificationDispatcher;
 use Aicl\Services\PresenceRegistry;
+use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -281,6 +282,7 @@ class AiclServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aicl');
 
         FilamentAsset::register([
+            Css::make('aicl-navigation-switcher', __DIR__.'/../resources/css/navigation-switcher.css'),
             Js::make('aicl-widgets', __DIR__.'/../resources/js/aicl-widgets.js'),
         ], package: 'aicl/aicl');
 
@@ -590,13 +592,13 @@ class AiclServiceProvider extends ServiceProvider
         $now = now();
 
         foreach (glob($logsPath.'/rlm-gc-*.log') as $file) {
-            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file))) > 90) {
+            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file)), absolute: true) > 90) {
                 @unlink($file);
             }
         }
 
         foreach (glob($logsPath.'/rlm-health-*.log') as $file) {
-            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file))) > 365) {
+            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file)), absolute: true) > 365) {
                 @unlink($file);
             }
         }

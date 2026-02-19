@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property array|null $agent_versions Agent version info
  * @property bool $is_processed Whether trace has been analyzed by pattern discovery
  * @property string|null $aicl_version AICL package version
+ * @property string|null $signature_hash SHA-256 hash of the entity feature signature
  * @property string|null $laravel_version Laravel framework version
  * @property string|null $scaffolder_version AICL scaffolder version
  * @property string|null $pattern_set_version Pattern set version used for validation
@@ -73,6 +74,7 @@ class GenerationTrace extends Model implements Auditable, HasEntityLifecycle
         'agent_versions',
         'is_processed',
         'aicl_version',
+        'signature_hash',
         'laravel_version',
         'scaffolder_version',
         'pattern_set_version',

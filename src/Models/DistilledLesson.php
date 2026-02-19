@@ -25,10 +25,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property array $source_failure_codes
  * @property array|null $source_lesson_ids
  * @property float $impact_score
+ * @property float|null $base_impact_score
  * @property float $confidence
  * @property int $applied_count
  * @property int $prevented_count
  * @property int $ignored_count
+ * @property int $surfaced_count
  * @property bool $is_active
  * @property \Carbon\Carbon $last_distilled_at
  * @property int $generation
@@ -63,10 +65,12 @@ class DistilledLesson extends Model
         'source_failure_codes',
         'source_lesson_ids',
         'impact_score',
+        'base_impact_score',
         'confidence',
         'applied_count',
         'prevented_count',
         'ignored_count',
+        'surfaced_count',
         'is_active',
         'last_distilled_at',
         'generation',
@@ -80,10 +84,12 @@ class DistilledLesson extends Model
             'source_failure_codes' => 'array',
             'source_lesson_ids' => 'array',
             'impact_score' => 'decimal:2',
+            'base_impact_score' => 'decimal:2',
             'confidence' => 'decimal:2',
             'applied_count' => 'integer',
             'prevented_count' => 'integer',
             'ignored_count' => 'integer',
+            'surfaced_count' => 'integer',
             'is_active' => 'boolean',
             'last_distilled_at' => 'datetime',
             'generation' => 'integer',

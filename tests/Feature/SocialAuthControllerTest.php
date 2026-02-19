@@ -33,15 +33,20 @@ class SocialAuthControllerTest extends TestCase
             EntityDeleted::class,
         ]);
 
-        config(['aicl.social_providers' => ['google', 'github']]);
+        config([
+            'aicl.features.social_login' => true,
+            'aicl.social_providers' => ['google', 'github'],
+        ]);
 
-        // Register socialite routes manually since they're conditionally loaded at boot time
-        Route::middleware('web')->group(function (): void {
-            Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
-                ->name('social.redirect');
-            Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
-                ->name('social.callback');
-        });
+        // Load the socialite routes since the feature flag was off at boot time.
+        // Use 'web' middleware only — skip throttle in tests to avoid Redis rate-limiter leaks.
+        Route::middleware('web')->group(
+            base_path('packages/aicl/routes/socialite.php')
+        );
+
+        // Disable throttle middleware for these tests (we're testing auth, not rate limiting)
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class);
     }
 
     protected function mockSocialiteUser(array $overrides = []): SocialiteUser

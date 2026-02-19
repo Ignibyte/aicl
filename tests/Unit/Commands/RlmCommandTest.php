@@ -196,9 +196,9 @@ class RlmCommandTest extends TestCase
 
     public function test_validate_runs_successfully(): void
     {
-        // Validate User entity — should run and output a score
+        // Validate User entity — should run and output a convention score
         $this->artisan('aicl:validate', ['name' => 'User'])
-            ->expectsOutputToContain('Score');
+            ->expectsOutputToContain('Conventions (L1)');
     }
 
     public function test_trace_save_requires_entity(): void

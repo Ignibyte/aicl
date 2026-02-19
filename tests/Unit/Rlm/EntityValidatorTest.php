@@ -277,4 +277,98 @@ class EntityValidatorTest extends TestCase
         $this->assertIsFloat($score);
         $this->assertNotEmpty($validator->results());
     }
+
+    // ─── Target Filtering (Sprint X Phase C) ─────────────────
+
+    public function test_validate_with_target_filters_to_model_only(): void
+    {
+        $modelFile = $this->createFixture('Targeted.php', <<<'PHP'
+        <?php
+        namespace Aicl\Models;
+        class Targeted extends Model {
+            use HasFactory;
+            protected $fillable = ['name'];
+            protected static function newFactory() {}
+        }
+        PHP);
+
+        $migrationFile = $this->createFixture('migration.php', <<<'PHP'
+        <?php
+        return new class extends Migration {
+            public function up(): void {
+                $table->id();
+                $table->timestamps();
+                $table->softDeletes();
+            }
+            public function down(): void {}
+        };
+        PHP);
+
+        $validator = new EntityValidator('Targeted');
+        $validator->addFile('model', $modelFile);
+        $validator->addFile('migration', $migrationFile);
+        $results = $validator->validate(['model']);
+
+        // All results should be for model target only
+        $targets = array_unique(array_map(fn (ValidationResult $r) => $r->pattern->target, $results));
+        $this->assertContains('model', $targets);
+        $this->assertNotContains('migration', $targets);
+    }
+
+    public function test_validate_with_multiple_targets(): void
+    {
+        $modelFile = $this->createFixture('Multi2.php', '<?php class Multi2 {}');
+        $migrationFile = $this->createFixture('migration2.php', '<?php return new class extends Migration {};');
+
+        $validator = new EntityValidator('Multi2');
+        $validator->addFile('model', $modelFile);
+        $validator->addFile('migration', $migrationFile);
+        $results = $validator->validate(['model', 'migration']);
+
+        $targets = array_unique(array_map(fn (ValidationResult $r) => $r->pattern->target, $results));
+        $this->assertContains('model', $targets);
+        $this->assertContains('migration', $targets);
+    }
+
+    public function test_validate_with_null_targets_returns_all(): void
+    {
+        $modelFile = $this->createFixture('AllTargets.php', '<?php class AllTargets {}');
+        $migrationFile = $this->createFixture('migration3.php', '<?php return new class extends Migration {};');
+
+        $validator = new EntityValidator('AllTargets');
+        $validator->addFile('model', $modelFile);
+        $validator->addFile('migration', $migrationFile);
+
+        $resultsAll = $validator->validate(null);
+        $targetsAll = array_unique(array_map(fn (ValidationResult $r) => $r->pattern->target, $resultsAll));
+
+        // Should have both model and migration patterns
+        $this->assertContains('model', $targetsAll);
+        $this->assertContains('migration', $targetsAll);
+    }
+
+    public function test_validate_with_empty_targets_returns_all(): void
+    {
+        $modelFile = $this->createFixture('EmptyTargets.php', '<?php class EmptyTargets {}');
+
+        $validator = new EntityValidator('EmptyTargets');
+        $validator->addFile('model', $modelFile);
+
+        $resultsEmpty = $validator->validate([]);
+        $resultsNull = $validator->validate(null);
+
+        // Both should return the same set of patterns
+        $this->assertCount(count($resultsNull), $resultsEmpty);
+    }
+
+    public function test_validate_with_nonexistent_target_returns_empty(): void
+    {
+        $modelFile = $this->createFixture('NoMatch.php', '<?php class NoMatch {}');
+
+        $validator = new EntityValidator('NoMatch');
+        $validator->addFile('model', $modelFile);
+        $results = $validator->validate(['nonexistent_target']);
+
+        $this->assertEmpty($results);
+    }
 }

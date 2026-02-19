@@ -107,13 +107,14 @@ class KnowledgeServiceRecallTest extends TestCase
     public function test_recall_includes_lessons_matching_agent_topics(): void
     {
         // architect agent maps to topics: scaffolder, filament, laravel, testing, octane
-        RlmLesson::factory()->create([
+        // Recall requires surfaceable (instruction/prevention_rule) + verified
+        RlmLesson::factory()->instruction()->create([
             'topic' => 'scaffolder',
             'summary' => 'Scaffolder lesson for architect recall',
             'is_active' => true,
             'owner_id' => 1,
         ]);
-        RlmLesson::factory()->create([
+        RlmLesson::factory()->instruction()->create([
             'topic' => 'unrelated_topic',
             'summary' => 'Unrelated topic lesson',
             'is_active' => true,
@@ -128,7 +129,7 @@ class KnowledgeServiceRecallTest extends TestCase
 
     public function test_recall_tester_agent_gets_testing_topic_lessons(): void
     {
-        RlmLesson::factory()->create([
+        RlmLesson::factory()->instruction()->create([
             'topic' => 'testing',
             'summary' => 'Testing lesson for tester agent',
             'is_active' => true,
@@ -148,7 +149,7 @@ class KnowledgeServiceRecallTest extends TestCase
     public function test_recall_phase_3_includes_generation_topics(): void
     {
         // Phase 3 maps to: scaffolder, generation, filament, models, migrations
-        RlmLesson::factory()->create([
+        RlmLesson::factory()->instruction()->create([
             'topic' => 'filament',
             'summary' => 'Filament lesson for phase 3',
             'is_active' => true,
@@ -164,7 +165,7 @@ class KnowledgeServiceRecallTest extends TestCase
     public function test_recall_phase_7_includes_testing_topics(): void
     {
         // Phase 7 maps to: testing, regression, integration
-        RlmLesson::factory()->create([
+        RlmLesson::factory()->instruction()->create([
             'topic' => 'testing',
             'summary' => 'Testing lesson for phase 7',
             'is_active' => true,
@@ -183,7 +184,7 @@ class KnowledgeServiceRecallTest extends TestCase
 
     public function test_recall_with_entity_context_returns_matching_prevention_rules(): void
     {
-        PreventionRule::factory()->create([
+        PreventionRule::factory()->withoutFailure()->create([
             'trigger_context' => ['has_states' => true],
             'rule_text' => 'Verify state transitions match design',
             'is_active' => true,
@@ -191,7 +192,7 @@ class KnowledgeServiceRecallTest extends TestCase
             'priority' => 8,
             'owner_id' => 1,
         ]);
-        PreventionRule::factory()->create([
+        PreventionRule::factory()->withoutFailure()->create([
             'trigger_context' => ['has_media' => true],
             'rule_text' => 'Media rule should not match',
             'is_active' => true,
@@ -311,7 +312,7 @@ class KnowledgeServiceRecallTest extends TestCase
 
     public function test_recall_solutions_agent_gets_architecture_topics(): void
     {
-        RlmLesson::factory()->create([
+        RlmLesson::factory()->instruction()->create([
             'topic' => 'architecture',
             'summary' => 'Architecture lesson for solutions agent',
             'is_active' => true,
@@ -326,7 +327,7 @@ class KnowledgeServiceRecallTest extends TestCase
 
     public function test_recall_designer_agent_gets_tailwind_topics(): void
     {
-        RlmLesson::factory()->create([
+        RlmLesson::factory()->instruction()->create([
             'topic' => 'tailwind',
             'summary' => 'Tailwind lesson for designer agent',
             'is_active' => true,

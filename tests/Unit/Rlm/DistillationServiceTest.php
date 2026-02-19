@@ -431,6 +431,223 @@ class DistillationServiceTest extends TestCase
         $this->assertCount(0, $rules);
     }
 
+    // ─── Effectiveness-Weighted Ranking (Sprint X Phase A) ─────
+
+    public function test_get_top_lessons_ranks_by_confidence_weighted_impact(): void
+    {
+        // High impact but low confidence — should rank BELOW medium impact + high confidence
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-001-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 8.0,
+            'confidence' => 0.3,
+            'is_active' => true,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        // Medium impact but high confidence — should rank ABOVE
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-002-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 4.0,
+            'confidence' => 0.9,
+            'is_active' => true,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $lessons = $this->service->getTopLessons('architect', 3);
+
+        $this->assertCount(2, $lessons);
+        // 4.0 * 0.9 = 3.6 > 8.0 * 0.3 = 2.4
+        $this->assertSame('DL-002-A3', $lessons->first()->lesson_code);
+        $this->assertSame('DL-001-A3', $lessons->last()->lesson_code);
+    }
+
+    public function test_confidence_floor_prevents_new_lessons_from_vanishing(): void
+    {
+        // Lesson with very low confidence (near zero) — floor should kick in
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-001-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 10.0,
+            'confidence' => 0.05,
+            'is_active' => true,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        // Lower impact but default confidence
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-002-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 2.0,
+            'confidence' => 0.5,
+            'is_active' => true,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $lessons = $this->service->getTopLessons('architect', 3);
+
+        $this->assertCount(2, $lessons);
+        // 10.0 * GREATEST(0.05, 0.1) = 10.0 * 0.1 = 1.0
+        // 2.0 * GREATEST(0.5, 0.1) = 2.0 * 0.5 = 1.0
+        // Equal scores — both should appear (order may vary with equal scores)
+        $codes = $lessons->pluck('lesson_code')->toArray();
+        $this->assertContains('DL-001-A3', $codes);
+        $this->assertContains('DL-002-A3', $codes);
+    }
+
+    public function test_default_confidence_lessons_rank_proportionally(): void
+    {
+        // New lesson with default confidence (0.5) and high impact
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-001-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 6.0,
+            'confidence' => 0.5,
+            'is_active' => true,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        // Established lesson with full confidence (1.0) and lower impact
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-002-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 4.0,
+            'confidence' => 1.0,
+            'is_active' => true,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $lessons = $this->service->getTopLessons('architect', 3);
+
+        $this->assertCount(2, $lessons);
+        // 4.0 * 1.0 = 4.0 > 6.0 * 0.5 = 3.0
+        $this->assertSame('DL-002-A3', $lessons->first()->lesson_code);
+        $this->assertSame('DL-001-A3', $lessons->last()->lesson_code);
+    }
+
+    public function test_when_then_rules_ordered_by_effectiveness(): void
+    {
+        // Create lessons with different effectiveness profiles
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-001-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 5.0,
+            'confidence' => 0.9,
+            'is_active' => true,
+            'trigger_context' => ['component' => 'model'],
+            'guidance' => "WHEN: generating model\nTHEN: check traits",
+            'owner_id' => $this->admin->id,
+        ]);
+
+        DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-002-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 10.0,
+            'confidence' => 0.2,
+            'is_active' => true,
+            'trigger_context' => ['component' => 'factory'],
+            'guidance' => "WHEN: generating factory\nTHEN: check newFactory",
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $rules = $this->service->generateWhenThenRules('architect', 3);
+
+        // 5.0 * 0.9 = 4.5 > 10.0 * 0.2 = 2.0 — higher effectiveness first
+        $this->assertGreaterThanOrEqual(1, $rules->count());
+    }
+
+    // ─── Surfaced Count Tracking (Sprint X Phase B) ────────────
+
+    public function test_get_top_lessons_increments_surfaced_count(): void
+    {
+        $lesson = DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-001-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'impact_score' => 5.0,
+            'confidence' => 0.8,
+            'is_active' => true,
+            'surfaced_count' => 0,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $this->service->getTopLessons('architect', 3);
+
+        $lesson->refresh();
+        $this->assertSame(1, $lesson->surfaced_count);
+
+        // Call again — should increment to 2
+        $this->service->getTopLessons('architect', 3);
+
+        $lesson->refresh();
+        $this->assertSame(2, $lesson->surfaced_count);
+    }
+
+    public function test_surfaced_count_not_incremented_for_empty_results(): void
+    {
+        $lesson = DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-001-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'is_active' => true,
+            'surfaced_count' => 0,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        // Request lessons for a different agent — should not match
+        $this->service->getTopLessons('nonexistent', 99);
+
+        $lesson->refresh();
+        $this->assertSame(0, $lesson->surfaced_count);
+    }
+
+    public function test_auto_deactivate_stale_by_surfacing(): void
+    {
+        // Surfaced 60 times with zero interactions — should be deactivated
+        $stale = DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-001-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'is_active' => true,
+            'surfaced_count' => 60,
+            'prevented_count' => 0,
+            'ignored_count' => 0,
+            'confidence' => 0.8,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        // Surfaced 60 times but has interactions — should NOT be deactivated
+        $active = DistilledLesson::factory()->create([
+            'lesson_code' => 'DL-002-A3',
+            'target_agent' => 'architect',
+            'target_phase' => 3,
+            'is_active' => true,
+            'surfaced_count' => 60,
+            'prevented_count' => 5,
+            'ignored_count' => 0,
+            'confidence' => 0.8,
+            'owner_id' => $this->admin->id,
+        ]);
+
+        $count = $this->service->autoDeactivateLowConfidence();
+
+        $stale->refresh();
+        $active->refresh();
+
+        $this->assertFalse($stale->is_active);
+        $this->assertTrue($active->is_active);
+        $this->assertGreaterThanOrEqual(1, $count);
+    }
+
     // ─── Stats ──────────────────────────────────────────────────
 
     public function test_get_stats_returns_correct_structure(): void

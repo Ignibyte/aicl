@@ -24,6 +24,7 @@ use Aicl\Console\Support\ReportSectionSpec;
 use Aicl\Console\Support\SpecFileParser;
 use Aicl\Console\Support\WidgetQueryParser;
 use Aicl\Console\Support\WidgetSpec;
+use Aicl\Rlm\EntitySignature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -91,6 +92,8 @@ class MakeEntityCommand extends Command
 
     protected ?EntitySpec $entitySpec = null;
 
+    protected ?EntitySignature $entitySignature = null;
+
     /**
      * Rich enum definitions from spec file.
      *
@@ -125,6 +128,9 @@ class MakeEntityCommand extends Command
         if (! $this->parseSmartOptions($name, $tableName)) {
             return self::FAILURE;
         }
+
+        // Build entity feature signature from parsed options
+        $this->entitySignature = $this->buildEntitySignature($name);
 
         $traits = $this->selectTraits();
         $generateFilament = $this->shouldGenerateFilament();
@@ -319,6 +325,9 @@ class MakeEntityCommand extends Command
         $this->newLine();
 
         $generateViews = $spec->wantsViews() || (bool) $this->option('views');
+
+        // Build entity feature signature from spec-parsed options
+        $this->entitySignature = $this->buildEntitySignature($name);
 
         $files = $this->scaffoldEntityFiles(
             name: $name,
@@ -672,6 +681,61 @@ class MakeEntityCommand extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Build an EntitySignature from the current parsed command state.
+     */
+    protected function buildEntitySignature(string $name): EntitySignature
+    {
+        $fields = [];
+        if ($this->fields) {
+            foreach ($this->fields as $field) {
+                $fields[$field->name] = $field->type;
+            }
+        }
+
+        $states = $this->states ?? [];
+
+        $relationships = [];
+        if ($this->relationships) {
+            foreach ($this->relationships as $rel) {
+                $relationships[] = "{$rel->type}:{$rel->relatedModel}";
+            }
+        }
+
+        $features = [];
+        if ($this->option('widgets') || $this->option('all')) {
+            $features[] = 'widgets';
+        }
+        if ($this->option('notifications') || $this->option('all')) {
+            $features[] = 'notifications';
+        }
+        if ($this->option('pdf') || $this->option('all')) {
+            $features[] = 'pdf';
+        }
+        if ($this->option('ai-context') || $this->option('all')) {
+            $features[] = 'ai_context';
+        }
+        if ($this->option('views')) {
+            $features[] = 'views';
+        }
+
+        return new EntitySignature(
+            entityName: $name,
+            fields: $fields,
+            states: $states,
+            relationships: $relationships,
+            features: $features,
+        );
+    }
+
+    /**
+     * Get the entity signature built during scaffolding.
+     */
+    public function getEntitySignature(): ?EntitySignature
+    {
+        return $this->entitySignature;
     }
 
     /**

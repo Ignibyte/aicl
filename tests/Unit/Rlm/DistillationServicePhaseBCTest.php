@@ -592,6 +592,7 @@ class DistillationServicePhaseBCTest extends TestCase
             'source_id' => $failure->id,
             'target_type' => $lesson->getMorphClass(),
             'target_id' => $lesson->id,
+            'relationship' => KnowledgeLinkRelationship::LearnedFrom,
             'link_type' => KnowledgeLinkType::TestCase,
             'reference' => 'SomeTest::test_method',
         ]);
@@ -601,6 +602,7 @@ class DistillationServicePhaseBCTest extends TestCase
             'source_id' => $failure->id,
             'target_type' => $lesson->getMorphClass(),
             'target_id' => $lesson->id,
+            'relationship' => KnowledgeLinkRelationship::DerivedFrom,
             'link_type' => null,
             'reference' => null,
         ]);

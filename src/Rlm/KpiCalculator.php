@@ -171,6 +171,61 @@ class KpiCalculator
     }
 
     /**
+     * KPI 4: Lesson Relevance (Prevention Rate).
+     *
+     * Per lesson: prevented_count / max(surfaced_count, 1).
+     * Answers: "Of all the times we showed this tip, how often did it prevent a failure?"
+     *
+     * @return array{overall_avg: float, top_relevant: Collection, stale_by_surfacing: Collection, active_count: int}
+     */
+    public function lessonRelevanceRates(): array
+    {
+        $lessons = DistilledLesson::query()
+            ->where('is_active', true)
+            ->where('surfaced_count', '>', 0)
+            ->get();
+
+        $relevance = $lessons->map(function (DistilledLesson $l): array {
+            $preventionRate = round(($l->prevented_count / max($l->surfaced_count, 1)) * 100, 1);
+
+            return [
+                'lesson_code' => $l->lesson_code,
+                'title' => $l->title,
+                'prevention_rate' => $preventionRate,
+                'prevented' => $l->prevented_count,
+                'surfaced' => $l->surfaced_count,
+            ];
+        });
+
+        $overallAvg = $relevance->isNotEmpty()
+            ? round($relevance->avg('prevention_rate'), 1)
+            : 0.0;
+
+        $sorted = $relevance->sortByDesc('prevention_rate')->values();
+
+        // Stale-by-surfacing: surfaced 50+ times with 0 interactions
+        $staleThreshold = 50;
+        $staleBySurfacing = DistilledLesson::query()
+            ->where('is_active', true)
+            ->where('surfaced_count', '>=', $staleThreshold)
+            ->where('prevented_count', 0)
+            ->where('ignored_count', 0)
+            ->get()
+            ->map(fn (DistilledLesson $l): array => [
+                'lesson_code' => $l->lesson_code,
+                'title' => $l->title,
+                'surfaced_count' => $l->surfaced_count,
+            ]);
+
+        return [
+            'overall_avg' => $overallAvg,
+            'top_relevant' => $sorted->take(5),
+            'stale_by_surfacing' => $staleBySurfacing->values(),
+            'active_count' => $lessons->count(),
+        ];
+    }
+
+    /**
      * Auto-retire underperforming lessons.
      *
      * Deactivates lessons where total interactions >= threshold

@@ -25,6 +25,8 @@ class EntityValidator
 
     protected bool $versionWarning = false;
 
+    protected ?EntitySignature $signature = null;
+
     protected int $waivedCount = 0;
 
     protected float $waivedWeight = 0.0;
@@ -45,11 +47,30 @@ class EntityValidator
     }
 
     /**
+     * Set the entity feature signature for enhanced validation context.
+     */
+    public function setSignature(EntitySignature $signature): static
+    {
+        $this->signature = $signature;
+
+        return $this;
+    }
+
+    /**
+     * Get the entity feature signature, if set.
+     */
+    public function getSignature(): ?EntitySignature
+    {
+        return $this->signature;
+    }
+
+    /**
      * Run all pattern checks and return results.
      *
+     * @param  array<int, string>|null  $targets  If provided, only validate patterns matching these targets
      * @return array<int, ValidationResult>
      */
-    public function validate(): array
+    public function validate(?array $targets = null): array
     {
         $this->results = [];
         $this->versionWarning = false;
@@ -61,6 +82,14 @@ class EntityValidator
         } else {
             $patterns = PatternRegistry::all($this->entityName);
             $this->versionWarning = true;
+        }
+
+        // Filter by targets if specified
+        if ($targets !== null && $targets !== []) {
+            $patterns = array_values(array_filter(
+                $patterns,
+                fn (EntityPattern $p): bool => in_array($p->target, $targets, true),
+            ));
         }
 
         // Load active waivers for this entity

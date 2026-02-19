@@ -247,7 +247,7 @@ class DistillationService
             ->where('target_agent', $agent)
             ->where('target_phase', $phase)
             ->where('is_active', true)
-            ->orderByDesc('impact_score');
+            ->orderByRaw('impact_score * GREATEST(confidence, 0.1) DESC');
 
         if ($entityContext !== null) {
             $activeFeatures = array_keys(array_filter($entityContext));
@@ -256,12 +256,22 @@ class DistillationService
                     $q->where('target_agent', $agent)
                         ->where('target_phase', $phase)
                         ->where('is_active', true)
-                        ->whereJsonContains('trigger_context', [$feature => true]);
+                        ->whereJsonContains('trigger_context', [$feature => true])
+                        ->orderByRaw('impact_score * GREATEST(confidence, 0.1) DESC');
                 });
             }
         }
 
-        return $query->limit($limit)->get();
+        $lessons = $query->limit($limit)->get();
+
+        // Bulk increment surfaced_count for recalled lessons (single query)
+        if ($lessons->isNotEmpty()) {
+            DistilledLesson::query()
+                ->whereIn('id', $lessons->pluck('id'))
+                ->increment('surfaced_count');
+        }
+
+        return $lessons;
     }
 
     /**
@@ -279,6 +289,7 @@ class DistillationService
             ->where('target_agent', $agent)
             ->where('target_phase', $phase)
             ->where('is_active', true)
+            ->orderByRaw('impact_score * GREATEST(confidence, 0.1) DESC')
             ->get();
 
         // Phase B.2: Split lessons into structured (WHEN/THEN guidance) and legacy
@@ -417,7 +428,21 @@ class DistillationService
             ]);
         }
 
-        return $deactivated;
+        // Also deactivate lessons surfaced 50+ times with zero interactions
+        $staleBySurfacing = DistilledLesson::query()
+            ->where('is_active', true)
+            ->where('surfaced_count', '>=', 50)
+            ->where('prevented_count', 0)
+            ->where('ignored_count', 0)
+            ->update(['is_active' => false]);
+
+        if ($staleBySurfacing > 0) {
+            Log::info('DistillationService: auto-deactivated stale-by-surfacing lessons', [
+                'count' => $staleBySurfacing,
+            ]);
+        }
+
+        return $deactivated + $staleBySurfacing;
     }
 
     /**
