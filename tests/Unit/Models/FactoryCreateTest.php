@@ -4,9 +4,7 @@ namespace Aicl\Tests\Unit\Models;
 
 use Aicl\Models\DomainEventRecord;
 use Aicl\Models\FailedJob;
-use Aicl\Models\KnowledgeLink;
 use Aicl\Models\NotificationLog;
-use Aicl\Models\RlmSemanticCache;
 use Aicl\Models\SocialAccount;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,7 +12,7 @@ use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
- * S-005: Verify all 6 new factories can create() without errors.
+ * S-005: Verify all 4 non-RLM factories can create() without errors.
  */
 class FactoryCreateTest extends TestCase
 {
@@ -136,89 +134,19 @@ class FactoryCreateTest extends TestCase
     }
 
     // ========================================================================
-    // KnowledgeLink
-    // ========================================================================
-
-    public function test_knowledge_link_factory_creates_record(): void
-    {
-        $link = KnowledgeLink::factory()->create();
-
-        $this->assertDatabaseHas('knowledge_links', ['id' => $link->id]);
-        $this->assertNotNull($link->source_type);
-        $this->assertNotNull($link->source_id);
-        $this->assertNotNull($link->target_type);
-        $this->assertNotNull($link->target_id);
-        $this->assertNotNull($link->relationship);
-        $this->assertNotNull($link->confidence);
-    }
-
-    public function test_knowledge_link_factory_high_confidence_state(): void
-    {
-        $link = KnowledgeLink::factory()->highConfidence()->create();
-
-        $this->assertGreaterThanOrEqual(0.8, (float) $link->confidence);
-    }
-
-    // ========================================================================
-    // RlmSemanticCache
-    // ========================================================================
-
-    public function test_rlm_semantic_cache_factory_creates_record(): void
-    {
-        $cache = RlmSemanticCache::factory()->create();
-
-        $this->assertDatabaseHas('rlm_semantic_cache', ['id' => $cache->id]);
-        $this->assertNotNull($cache->cache_key);
-        $this->assertNotNull($cache->check_name);
-        $this->assertNotNull($cache->entity_name);
-        $this->assertIsBool($cache->passed);
-        $this->assertNotNull($cache->message);
-        $this->assertNotNull($cache->files_hash);
-    }
-
-    public function test_rlm_semantic_cache_factory_expired_state(): void
-    {
-        $cache = RlmSemanticCache::factory()->expired()->create();
-
-        $this->assertTrue($cache->expires_at->isPast());
-    }
-
-    public function test_rlm_semantic_cache_factory_passing_state(): void
-    {
-        $cache = RlmSemanticCache::factory()->passing()->create();
-
-        $this->assertTrue($cache->passed);
-        $this->assertGreaterThanOrEqual(0.8, (float) $cache->confidence);
-    }
-
-    public function test_rlm_semantic_cache_factory_failing_state(): void
-    {
-        $cache = RlmSemanticCache::factory()->failing()->create();
-
-        $this->assertFalse($cache->passed);
-    }
-
-    // ========================================================================
     // Batch creation
     // ========================================================================
 
-    public function test_all_six_factories_can_create_multiple_records(): void
+    public function test_all_four_factories_can_create_multiple_records(): void
     {
         NotificationLog::factory()->count(3)->create();
         SocialAccount::factory()->count(3)->create();
         FailedJob::factory()->count(3)->create();
         DomainEventRecord::factory()->count(3)->create();
-        KnowledgeLink::factory()->count(3)->create();
-        RlmSemanticCache::factory()->count(3)->create();
 
-        // Use >= because observers on related models (e.g. KnowledgeLink creates
-        // RlmFailure + RlmLesson which dispatch domain events) may insert
-        // additional DomainEventRecords.
         $this->assertGreaterThanOrEqual(3, NotificationLog::count());
         $this->assertGreaterThanOrEqual(3, SocialAccount::count());
         $this->assertGreaterThanOrEqual(3, FailedJob::count());
         $this->assertGreaterThanOrEqual(3, DomainEventRecord::count());
-        $this->assertGreaterThanOrEqual(3, KnowledgeLink::count());
-        $this->assertGreaterThanOrEqual(3, RlmSemanticCache::count());
     }
 }

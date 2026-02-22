@@ -24,7 +24,7 @@ use Aicl\Console\Support\ReportSectionSpec;
 use Aicl\Console\Support\SpecFileParser;
 use Aicl\Console\Support\WidgetQueryParser;
 use Aicl\Console\Support\WidgetSpec;
-use Aicl\Rlm\EntitySignature;
+use Aicl\Support\RlmBridge;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -92,7 +92,8 @@ class MakeEntityCommand extends Command
 
     protected ?EntitySpec $entitySpec = null;
 
-    protected ?EntitySignature $entitySignature = null;
+    /** @var \Rlm\EntitySignature|null */
+    protected ?object $entitySignature = null;
 
     /**
      * Rich enum definitions from spec file.
@@ -129,8 +130,10 @@ class MakeEntityCommand extends Command
             return self::FAILURE;
         }
 
-        // Build entity feature signature from parsed options
-        $this->entitySignature = $this->buildEntitySignature($name);
+        // Build entity feature signature from parsed options (requires RLM)
+        if (RlmBridge::installed()) {
+            $this->entitySignature = $this->buildEntitySignature($name);
+        }
 
         $traits = $this->selectTraits();
         $generateFilament = $this->shouldGenerateFilament();
@@ -326,8 +329,10 @@ class MakeEntityCommand extends Command
 
         $generateViews = $spec->wantsViews() || (bool) $this->option('views');
 
-        // Build entity feature signature from spec-parsed options
-        $this->entitySignature = $this->buildEntitySignature($name);
+        // Build entity feature signature from spec-parsed options (requires RLM)
+        if (RlmBridge::installed()) {
+            $this->entitySignature = $this->buildEntitySignature($name);
+        }
 
         $files = $this->scaffoldEntityFiles(
             name: $name,
@@ -685,8 +690,10 @@ class MakeEntityCommand extends Command
 
     /**
      * Build an EntitySignature from the current parsed command state.
+     *
+     * @return \Rlm\EntitySignature
      */
-    protected function buildEntitySignature(string $name): EntitySignature
+    protected function buildEntitySignature(string $name): object
     {
         $fields = [];
         if ($this->fields) {
@@ -721,7 +728,7 @@ class MakeEntityCommand extends Command
             $features[] = 'views';
         }
 
-        return new EntitySignature(
+        return new \Rlm\EntitySignature(
             entityName: $name,
             fields: $fields,
             states: $states,
@@ -732,8 +739,10 @@ class MakeEntityCommand extends Command
 
     /**
      * Get the entity signature built during scaffolding.
+     *
+     * @return \Rlm\EntitySignature|null
      */
-    public function getEntitySignature(): ?EntitySignature
+    public function getEntitySignature(): ?object
     {
         return $this->entitySignature;
     }
@@ -789,7 +798,6 @@ class MakeEntityCommand extends Command
                     'HasAuditTrail' => 'HasAuditTrail — Activity logging (who changed what when)',
                     'HasStandardScopes' => 'HasStandardScopes — active/inactive/recent/search scopes',
                     'HasTagging' => 'HasTagging — Polymorphic tagging system',
-                    'HasMediaCollections' => 'HasMediaCollections — File/media management',
                     'HasSearchableFields' => 'HasSearchableFields — Full-text search via Scout',
                 ],
                 default: ['HasEntityEvents', 'HasAuditTrail', 'HasStandardScopes'],
@@ -2483,27 +2491,6 @@ PHP;
         $files[] = "app/Filament/Resources/{$pluralName}/{$name}Resource.php";
 
         // Form schema
-        $hasMedia = in_array('HasMediaCollections', $traits);
-        $mediaImport = $hasMedia ? "\nuse TomatoPHP\\FilamentMediaManager\\Form\\MediaManagerPicker;" : '';
-        $mediaSection = $hasMedia ? <<<'MEDIA'
-
-
-            Section::make('Media')
-                ->columnSpanFull()
-                ->columns(2)
-                ->schema([
-                    MediaManagerPicker::make('documents')
-                        ->label('Documents')
-                        ->collection('documents')
-                        ->multiple(),
-                    MediaManagerPicker::make('images')
-                        ->label('Images')
-                        ->collection('default')
-                        ->multiple(),
-                ])
-                ->collapsible(),
-MEDIA : '';
-
         if ($this->smartMode) {
             $formBody = $this->buildSmartFormSchema($name);
             // Gather imports needed for smart form
@@ -2549,14 +2536,14 @@ PHP;
 
 namespace App\\Filament\\Resources\\{$pluralName}\\Schemas;
 
-{$smartFormImports}{$mediaImport}
+{$smartFormImports}
 
 class {$name}Form
 {
     public static function configure(Schema \$schema): Schema
     {
         return \$schema->components([
-{$formBody}{$mediaSection}
+{$formBody}
         ]);
     }
 }
@@ -3608,7 +3595,6 @@ PHP;
                 'HasAuditTrail' => $this->addInterface($interfaces, $interfaceImports, 'Auditable'),
                 'HasTagging' => $this->addInterface($interfaces, $interfaceImports, 'Taggable'),
                 'HasSearchableFields' => $this->addInterface($interfaces, $interfaceImports, 'Searchable'),
-                'HasMediaCollections' => $this->addExternalInterface($interfaces, $interfaceImports, 'HasMedia', 'Spatie\\MediaLibrary\\HasMedia'),
                 default => null,
             };
         }

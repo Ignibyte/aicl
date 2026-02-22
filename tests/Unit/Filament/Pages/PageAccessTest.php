@@ -6,11 +6,6 @@ use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\AuditLog;
 use Aicl\Filament\Pages\NotificationLogPage;
 use Aicl\Filament\Pages\OpsPanel;
-use Aicl\Filament\Pages\RlmDashboard;
-use Aicl\Filament\Widgets\CategoryBreakdownChart;
-use Aicl\Filament\Widgets\FailureTrendChart;
-use Aicl\Filament\Widgets\ProjectHealthWidget;
-use Aicl\Filament\Widgets\PromotionQueueWidget;
 use App\Models\User;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
@@ -27,101 +22,6 @@ class PageAccessTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-    }
-
-    // ─── RlmDashboard ──────────────────────────────────────────
-
-    public function test_rlm_dashboard_extends_page(): void
-    {
-        $this->assertTrue(is_subclass_of(RlmDashboard::class, Page::class));
-    }
-
-    public function test_rlm_dashboard_slug(): void
-    {
-        $reflection = new \ReflectionClass(RlmDashboard::class);
-        $prop = $reflection->getProperty('slug');
-
-        $this->assertEquals('rlm-dashboard', $prop->getDefaultValue());
-    }
-
-    public function test_rlm_dashboard_navigation_group(): void
-    {
-        $reflection = new \ReflectionClass(RlmDashboard::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('RLM Hub', $defaults['navigationGroup']);
-    }
-
-    public function test_rlm_dashboard_navigation_sort(): void
-    {
-        $reflection = new \ReflectionClass(RlmDashboard::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals(1, $defaults['navigationSort']);
-    }
-
-    public function test_rlm_dashboard_view(): void
-    {
-        $reflection = new \ReflectionClass(RlmDashboard::class);
-        $property = $reflection->getProperty('view');
-
-        $this->assertEquals('aicl::filament.pages.rlm-dashboard', $property->getDefaultValue());
-    }
-
-    public function test_rlm_dashboard_has_header_widgets(): void
-    {
-        $page = new RlmDashboard;
-        $reflection = new \ReflectionMethod($page, 'getHeaderWidgets');
-        $reflection->setAccessible(true);
-        $widgets = $reflection->invoke($page);
-
-        $this->assertCount(2, $widgets);
-        $this->assertContains(FailureTrendChart::class, $widgets);
-        $this->assertContains(CategoryBreakdownChart::class, $widgets);
-    }
-
-    public function test_rlm_dashboard_has_footer_widgets(): void
-    {
-        $page = new RlmDashboard;
-        $reflection = new \ReflectionMethod($page, 'getFooterWidgets');
-        $reflection->setAccessible(true);
-        $widgets = $reflection->invoke($page);
-
-        $this->assertCount(2, $widgets);
-        $this->assertContains(PromotionQueueWidget::class, $widgets);
-        $this->assertContains(ProjectHealthWidget::class, $widgets);
-    }
-
-    public function test_rlm_dashboard_accessible_by_super_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('super_admin');
-        $this->actingAs($user);
-
-        $this->assertTrue(RlmDashboard::canAccess());
-    }
-
-    public function test_rlm_dashboard_accessible_by_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-        $this->actingAs($user);
-
-        $this->assertTrue(RlmDashboard::canAccess());
-    }
-
-    public function test_rlm_dashboard_not_accessible_by_viewer(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('viewer');
-        $this->actingAs($user);
-
-        $this->assertFalse(RlmDashboard::canAccess());
-    }
-
-    public function test_rlm_dashboard_not_accessible_without_auth(): void
-    {
-        $this->assertFalse(RlmDashboard::canAccess());
     }
 
     // ─── AiAssistant ────────────────────────────────────────────

@@ -18,14 +18,6 @@ use Aicl\Health\Checks\SwooleCheck;
 use Aicl\Health\HealthCheckRegistry;
 use Aicl\Listeners\EntityEventNotificationListener;
 use Aicl\Listeners\NotificationSentLogger;
-use Aicl\Models\FailureReport;
-use Aicl\Models\GenerationTrace;
-use Aicl\Models\GoldenAnnotation;
-use Aicl\Models\PreventionRule;
-use Aicl\Models\RlmFailure;
-use Aicl\Models\RlmLesson;
-use Aicl\Models\RlmPattern;
-use Aicl\Models\RlmScore;
 use Aicl\Notifications\ChannelRateLimiter;
 use Aicl\Notifications\Contracts\NotificationChannelResolver;
 use Aicl\Notifications\Contracts\NotificationRecipientResolver;
@@ -62,26 +54,6 @@ use Aicl\Notifications\Templates\Resolvers\ChannelVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\ModelVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\RecipientVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\UserVariableResolver;
-use Aicl\Observers\FailureReportObserver;
-use Aicl\Observers\GenerationTraceObserver;
-use Aicl\Observers\GoldenAnnotationObserver;
-use Aicl\Observers\PreventionRuleObserver;
-use Aicl\Observers\RlmFailureDistillObserver;
-use Aicl\Observers\RlmFailureObserver;
-use Aicl\Observers\RlmLessonObserver;
-use Aicl\Observers\RlmPatternObserver;
-use Aicl\Policies\FailureReportPolicy;
-use Aicl\Policies\GenerationTracePolicy;
-use Aicl\Policies\PreventionRulePolicy;
-use Aicl\Policies\RlmFailurePolicy;
-use Aicl\Policies\RlmLessonPolicy;
-use Aicl\Policies\RlmPatternPolicy;
-use Aicl\Policies\RlmScorePolicy;
-use Aicl\Rlm\EmbeddingService;
-use Aicl\Rlm\KnowledgeSearchEngine;
-use Aicl\Rlm\KnowledgeService;
-use Aicl\Rlm\KnowledgeWriter;
-use Aicl\Rlm\RecallService;
 use Aicl\Services\EntityRegistry;
 use Aicl\Services\NotificationDispatcher;
 use Aicl\Services\PresenceRegistry;
@@ -143,13 +115,6 @@ class AiclServiceProvider extends ServiceProvider
             return $registry;
         });
 
-        $this->app->singleton(Rlm\ProjectIdentity::class);
-        $this->app->singleton(Rlm\HubClient::class);
-        $this->app->singleton(EmbeddingService::class);
-        $this->app->singleton(KnowledgeSearchEngine::class);
-        $this->app->singleton(RecallService::class);
-        $this->app->singleton(KnowledgeWriter::class);
-        $this->app->singleton(KnowledgeService::class);
         $this->app->singleton(EntityRegistry::class);
         $this->app->singleton(PresenceRegistry::class);
         $this->app->singleton(ComponentDiscoveryService::class);
@@ -186,7 +151,6 @@ class AiclServiceProvider extends ServiceProvider
 
         $this->registerTemplateEngine();
 
-        $this->configureNeuronAi();
         $this->configureScoutDriver();
     }
 
@@ -201,25 +165,6 @@ class AiclServiceProvider extends ServiceProvider
 
         Gate::policy(\App\Models\User::class, \Aicl\Policies\UserPolicy::class);
         Gate::policy(\Spatie\Permission\Models\Role::class, \Aicl\Policies\RolePolicy::class);
-
-        // RLM Hub entity policies
-        Gate::policy(RlmPattern::class, RlmPatternPolicy::class);
-        Gate::policy(RlmFailure::class, RlmFailurePolicy::class);
-        Gate::policy(FailureReport::class, FailureReportPolicy::class);
-        Gate::policy(RlmLesson::class, RlmLessonPolicy::class);
-        Gate::policy(GenerationTrace::class, GenerationTracePolicy::class);
-        Gate::policy(PreventionRule::class, PreventionRulePolicy::class);
-        Gate::policy(RlmScore::class, RlmScorePolicy::class);
-
-        // RLM Hub entity observers
-        RlmPattern::observe(RlmPatternObserver::class);
-        RlmFailure::observe(RlmFailureObserver::class);
-        RlmFailure::observe(RlmFailureDistillObserver::class);
-        FailureReport::observe(FailureReportObserver::class);
-        RlmLesson::observe(RlmLessonObserver::class);
-        GenerationTrace::observe(GenerationTraceObserver::class);
-        PreventionRule::observe(PreventionRuleObserver::class);
-        GoldenAnnotation::observe(GoldenAnnotationObserver::class);
 
         Event::listen(EntityCreated::class, [EntityEventNotificationListener::class, 'handleCreated']);
         Event::listen(EntityUpdated::class, [EntityEventNotificationListener::class, 'handleUpdated']);
@@ -245,10 +190,9 @@ class AiclServiceProvider extends ServiceProvider
 
         // Swoole/Octane cache wiring and listeners
         Swoole\Cache\PermissionCacheManager::register();
-        Swoole\Cache\WidgetStatsCacheManager::register();
         Swoole\Cache\NotificationBadgeCacheManager::register();
-        Swoole\Cache\KnowledgeStatsCacheManager::register();
         Swoole\Cache\ServiceHealthCacheManager::register();
+
         Event::listen(\Laravel\Octane\Events\WorkerStarting::class, \Aicl\Swoole\Listeners\WarmSwooleCaches::class);
         Event::listen(\Laravel\Octane\Events\WorkerStarting::class, \Aicl\Swoole\Listeners\RestoreSwooleTimers::class);
 
@@ -296,7 +240,6 @@ class AiclServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
-        $this->loadRoutesFrom(__DIR__.'/../routes/hub-api.php');
 
         // Load social auth routes if enabled
         if (config('aicl.features.social_login', false)) {
@@ -318,20 +261,14 @@ class AiclServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Console\Commands\ComponentsCommand::class,
-                Console\Commands\DiscoverPatternsCommand::class,
-                Console\Commands\HubSeedCommand::class,
                 Console\Commands\InstallCommand::class,
                 Console\Commands\MakeEntityCommand::class,
                 Console\Commands\PipelineContextCommand::class,
                 Console\Commands\RemoveEntityCommand::class,
-                Console\Commands\RlmCommand::class,
                 Console\Commands\ScoutImportCommand::class,
                 Console\Commands\UpgradeCommand::class,
-                Console\Commands\ValidateEntityCommand::class,
                 Console\Commands\ValidateSpecCommand::class,
             ]);
-
-            $this->registerRlmSchedule();
         }
     }
 
@@ -462,37 +399,6 @@ class AiclServiceProvider extends ServiceProvider
     }
 
     /**
-     * Map AICL embedding/LLM config to NeuronAI's expected config keys.
-     *
-     * NeuronAI's EmbeddingProviderManager reads config('neuron.embedding.*').
-     * We derive these from existing AICL config so no new .env vars are needed.
-     */
-    protected function configureNeuronAi(): void
-    {
-        $embeddingDriver = config('aicl.rlm.embeddings.driver', 'openai');
-
-        $this->app['config']->set('neuron.embedding.default', $embeddingDriver === 'null' ? 'openai' : $embeddingDriver);
-
-        $this->app['config']->set('neuron.embedding.openai', [
-            'key' => (string) config('aicl.rlm.embeddings.openai.api_key', ''),
-            'model' => (string) config('aicl.rlm.embeddings.openai.model', 'text-embedding-3-small'),
-            'dimensions' => (int) config('aicl.rlm.embeddings.dimension', 1536),
-        ]);
-
-        $this->app['config']->set('neuron.embedding.ollama', [
-            'model' => (string) config('aicl.rlm.embeddings.ollama.model', 'nomic-embed-text'),
-            'url' => rtrim((string) config('aicl.rlm.embeddings.ollama.host', 'http://localhost:11434'), '/').'/api',
-            'parameters' => [],
-        ]);
-
-        // LLM provider config (for future AI streaming in 4.3c)
-        $this->app['config']->set('neuron.providers.anthropic', [
-            'key' => (string) config('aicl.rlm.semantic.api_key', ''),
-            'model' => (string) config('aicl.rlm.semantic.model', 'claude-haiku-4-5-20251001'),
-        ]);
-    }
-
-    /**
      * Configure Scout to use an external search engine when the feature flag is set.
      *
      * Supported drivers: 'meilisearch', 'elasticsearch', or false (database default).
@@ -532,76 +438,6 @@ class AiclServiceProvider extends ServiceProvider
         /** @var \Illuminate\Routing\Router $router */
         $router = $this->app['router'];
         $router->aliasMiddleware('track-presence', Http\Middleware\TrackPresenceMiddleware::class);
-    }
-
-    /**
-     * Register RLM maintenance schedule.
-     *
-     * Runs stale pattern detection weekly, cleanup weekly, and health stats daily.
-     * All scheduled tasks use onOneServer() + withoutOverlapping() for safety.
-     */
-    protected function registerRlmSchedule(): void
-    {
-        $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
-            $gcLogPath = storage_path('logs/rlm-gc-'.date('Y-W').'.log');
-            $healthLogPath = storage_path('logs/rlm-health-'.date('Y-m').'.log');
-
-            // Weekly: stale pattern detection
-            $schedule->command('aicl:discover-patterns --stale')
-                ->weeklyOn(\Illuminate\Console\Scheduling\Schedule::SUNDAY, '02:00')
-                ->onOneServer()
-                ->withoutOverlapping()
-                ->appendOutputTo($gcLogPath);
-
-            // Weekly: knowledge base cleanup
-            $schedule->command('aicl:rlm cleanup --remove-faker-records')
-                ->weeklyOn(\Illuminate\Console\Scheduling\Schedule::SUNDAY, '02:30')
-                ->onOneServer()
-                ->withoutOverlapping()
-                ->appendOutputTo($gcLogPath);
-
-            // Weekly: proof link integrity check
-            $schedule->call(fn () => Jobs\ProofLinkIntegrityJob::dispatch())
-                ->name('rlm-proof-link-integrity')
-                ->weeklyOn(\Illuminate\Console\Scheduling\Schedule::SUNDAY, '03:00')
-                ->onOneServer()
-                ->withoutOverlapping();
-
-            // Daily: health metrics snapshot
-            $schedule->command('aicl:rlm stats')
-                ->dailyAt('06:00')
-                ->onOneServer()
-                ->appendOutputTo($healthLogPath);
-
-            // Monthly: log rotation — prune old GC and health logs
-            $schedule->call(function () {
-                $this->pruneRlmLogs();
-            })
-                ->name('rlm-log-rotation')
-                ->monthlyOn(1, '03:00')
-                ->onOneServer();
-        });
-    }
-
-    /**
-     * Prune old RLM log files.
-     */
-    protected function pruneRlmLogs(): void
-    {
-        $logsPath = storage_path('logs');
-        $now = now();
-
-        foreach (glob($logsPath.'/rlm-gc-*.log') as $file) {
-            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file)), absolute: true) > 90) {
-                @unlink($file);
-            }
-        }
-
-        foreach (glob($logsPath.'/rlm-health-*.log') as $file) {
-            if ($now->diffInDays(\Carbon\Carbon::createFromTimestamp(filemtime($file)), absolute: true) > 365) {
-                @unlink($file);
-            }
-        }
     }
 
     protected function configureElasticsearch(): void

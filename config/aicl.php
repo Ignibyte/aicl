@@ -81,9 +81,6 @@ return [
         'api' => true,
         'websockets' => env('AICL_WEBSOCKETS', true),
         'scout_driver' => env('AICL_SCOUT_DRIVER', false),
-        'hub_search' => (bool) env('AICL_HUB_SEARCH', false),
-        'hub_admin' => (bool) env('AICL_HUB_ADMIN', false),
-        'rlm_search' => (bool) env('AICL_RLM_SEARCH', true),
     ],
 
     /*
@@ -353,77 +350,4 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | RLM Knowledge System
-    |--------------------------------------------------------------------------
-    |
-    | Configuration for the RLM (Recursive Language Model) knowledge system.
-    | Uses PostgreSQL as source of truth and Elasticsearch for search/discovery.
-    |
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | KPI Thresholds
-    |--------------------------------------------------------------------------
-    |
-    | Thresholds used by the KpiCalculator for system health verdicts.
-    |
-    */
-
-    'kpi_thresholds' => [
-        'min_pipeline_runs' => 5,
-        'baseline_window' => 20,
-        'recent_window' => 5,
-        'failure_analysis_window' => 10,
-        'fix_trend_improvement_pct' => -20.0,
-        'fix_trend_decline_pct' => 20.0,
-        'recurrence_healthy_pct' => 30.0,
-        'recurrence_moderate_pct' => 50.0,
-        'auto_retire_min_interactions' => 5,
-        'auto_retire_effectiveness_pct' => 30.0,
-        'verdict_min_runs' => 20,
-        'verdict_effectiveness_target' => 60.0,
-        'verdict_borderline_effectiveness' => 50.0,
-        'verdict_borderline_fix_trend_pct' => -10.0,
-        'verdict_borderline_recurrence_pct' => 40.0,
-    ],
-
-    'rlm' => [
-        'embeddings' => [
-            'driver' => env('AICL_EMBEDDING_DRIVER'),
-            'dimension' => 1536,
-            'openai' => [
-                'api_key' => env('OPENAI_API_KEY'),
-                'model' => env('AICL_EMBEDDING_MODEL', 'text-embedding-3-small'),
-            ],
-            'ollama' => [
-                'host' => env('OLLAMA_HOST', 'http://localhost:11434'),
-                'model' => env('AICL_OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text'),
-            ],
-        ],
-
-        'semantic' => [
-            'enabled' => (bool) env('AICL_SEMANTIC_ENABLED', false),
-            'api_key' => env('AICL_SEMANTIC_API_KEY', env('ANTHROPIC_API_KEY')),
-            'model' => env('AICL_SEMANTIC_MODEL', 'claude-haiku-4-5-20251001'),
-            'max_tokens' => 1024,
-            'timeout' => 30,
-            'cache_ttl' => 60 * 60 * 24 * 7,
-            'use_cache' => true,
-            'confidence_threshold' => 0.3,
-            'mode' => env('AICL_SEMANTIC_MODE', 'advisory'),
-        ],
-
-        'hub' => [
-            'enabled' => (bool) env('AICL_RLM_HUB_ENABLED', false),
-            'url' => env('AICL_RLM_HUB_URL'),
-            'token' => env('AICL_RLM_HUB_TOKEN'),
-            'timeout' => 30,
-            'sync_on_validate' => false,
-        ],
-
-        'waiver_budget' => (float) env('AICL_WAIVER_BUDGET', 5.0),
-    ],
 ];

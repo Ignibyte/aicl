@@ -12,7 +12,86 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 
 While in `0.x.x`, the package API is not yet stable. Bump MINOR for features, PATCH for fixes.
 
-Current version: `3.0.0`
+Current version: `3.1.0`
+
+---
+
+## [3.1.0] - 2026-02-20
+
+### Summary
+
+**BREAKING: Media Manager removed from core.** The centralized media manager (`spatie/laravel-medialibrary`, `filament/spatie-laravel-media-library-plugin`, `tomatophp/filament-media-manager`) has been removed from the `aicl/aicl` package. The feature delivered marginal value relative to its dependency footprint. A purpose-built replacement may be developed later. The CMS package (`aicl-cms`) retains its own independent `spatie/laravel-medialibrary` dependency and is unaffected.
+
+### Removed
+
+- **`HasMediaCollections` trait** — Removed from `packages/aicl/src/Traits/`. Models no longer have a built-in media management wrapper.
+- **2 RLM patterns** — `media.gallery_integration` and `media.has_media_interface` removed from `PatternRegistry`. Base pattern count: 42 → 40.
+- **Media scaffolder integration** — `HasMediaCollections` removed from trait selection in `aicl:make-entity`. `MediaManagerPicker` form section no longer scaffolded.
+- **`FilamentMediaManagerPlugin`** — Removed from `AdminPanelProvider` plugin registration. The `/admin/media` and `/admin/folders` pages no longer exist.
+- **`media` filesystem disk** — Removed from `config/filesystems.php`.
+- **`create_media_table` migration** — Removed. Replaced with `drop_media_tables` migration.
+- **3 composer dependencies** from `packages/aicl/composer.json`:
+  - `spatie/laravel-medialibrary` ^11.0
+  - `filament/spatie-laravel-media-library-plugin` ^4.0
+  - `tomatophp/filament-media-manager` ^4.0
+- **1 composer dependency** from root `composer.json`:
+  - `tomatophp/filament-media-manager` ^4.0
+- **20 tests** — `MediaGalleryIntegrationTest` (16) and `HasMediaCollectionsTest` (4) deleted.
+
+### Changed
+
+- **RLM pattern counts** — Updated in golden example README, world model, and pattern count assertions.
+- **Golden example README** — Removed media trait and media integration pattern section; renumbered remaining sections.
+- **`SpecValidation`** — `HasMediaCollections` removed from `isKnownTrait()`.
+
+### Upgrade Guide (Existing Projects)
+
+#### Step 1: Remove the Filament Media Manager Plugin
+
+Edit `app/Providers/Filament/AdminPanelProvider.php`:
+
+```php
+// REMOVE this import:
+use TomatoPHP\FilamentMediaManager\FilamentMediaManagerPlugin;
+
+// REMOVE this from the ->plugins([]) array:
+FilamentMediaManagerPlugin::make()
+    ->allowSubFolders()
+    ->navigationGroup('Content'),
+```
+
+#### Step 2: Remove the Media Disk
+
+Edit `config/filesystems.php` — remove the `'media'` disk entry.
+
+#### Step 3: Update Generated Entities (if any use HasMediaCollections)
+
+For each model that uses `HasMediaCollections`:
+
+1. Remove `use Aicl\Traits\HasMediaCollections;` import
+2. Remove `use HasMediaCollections;` from the trait list
+3. Remove `implements \Spatie\MediaLibrary\HasMedia` from the class declaration
+4. Remove `registerMediaCollections()` and `registerMediaConversions()` methods
+5. Remove any `MediaManagerPicker` fields from Filament form schemas
+6. Remove `use TomatoPHP\FilamentMediaManager\Form\MediaManagerPicker;` imports
+
+#### Step 4: Drop the Database Tables (optional)
+
+Run the included migration: `php artisan migrate`
+
+Or create your own: `Schema::dropIfExists('media_has_models'); Schema::dropIfExists('media');`
+
+#### Step 5: Remove Composer Dependencies
+
+```bash
+composer remove tomatophp/filament-media-manager
+composer update
+```
+
+#### Step 6: If You Still Need Media
+
+1. **Self-manage** — Add `spatie/laravel-medialibrary` to your project directly.
+2. **Use Filament FileUpload** — Replace `MediaManagerPicker` with native `FileUpload`.
 
 ---
 

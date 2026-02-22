@@ -97,6 +97,10 @@ class UpgradeCommand extends Command
             $this->state['package_version'] = $manifestVersion;
             $this->state['last_upgraded'] = now()->toIso8601String();
             $this->writeState();
+
+            // Clear cached version strings so they reflect the upgraded version
+            \Illuminate\Support\Facades\Cache::forget('aicl.version.framework');
+            \Illuminate\Support\Facades\Cache::forget('aicl.version.project');
         }
 
         // Summary

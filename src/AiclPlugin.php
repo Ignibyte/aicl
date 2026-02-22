@@ -18,7 +18,6 @@ use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\NotificationLogPage;
 use Aicl\Filament\Pages\OpsPanel;
 use Aicl\Filament\Pages\QueueDashboard;
-use Aicl\Filament\Pages\RlmDashboard;
 use Aicl\Filament\Pages\Search;
 use Aicl\Filament\Pages\Styleguide\ActionComponents;
 use Aicl\Filament\Pages\Styleguide\DataDisplayComponents;
@@ -28,34 +27,11 @@ use Aicl\Filament\Pages\Styleguide\LayoutComponents;
 use Aicl\Filament\Pages\Styleguide\MetricComponents;
 use Aicl\Filament\Pages\Styleguide\StyleguideOverview;
 use Aicl\Filament\Resources\FailedJobs\FailedJobResource;
-use Aicl\Filament\Resources\FailureReports\FailureReportResource;
-use Aicl\Filament\Resources\GenerationTraces\GenerationTraceResource;
-use Aicl\Filament\Resources\PreventionRules\PreventionRuleResource;
-use Aicl\Filament\Resources\RlmFailures\RlmFailureResource;
-use Aicl\Filament\Resources\RlmLessons\RlmLessonResource;
-use Aicl\Filament\Resources\RlmPatterns\RlmPatternResource;
 use Aicl\Filament\Resources\Users\UserResource;
-use Aicl\Filament\Widgets\CategoryBreakdownChart;
-use Aicl\Filament\Widgets\FailureReportDeadlinesWidget;
-use Aicl\Filament\Widgets\FailureReportStatsOverview;
-use Aicl\Filament\Widgets\FailureTrendChart;
-use Aicl\Filament\Widgets\GenerationTraceStatsOverview;
 use Aicl\Filament\Widgets\GlobalSearchWidget;
 use Aicl\Filament\Widgets\PresenceIndicator;
-use Aicl\Filament\Widgets\PreventionRuleDeadlinesWidget;
-use Aicl\Filament\Widgets\PreventionRuleStatsOverview;
-use Aicl\Filament\Widgets\ProjectHealthWidget;
-use Aicl\Filament\Widgets\PromotionQueueWidget;
 use Aicl\Filament\Widgets\QueueStatsWidget;
 use Aicl\Filament\Widgets\RecentFailedJobsWidget;
-use Aicl\Filament\Widgets\RecentGenerationTracesWidget;
-use Aicl\Filament\Widgets\RecentRlmLessonsWidget;
-use Aicl\Filament\Widgets\RlmFailureByStatusChart;
-use Aicl\Filament\Widgets\RlmFailureDeadlinesWidget;
-use Aicl\Filament\Widgets\RlmFailureStatsOverview;
-use Aicl\Filament\Widgets\RlmLessonStatsOverview;
-use Aicl\Filament\Widgets\RlmPatternDeadlinesWidget;
-use Aicl\Filament\Widgets\RlmPatternStatsOverview;
 use Aicl\Http\Middleware\TrackPresenceMiddleware;
 use Aicl\Services\VersionService;
 use Filament\Contracts\Plugin;
@@ -159,12 +135,6 @@ class AiclPlugin implements Plugin
     {
         return [
             FailedJobResource::class,
-            FailureReportResource::class,
-            GenerationTraceResource::class,
-            PreventionRuleResource::class,
-            RlmFailureResource::class,
-            RlmLessonResource::class,
-            RlmPatternResource::class,
             UserResource::class,
         ];
     }
@@ -178,7 +148,6 @@ class AiclPlugin implements Plugin
             AiAssistant::class,
             OpsPanel::class,
             QueueDashboard::class,
-            RlmDashboard::class,
             LogViewer::class,
             ManageSettings::class,
             AuditLog::class,
@@ -209,27 +178,10 @@ class AiclPlugin implements Plugin
     protected function getWidgets(): array
     {
         return [
-            CategoryBreakdownChart::class,
-            FailureReportDeadlinesWidget::class,
-            FailureReportStatsOverview::class,
-            FailureTrendChart::class,
-            GenerationTraceStatsOverview::class,
             GlobalSearchWidget::class,
-            PreventionRuleDeadlinesWidget::class,
             PresenceIndicator::class,
-            PreventionRuleStatsOverview::class,
-            ProjectHealthWidget::class,
-            PromotionQueueWidget::class,
             QueueStatsWidget::class,
             RecentFailedJobsWidget::class,
-            RecentGenerationTracesWidget::class,
-            RecentRlmLessonsWidget::class,
-            RlmFailureByStatusChart::class,
-            RlmFailureDeadlinesWidget::class,
-            RlmFailureStatsOverview::class,
-            RlmLessonStatsOverview::class,
-            RlmPatternDeadlinesWidget::class,
-            RlmPatternStatsOverview::class,
         ];
     }
 }

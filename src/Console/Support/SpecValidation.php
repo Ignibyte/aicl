@@ -72,7 +72,6 @@ trait SpecValidation
             'HasAuditTrail',
             'HasStandardScopes',
             'HasTagging',
-            'HasMediaCollections',
             'HasSearchableFields',
             'HasAiContext',
         ], true);

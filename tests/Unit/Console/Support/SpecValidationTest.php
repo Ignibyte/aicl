@@ -137,7 +137,6 @@ class SpecValidationTest extends TestCase
         $this->assertTrue($this->isKnownTrait('HasAuditTrail'));
         $this->assertTrue($this->isKnownTrait('HasStandardScopes'));
         $this->assertTrue($this->isKnownTrait('HasTagging'));
-        $this->assertTrue($this->isKnownTrait('HasMediaCollections'));
         $this->assertTrue($this->isKnownTrait('HasSearchableFields'));
         $this->assertTrue($this->isKnownTrait('HasAiContext'));
     }

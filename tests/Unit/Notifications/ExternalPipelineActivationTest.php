@@ -3,10 +3,8 @@
 namespace Aicl\Tests\Unit\Notifications;
 
 use Aicl\Database\Seeders\NotificationChannelSeeder;
-use Aicl\Notifications\Contracts\HasExternalChannels;
 use Aicl\Notifications\Enums\ChannelType;
 use Aicl\Notifications\Models\NotificationChannel;
-use Aicl\Notifications\RlmFailureAssignedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -92,27 +90,5 @@ class ExternalPipelineActivationTest extends TestCase
             $this->assertArrayHasKey('max', $channel->rate_limit);
             $this->assertArrayHasKey('period', $channel->rate_limit);
         }
-    }
-
-    public function test_rlm_failure_assigned_implements_has_external_channels(): void
-    {
-        $this->assertTrue(
-            is_subclass_of(RlmFailureAssignedNotification::class, HasExternalChannels::class)
-        );
-    }
-
-    public function test_rlm_failure_assigned_external_channels_returns_active_channels(): void
-    {
-        (new NotificationChannelSeeder)->run();
-
-        $notification = $this->createMock(RlmFailureAssignedNotification::class);
-        $notification->method('externalChannels')
-            ->willReturn(NotificationChannel::active()->get());
-
-        $channels = $notification->externalChannels();
-
-        // Only system-email is active by default
-        $this->assertCount(1, $channels);
-        $this->assertSame('system-email', $channels->first()->slug);
     }
 }

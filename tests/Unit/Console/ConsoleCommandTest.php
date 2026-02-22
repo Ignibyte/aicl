@@ -2,16 +2,12 @@
 
 namespace Aicl\Tests\Unit\Console;
 
-use Aicl\Console\Commands\DiscoverPatternsCommand;
-use Aicl\Console\Commands\HubSeedCommand;
 use Aicl\Console\Commands\InstallCommand;
 use Aicl\Console\Commands\MakeEntityCommand;
 use Aicl\Console\Commands\PipelineContextCommand;
 use Aicl\Console\Commands\RemoveEntityCommand;
-use Aicl\Console\Commands\RlmCommand;
 use Aicl\Console\Commands\ScoutImportCommand;
 use Aicl\Console\Commands\UpgradeCommand;
-use Aicl\Console\Commands\ValidateEntityCommand;
 use Aicl\Console\Support\BaseSchemaInspector;
 use Aicl\Console\Support\FieldDefinition;
 use Aicl\Console\Support\RelationshipDefinition;
@@ -66,11 +62,7 @@ class ConsoleCommandTest extends TestCase
             'InstallCommand' => [InstallCommand::class],
             'MakeEntityCommand' => [MakeEntityCommand::class],
             'RemoveEntityCommand' => [RemoveEntityCommand::class],
-            'ValidateEntityCommand' => [ValidateEntityCommand::class],
-            'RlmCommand' => [RlmCommand::class],
-            'DiscoverPatternsCommand' => [DiscoverPatternsCommand::class],
             'PipelineContextCommand' => [PipelineContextCommand::class],
-            'HubSeedCommand' => [HubSeedCommand::class],
             'ScoutImportCommand' => [ScoutImportCommand::class],
             'UpgradeCommand' => [UpgradeCommand::class],
         ];
@@ -85,11 +77,7 @@ class ConsoleCommandTest extends TestCase
             'InstallCommand' => [InstallCommand::class, 'aicl:install'],
             'MakeEntityCommand' => [MakeEntityCommand::class, 'aicl:make-entity'],
             'RemoveEntityCommand' => [RemoveEntityCommand::class, 'aicl:remove-entity'],
-            'ValidateEntityCommand' => [ValidateEntityCommand::class, 'aicl:validate'],
-            'RlmCommand' => [RlmCommand::class, 'aicl:rlm'],
-            'DiscoverPatternsCommand' => [DiscoverPatternsCommand::class, 'aicl:discover-patterns'],
             'PipelineContextCommand' => [PipelineContextCommand::class, 'aicl:pipeline-context'],
-            'HubSeedCommand' => [HubSeedCommand::class, 'aicl:hub-seed'],
             'ScoutImportCommand' => [ScoutImportCommand::class, 'aicl:scout-import'],
             'UpgradeCommand' => [UpgradeCommand::class, 'aicl:upgrade'],
         ];
@@ -165,86 +153,6 @@ class ConsoleCommandTest extends TestCase
         $reflection = new \ReflectionClass(UpgradeCommand::class);
 
         $this->assertTrue($reflection->hasMethod('handleEnsurePresent'));
-    }
-
-    // ========================================================================
-    // RlmCommand — Options
-    // ========================================================================
-
-    public function test_rlm_command_has_action_argument(): void
-    {
-        $command = new RlmCommand;
-
-        $this->assertTrue($command->getDefinition()->hasArgument('action'));
-        $this->assertTrue($command->getDefinition()->getArgument('action')->isRequired());
-    }
-
-    public function test_rlm_command_has_query_argument(): void
-    {
-        $command = new RlmCommand;
-
-        $this->assertTrue($command->getDefinition()->hasArgument('query'));
-        $this->assertFalse($command->getDefinition()->getArgument('query')->isRequired());
-    }
-
-    public function test_rlm_command_has_agent_option(): void
-    {
-        $command = new RlmCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('agent'));
-    }
-
-    public function test_rlm_command_has_phase_option(): void
-    {
-        $command = new RlmCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('phase'));
-    }
-
-    public function test_rlm_command_has_entity_option(): void
-    {
-        $command = new RlmCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('entity'));
-    }
-
-    public function test_rlm_command_has_type_option(): void
-    {
-        $command = new RlmCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('type'));
-    }
-
-    // ========================================================================
-    // DiscoverPatternsCommand — Options
-    // ========================================================================
-
-    public function test_discover_patterns_has_stale_option(): void
-    {
-        $command = new DiscoverPatternsCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('stale'));
-    }
-
-    public function test_discover_patterns_has_min_occurrences_option(): void
-    {
-        $command = new DiscoverPatternsCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('min-occurrences'));
-    }
-
-    public function test_discover_patterns_has_min_confidence_option(): void
-    {
-        $command = new DiscoverPatternsCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('min-confidence'));
-    }
-
-    public function test_discover_patterns_has_output_option(): void
-    {
-        $command = new DiscoverPatternsCommand;
-
-        $this->assertTrue($command->getDefinition()->hasOption('output'));
     }
 
     // ========================================================================

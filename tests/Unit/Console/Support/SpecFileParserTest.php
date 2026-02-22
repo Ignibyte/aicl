@@ -96,7 +96,6 @@ Default: `draft`
 - HasEntityEvents
 - HasAuditTrail
 - HasStandardScopes
-- HasMediaCollections
 - HasAiContext
 
 ## Options
@@ -647,9 +646,8 @@ MD);
         $this->assertContains('HasEntityEvents', $spec->traits);
         $this->assertContains('HasAuditTrail', $spec->traits);
         $this->assertContains('HasStandardScopes', $spec->traits);
-        $this->assertContains('HasMediaCollections', $spec->traits);
         $this->assertContains('HasAiContext', $spec->traits);
-        $this->assertCount(5, $spec->traits);
+        $this->assertCount(4, $spec->traits);
     }
 
     public function test_traits_default_when_section_absent(): void

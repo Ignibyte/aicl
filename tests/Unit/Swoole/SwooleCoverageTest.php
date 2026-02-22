@@ -2,11 +2,9 @@
 
 namespace Aicl\Tests\Unit\Swoole;
 
-use Aicl\Swoole\Cache\KnowledgeStatsCacheManager;
 use Aicl\Swoole\Cache\NotificationBadgeCacheManager;
 use Aicl\Swoole\Cache\PermissionCacheManager;
 use Aicl\Swoole\Cache\ServiceHealthCacheManager;
-use Aicl\Swoole\Cache\WidgetStatsCacheManager;
 use Aicl\Swoole\Concurrent;
 use Aicl\Swoole\Exceptions\ConcurrentException;
 use Aicl\Swoole\Exceptions\ConcurrentTimeoutException;
@@ -284,116 +282,6 @@ class SwooleCoverageTest extends TestCase
     }
 
     // ========================================================================
-    // WidgetStatsCacheManager — structural coverage
-    // ========================================================================
-
-    public function test_widget_stats_has_register_method(): void
-    {
-        $ref = new ReflectionMethod(WidgetStatsCacheManager::class, 'register');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_widget_stats_has_get_or_compute_method(): void
-    {
-        $ref = new ReflectionMethod(WidgetStatsCacheManager::class, 'getOrCompute');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_widget_stats_has_compute_all_stats_method(): void
-    {
-        $ref = new ReflectionMethod(WidgetStatsCacheManager::class, 'computeAllStats');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_widget_stats_has_all_compute_methods(): void
-    {
-        $computeMethods = [
-            'computeRlmFailureStats',
-            'computeRlmPatternStats',
-            'computeGenerationTraceStats',
-            'computeProjectHealth',
-            'computeFailureReportStats',
-            'computeRlmLessonStats',
-            'computePreventionRuleStats',
-            'computeFailureByStatus',
-            'computeFailureByCategory',
-            'computeFailureTrend',
-        ];
-
-        foreach ($computeMethods as $method) {
-            $this->assertTrue(
-                method_exists(WidgetStatsCacheManager::class, $method),
-                "WidgetStatsCacheManager should have {$method}"
-            );
-        }
-    }
-
-    public function test_widget_stats_get_or_compute_accepts_key_and_callable(): void
-    {
-        $ref = new ReflectionMethod(WidgetStatsCacheManager::class, 'getOrCompute');
-        $params = $ref->getParameters();
-
-        $this->assertCount(2, $params);
-        $this->assertSame('key', $params[0]->getName());
-        $this->assertSame('compute', $params[1]->getName());
-    }
-
-    // ========================================================================
-    // KnowledgeStatsCacheManager — structural coverage
-    // ========================================================================
-
-    public function test_knowledge_stats_has_register_method(): void
-    {
-        $ref = new ReflectionMethod(KnowledgeStatsCacheManager::class, 'register');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_knowledge_stats_has_get_cached_stats_method(): void
-    {
-        $ref = new ReflectionMethod(KnowledgeStatsCacheManager::class, 'getCachedStats');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_knowledge_stats_has_store_stats_method(): void
-    {
-        $ref = new ReflectionMethod(KnowledgeStatsCacheManager::class, 'storeStats');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_knowledge_stats_has_invalidate_method(): void
-    {
-        $ref = new ReflectionMethod(KnowledgeStatsCacheManager::class, 'invalidate');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_knowledge_stats_has_compute_stats_method(): void
-    {
-        $ref = new ReflectionMethod(KnowledgeStatsCacheManager::class, 'computeStats');
-
-        $this->assertTrue($ref->isStatic());
-        $this->assertTrue($ref->isPublic());
-    }
-
-    public function test_knowledge_stats_cache_key_constant(): void
-    {
-        $this->assertSame('global', KnowledgeStatsCacheManager::CACHE_KEY);
-    }
-
-    // ========================================================================
     // NotificationBadgeCacheManager — structural coverage
     // ========================================================================
 
@@ -575,8 +463,6 @@ class SwooleCoverageTest extends TestCase
     public function test_all_cache_managers_define_table_name_constant(): void
     {
         $managers = [
-            WidgetStatsCacheManager::class => 'widget_stats',
-            KnowledgeStatsCacheManager::class => 'rlm_stats',
             NotificationBadgeCacheManager::class => 'notification_badges',
             PermissionCacheManager::class => 'permissions',
             ServiceHealthCacheManager::class => 'service_health',
@@ -594,8 +480,6 @@ class SwooleCoverageTest extends TestCase
     public function test_all_cache_managers_define_table_rows_constant(): void
     {
         $managers = [
-            WidgetStatsCacheManager::class,
-            KnowledgeStatsCacheManager::class,
             NotificationBadgeCacheManager::class,
             PermissionCacheManager::class,
             ServiceHealthCacheManager::class,
@@ -617,8 +501,6 @@ class SwooleCoverageTest extends TestCase
     public function test_all_cache_managers_define_table_ttl_constant(): void
     {
         $managers = [
-            WidgetStatsCacheManager::class,
-            KnowledgeStatsCacheManager::class,
             NotificationBadgeCacheManager::class,
             PermissionCacheManager::class,
             ServiceHealthCacheManager::class,
@@ -640,8 +522,6 @@ class SwooleCoverageTest extends TestCase
     public function test_all_cache_managers_define_table_value_size_constant(): void
     {
         $managers = [
-            WidgetStatsCacheManager::class,
-            KnowledgeStatsCacheManager::class,
             NotificationBadgeCacheManager::class,
             PermissionCacheManager::class,
             ServiceHealthCacheManager::class,
@@ -663,8 +543,6 @@ class SwooleCoverageTest extends TestCase
     public function test_all_cache_managers_have_static_register_method(): void
     {
         $managers = [
-            WidgetStatsCacheManager::class,
-            KnowledgeStatsCacheManager::class,
             NotificationBadgeCacheManager::class,
             PermissionCacheManager::class,
             ServiceHealthCacheManager::class,

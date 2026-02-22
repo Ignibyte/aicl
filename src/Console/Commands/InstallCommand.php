@@ -2,6 +2,7 @@
 
 namespace Aicl\Console\Commands;
 
+use Aicl\Support\RlmBridge;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 
@@ -87,53 +88,19 @@ class InstallCommand extends Command
             ]);
         });
 
-        // Seed RLM base failures
-        $this->components->task('Seeding RLM base failures', function (): void {
+        // Seed admin user (required before RLM seeding — RLM uses owner_id => 1)
+        $this->components->task('Seeding admin user', function (): void {
             $this->callSilently('db:seed', [
-                '--class' => 'Aicl\Database\Seeders\BaseFailureSeeder',
+                '--class' => 'Aicl\Database\Seeders\AdminUserSeeder',
                 '--force' => true,
             ]);
         });
 
-        // Seed RLM lessons (curated, linked to base failures)
-        $this->components->task('Seeding RLM lessons', function (): void {
-            $this->callSilently('db:seed', [
-                '--class' => 'Aicl\Database\Seeders\RlmLessonSeeder',
-                '--force' => true,
-            ]);
-        });
-
-        // Seed RLM prevention rules (curated, linked to base failures)
-        $this->components->task('Seeding RLM prevention rules', function (): void {
-            $this->callSilently('db:seed', [
-                '--class' => 'Aicl\Database\Seeders\PreventionRuleSeeder',
-                '--force' => true,
-            ]);
-        });
-
-        // Seed RLM patterns from PatternRegistry
-        $this->components->task('Seeding RLM patterns', function (): void {
-            $this->callSilently('db:seed', [
-                '--class' => 'Aicl\Database\Seeders\PatternRegistrySeeder',
-                '--force' => true,
-            ]);
-        });
-
-        // Seed golden annotations
-        $this->components->task('Seeding golden annotations', function (): void {
-            $this->callSilently('db:seed', [
-                '--class' => 'Aicl\Database\Seeders\GoldenAnnotationSeeder',
-                '--force' => true,
-            ]);
-        });
-
-        // Seed distilled lessons (runs distillation pipeline on base failures)
-        $this->components->task('Seeding distilled lessons', function (): void {
-            $this->callSilently('db:seed', [
-                '--class' => 'Aicl\Database\Seeders\DistilledLessonSeeder',
-                '--force' => true,
-            ]);
-        });
+        if (RlmBridge::installed()) {
+            $this->callSilently('rlm:seed');
+        } else {
+            $this->components->info('Skipping RLM seeding (ignibyte/rlm not installed).');
+        }
 
         // Seed notification channels
         $this->components->task('Seeding notification channels', function (): void {
@@ -143,38 +110,25 @@ class InstallCommand extends Command
             ]);
         });
 
-        // Index RLM data into Elasticsearch (if available)
-        $this->components->task('Indexing RLM data into Elasticsearch', function (): bool {
-            if (! config('aicl.features.rlm_search', true)) {
-                return false;
-            }
-
-            $this->callSilently('aicl:rlm', ['action' => 'index', '--all' => true]);
-
-            return true;
-        });
-
-        // Generate embeddings for RLM data (if available)
-        $this->components->task('Generating RLM embeddings', function (): bool {
-            $embeddingService = app(\Aicl\Rlm\EmbeddingService::class);
-
-            if (! $embeddingService->isAvailable()) {
-                return false;
-            }
-
-            $this->callSilently('aicl:rlm', ['action' => 'embed', '--backfill' => true]);
-
-            return true;
-        });
-
         // Publish Filament assets
         $this->components->task('Publishing Filament assets', function (): void {
             $this->callSilently('filament:assets');
         });
 
+        // Clear cached version strings so they reflect the newly installed version
+        $this->components->task('Clearing version cache', function (): void {
+            \Illuminate\Support\Facades\Cache::forget('aicl.version.framework');
+            \Illuminate\Support\Facades\Cache::forget('aicl.version.project');
+        });
+
+        // Sync project-level files (agents, config stubs, planning docs)
+        $this->components->task('Syncing project files (aicl:upgrade)', function (): void {
+            $this->callSilently('aicl:upgrade', ['--force' => true]);
+        });
+
         $this->newLine();
         $this->components->info('AICL installed successfully.');
-        $this->components->info('Create your admin user with: php artisan db:seed --class="Aicl\Database\Seeders\AdminUserSeeder"');
+        $this->components->info('Login: admin@aicl.test / password');
 
         return self::SUCCESS;
     }

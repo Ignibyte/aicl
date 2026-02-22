@@ -7,7 +7,7 @@ This directory contains the **annotated reference implementation** of a complete
 1. **Before generating any entity**, read this README and the relevant golden example files
 2. **Replace `Project` with your entity name** throughout (PascalCase for classes, snake_case for tables/columns)
 3. **Follow the pattern comments** (prefixed with `// PATTERN:`) — they explain WHY each piece exists
-4. **Validate output** with `aicl:validate {EntityName}` to score against the 46 RLM patterns
+4. **Validate output** with `aicl:validate {EntityName}` to score against the 42 RLM patterns
 
 ## Pipeline Context
 
@@ -24,7 +24,7 @@ Phase 7 — VERIFY      → /tester     → Full test suite
 Phase 8 — COMPLETE    → /docs       → Document and archive
 ```
 
-The architect reads these files during Phase 3. The RLM validates against the 46 patterns derived from these files during Phase 4 and 6.
+The architect reads these files during Phase 3. The RLM validates against the 42 patterns derived from these files during Phase 4 and 6.
 
 ## Smart Scaffolder (Phase 3 Workflow)
 
@@ -103,7 +103,6 @@ ddev artisan aicl:make-entity {Name} \
 - `HasTagging` — Polymorphic tagging system
 - `HasSearchableFields` — Laravel Scout full-text search
 - `HasStates` — Spatie Model States for state machines
-- `HasMediaCollections` — File/media management with gallery integration (Spatie MediaLibrary + Media Manager)
 
 ### 2. Model Contracts (Implement Based on Traits)
 - `Auditable` — Required when using `HasAuditTrail`
@@ -119,27 +118,19 @@ ddev artisan aicl:make-entity {Name} \
 - `$navigationGroup` type is `string|UnitEnum|null`
 - `ChartWidget::$heading` is non-static instance property
 
-### 4. Media Integration Pattern
-- Model uses `HasMediaCollections` trait (wraps Spatie `InteractsWithMedia` + `InteractsWithMediaManager`)
-- Model implements `Spatie\MediaLibrary\HasMedia` interface
-- Define collections in `registerMediaCollections()` (e.g., `documents`, `images`)
-- Filament form uses `MediaManagerPicker` for browse-from-gallery or `MediaManagerInput` for upload-with-metadata
-- All media visible in centralized gallery sidebar (`admin/media`)
-- When `aicl:make-entity` is run with `HasMediaCollections` selected, media traits and form fields are scaffolded automatically
-
-### 5. State Machine Pattern
+### 4. State Machine Pattern
 - Abstract base: `{Entity}State extends Spatie\ModelStates\State`
 - Each concrete state: `label()`, `color()`, `icon()`
 - Transitions defined in `config()` static method
 - Cast via `casts()` method on model
 
-### 6. Observer Pattern
+### 5. Observer Pattern
 - Extends `Aicl\Observers\BaseObserver`
 - Type hint parameter as `Model`, then use `/** @var Entity $model */` docblock
 - Use `NotificationDispatcher` for sending notifications (not `$user->notify()`)
 - Log activities via `activity()->performedOn($model)->log()`
 
-### 7. Registration (Phase 5 — AFTER Phase 4 Validation)
+### 6. Registration (Phase 5 — AFTER Phase 4 Validation)
 
 **IMPORTANT:** Registration is a separate pipeline phase (Phase 5). It MUST happen AFTER validation (Phase 4) passes — never before. See F-002 in `failures.md` for why this matters.
 
@@ -163,7 +154,7 @@ Route::middleware(['api', 'auth:api'])->prefix('v1')->group(function () {
 
 After registration, Phase 6 (RE-VALIDATE) runs RLM + Tester again to confirm nothing broke from the wiring. Then Phase 7 (VERIFY) runs the full test suite.
 
-### 8. Registration Verification Checklist (Phase 5)
+### 7. Registration Verification Checklist (Phase 5)
 
 After wiring, the Architect must verify:
 - [ ] `Gate::policy(Entity::class, EntityPolicy::class)` in AppServiceProvider::boot()

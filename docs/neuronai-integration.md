@@ -2,7 +2,7 @@
 
 NeuronAI provides the AI/agent framework layer for AICL, handling LLM provider abstraction, embedding generation, and real-time streaming via Reverb WebSockets.
 
-**Namespace:** `Aicl\AI`, `Aicl\Rlm\Embeddings`, `Aicl\Traits`
+**Namespace:** `Aicl\AI`, `Rlm\Embeddings`, `Aicl\Traits`
 
 ## Overview
 
@@ -74,7 +74,7 @@ In `config/aicl.php`:
 Generates embedding vectors for text, used by the RLM knowledge system for semantic search.
 
 ```php
-use Aicl\Rlm\EmbeddingService;
+use Rlm\Services\EmbeddingService;
 
 $service = app(EmbeddingService::class);
 
@@ -105,7 +105,7 @@ $dim = $service->getDimension(); // 1536
 Bridges NeuronAI's `EmbeddingsProviderInterface` to AICL's `EmbeddingDriver` contract:
 
 ```php
-use Aicl\Rlm\Embeddings\NeuronAiEmbeddingAdapter;
+use Rlm\Embeddings\NeuronAiEmbeddingAdapter;
 
 // OpenAI: 1536 dimensions natively, no padding needed
 new NeuronAiEmbeddingAdapter($provider, targetDimension: 1536, padToTarget: false);

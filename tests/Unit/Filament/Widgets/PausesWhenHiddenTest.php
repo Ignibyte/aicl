@@ -36,27 +36,6 @@ class PausesWhenHiddenTest extends TestCase
         $this->assertTrue(method_exists($widget, 'visibilityPollingInterval'));
         $this->assertTrue(method_exists($widget, 'bootPausesWhenHidden'));
     }
-
-    public function test_trait_is_applied_to_stats_widget(): void
-    {
-        $uses = class_uses(\Aicl\Filament\Widgets\RlmPatternStatsOverview::class);
-
-        $this->assertContains(PausesWhenHidden::class, $uses);
-    }
-
-    public function test_trait_is_applied_to_chart_widget(): void
-    {
-        $uses = class_uses(\Aicl\Filament\Widgets\FailureTrendChart::class);
-
-        $this->assertContains(PausesWhenHidden::class, $uses);
-    }
-
-    public function test_trait_is_applied_to_table_widget(): void
-    {
-        $uses = class_uses(\Aicl\Filament\Widgets\RecentGenerationTracesWidget::class);
-
-        $this->assertContains(PausesWhenHidden::class, $uses);
-    }
 }
 
 // ── Test Stubs ────────────────────────────────────────────────────

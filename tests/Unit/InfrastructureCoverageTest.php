@@ -6,7 +6,6 @@ use Aicl\AI\AiAssistantRequest;
 use Aicl\Contracts\Approvable;
 use Aicl\Contracts\Auditable;
 use Aicl\Contracts\DeclaresBaseSchema;
-use Aicl\Contracts\EmbeddingDriver;
 use Aicl\Contracts\HasEntityLifecycle;
 use Aicl\Contracts\Searchable;
 use Aicl\Contracts\Stateful;
@@ -808,16 +807,6 @@ class InfrastructureCoverageTest extends TestCase
         $this->assertTrue($reflection->isInterface());
         $this->assertTrue($reflection->hasMethod('baseSchema'));
         $this->assertTrue($reflection->getMethod('baseSchema')->isStatic());
-    }
-
-    public function test_embedding_driver_contract_declares_required_methods(): void
-    {
-        $reflection = new \ReflectionClass(EmbeddingDriver::class);
-
-        $this->assertTrue($reflection->isInterface());
-        $this->assertTrue($reflection->hasMethod('embed'));
-        $this->assertTrue($reflection->hasMethod('embedBatch'));
-        $this->assertTrue($reflection->hasMethod('dimension'));
     }
 
     public function test_has_entity_lifecycle_is_marker_interface(): void
