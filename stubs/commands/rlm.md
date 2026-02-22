@@ -90,14 +90,14 @@ ddev artisan aicl:validate {Name}
 ```
 
 ### Step 2: Score and Report
-- Must score **100%** (42/42 patterns minimum — 40 base + 2 media)
+- Must score **100%** (40/40 base patterns minimum)
 - If < 100%, report each failing pattern with explanation and suggested fix
 - Log any new failure patterns via `ddev artisan aicl:rlm learn "{failure description}" --topic=validation --tags="{entity-name,phase-4,pattern-failure}"`
 
 ### Step 3: Update Pipeline Document (MANDATORY)
 Update the Phase 4 -> **RLM Validation** subsection in the pipeline document:
 - Set Status to PASS or FAIL
-- Record the score (e.g., "42/42 (100%)")
+- Record the score (e.g., "40/40 (100%)")
 - List any failing patterns
 - Set Retry Count
 

@@ -183,7 +183,7 @@ When the human asks you to review a specific pipeline:
    - Are all required fields filled in?
    - Did the agent mark PASS legitimately (no phantom completions)?
    - Are there deferred items that should be blocking?
-   - Do the phase results make sense (e.g., 42/42 score, all tests pass)?
+   - Do the phase results make sense (e.g., 40/40 score, all tests pass)?
 3. Report any issues found
 4. Confirm the next step
 

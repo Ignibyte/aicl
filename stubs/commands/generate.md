@@ -161,7 +161,7 @@ If the entity has widgets, PDF templates, or complex form layouts:
 
 ### Phase 4: VALIDATE (Pre-Registration)
 
-1. Run `ddev artisan aicl:validate {Name}` — must score 100% (42/42)
+1. Run `ddev artisan aicl:validate {Name}` — must score 100% (40/40)
 2. Run `ddev artisan test --compact --filter={Name}Test` — all tests must pass
 3. If either fails:
    - Fix the issues (max 3 retries per tool)
