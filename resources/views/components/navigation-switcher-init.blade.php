@@ -5,7 +5,7 @@
     navigation preference from localStorage and apply it BEFORE first paint.
     This prevents flash-of-wrong-layout (FOWL).
 
-    Only rendered when config('aicl.theme.navigation_layout') === 'switchable'.
+    Always rendered — the toggle is always available.
 --}}
 <script>
     (function() {

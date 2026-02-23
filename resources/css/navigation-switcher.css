@@ -1,12 +1,11 @@
 /* ==========================================================================
    Navigation Layout Switcher — Sidebar ↔ Topbar Runtime Toggle
-   Only active when config('aicl.theme.navigation_layout') === 'switchable'.
    The data-nav-mode attribute is set on <html> by an early-init script
    and toggled by the Alpine navigationSwitcher component.
 
-   Since ->topNavigation(true) is set in AiclPlugin for switchable mode,
-   Filament renders fi-body-has-top-navigation on the body. The CSS below
-   overrides Filament's top-nav defaults when the user prefers sidebar mode.
+   Since ->topNavigation(true) is always set in AiclPlugin, Filament renders
+   fi-body-has-top-navigation on the body. The CSS below overrides Filament's
+   top-nav defaults when the user prefers sidebar mode.
    ========================================================================== */
 
 /* --- Sidebar Mode Overrides ---

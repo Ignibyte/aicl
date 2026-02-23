@@ -207,11 +207,6 @@ return [
         'brand_name' => env('AICL_BRAND_NAME', 'IGNIBYTE'),
         'logo' => env('AICL_LOGO_PATH', 'vendor/aicl/images/logo.png'),
         'favicon' => env('AICL_FAVICON_PATH', 'vendor/aicl/images/favicon.png'),
-
-        // Navigation layout: 'sidebar', 'topbar', or 'switchable' (default)
-        // When 'switchable', a toggle button appears allowing users to switch
-        // between sidebar and topbar navigation. Preference is stored in localStorage.
-        'navigation_layout' => env('AICL_NAV_LAYOUT', 'switchable'),
     ],
 
     /*

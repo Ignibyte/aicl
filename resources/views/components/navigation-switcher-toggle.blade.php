@@ -3,8 +3,7 @@
 
     Rendered in the topbar via PanelsRenderHook::USER_MENU_BEFORE.
     Uses Alpine.js to toggle between sidebar and topbar navigation layouts.
-
-    Only rendered when config('aicl.theme.navigation_layout') === 'switchable'.
+    Preference is stored in localStorage.
 --}}
 <div
     x-data="navigationSwitcher()"
@@ -24,7 +23,7 @@
         />
 
         {{-- Top bar icon (shown when in sidebar mode → click to switch to topbar) --}}
-        <x-heroicon-o-bars-3
+        <x-heroicon-o-arrows-right-left
             x-show="mode === 'sidebar'"
             x-cloak
             class="h-5 w-5"

@@ -33,10 +33,8 @@ class NavigationSwitcherFeatureTest extends TestCase
         $this->admin->assignRole('super_admin');
     }
 
-    public function test_switchable_mode_renders_early_init_script(): void
+    public function test_admin_panel_renders_early_init_script(): void
     {
-        config(['aicl.theme.navigation_layout' => 'switchable']);
-
         $response = $this->actingAs($this->admin)->get('/admin');
 
         $response->assertOk();
@@ -44,36 +42,12 @@ class NavigationSwitcherFeatureTest extends TestCase
         $response->assertSee('data-nav-mode', false);
     }
 
-    public function test_switchable_mode_renders_toggle_button(): void
+    public function test_admin_panel_renders_toggle_button(): void
     {
-        config(['aicl.theme.navigation_layout' => 'switchable']);
-
         $response = $this->actingAs($this->admin)->get('/admin');
 
         $response->assertOk();
         $response->assertSee('navigationSwitcher()', false);
         $response->assertSee('fi-topbar-nav-switcher', false);
-    }
-
-    public function test_sidebar_mode_does_not_render_toggle(): void
-    {
-        config(['aicl.theme.navigation_layout' => 'sidebar']);
-
-        $response = $this->actingAs($this->admin)->get('/admin');
-
-        $response->assertOk();
-        $response->assertDontSee('fi-topbar-nav-switcher', false);
-        $response->assertDontSee('navigationSwitcher()', false);
-    }
-
-    public function test_topbar_mode_does_not_render_toggle(): void
-    {
-        config(['aicl.theme.navigation_layout' => 'topbar']);
-
-        $response = $this->actingAs($this->admin)->get('/admin');
-
-        $response->assertOk();
-        $response->assertDontSee('fi-topbar-nav-switcher', false);
-        $response->assertDontSee('navigationSwitcher()', false);
     }
 }

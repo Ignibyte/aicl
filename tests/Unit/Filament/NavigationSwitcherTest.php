@@ -7,22 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 class NavigationSwitcherTest extends TestCase
 {
-    public function test_navigation_layout_config_key_exists(): void
-    {
-        $config = require __DIR__.'/../../../config/aicl.php';
-
-        $this->assertArrayHasKey('theme', $config);
-        $this->assertArrayHasKey('navigation_layout', $config['theme']);
-    }
-
-    public function test_navigation_layout_env_default_is_switchable(): void
-    {
-        // Verify the config file uses env() with 'switchable' as the default
-        $configSource = file_get_contents(__DIR__.'/../../../config/aicl.php');
-
-        $this->assertStringContainsString("env('AICL_NAV_LAYOUT', 'switchable')", $configSource);
-    }
-
     public function test_switcher_init_view_exists(): void
     {
         $viewPath = __DIR__.'/../../../resources/views/components/navigation-switcher-init.blade.php';
@@ -65,13 +49,15 @@ class NavigationSwitcherTest extends TestCase
         $this->assertStringContainsString('x-on:click="toggle()"', $content);
     }
 
-    public function test_switcher_toggle_uses_heroicons(): void
+    public function test_switcher_toggle_uses_distinct_icons(): void
     {
         $viewPath = __DIR__.'/../../../resources/views/components/navigation-switcher-toggle.blade.php';
         $content = file_get_contents($viewPath);
 
         $this->assertStringContainsString('x-heroicon-o-view-columns', $content);
-        $this->assertStringContainsString('x-heroicon-o-bars-3', $content);
+        $this->assertStringContainsString('x-heroicon-o-arrows-right-left', $content);
+        // Must NOT use bars-3 (conflicts with Filament's hamburger menu)
+        $this->assertStringNotContainsString('heroicon-o-bars-3', $content);
     }
 
     public function test_js_file_contains_navigation_switcher_function(): void
@@ -122,16 +108,16 @@ class NavigationSwitcherTest extends TestCase
         $this->assertStringContainsString("Alpine.store('sidebar').open()", $content);
     }
 
-    public function test_plugin_register_sets_top_navigation_for_topbar_mode(): void
+    public function test_plugin_always_enables_top_navigation(): void
     {
         $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
 
-        // Plugin should check for topbar and switchable modes
-        $this->assertStringContainsString("['topbar', 'switchable']", $source);
         $this->assertStringContainsString('topNavigation()', $source);
+        // Should NOT have config-dependent conditional
+        $this->assertStringNotContainsString('navigation_layout', $source);
     }
 
-    public function test_plugin_boot_registers_render_hooks_for_switchable(): void
+    public function test_plugin_always_registers_switcher_render_hooks(): void
     {
         $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
 
@@ -139,5 +125,13 @@ class NavigationSwitcherTest extends TestCase
         $this->assertStringContainsString('navigation-switcher-toggle', $source);
         $this->assertStringContainsString('HEAD_END', $source);
         $this->assertStringContainsString('USER_MENU_BEFORE', $source);
+    }
+
+    public function test_config_does_not_contain_navigation_layout_key(): void
+    {
+        $config = require __DIR__.'/../../../config/aicl.php';
+
+        $this->assertArrayHasKey('theme', $config);
+        $this->assertArrayNotHasKey('navigation_layout', $config['theme']);
     }
 }

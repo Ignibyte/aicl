@@ -12,7 +12,20 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 
 While in `0.x.x`, the package API is not yet stable. Bump MINOR for features, PATCH for fixes.
 
-Current version: `3.1.0`
+Current version: `3.0.4`
+
+---
+
+## [3.0.4] - 2026-02-22
+
+### Changed
+- Navigation layout switcher is now always available — removed 3-way `navigation_layout` config
+- Replaced `heroicon-o-bars-3` toggle icon with `heroicon-o-arrows-right-left` to avoid confusion with Filament's hamburger menu
+- `AiclPlugin` now calls `topNavigation()` and registers switcher render hooks unconditionally
+
+### Removed
+- `aicl.theme.navigation_layout` config key
+- `AICL_NAV_LAYOUT` env var no longer used
 
 ---
 

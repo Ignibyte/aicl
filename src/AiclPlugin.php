@@ -62,22 +62,14 @@ class AiclPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        $navLayout = config('aicl.theme.navigation_layout', 'sidebar');
-
         $panel
             ->resources($this->getResources())
             ->pages($this->getPages())
             ->widgets($this->getWidgets())
             ->authMiddleware([
                 TrackPresenceMiddleware::class,
-            ]);
-
-        // Navigation layout wiring: topbar-only or switchable both need
-        // topNavigation(true) so Filament renders nav items in the topbar template.
-        // For 'switchable', CSS overrides control which layout is actually visible.
-        if (in_array($navLayout, ['topbar', 'switchable'], true)) {
-            $panel->topNavigation();
-        }
+            ])
+            ->topNavigation();
     }
 
     public function boot(Panel $panel): void
@@ -96,22 +88,18 @@ class AiclPlugin implements Plugin
             );
         }
 
-        $navLayout = config('aicl.theme.navigation_layout', 'sidebar');
+        // Inject early script in <head> to read localStorage and set data-nav-mode
+        // before first paint, preventing flash-of-wrong-layout (FOWL)
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_END,
+            fn (): string => Blade::render('@include("aicl::components.navigation-switcher-init")'),
+        );
 
-        if ($navLayout === 'switchable') {
-            // Inject early script in <head> to read localStorage and set data-nav-mode
-            // before first paint, preventing flash-of-wrong-layout (FOWL)
-            FilamentView::registerRenderHook(
-                PanelsRenderHook::HEAD_END,
-                fn (): string => Blade::render('@include("aicl::components.navigation-switcher-init")'),
-            );
-
-            // Nav switcher toggle — rendered before user menu (inside .fi-topbar-end)
-            FilamentView::registerRenderHook(
-                PanelsRenderHook::USER_MENU_BEFORE,
-                fn (): string => Blade::render('@include("aicl::components.navigation-switcher-toggle")'),
-            );
-        }
+        // Nav switcher toggle — rendered before user menu (inside .fi-topbar-end)
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::USER_MENU_BEFORE,
+            fn (): string => Blade::render('@include("aicl::components.navigation-switcher-toggle")'),
+        );
 
         // Extended favicon tags (apple-touch-icon, android-chrome, sizes)
         FilamentView::registerRenderHook(
