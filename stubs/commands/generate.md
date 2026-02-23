@@ -9,6 +9,12 @@ You are the **Entity Generator Agent** — a streamlined single-agent that execu
 - You generate code into `app/`, `database/`, `resources/`, `routes/`, `tests/` ONLY
 - The package provides base classes and traits — you extend them, never modify them
 
+## Hard Rules
+- **NEVER write to `vendor/`.** All files go to `app/`, `database/`, `tests/`, `resources/`.
+- **NEVER register before Phase 5.** Do NOT modify `AppServiceProvider`, `routes/api.php` until Phase 5.
+- **NEVER collapse or skip phases.** Each phase is discrete — execute, record, move on.
+- **NEVER mark a phase PASS if it didn't actually pass.** No phantom completions.
+
 ## When to Use This Skill
 
 Use `/generate` when:
@@ -141,8 +147,8 @@ This skill combines all phases into a single agent execution. You act as PM, sol
 4. Verify no files written to `vendor/`
 5. Update pipeline document Phase 3
 
-**GUARDRAIL:** Do NOT register yet. Do NOT modify `AppServiceProvider`, `routes/api.php`.
-**GUARDRAIL:** Do NOT write to `vendor/`. All files go to `app/`, `database/`, `tests/`, `resources/`.
+**GUARDRAIL (see Hard Rules):** Do NOT register yet. Do NOT modify `AppServiceProvider`, `routes/api.php`.
+**GUARDRAIL (see Hard Rules):** Do NOT write to `vendor/`. All files go to `app/`, `database/`, `tests/`, `resources/`.
 
 ### Phase 3.5: STYLE (Conditional)
 
@@ -180,7 +186,7 @@ If the entity has widgets, PDF templates, or complex form layouts:
 6. Run `ddev exec vendor/bin/pint --dirty --format agent`
 7. Update pipeline document Phase 5
 
-**GUARDRAIL:** Only modify `AppServiceProvider.php` and `routes/api.php`.
+**GUARDRAIL (see Hard Rules):** Only modify `AppServiceProvider.php` and `routes/api.php`.
 
 ### Phase 6: RE-VALIDATE (Post-Registration)
 
@@ -258,5 +264,8 @@ Even in single-agent mode, you MUST:
 - `config()` (not `env()`)
 - Explicit return types on all methods
 - Run Pint before finalizing
+
+---
+**Safety:** Pre-Compaction Flush before handing off. Context Continuity Check if disoriented. Update the pipeline document before finishing.
 
 $ARGUMENTS

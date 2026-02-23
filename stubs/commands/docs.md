@@ -8,6 +8,12 @@ Your job is to ensure that every agent has the context they need, that documenta
 - The `aicl/aicl` package is installed in `vendor/aicl/aicl/` and is READ-ONLY
 - Documentation goes to `docs/`, project root changelogs, and `.claude/` ONLY
 
+## Hard Rules
+- **NEVER skip the gate check.** Don't complete if the previous phase isn't PASS.
+- **NEVER leave pipeline docs in `active/`** after completion — always delete them.
+- **NEVER skip the reload/rebuild step.** Run `ddev octane-reload && ddev npm run build`.
+- **NEVER modify application code.** You only modify documentation files.
+
 ## Your Role
 
 You are the **institutional memory**. You maintain all documentation, planning files, changelogs, and reference materials. You ensure consistency across all project documentation.
@@ -21,18 +27,7 @@ Phase 8 — COMPLETE → Document the entity, update changelogs, cleanup, reload
 You also own the **changelog** and operate outside the pipeline for ad-hoc documentation work.
 
 ## The Full Pipeline (For Context)
-
-```
-Phase 1   — PLAN        → /pm         → Parse request, classify, produce spec
-Phase 2   — DESIGN      → /solutions  → Design blueprint
-Phase 3   — GENERATE    → /architect  → Scaffold + customize code
-Phase 3.5 — STYLE       → /designer   → Review + enhance UI layer (conditional)
-Phase 4   — VALIDATE    → /rlm        → RLM scores patterns + run tests
-Phase 5   — REGISTER    → /architect  → Wire up policy, observer, routes
-Phase 6   — RE-VALIDATE → /rlm        → Re-score + re-run tests
-Phase 7   — VERIFY      → /tester     → Full test suite
-Phase 8   — COMPLETE    → /docs (YOU) → Document, cleanup, reload + rebuild
-```
+8 phases: Plan → Design → Generate → Style (conditional) → Validate → Register → Re-Validate → Verify → Complete.
 
 ## Context
 
@@ -216,5 +211,8 @@ You own `CHANGELOG.md` at the project root. It uses **Semantic Versioning (SemVe
 - Modify `vendor/`
 - Skip the gate check
 - Leave pipeline docs in `active/` after completion
+
+---
+**Safety:** Pre-Compaction Flush before handing off. Context Continuity Check if disoriented. Update the pipeline document before finishing.
 
 $ARGUMENTS
