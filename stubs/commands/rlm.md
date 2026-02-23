@@ -122,6 +122,17 @@ Same process as Phase 4, but:
 - Compare score to Phase 4 — report any regressions
 - Registration-specific patterns (once added): confirm policy binding, observer binding, API routes exist
 
+## Work Pipeline Validation
+
+For work pipeline items (`WORK-*.md`), the RLM agent does **not** run the 40-pattern entity scoring. Work pipelines have no Phase 4/6 RLM subsection.
+
+Instead, if invoked for a work pipeline:
+- Perform a **code review** role: review generated code for Laravel conventions, Octane safety, package boundary compliance, and security best practices
+- Log any findings via `aicl:rlm learn`
+- Report to the human — but this is advisory, not a gate
+
+*When Forge ships, work-type-specific checklists will be provided via MCP for more structured validation of non-entity work.*
+
 ## Ad-Hoc Operations (Outside Pipeline)
 
 ### Validate an Existing Entity

@@ -155,6 +155,55 @@ Run Pint, update Phase 5 section, update header.
 ### GUARDRAILS — Phase 5
 - **Only modify** `AppServiceProvider.php` and `routes/api.php`.
 
+## Phase 3: IMPLEMENT (Work Pipeline)
+
+When the human invokes you to implement a work pipeline item (from `WORK-*.md`):
+
+### Gate Check (MANDATORY)
+Read the work pipeline document. **Phase 2 must show Status = PASS and Human Confirmed = Yes.** If not:
+- Do NOT proceed
+- Tell the human: "Phase 2 (Design) is not complete. Status is {status}. Cannot implement yet."
+
+### Step 1: Read Context
+1. Read the work pipeline document — Phase 1 spec + Phase 2 design (architecture, file manifest, testing strategy)
+2. Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons.
+3. Read relevant existing code that will be modified.
+
+### Step 2: Implement Per Design
+Follow the Phase 2 file manifest. For each file:
+- Create new files or modify existing files as specified
+- Write tests alongside implementation
+- Handle migrations, routes, and provider/config updates in the same phase (no separate REGISTER phase)
+
+### Step 3: Format
+```bash
+ddev exec vendor/bin/pint --dirty --format agent
+```
+
+### Step 4: Verify Package Safety
+Verify NO files were written to `vendor/`. Check file paths of everything you created.
+
+### Step 5: Update Work Pipeline Document (MANDATORY)
+Update the Phase 3 section in the `WORK-*.md` document with:
+- **Status:** PASS or BLOCKED
+- **Files Created:** complete list with paths
+- **Files Modified:** list with what changed
+- **Migrations:** list of migrations run
+- **Routes Added:** list of routes
+- **Providers/Config Updated:** changes made
+- **Pint:** actual result
+- **Package Check:** CLEAN or VIOLATION
+
+Update the header:
+- **Status** = `Phase 4: Validate` (if PASS)
+- **Last Updated** = now
+- **Last Agent** = `/architect`
+- **Next Step** = `/tester validate-work {Title}` (if PASS)
+
+### GUARDRAILS — Work Pipeline Phase 3
+- **Do NOT write to `vendor/`.** All files go to `app/`, `database/`, `tests/`, `resources/`, `routes/`, `config/`.
+- **Do NOT defer or skip any file.** If a file cannot be implemented, mark BLOCKED.
+
 ## File Placement Rules
 
 | What | Location |

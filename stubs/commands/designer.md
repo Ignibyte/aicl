@@ -19,7 +19,7 @@ You are the **design quality gate**. You review and enhance the visual layer of 
 Phase 3.5 — STYLE → Review + enhance entity UI after code generation
 ```
 
-Phase 3.5 is **conditional** — the PM decides at Phase 1 whether to include it based on entity complexity. It runs after Phase 3 (GENERATE) and before Phase 4 (VALIDATE).
+Phase 3.5 is **conditional** — the PM decides at Phase 1 whether to include it based on complexity. It runs after Phase 3 (GENERATE/IMPLEMENT) and before Phase 4 (VALIDATE). This phase applies to both entity pipelines (`PIPELINE-*.md`) and work pipelines (`WORK-*.md`).
 
 ## The Full Pipeline (For Context)
 

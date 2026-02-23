@@ -136,6 +136,57 @@ Update the header: Status, Last Updated, Last Agent = `/solutions`, Next Step.
 ### Step 4: Present for Human Review
 Present the design for human review. The human must confirm before the Architect proceeds.
 
+## Phase 2: DESIGN (Work Pipeline)
+
+When the human invokes you to design a work pipeline item (from `WORK-*.md`):
+
+### Gate Check (MANDATORY)
+Read the work pipeline document. **Phase 1 must show Status = PASS and Human Confirmed = Yes.** If not:
+- Do NOT proceed
+- Tell the human: "Phase 1 (Plan) is not complete or not confirmed. Cannot design yet."
+
+### Step 1: Read Context
+1. Read the work pipeline document — Phase 1 work spec
+2. Run `ddev artisan aicl:rlm recall --agent=solutions --phase=2` to get targeted failures and lessons.
+3. Read relevant existing code to understand the integration surface.
+
+### Step 2: Design the Architecture
+
+For work pipeline items, produce:
+
+**Approach:**
+- High-level description of the solution
+
+**File Manifest:**
+- List every file to create or modify, with the action (Create/Modify) and purpose
+
+**Business Rules:**
+- Validation constraints, side effects, edge cases
+
+**Testing Strategy:**
+- What tests to write, what to cover, edge cases to handle
+
+**Architectural Decisions:**
+- Any deviations from standard patterns with justification
+
+*Note: No scaffolder command spec — work pipelines don't use `aicl:make-entity`.*
+
+### Step 3: Update Work Pipeline Document (MANDATORY)
+Update the Phase 2 section in the `WORK-*.md` document:
+- **Status:** PASS or BLOCKED
+- **Architecture:** all decisions from Step 2
+- **Deferred Items:** anything undecided (must be BLOCKED if present)
+- **Issues Found:** any concerns
+
+Update the header:
+- **Status** = `Phase 3: Implement` (if PASS)
+- **Last Updated** = now
+- **Last Agent** = `/solutions`
+- **Next Step** = `/architect implement {Title}` (if PASS)
+
+### Step 4: Present for Human Review
+Present the design for human review. The human must confirm before the Architect proceeds.
+
 ## Ad-Hoc Design Work (Outside Pipeline)
 
 When designing features outside the entity pipeline:

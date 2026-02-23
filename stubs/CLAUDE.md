@@ -53,6 +53,17 @@ ddev exec php artisan aicl:make-entity {EntityName} \
 ddev exec php artisan aicl:validate {EntityName}
 ```
 
+## Work Pipeline (Non-Entity)
+
+For features, integrations, infrastructure, and refactors that aren't full entities:
+
+**Step-by-step with human review (6 phases):**
+```
+/pm work {description}
+```
+
+This creates a `WORK-{Title}.md` pipeline document with phases: Plan, Design, Implement, Validate, Verify, Complete. Same agents, same workspace, same conventions as the entity pipeline — but without entity-specific phases (Register, Re-Validate, RLM scoring).
+
 ## Development Environment
 
 - **DDEV** with PHP 8.3, PostgreSQL 17, Redis 7, Swoole 6.0.0

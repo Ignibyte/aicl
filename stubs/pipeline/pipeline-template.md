@@ -2,6 +2,7 @@
 
 | Field | Value |
 |-------|-------|
+| **Pipeline Type** | Entity |
 | **Status** | Phase 1: Plan |
 | **Tier** | 1 (Entity) |
 | **Created** | {date} |
@@ -36,13 +37,40 @@
 - **Widgets:** {list — per world-model.md decision rules}
 - **Notifications:** {list — assignment, status change}
 
+### Spec Validation
+```bash
+ddev artisan aicl:validate-spec {Name}
+```
+- **Result:** PASS | FAIL
+- **Errors:** {count or "None"}
+- **Warnings:** {count or "None"}
+
 ### Human Confirmed
 - [ ] Spec reviewed and confirmed
 
-### Issues from failures.md
-- {any applicable known pitfalls, or "None found"}
+### Known Pitfalls (from RLM)
+- {run `aicl:rlm recall --agent=pm --phase=1` — list applicable pitfalls, or "None found"}
 
 ---
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FORGE MCP HOOK (NOT YET ACTIVE)
+
+     When Forge ships, this is where institutional knowledge injection
+     happens. Between Phase 1 (Plan) and Phase 2 (Design), the PM will
+     call Forge's MCP endpoint to:
+
+     1. Query lessons by concept tags matching this entity's patterns
+     2. Retrieve prevention rules applicable to the file patterns
+     3. Surface architecture decisions from similar past entities
+     4. Inject a "Forge Briefing" section into Phase 2 context
+
+     Integration surface:
+       forge:query-knowledge --concepts="{entity-trait-tags}" --file-patterns="{expected-files}"
+
+     Until Forge is available, agents rely on local `aicl:rlm recall`
+     for institutional knowledge.
+     ═══════════════════════════════════════════════════════════════════ -->
 
 ## Phase 2: Design
 **Agent:** /solutions
@@ -114,7 +142,10 @@
 
 ### Package Check
 - **Status:** CLEAN | VIOLATION
-- **Details:** {confirm no files written to packages/aicl/}
+- **Details:** {confirm no files written to vendor/}
+
+### Cheat Sheet Delivered
+- **Cheat Sheet Delivered:** {DL-001, DL-003, DL-007 -- comma-separated lesson codes from recall output}
 
 ### Notes
 - {any deviations from design blueprint, or "Followed design exactly"}
@@ -171,6 +202,10 @@
 - **Failing Tests:** {list with failure reasons, or "None"}
 - **Retry Count:** 0
 
+### Feedback
+- **Feedback:** `aicl:rlm feedback --entity={Name} --phase=4 --surfaced="{DL codes}" --failures="{BF codes}"`
+- **Feedback Result:** {N prevented, M ignored, K uncovered}
+
 ---
 
 ## Phase 5: Register
@@ -215,6 +250,10 @@
 - **Test Count:** {N tests, N assertions}
 - **Regressions from Phase 4:** {list or "None"}
 - **Retry Count:** 0
+
+### Feedback
+- **Feedback:** `aicl:rlm feedback --entity={Name} --phase=6 --surfaced="{DL codes}" --failures="{BF codes}"`
+- **Feedback Result:** {N prevented, M ignored, K uncovered}
 
 ---
 

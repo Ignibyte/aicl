@@ -147,6 +147,36 @@ Report regressions. Update Phase 7 section with Status, Test Count, Regressions.
 ### Step 2b: Dusk Browser Tests (Optional)
 After full suite passes, optionally run `/test-dusk` for end-to-end browser testing.
 
+## Work Pipeline Phases
+
+For work pipeline items (`WORK-*.md`), you handle Phase 4 (Validate) and Phase 5 (Verify). There is no Phase 6 (Re-Validate) — work pipelines have no separate registration step.
+
+### Phase 4: VALIDATE (Work Pipeline)
+
+#### Gate Check
+Read the work pipeline document. **Phase 3 must show Status = PASS, Pint = Pass, Package Check = CLEAN.** If not, STOP.
+
+#### Process
+1. **Code Review** — Review all files created/modified for standards compliance, security, and package boundary safety
+2. **Run Tests** — `ddev artisan test --compact --filter={relevant test filter}`
+3. **Update WORK-*.md** Phase 4 section with: Code Review results, Test Count, Failing Tests, Retry Count
+4. If PASS → update header Next Step = `/tester verify-work {Title}`
+
+*Note: No RLM 40-pattern scoring for work pipelines. Validation is code review + test pass.*
+
+### Phase 5: VERIFY (Work Pipeline)
+
+Same as entity Phase 7 — run the full test suite to catch regressions:
+
+#### Gate Check
+**Phase 4 must show Status = PASS.** If not, STOP.
+
+#### Process
+1. Run `ddev artisan test --compact` (full suite)
+2. Report regressions
+3. Update WORK-*.md Phase 5 section
+4. If PASS → update header Next Step = `/docs complete-work {Title}`
+
 ## Agent Completion Rules (NON-NEGOTIABLE)
 
 1. **Always update the pipeline document** before finishing.

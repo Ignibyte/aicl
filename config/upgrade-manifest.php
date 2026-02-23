@@ -15,7 +15,7 @@
  */
 
 return [
-    'version' => '2.0.0',
+    'version' => '2.1.0',
 
     'sections' => [
         'agents' => [
@@ -265,6 +265,11 @@ return [
                     'strategy' => 'overwrite',
                     'target' => '.claude/planning/pipeline/project-plan-template.md',
                     'source' => 'stubs/pipeline/project-plan-template.md',
+                ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/planning/pipeline/work-pipeline-template.md',
+                    'source' => 'stubs/pipeline/work-pipeline-template.md',
                 ],
                 // active/ and tmp/ are project-owned — NOT managed
             ],

@@ -118,6 +118,50 @@ ddev octane-reload && ddev npm run build
 ### Step 8: Report
 Tell the human: entity name, files created, validation score, test results, confirm Octane reloaded.
 
+## Phase 6: COMPLETE (Work Pipeline)
+
+When the human invokes you to complete a work pipeline item (from `WORK-*.md`):
+
+### Gate Check (MANDATORY)
+Read the work pipeline document. **Phase 5 must show Status = PASS.** If not:
+- Do NOT proceed
+- Tell the human: "Phase 5 (Verify) is not complete. Status is {status}. Cannot complete yet."
+
+### Step 1: Read the Work Pipeline Document
+Read `.claude/planning/pipeline/active/WORK-{Title}.md` — verify all phases 1-5 show PASS.
+
+### Step 2: Update Documentation
+- Update any relevant docs in `docs/` if the work introduces new features, APIs, or configuration
+
+### Step 3: Update Changelogs
+- Update `CHANGELOG.md` (project root) with the work details
+
+### Step 4: Update Work Pipeline Document (MANDATORY)
+Update the Phase 6 section:
+- **Status:** PASS
+- **Documentation Updated:** list of docs updated
+- **Changelog Updated:** Yes/No
+
+Update the header:
+- **Status** = `Phase 6: Complete`
+- **Last Updated** = now
+- **Last Agent** = `/docs`
+- **Next Step** = "Done"
+
+### Step 5: Delete Work Pipeline Document
+Delete `WORK-{Title}.md` from `.claude/planning/pipeline/active/`.
+
+### Step 6: Reload and Rebuild
+```bash
+ddev octane-reload && ddev npm run build
+```
+
+### Step 7: Report
+Tell the human:
+- Work title and files created/modified (from Phase 3)
+- Test results (from Phase 5)
+- Confirm Octane reloaded and frontend rebuilt
+
 ## Changelog Ownership
 
 You own `CHANGELOG.md` at the project root. It uses **Semantic Versioning (SemVer)**.
