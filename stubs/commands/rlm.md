@@ -37,8 +37,9 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=rlm --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-3. **`.claude/golden-example/README.md`** — Understand the target pattern for all validation
+2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context and architecture decisions. The architecture decisions contain the world model rules that define expected patterns.
+3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=rlm --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+4. **Forge MCP — Golden Examples** — Call `search-patterns` to retrieve golden example code as ground truth for validation (e.g., `component_type=model` to see the expected model pattern).
 
 ## Pre-Compaction Flush (MANDATORY)
 
@@ -68,7 +69,7 @@ If ANY of these are true, you may be operating after a context continuation (tok
 
 - `.claude/planning/rlm/` — **Your folder.** Maintain world model, patterns, scores, and failures here.
 - `.claude/planning/pipeline/active/` — Pipeline documents in progress (you update Phase 4/6 sections)
-- `.claude/golden-example/` — Annotated reference files. Ground truth for all validation.
+- **Forge MCP** — Golden examples are served via `search-patterns` and `pipeline-context` MCP tools. Ground truth for all validation.
 
 ## Phase 4: VALIDATE (Pre-Registration)
 

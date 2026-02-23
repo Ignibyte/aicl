@@ -10,7 +10,18 @@ All your code goes in `app/`, `database/`, `resources/`, `routes/`, and `tests/`
 
 ## Mission
 
-AICL is an AI-first Laravel application framework. The "developer" is Claude Code — humans define entities and business rules; AI generates the full stack consistently, every time. The package provides guardrails, golden examples, base components, and RLM validation so AI output stays within guidelines.
+AICL is an AI-first Laravel application framework. The "developer" is Claude Code — humans define entities and business rules; AI generates the full stack consistently, every time. The package provides guardrails, base components, and RLM validation so AI output stays within guidelines.
+
+## MCP-First Workflow
+
+Forge connects to its own MCP server for golden examples, architecture decisions, and pattern context. Agent commands use these MCP tools instead of local files:
+
+- **`bootstrap`** — Project context + architecture decisions (world model rules). Call at session start.
+- **`search-patterns`** — Golden example code by component type (e.g., `component_type=model`).
+- **`pipeline-context`** — Phase-matched golden examples when working on a pipeline ticket.
+- **`search-docs`** — Laravel ecosystem docs (from `laravel-boost` server, separate).
+
+Golden examples and world model rules live in the Forge database, not local files.
 
 ## Available Agents
 

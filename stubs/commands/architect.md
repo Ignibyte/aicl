@@ -39,10 +39,11 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures, lessons, and component recommendations for your role. Component recommendations are included when entity context has fields.
-3. **Component Registry** — For entity views, run `ddev artisan aicl:pipeline-context {Entity} --components` to get field-specific component recommendations. Use `ddev artisan aicl:components recommend {fields}` to test the field signal engine. Use `ddev artisan aicl:components show {tag}` for full component schema (props, slots, variants, decision rules).
-4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring Passport/Socialite, or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
-5. **`.claude/golden-example/README.md`** — Understand the target pattern
+2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules), and active patterns. This replaces reading local world-model.md.
+3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures, lessons, and component recommendations for your role. Component recommendations are included when entity context has fields.
+4. **Component Registry** — For entity views, run `ddev artisan aicl:pipeline-context {Entity} --components` to get field-specific component recommendations. Use `ddev artisan aicl:components recommend {fields}` to test the field signal engine. Use `ddev artisan aicl:components show {tag}` for full component schema (props, slots, variants, decision rules).
+5. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool (from the `laravel-boost` server) to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring Passport/Socialite, or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
+6. **Forge MCP — Golden Examples** — Call `search-patterns` to retrieve golden example code for specific component types (e.g., `component_type=model`). Call `pipeline-context` when working on a pipeline ticket for phase-matched examples.
 
 ## Pre-Compaction Flush (MANDATORY)
 
@@ -79,7 +80,7 @@ Read the pipeline document. **Phase 2 must show Status = PASS and Human Confirme
 
 ### Step 1: Read Context
 1. Read the pipeline document — Phase 1 spec + Phase 2 design
-2. Read `.claude/golden-example/README.md` and relevant golden example files
+2. Call `pipeline-context` MCP tool for phase-matched golden examples, or `search-patterns` for specific component types
 3. Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
 
 ### Step 2: Scaffold with Smart Scaffolder

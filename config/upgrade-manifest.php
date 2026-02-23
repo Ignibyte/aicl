@@ -15,7 +15,7 @@
  */
 
 return [
-    'version' => '2.1.0',
+    'version' => '3.0.0',
 
     'sections' => [
         'agents' => [
@@ -71,6 +71,18 @@ return [
                     'strategy' => 'overwrite',
                     'target' => '.claude/commands/project-setup.md',
                     'source' => 'stubs/commands/project-setup.md',
+                ],
+
+                // Forge integration agents
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/forge-connect.md',
+                    'source' => 'stubs/commands/forge-connect.md',
+                ],
+                [
+                    'strategy' => 'overwrite',
+                    'target' => '.claude/commands/init_help.md',
+                    'source' => 'stubs/commands/init_help.md',
                 ],
 
                 // Utility agents that ship to client projects

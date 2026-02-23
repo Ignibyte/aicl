@@ -26,10 +26,10 @@ For step-by-step control with human review at each phase gate, use `/pm` instead
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read any existing `PIPELINE-*.md` for this entity. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-3. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring form layouts (Section, Grid), or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
-4. **`.claude/golden-example/README.md`** — The target pattern for all files
-5. **`.claude/planning/rlm/world-model.md`** — Pattern definitions and decision rules
+2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules), and active patterns. This replaces reading local world-model.md.
+3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool (from the `laravel-boost` server) to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring form layouts (Section, Grid), or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
+5. **Forge MCP — Golden Examples** — Call `search-patterns` to retrieve golden example code for specific component types (e.g., `component_type=model`). Call `pipeline-context` when working on a pipeline ticket for phase-matched examples.
 
 ## Pre-Compaction Flush (MANDATORY)
 
@@ -87,7 +87,7 @@ This skill combines all phases into a single agent execution. You act as PM, sol
 2. Walk the decision tree:
    - Has its own database table, CRUD, admin UI, API? -> Tier 1 (proceed)
    - Not a full entity? -> Tell the human this doesn't need the full pipeline
-3. Read `.claude/planning/rlm/world-model.md` — use decision rules for traits, widgets, notifications
+3. Use architecture decisions from `bootstrap` MCP response — use decision rules for traits, widgets, notifications
 4. Produce entity spec:
    ```
    - Name: {PascalCase}

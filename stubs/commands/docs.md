@@ -36,9 +36,8 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=docs --phase=8` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-3. **`.claude/planning/rlm/world-model.md`** — The canonical source of truth for entity patterns
-4. **`.claude/golden-example/README.md`** — Understand the full file manifest and golden patterns
+2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules including file manifest), and active patterns. This replaces reading local world-model.md and golden-example README.
+3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=docs --phase=8` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
 
 ## Pre-Compaction Flush (MANDATORY)
 

@@ -38,9 +38,10 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=tester --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-3. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing tests. Search when: writing Livewire test assertions, testing Filament resource pages, mocking Spatie package behavior, or verifying test helper method signatures. Example: `search-docs queries=["testing Livewire components assertSee"] packages=["livewire/livewire"]`
-4. **`.claude/golden-example/test.php`** — The canonical test pattern for entity tests
+2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context and architecture decisions (including test rules: minimum 9 tests, DatabaseTransactions requirement, permission seeding pattern).
+3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=tester --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool (from the `laravel-boost` server) to verify package APIs against installed versions before writing tests. Search when: writing Livewire test assertions, testing Filament resource pages, mocking Spatie package behavior, or verifying test helper method signatures. Example: `search-docs queries=["testing Livewire components assertSee"] packages=["livewire/livewire"]`
+5. **Forge MCP — Golden Test Example** — Call `search-patterns` with `component_type=test` to get the canonical test pattern for entity tests.
 
 ## Pre-Compaction Flush (MANDATORY)
 

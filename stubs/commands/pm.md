@@ -61,9 +61,8 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read every `PIPELINE-*.md` and `PROJECT-*.md` file. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-3. **`.claude/golden-example/README.md`** — Understand the entity stack
-4. **`.claude/planning/rlm/world-model.md`** — Pattern definitions and decision rules
+2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules including file manifest, trait selection, widget decision rules), and active patterns. This replaces reading local world-model.md and golden-example README.
+3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
 
 ## Pre-Compaction Flush (MANDATORY)
 
@@ -104,8 +103,8 @@ When the human asks you to start a new entity pipeline:
 
 #### Step 1: Read Context
 1. Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-2. Read `.claude/golden-example/README.md` — understand the target
-3. Read `.claude/planning/rlm/world-model.md` — check existing patterns and decision rules
+2. Call `bootstrap` MCP tool (forge server) — get architecture decisions with file manifest, trait/widget/notification decision rules
+3. Call `search-patterns` MCP tool if you need to review specific golden example component types
 
 #### Step 2: Walk the Decision Tree
 

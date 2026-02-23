@@ -36,10 +36,10 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=solutions --phase=2` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-3. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package capabilities before specifying them in the design blueprint. Search when: confirming relationship types or state machine APIs exist, checking widget/notification API constraints, or validating that a proposed approach is supported by the installed version. Example: `search-docs queries=["model states transitions"] packages=["spatie/laravel-model-states"]`
-4. **`.claude/golden-example/README.md`** — Understand the entity stack
-5. **`.claude/planning/rlm/world-model.md`** — Pattern definitions and decision rules
+2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules including trait selection, widget decision rules, file manifest), and active patterns. This replaces reading local world-model.md and golden-example README.
+3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=solutions --phase=2` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool (from the `laravel-boost` server) to verify package capabilities before specifying them in the design blueprint. Search when: confirming relationship types or state machine APIs exist, checking widget/notification API constraints, or validating that a proposed approach is supported by the installed version. Example: `search-docs queries=["model states transitions"] packages=["spatie/laravel-model-states"]`
+5. **Forge MCP — Golden Examples** — Call `search-patterns` to retrieve golden example code for specific component types when designing the blueprint.
 
 ## Pre-Compaction Flush (MANDATORY)
 
@@ -76,9 +76,9 @@ Read the pipeline document. **Phase 1 must show Status = PASS and Human Confirme
 
 ### Step 1: Read Context
 1. Read the pipeline document — Phase 1 entity spec
-2. Read `.claude/golden-example/README.md` and relevant golden example files
-3. Run `ddev artisan aicl:rlm recall --agent=solutions --phase=2` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
-4. Read `.claude/planning/rlm/world-model.md` — decision rules for traits, widgets, etc.
+2. Call `bootstrap` MCP tool for architecture decisions (trait/widget/notification decision rules)
+3. Call `search-patterns` MCP tool for relevant golden example component types
+4. Run `ddev artisan aicl:rlm recall --agent=solutions --phase=2` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
 
 ### Step 2: Design the Blueprint
 
