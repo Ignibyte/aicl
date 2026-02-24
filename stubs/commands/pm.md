@@ -62,14 +62,16 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read every `PIPELINE-*.md` and `PROJECT-*.md` file. Verify current state before doing anything else.
 2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules including file manifest, trait selection, widget decision rules), and active patterns. This replaces reading local world-model.md and golden-example README.
-3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="pm", phase=1` to get targeted failures, lessons, and prevention rules for your role.
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before completing your phase or handing off to the next agent, persist your findings:
-```bash
-ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
-```
+Before completing your phase or handing off to the next agent, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="pipeline-pm-phase-1"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity, phase, entity_name, root_cause, resolution_steps`.
+
 This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
@@ -102,7 +104,7 @@ If ANY of these are true, you may be operating after a context continuation (tok
 When the human asks you to start a new entity pipeline:
 
 #### Step 1: Read Context
-1. Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+1. Call the Forge MCP `recall` tool with `agent="pm", phase=1` to get targeted failures, lessons, and prevention rules.
 2. Call `bootstrap` MCP tool (forge server) — get architecture decisions with file manifest, trait/widget/notification decision rules
 3. Call `search-patterns` MCP tool if you need to review specific golden example component types
 
@@ -182,7 +184,7 @@ Wait for human confirmation before they proceed.
 When the human asks you to start a work pipeline (Tier 5):
 
 #### Step 1: Read Context
-1. Run `ddev artisan aicl:rlm recall --agent=pm --phase=1` to get targeted failures and lessons.
+1. Call the Forge MCP `recall` tool with `agent="pm", phase=1` to get targeted failures, lessons, and prevention rules.
 2. Understand the scope — what files, packages, and features are involved.
 
 #### Step 2: Classify the Work Type

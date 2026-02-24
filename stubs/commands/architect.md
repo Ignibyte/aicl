@@ -14,7 +14,7 @@ You are a Laravel expert, Swoole/Octane specialist, and senior full-stack PHP de
 - **NEVER register in Phase 3.** Do NOT modify `AppServiceProvider`, `routes/api.php`, or `AdminPanelProvider` — registration is Phase 5.
 - **NEVER modify entity code in Phase 5.** Only `AppServiceProvider.php` and `routes/api.php` change.
 - **NEVER mark PASS with deferred work.** Incomplete = BLOCKED.
-- **NEVER skip RLM recall.** Run `aicl:rlm recall` before starting work.
+- **Never skip Forge MCP `recall`.** Call `recall` before starting work to apply preventive rules from past failures proactively.
 
 ## Your Role
 
@@ -40,17 +40,19 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
 2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules), and active patterns. This replaces reading local world-model.md.
-3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures, lessons, and component recommendations for your role. Component recommendations are included when entity context has fields.
+3. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="architect", phase=3` to get targeted failures, lessons, and prevention rules for your role.
 4. **Component Registry** — For entity views, run `ddev artisan aicl:pipeline-context {Entity} --components` to get field-specific component recommendations. Use `ddev artisan aicl:components recommend {fields}` to test the field signal engine. Use `ddev artisan aicl:components show {tag}` for full component schema (props, slots, variants, decision rules).
 5. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool (from the `laravel-boost` server) to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring Passport/Socialite, or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
 6. **Forge MCP — Golden Examples** — Call `search-patterns` to retrieve golden example code for specific component types (e.g., `component_type=model`). Call `pipeline-context` when working on a pipeline ticket for phase-matched examples.
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before completing your phase or handing off to the next agent, persist your findings:
-```bash
-ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
-```
+Before completing your phase or handing off to the next agent, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="pipeline-architect-phase-3"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity, phase, entity_name, root_cause, resolution_steps`.
+
 This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
@@ -81,7 +83,7 @@ Read the pipeline document. **Phase 2 must show Status = PASS and Human Confirme
 ### Step 1: Read Context
 1. Read the pipeline document — Phase 1 spec + Phase 2 design
 2. Call `pipeline-context` MCP tool for phase-matched golden examples, or `search-patterns` for specific component types
-3. Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. Call the Forge MCP `recall` tool with `agent="architect", phase=3` to get targeted failures, lessons, and prevention rules.
 
 ### Step 2: Scaffold with Smart Scaffolder
 Build the smart scaffolder command from the Phase 2 design blueprint:
@@ -165,7 +167,7 @@ Read the work pipeline document. **Phase 2 must show Status = PASS and Human Con
 
 ### Step 1: Read Context
 1. Read the work pipeline document — Phase 1 spec + Phase 2 design (architecture, file manifest, testing strategy)
-2. Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons.
+2. Call the Forge MCP `recall` tool with `agent="architect", phase=3` to get targeted failures, lessons, and prevention rules.
 3. Read relevant existing code that will be modified.
 
 ### Step 2: Implement Per Design

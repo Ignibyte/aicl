@@ -27,16 +27,18 @@ For step-by-step control with human review at each phase gate, use `/pm` instead
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read any existing `PIPELINE-*.md` for this entity. Verify current state before doing anything else.
 2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules), and active patterns. This replaces reading local world-model.md.
-3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=architect --phase=3` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="architect", phase=3` to get targeted failures, lessons, and prevention rules for your role.
 4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool (from the `laravel-boost` server) to verify package APIs against installed versions before writing code. Search when: writing Filament resource forms/tables, using Spatie package APIs (model-states, permissions, medialibrary), configuring form layouts (Section, Grid), or unsure about any method signature. Example: `search-docs queries=["Section layout columns"] packages=["filament/filament"]`
 5. **Forge MCP — Golden Examples** — Call `search-patterns` to retrieve golden example code for specific component types (e.g., `component_type=model`). Call `pipeline-context` when working on a pipeline ticket for phase-matched examples.
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before completing your phase or handing off to the next agent, persist your findings:
-```bash
-ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
-```
+Before completing your phase or handing off to the next agent, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="pipeline-generate-phase-{N}"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity, phase, entity_name, root_cause, resolution_steps`.
+
 This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
@@ -173,7 +175,7 @@ If the entity has widgets, PDF templates, or complex form layouts:
 2. Run `ddev artisan test --compact --filter={Name}Test` — all tests must pass
 3. If either fails:
    - Fix the issues (max 3 retries per tool)
-   - Log failures via `ddev artisan aicl:rlm learn "{failure description}" --topic=validation --tags="{entity-name,phase,failure-type}"`
+   - Log failures via Forge MCP `report-failure` tool with `failure_code, title, description, category="scaffolding", severity, phase="phase-4", entity_name="{Name}", root_cause, resolution_steps`
 4. Update pipeline document Phase 4 (both RLM and Tester subsections)
 
 ### Phase 5: REGISTER
@@ -195,7 +197,7 @@ If the entity has widgets, PDF templates, or complex form layouts:
 3. Compare results to Phase 4 — report any regressions
 4. If failures:
    - Fix the issues (max 2 retries per tool)
-   - Log failures via `ddev artisan aicl:rlm learn "{failure description}" --topic=validation --tags="{entity-name,phase,failure-type}"`
+   - Log failures via Forge MCP `report-failure` tool with `failure_code, title, description, category="scaffolding", severity, phase="phase-6", entity_name="{Name}", root_cause, resolution_steps`
 5. Update pipeline document Phase 6 (both RLM and Tester subsections)
 
 ### Phase 7: VERIFY (Full Suite)
@@ -215,7 +217,10 @@ If the entity has widgets, PDF templates, or complex form layouts:
    - Widgets (stats, charts, tables)
    - Testing summary (test count, coverage)
 2. Update `CHANGELOG.md` (project root) — bump version per SemVer (new entity = MINOR bump), update "Current version" line
-3. Save generation trace: `ddev artisan aicl:rlm trace-save --entity="{Name}" --structural-score={score} --fix-iterations={count}` (include `--fixes` and `--scaffolder-args` if available)
+3. **After-Action Review (AAR):**
+   - **Save generation trace:** Call Forge MCP `save-generation-trace` tool with `entity_name="{Name}", scaffolder_args="{original command}", file_manifest=[list of files], structural_score={score}, fix_iterations={count}, fixes=[list of fixes], test_results="{summary}"`
+   - **Record lessons:** Call Forge MCP `learn` tool once per lesson discovered during the pipeline (e.g., `summary="...", topic="entity-generation", tags="...", source="pipeline-generate-phase-8"`)
+   - **Report failures:** Call Forge MCP `report-failure` tool once per failure encountered and fixed (e.g., `failure_code="BF-{NNN}", title="...", description="...", category="scaffolding", severity="medium", entity_name="{Name}"`)
 4. Report to human:
    - Entity name and full file list
    - Validation score (from Phase 4/6)
@@ -231,7 +236,7 @@ Even in single-agent mode, you MUST:
 2. **Update each phase section** as you complete it — set Status, record results
 3. **Update the header** after each phase (Status, Last Updated, Last Agent = `/generate`, Next Step)
 4. **Never mark a phase PASS if it didn't actually pass** — no phantom completions
-5. **Log all failures** via `aicl:rlm learn` to the RLM knowledge base
+5. **Log all failures** via Forge MCP `report-failure` tool to the Forge knowledge base
 
 ## File Placement Rules
 

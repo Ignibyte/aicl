@@ -38,15 +38,17 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
 2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context and architecture decisions. The architecture decisions contain the world model rules that define expected patterns.
-3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=rlm --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="rlm", phase=4` to get targeted failures, lessons, and prevention rules for your role.
 4. **Forge MCP — Golden Examples** — Call `search-patterns` to retrieve golden example code as ground truth for validation (e.g., `component_type=model` to see the expected model pattern).
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before completing your phase or handing off to the next agent, persist your findings:
-```bash
-ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
-```
+Before completing your phase or handing off to the next agent, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="pipeline-rlm-phase-{N}"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity, phase, entity_name, root_cause, resolution_steps`.
+
 This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
@@ -88,7 +90,7 @@ ddev artisan aicl:validate {Name}
 ### Step 2: Score and Report
 - Must score **100%** (40/40 base patterns minimum)
 - If < 100%, report each failing pattern with explanation and suggested fix
-- Log any new failure patterns via `ddev artisan aicl:rlm learn "{failure description}" --topic=validation --tags="{entity-name,phase-4,pattern-failure}"`
+- Log any new failure patterns via Forge MCP `report-failure` tool with `failure_code, title, description, category="scaffolding", severity, phase="phase-4", entity_name="{Name}", root_cause, resolution_steps`
 
 ### Step 3: Update Pipeline Document (MANDATORY)
 Update the Phase 4 -> **RLM Validation** subsection in the pipeline document:
@@ -124,10 +126,10 @@ For work pipeline items (`WORK-*.md`), the RLM agent does **not** run the 40-pat
 
 Instead, if invoked for a work pipeline:
 - Perform a **code review** role: review generated code for Laravel conventions, Octane safety, package boundary compliance, and security best practices
-- Log any findings via `aicl:rlm learn`
+- Log any findings via Forge MCP `learn` tool with `topic="work-validation"` and `report-failure` for actual failures
 - Report to the human — but this is advisory, not a gate
 
-*When Forge ships, work-type-specific checklists will be provided via MCP for more structured validation of non-entity work.*
+*Call `recall(agent="rlm")` from Forge MCP to get work-type-specific lessons and prevention rules for non-entity validation.*
 
 ## Ad-Hoc Operations (Outside Pipeline)
 
@@ -141,31 +143,51 @@ Scan all entities, score each against golden example patterns, produce project-w
 ### Update World Model
 Review a proposed pattern change, validate against golden example, update pattern library with justification.
 
-## Failure Logging
+## Failure Logging via Forge MCP
 
-### Failure Logging via RLM Knowledge Base
-
-Failures are stored in the RLM knowledge base (PostgreSQL), which consolidates both base (universal) and project-specific failures. Use `aicl:rlm recall` to retrieve them and `aicl:rlm learn` to record new ones.
+Failures are recorded to the centralized Forge knowledge base via MCP tools. Use the `recall` tool to retrieve past failures and `report-failure` to record new ones.
 
 ### Recording a Failure
 
-Log every failure via:
-```bash
-ddev artisan aicl:rlm learn "{failure description + root cause + fix applied + preventive rule}" --topic=validation --tags="{entity-name,phase,failure-type}"
-```
-Include in the description:
-- Date, entity/component name
-- Phase where failure occurred (Phase 4 = `Pattern`, Phase 6 = `Pattern`)
+Call the Forge MCP `report-failure` tool with structured fields:
+- `failure_code` — Unique code (e.g., `BF-042`). Use next available number.
+- `title` — Short descriptive title
+- `description` — Detailed failure description including root cause
+- `category` — One of: `scaffolding`, `process`, `filament`, `testing`, `auth`, `laravel`, `tailwind`, `configuration`, `other`
+- `severity` — One of: `critical`, `high`, `medium`, `low`, `informational`
+- `phase` — Pipeline phase where failure occurred (e.g., `phase-4`)
+- `entity_name` — Entity being validated
+- `root_cause` — Root cause analysis
+- `resolution_steps` — Steps taken to fix
+
+### What to Include
+- Phase where failure occurred (Phase 4 or Phase 6)
 - Failure description + root cause
 - Fix applied (or "redesigned")
 - Preventive rule for future generations
-- If the failure is universal (affects all AICL projects), include `[CANDIDATE: base-failure]` in the description
+- If the failure is universal (affects all AICL projects), note it in the description
+
+### Forge MCP Tool Reference
+
+| Tool | Purpose |
+|------|---------|
+| `recall(agent, phase)` | Get targeted failures, lessons, prevention rules for a role |
+| `search-knowledge(query)` | Cross-entity search across the knowledge base |
+| `learn(summary, topic, tags, source)` | Record a lesson learned |
+| `report-failure(failure_code, title, description, ...)` | Record a failure with structured fields |
+| `save-generation-trace(entity_name, ...)` | Save pipeline generation trace |
+| `list-failures(category, severity, ...)` | Query failures with filters |
+| `list-lessons(topic, search, ...)` | Query lessons with filters |
+| `list-prevention-rules(search, ...)` | Query active prevention rules |
+| `list-patterns(target, category, ...)` | Query validation patterns |
+| `bootstrap()` | Get project context and architecture decisions |
+| `search-patterns(query)` | Search golden example patterns |
 
 ## Agent Completion Rules (NON-NEGOTIABLE)
 
 1. **Always update the pipeline document** before finishing. Set Status, update header.
 2. **Never mark PASS if validation didn't actually run.** If `aicl:validate` errored or wasn't executed, write "Not Run".
-3. **Never skip running `aicl:rlm recall`** before any operation to retrieve targeted failures and lessons.
+3. **Never skip Forge MCP `recall`** before any operation to retrieve targeted failures and lessons.
 4. **Always report the actual score.** Don't round, estimate, or assume.
 
 ## You Do NOT

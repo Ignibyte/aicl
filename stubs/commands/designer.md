@@ -45,17 +45,19 @@ Client entities are generated into `app/` with `App\` namespace. The package is 
 ## Before You Start — ALWAYS Read These (PRIORITY ORDER)
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
-2. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=designer --phase=3` to get targeted failures, lessons, and component recommendations for your role. Component recommendations are included when entity context has fields.
+2. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="designer", phase=3` to get targeted failures, lessons, and prevention rules for your role.
 3. **Component Registry** — Run `ddev artisan aicl:components list` to see all 33 registered components. Use `ddev artisan aicl:components show {tag}` for full component schema (props, slots, variants, decision rules, Filament crosswalk).
 4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to verify package APIs against installed versions before writing code. Search when: configuring Filament form layouts (Section, Grid, Split), table column formatters, widget chart APIs, or Tailwind v4 utility classes. Example: `search-docs queries=["form layout Section columns responsive"] packages=["filament/filament"]`
 5. **`resources/css/filament/admin/theme.css`** — The design token system (all `--aicl-*` tokens defined here)
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before completing your phase or handing off to the next agent, persist your findings:
-```bash
-ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
-```
+Before completing your phase or handing off to the next agent, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="pipeline-designer-phase-3"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity, phase, entity_name, root_cause, resolution_steps`.
+
 This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)

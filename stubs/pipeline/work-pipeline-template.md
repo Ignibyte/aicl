@@ -36,28 +36,19 @@
 - [ ] Spec reviewed and confirmed
 
 ### Known Pitfalls (from RLM)
-- {run `aicl:rlm recall --agent=pm --phase=1` — list applicable pitfalls, or "None found"}
+- {Call Forge MCP `recall(agent="pm", phase=1)` — list applicable pitfalls, or "None found"}
 
 ---
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     FORGE MCP HOOK (NOT YET ACTIVE)
+## Forge Briefing
 
-     When Forge ships, this is where institutional knowledge injection
-     happens. Between Phase 1 (Plan) and Phase 2 (Design), the PM will
-     call Forge's MCP endpoint to:
+Agents MUST call Forge MCP tools before starting each phase:
 
-     1. Query lessons by concept tags matching this work type
-     2. Retrieve prevention rules applicable to the file patterns
-     3. Surface architecture decisions from similar past work
-     4. Inject a "Forge Briefing" section into Phase 2 context
+1. **Bootstrap** — Call `bootstrap` MCP tool (forge server) to get project context, architecture decisions, and active patterns
+2. **Recall** — Call `recall` MCP tool with `agent="{role}", phase={N}` to get targeted failures, lessons, and prevention rules
+3. **Search** — Call `search-knowledge` MCP tool for concept-specific knowledge (e.g., state-machines, factory-relationships)
 
-     Integration surface:
-       forge:query-knowledge --concepts="{work-type-tags}" --file-patterns="{expected-files}"
-
-     Until Forge is available, agents rely on local `aicl:rlm recall`
-     for institutional knowledge.
-     ═══════════════════════════════════════════════════════════════════ -->
+Knowledge is served from the centralized Forge knowledge base.
 
 ## Phase 2: Design
 **Agent:** /solutions

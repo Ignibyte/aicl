@@ -39,16 +39,18 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
 2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context and architecture decisions (including test rules: minimum 9 tests, DatabaseTransactions requirement, permission seeding pattern).
-3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=tester --phase=4` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="tester", phase=4` to get targeted failures, lessons, and prevention rules for your role.
 4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool (from the `laravel-boost` server) to verify package APIs against installed versions before writing tests. Search when: writing Livewire test assertions, testing Filament resource pages, mocking Spatie package behavior, or verifying test helper method signatures. Example: `search-docs queries=["testing Livewire components assertSee"] packages=["livewire/livewire"]`
 5. **Forge MCP — Golden Test Example** — Call `search-patterns` with `component_type=test` to get the canonical test pattern for entity tests.
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before completing your phase or handing off to the next agent, persist your findings:
-```bash
-ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
-```
+Before completing your phase or handing off to the next agent, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="pipeline-tester-phase-4"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity, phase, entity_name, root_cause, resolution_steps`.
+
 This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
@@ -100,16 +102,31 @@ Update Phase 4 → **Tester Validation** subsection with Status, Test Count, Fai
 Update header: Last Updated, Last Agent = `/tester`, Next Step.
 
 ### Step 5: Log Failures
-If tests fail, log to the RLM knowledge base via `ddev artisan aicl:rlm learn "{failure description}" --topic=testing --tags="{entity-name,phase-4,test-failure}"`.
+If tests fail, log to the Forge knowledge base:
 
-### Step 6: Submit Feedback (MANDATORY)
-After test validation completes, report which distilled lessons were useful and which failures were encountered:
-```bash
-ddev artisan aicl:rlm feedback --entity={Name} --phase=4 --surfaced="{DL-codes}" --failures="{BF-codes}"
-```
-- **surfaced** = comma-separated distilled lesson codes (e.g., `DL-001,DL-003,DL-007`) from the cheat sheet delivered at Phase 3. These are the lessons the architect was briefed on before generation.
-- **failures** = comma-separated failure codes (e.g., `BF-012,BF-015`) for actual test failures found during validation. Use "none" if all tests passed.
-- Record the feedback result (N prevented, M ignored, K uncovered) in the pipeline document's Phase 4 Feedback subsection.
+Call Forge MCP `report-failure` tool with:
+- `failure_code` — Next available BF code
+- `title` — Short failure description
+- `description` — What the test was verifying, what failed and why
+- `category` — `testing`
+- `severity` — Based on impact
+- `phase` — `phase-4`
+- `entity_name` — Entity being tested
+- `root_cause` — Why the test failed
+- `resolution_steps` — How it was fixed
+
+Include: failure description, root cause, fix applied, whether scaffolding needs fixing, and preventive rule.
+
+### Step 6: Submit Pipeline Feedback (MANDATORY)
+After test validation completes, record which lessons were surfaced and which failures occurred:
+
+Call Forge MCP `learn` tool with:
+- `summary="Pipeline feedback phase-4: surfaced lessons [{DL-codes}], failures encountered [{BF-codes}]"`
+- `topic="pipeline-feedback"`
+- `tags="testing,phase-4,{entity-name}"`
+- `source="pipeline-tester-phase-4"`
+
+Record the feedback in the pipeline document's Phase 4 Feedback subsection.
 
 ## Phase 6: RE-VALIDATE (Post-Registration Testing)
 
@@ -118,14 +135,16 @@ Same as Phase 4 but:
 - Update Phase 6 section (NOT Phase 4)
 - Compare results to Phase 4 — report regressions
 
-### Submit Feedback (MANDATORY)
-After re-validation test runs complete, submit feedback for Phase 6:
-```bash
-ddev artisan aicl:rlm feedback --entity={Name} --phase=6 --surfaced="{DL-codes}" --failures="{BF-codes}"
-```
-- **surfaced** = the same distilled lesson codes from the Phase 3 cheat sheet (carried forward from Phase 4).
-- **failures** = actual failure codes for test failures found during re-validation. Use "none" if all tests passed.
-- Record the feedback result in the pipeline document's Phase 6 Feedback subsection.
+### Submit Pipeline Feedback (MANDATORY)
+After re-validation test runs complete, record feedback for Phase 6:
+
+Call Forge MCP `learn` tool with:
+- `summary="Pipeline feedback phase-6: surfaced lessons [{DL-codes}], failures encountered [{BF-codes}]"`
+- `topic="pipeline-feedback"`
+- `tags="testing,phase-6,{entity-name}"`
+- `source="pipeline-tester-phase-6"`
+
+Record the feedback in the pipeline document's Phase 6 Feedback subsection.
 
 ## Phase 7: VERIFY (Full Suite)
 
@@ -177,7 +196,7 @@ Same as entity Phase 7 — run the full test suite to catch regressions:
 
 1. **Always update the pipeline document** before finishing.
 2. **Never mark PASS if tests didn't actually run.**
-3. **Always log failures** via `aicl:rlm learn`.
+3. **Always log failures** via Forge MCP `report-failure`.
 4. **Always report actual counts.** Don't estimate.
 5. **Always check the gate** before starting.
 

@@ -23,15 +23,19 @@ Do NOT use this agent for:
 
 1. **`.aicl-state.json`** in project root — Current package version and upgrade history
 2. **`vendor/aicl/aicl/CHANGELOG_FRAMEWORK.md`** — Full version history with breaking changes
-3. **`.claude/planning/rlm/base-failures.md`** — Known failures that may affect upgrade
-4. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to check upgrade guides and verify new API signatures when handling breaking changes. Search when: resolving breaking changes after version bumps, verifying new API signatures, or checking migration patterns. Example: `search-docs queries=["upgrade guide breaking changes"] packages=["filament/filament"]`
+3. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context and architecture decisions.
+4. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="architect"` to get targeted failures, lessons, and prevention rules relevant to upgrades.
+5. **Laravel Ecosystem Docs** — Use the `search-docs` MCP tool to check upgrade guides and verify new API signatures when handling breaking changes. Search when: resolving breaking changes after version bumps, verifying new API signatures, or checking migration patterns. Example: `search-docs queries=["upgrade guide breaking changes"] packages=["filament/filament"]`
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before ANY tool call that might approach context limits, save your progress:
-```bash
-ddev artisan aicl:rlm learn "Upgrade from v{OLD} to v{NEW}: {status}" --topic=upgrades --tags="upgrade,v{NEW}"
-```
+Before completing your work, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="upgrade-project"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity`.
+
+This ensures knowledge survives context continuations.
 
 ## Context Continuity Check (MANDATORY)
 

@@ -23,6 +23,7 @@
 ### Entity Spec
 - **Name:** {PascalCase}
 - **Table:** {snake_plural}
+- **Spec File:** `specs/{Name}.entity.md` *(created by /pm, validated with `aicl:validate-spec`)*
 - **Fields:**
   - `id` — bigIncrements (PK)
   - `owner_id` — foreignId (users)
@@ -49,28 +50,19 @@ ddev artisan aicl:validate-spec {Name}
 - [ ] Spec reviewed and confirmed
 
 ### Known Pitfalls (from RLM)
-- {run `aicl:rlm recall --agent=pm --phase=1` — list applicable pitfalls, or "None found"}
+- {Call Forge MCP `recall(agent="pm", phase=1)` — list applicable pitfalls, or "None found"}
 
 ---
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     FORGE MCP HOOK (NOT YET ACTIVE)
+## Forge Briefing
 
-     When Forge ships, this is where institutional knowledge injection
-     happens. Between Phase 1 (Plan) and Phase 2 (Design), the PM will
-     call Forge's MCP endpoint to:
+Agents MUST call Forge MCP tools before starting each phase:
 
-     1. Query lessons by concept tags matching this entity's patterns
-     2. Retrieve prevention rules applicable to the file patterns
-     3. Surface architecture decisions from similar past entities
-     4. Inject a "Forge Briefing" section into Phase 2 context
+1. **Bootstrap** — Call `bootstrap` MCP tool (forge server) to get project context, architecture decisions, and active patterns
+2. **Recall** — Call `recall` MCP tool with `agent="{role}", phase={N}` to get targeted failures, lessons, and prevention rules
+3. **Search** — Call `search-knowledge` MCP tool for concept-specific knowledge (e.g., state-machines, factory-relationships)
 
-     Integration surface:
-       forge:query-knowledge --concepts="{entity-trait-tags}" --file-patterns="{expected-files}"
-
-     Until Forge is available, agents rely on local `aicl:rlm recall`
-     for institutional knowledge.
-     ═══════════════════════════════════════════════════════════════════ -->
+Knowledge is served from the centralized Forge knowledge base.
 
 ## Phase 2: Design
 **Agent:** /solutions
@@ -116,6 +108,12 @@ ddev artisan aicl:validate-spec {Name}
 **Status:** PASS | FAIL | Not Started
 **Started:** {timestamp}
 **Completed:** {timestamp}
+
+### Scaffolder Command
+```bash
+ddev artisan aicl:make-entity {Name} --from-spec --no-interaction
+```
+*(Reads from `specs/{Name}.entity.md` — all fields, states, relationships, enums, and options defined in the spec file)*
 
 ### Files Created
 | File | Path |
@@ -203,8 +201,8 @@ ddev artisan aicl:validate-spec {Name}
 - **Retry Count:** 0
 
 ### Feedback
-- **Feedback:** `aicl:rlm feedback --entity={Name} --phase=4 --surfaced="{DL codes}" --failures="{BF codes}"`
-- **Feedback Result:** {N prevented, M ignored, K uncovered}
+- **Feedback:** Call Forge MCP `learn(summary="Pipeline feedback phase-4: surfaced [{DL codes}], failures [{BF codes}]", topic="pipeline-feedback", source="pipeline-phase-4")`
+- **Feedback Result:** {lessons surfaced, failures recorded}
 
 ---
 
@@ -252,8 +250,8 @@ ddev artisan aicl:validate-spec {Name}
 - **Retry Count:** 0
 
 ### Feedback
-- **Feedback:** `aicl:rlm feedback --entity={Name} --phase=6 --surfaced="{DL codes}" --failures="{BF codes}"`
-- **Feedback Result:** {N prevented, M ignored, K uncovered}
+- **Feedback:** Call Forge MCP `learn(summary="Pipeline feedback phase-6: surfaced [{DL codes}], failures [{BF codes}]", topic="pipeline-feedback", source="pipeline-phase-6")`
+- **Feedback Result:** {lessons surfaced, failures recorded}
 
 ---
 

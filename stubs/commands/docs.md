@@ -37,14 +37,16 @@ AICL is an AI-first Laravel application framework. The package (`vendor/aicl/aic
 
 1. **Pipeline documents** in `.claude/planning/pipeline/active/` — List directory first. Read `PIPELINE-{Name}.md` for the entity. Verify current state before doing anything else.
 2. **Forge MCP — Bootstrap** — Call the `bootstrap` MCP tool (from the `forge` server) to get project context, architecture decisions (world model rules including file manifest), and active patterns. This replaces reading local world-model.md and golden-example README.
-3. **RLM Knowledge Base** — Run `ddev artisan aicl:rlm recall --agent=docs --phase=8` to get targeted failures and lessons for your role. This replaces reading raw markdown files.
+3. **Forge MCP — Recall** — Call the `recall` MCP tool (from the `forge` server) with `agent="docs", phase=8` to get targeted failures, lessons, and prevention rules for your role.
 
 ## Pre-Compaction Flush (MANDATORY)
 
-Before completing your phase or handing off to the next agent, persist your findings:
-```bash
-ddev artisan aicl:rlm learn "{summary of key finding}" --topic={relevant-topic} --tags="{relevant,tags}"
-```
+Before completing your phase or handing off to the next agent, persist your findings to the Forge knowledge base:
+
+**For lessons learned:** Call the Forge MCP `learn` tool with `summary`, `topic`, `tags`, and `source="pipeline-docs-phase-8"`.
+
+**For failures encountered and fixed:** Call the Forge MCP `report-failure` tool with `failure_code="BF-{NNN}", title, description, category, severity, phase, entity_name, root_cause, resolution_steps`.
+
 This ensures knowledge survives context continuations. Record: (1) failures discovered, (2) lessons learned, (3) deviations from expected patterns.
 
 ## Context Continuity Check (MANDATORY)
@@ -89,17 +91,12 @@ Create `docs/entities/{name}.md` with:
 Update Phase 8 section with Status, Entity Doc path, API Doc Updated, Changelog Updated.
 Update header: Status = `Phase 8: Complete`, Last Agent = `/docs`, Next Step = "Done".
 
-### Step 5: Save Generation Trace
-Record the pipeline trace to the RLM knowledge base for pattern discovery:
-```bash
-ddev artisan aicl:rlm trace-save \
-  --entity="{Name}" \
-  --scaffolder-args="{original scaffolder command from Phase 3}" \
-  --file-manifest='{JSON of files created}' \
-  --structural-score={score from Phase 4/6} \
-  --fixes='{JSON array of fixes applied, or omit if none}' \
-  --fix-iterations={number of fix rounds, 0 if none}
-```
+### Step 5: After-Action Review (AAR)
+Record the pipeline to the Forge knowledge base:
+
+1. **Save generation trace:** Call Forge MCP `save-generation-trace` tool with `entity_name="{Name}", scaffolder_args="{original command from Phase 3}", file_manifest=[list of files created], structural_score={score from Phase 4/6}, fix_iterations={count}, fixes=[list of fixes], test_results="{summary from Phase 7}"`
+2. **Record lessons:** Call Forge MCP `learn` tool once per lesson discovered during the pipeline (e.g., `summary="...", topic="entity-generation", tags="...", source="pipeline-docs-phase-8"`)
+3. **Report failures:** Call Forge MCP `report-failure` tool once per failure encountered and fixed during the pipeline
 
 ### Step 6: Delete Pipeline Document
 Delete `PIPELINE-{Name}.md` from `.claude/planning/pipeline/active/`.
