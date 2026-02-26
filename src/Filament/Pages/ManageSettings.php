@@ -135,7 +135,7 @@ class ManageSettings extends Page implements HasForms
                     ->schema([
                         Toggle::make('enable_registration')
                             ->label('User Registration')
-                            ->helperText('Allow new users to register accounts'),
+                            ->helperText('Allow new users to register accounts. Can also be enabled via AICL_ALLOW_REGISTRATION env var.'),
                         Toggle::make('enable_social_login')
                             ->label('Social Login')
                             ->helperText('Allow users to login with social providers'),

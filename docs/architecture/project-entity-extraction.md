@@ -1,7 +1,7 @@
 # Project Entity Extraction — Future Task
 
 **Status:** Deferred — covered in `.claude/planning/framework/architect/v1-architect-tasks.md` (Task 5)
-**Related:** Golden example must be created first
+**Related:** Golden example patterns now served via Forge MCP `search-patterns`
 
 ---
 
@@ -9,14 +9,14 @@
 
 The Project entity (model, migration, factory, seeder, observer, states, notifications, Filament resource, API controller, widgets) currently lives in the package (`packages/aicl/`). It is NOT framework infrastructure — it's a demo/reference entity that shows how a full CRUD entity stack looks.
 
-Once the `.claude/golden-example/` reference copy is created (Task 3 of package consolidation), the Project entity should be **removed from the package entirely**.
+The Project entity should be **removed from the package entirely**. Golden example code is now served exclusively via the **Forge MCP `search-patterns` tool** — local golden example files have been removed from the repository.
 
 ## Rationale
 
 - The package should be pure framework — auth, RBAC, base traits, components, utilities
 - Project is a concrete entity, not infrastructure
 - Shipping it in the package means every client install gets a "Projects" menu item they don't need
-- The golden example reference in `.claude/` is where the AI reads patterns from — that's the real value
+- Golden example patterns are served via Forge MCP `search-patterns` — that's where the AI reads patterns from
 - After removal, `aicl:make-entity Project` can regenerate it into `app/` to prove the system works
 
 ## What to Remove from Package
@@ -45,5 +45,5 @@ Once the `.claude/golden-example/` reference copy is created (Task 3 of package 
 ## After Removal
 
 - Package installs clean — no demo entity cluttering the admin panel
-- Golden example lives in `.claude/golden-example/` for AI reference
+- Golden example patterns served via Forge MCP `search-patterns` for AI reference
 - `aicl:make-entity Project` can scaffold it fresh into `app/` as a validation test

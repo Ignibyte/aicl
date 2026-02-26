@@ -24,7 +24,7 @@ class SettingsSeeder extends Seeder
             ['group' => 'mail', 'name' => 'reply_to', 'payload' => json_encode(null)],
 
             // Feature Settings (group: features)
-            ['group' => 'features', 'name' => 'enable_registration', 'payload' => json_encode(true)],
+            ['group' => 'features', 'name' => 'enable_registration', 'payload' => json_encode(false)],
             ['group' => 'features', 'name' => 'enable_social_login', 'payload' => json_encode(false)],
             ['group' => 'features', 'name' => 'enable_saml', 'payload' => json_encode(false)],
             ['group' => 'features', 'name' => 'enable_mfa', 'payload' => json_encode(false)],

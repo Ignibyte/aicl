@@ -12,10 +12,10 @@ This document is the **canonical source of truth** for what correct AICL entity 
 
 Every AICL entity produces this file set. There are two location contexts:
 
-- **Golden Location** — Where the golden entity (Project) lives in the package (`Aicl\` namespace). This is a historical artifact from framework development.
+- **Golden Location** — Where the package reference entity (Project) lives (`Aicl\` namespace). Golden example code is now served via Forge MCP `search-patterns`.
 - **Generated Location** — Where the `/generate` pipeline places ALL new entities. **Everything goes into client space (`app/`). Nothing goes into `packages/aicl/`.**
 
-**CRITICAL RULE:** The generation pipeline NEVER modifies `packages/aicl/`. The golden example shows patterns; the Generated Location shows where files actually go. See `.claude/planning/framework/reference/code-generation-system.md` for full rationale.
+**CRITICAL RULE:** The generation pipeline NEVER modifies `packages/aicl/`. The golden examples (served via Forge MCP `search-patterns`) show patterns; the Generated Location shows where files actually go. See `.claude/planning/framework/reference/code-generation-system.md` for full rationale.
 
 **NOTE:** `aicl:make-entity` generates ALL entity files into `app/` with `App\` namespace. Models go to `app/Models/`, Policies to `app/Policies/`, Observers to `app/Observers/`. Nothing is ever written to `packages/aicl/`.
 
@@ -54,16 +54,16 @@ Every AICL entity produces this file set. There are two location contexts:
 
 ---
 
-## Dual-Source Architecture: Golden Example vs Scaffolding
+## Dual-Source Architecture: Golden Examples (Forge MCP) vs Scaffolding
 
 The AICL entity system has **two sources of pattern truth** that must stay in sync:
 
-### 1. Golden Example (`.claude/golden-example/`)
+### 1. Golden Examples (Forge MCP)
 - **Purpose:** Annotated teaching reference for AI agents
-- **Contains:** 29 files extracted from the Project entity, each with `// PATTERN:` comments explaining WHY
-- **Used by:** Agents (via Read tool) before generating or validating code
-- **Includes:** Project-specific customizations (widgets, notifications, state machine, PDF templates)
-- **Format:** Real PHP files with inline annotations
+- **Contains:** Golden example code for each component type (model, migration, factory, policy, observer, resource, test, etc.)
+- **Accessed via:** Forge MCP `search-patterns` tool (e.g., `component_type=model`) — NOT local files
+- **Includes:** Production-quality patterns with annotations explaining WHY
+- **Format:** Served dynamically from the Forge knowledge base
 
 ### 2. Scaffolding Command (`MakeEntityCommand`)
 - **Purpose:** Code generator that produces actual entity files
@@ -73,7 +73,7 @@ The AICL entity system has **two sources of pattern truth** that must stay in sy
 - **Format:** String templates with `{Name}`, `{table}`, `{snake}` placeholders
 
 ### Relationship
-- The golden example is the **superset** — it shows the full, customized, production entity
+- The golden examples (via Forge MCP) are the **superset** — they show the full, customized, production entity patterns
 - The scaffolding is the **subset** — it generates the common skeleton that agents then customize
 - Both must pass the same 42 RLM validation patterns (40 base + 2 media), plus up to 8 frontend patterns when applicable
 - `aicl:validate` is the **synchronization check** — if either source drifts, validation will catch it
@@ -85,16 +85,16 @@ The AICL entity system has **two sources of pattern truth** that must stay in sy
 - Total possible patterns: up to 50 (42 base/media + 8 frontend)
 
 ### Drift Prevention Rules
-1. When fixing a scaffolding bug in `MakeEntityCommand`, check if the golden example needs the same fix
-2. When adding a new pattern to the golden example, check if `MakeEntityCommand` should generate it
+1. When fixing a scaffolding bug in `MakeEntityCommand`, check if the golden examples in Forge need the same fix
+2. When adding a new pattern to the golden examples in Forge, check if `MakeEntityCommand` should generate it
 3. The `/rlm` agent is responsible for flagging drift between the two sources
-4. `failures.md` logs any drift-related issues for future prevention
+4. Failures are logged to Forge MCP via `report-failure` for future prevention
 
 ---
 
 ## Model Rules
 
-**Namespace:** `App\Models` (generated entities) or `Aicl\Models` (golden example reference)
+**Namespace:** `App\Models` (generated entities) or `Aicl\Models` (package reference)
 **Extends:** `Illuminate\Database\Eloquent\Model`
 **Golden file:** `app/Models/Project.php`
 
@@ -342,7 +342,7 @@ class {Name}Factory extends Factory
 
 ## Policy Rules
 
-**Namespace:** `App\Policies` (generated entities) or `Aicl\Policies` (golden example reference)
+**Namespace:** `App\Policies` (generated entities) or `Aicl\Policies` (package reference)
 **Extends:** `Aicl\Policies\BasePolicy`
 **Golden file:** `app/Policies/ProjectPolicy.php`
 
@@ -417,7 +417,7 @@ Actions: `ViewAny`, `View`, `Create`, `Update`, `Delete`, `Restore`, `ForceDelet
 
 ## Observer Rules
 
-**Namespace:** `App\Observers` (generated entities) or `Aicl\Observers` (golden example reference)
+**Namespace:** `App\Observers` (generated entities) or `Aicl\Observers` (package reference)
 **Extends:** `Aicl\Observers\BaseObserver`
 **Golden file:** `app/Observers/ProjectObserver.php`
 

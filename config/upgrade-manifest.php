@@ -15,65 +15,14 @@
  */
 
 return [
-    'version' => '3.0.0',
+    'version' => '1.0.3',
 
     'sections' => [
         'agents' => [
             'label' => 'Agent Prompts (.claude/commands/)',
             'entries' => [
-                // Pipeline-variant agents that ship to client projects
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/generate.md',
-                    'source' => 'stubs/commands/generate.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/pm.md',
-                    'source' => 'stubs/commands/pm.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/rlm.md',
-                    'source' => 'stubs/commands/rlm.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/architect.md',
-                    'source' => 'stubs/commands/architect.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/solutions.md',
-                    'source' => 'stubs/commands/solutions.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/designer.md',
-                    'source' => 'stubs/commands/designer.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/tester.md',
-                    'source' => 'stubs/commands/tester.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/docs.md',
-                    'source' => 'stubs/commands/docs.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/upgrade-project.md',
-                    'source' => 'stubs/commands/upgrade-project.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/project-setup.md',
-                    'source' => 'stubs/commands/project-setup.md',
-                ],
-
-                // Forge integration agents
+                // Only Forge integration agents ship with the package.
+                // All other agents are delivered dynamically via Forge MCP.
                 [
                     'strategy' => 'overwrite',
                     'target' => '.claude/commands/forge-connect.md',
@@ -85,205 +34,82 @@ return [
                     'source' => 'stubs/commands/init_help.md',
                 ],
 
-                // Utility agents that ship to client projects
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/remove-entity.md',
-                    'source' => 'stubs/commands/remove-entity.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/scan-all.md',
-                    'source' => 'stubs/commands/scan-all.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/scan-phpstan.md',
-                    'source' => 'stubs/commands/scan-phpstan.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/scan-semgrep.md',
-                    'source' => 'stubs/commands/scan-semgrep.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/scan-snyk.md',
-                    'source' => 'stubs/commands/scan-snyk.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/commands/test-dusk.md',
-                    'source' => 'stubs/commands/test-dusk.md',
-                ],
+                // Previously shipped agents — remove on upgrade (now via Forge MCP)
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/generate.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/pm.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/rlm.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/architect.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/solutions.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/designer.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/tester.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/docs.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/upgrade-project.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/project-setup.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/remove-entity.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/scan-all.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/scan-phpstan.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/scan-semgrep.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/scan-snyk.md', 'reason' => 'Now delivered via Forge MCP'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/test-dusk.md', 'reason' => 'Now delivered via Forge MCP'],
 
-                // Framework-only agents that should NOT exist in client projects
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/replit.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/replit-design.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/release.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/upgrade-framework.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/seeker.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/scan-architecture.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/scan-duplication.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/scan-unused.md',
-                    'reason' => 'Framework-only agent, not for client projects',
-                ],
+                // Framework-only agents (always absent from client projects)
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/replit.md', 'reason' => 'Framework-only'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/replit-design.md', 'reason' => 'Framework-only'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/release.md', 'reason' => 'Framework-only'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/upgrade-framework.md', 'reason' => 'Framework-only'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/seeker.md', 'reason' => 'Framework-only'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/scan-architecture.md', 'reason' => 'Framework-only'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/scan-duplication.md', 'reason' => 'Framework-only'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/scan-unused.md', 'reason' => 'Framework-only'],
 
-                // Pipeline-variant source files (should not exist in client — they become the non-pipeline names)
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/generate-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses generate.md',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/pm-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses pm.md',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/rlm-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses rlm.md',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/architect-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses architect.md',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/solutions-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses solutions.md',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/designer-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses designer.md',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/tester-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses tester.md',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/commands/docs-pipeline.md',
-                    'reason' => 'Pipeline variant source — client uses docs.md',
-                ],
+                // Pipeline-variant source files (always absent from client projects)
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/generate-pipeline.md', 'reason' => 'Pipeline variant source'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/pm-pipeline.md', 'reason' => 'Pipeline variant source'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/rlm-pipeline.md', 'reason' => 'Pipeline variant source'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/architect-pipeline.md', 'reason' => 'Pipeline variant source'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/solutions-pipeline.md', 'reason' => 'Pipeline variant source'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/designer-pipeline.md', 'reason' => 'Pipeline variant source'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/tester-pipeline.md', 'reason' => 'Pipeline variant source'],
+                ['strategy' => 'ensure_absent', 'target' => '.claude/commands/docs-pipeline.md', 'reason' => 'Pipeline variant source'],
             ],
         ],
 
         'rlm' => [
-            'label' => 'RLM Patterns (.claude/planning/rlm/)',
+            'label' => 'RLM (removed — now in Forge database)',
             'entries' => [
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/planning/rlm/world-model.md',
-                    'source' => 'stubs/rlm/world-model.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/planning/rlm/base-failures.md',
-                    'source' => 'stubs/rlm/base-failures.md',
-                ],
-                // failures.md and scores.md are project-owned — NOT managed
-                // framework-scores.md and framework-failures.md are framework-only
+                // RLM patterns, world model, and failures are now in the Forge database.
+                // Remove the entire local directory on upgrade.
                 [
                     'strategy' => 'ensure_absent',
-                    'target' => '.claude/planning/rlm/framework-scores.md',
-                    'reason' => 'Framework-only RLM file',
-                ],
-                [
-                    'strategy' => 'ensure_absent',
-                    'target' => '.claude/planning/rlm/framework-failures.md',
-                    'reason' => 'Framework-only RLM file',
+                    'target' => '.claude/planning/rlm/',
+                    'reason' => 'RLM data moved to Forge database — accessed via Forge MCP tools',
                 ],
             ],
         ],
 
         'golden_example' => [
-            'label' => 'Golden Example (.claude/golden-example/)',
+            'label' => 'Golden Example (removed — now served via Forge MCP)',
             'entries' => [
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/README.md', 'source' => 'stubs/golden-example/README.md'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/model.php', 'source' => 'stubs/golden-example/model.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/migration.php', 'source' => 'stubs/golden-example/migration.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/factory.php', 'source' => 'stubs/golden-example/factory.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/seeder.php', 'source' => 'stubs/golden-example/seeder.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/policy.php', 'source' => 'stubs/golden-example/policy.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/observer.php', 'source' => 'stubs/golden-example/observer.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/enum.php', 'source' => 'stubs/golden-example/enum.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/state.php', 'source' => 'stubs/golden-example/state.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/filament-resource.php', 'source' => 'stubs/golden-example/filament-resource.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/filament-form.php', 'source' => 'stubs/golden-example/filament-form.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/filament-table.php', 'source' => 'stubs/golden-example/filament-table.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/filament-pages/list.php', 'source' => 'stubs/golden-example/filament-pages/list.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/filament-pages/create.php', 'source' => 'stubs/golden-example/filament-pages/create.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/filament-pages/edit.php', 'source' => 'stubs/golden-example/filament-pages/edit.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/filament-pages/view.php', 'source' => 'stubs/golden-example/filament-pages/view.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/exporter.php', 'source' => 'stubs/golden-example/exporter.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/api-controller.php', 'source' => 'stubs/golden-example/api-controller.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/api-resource.php', 'source' => 'stubs/golden-example/api-resource.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/api-requests.php', 'source' => 'stubs/golden-example/api-requests.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/test.php', 'source' => 'stubs/golden-example/test.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/notifications/assigned.php', 'source' => 'stubs/golden-example/notifications/assigned.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/notifications/status-changed.php', 'source' => 'stubs/golden-example/notifications/status-changed.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/widgets/chart.php', 'source' => 'stubs/golden-example/widgets/chart.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/widgets/stats-overview.php', 'source' => 'stubs/golden-example/widgets/stats-overview.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/widgets/table.php', 'source' => 'stubs/golden-example/widgets/table.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/pdf/single-report.blade.php', 'source' => 'stubs/golden-example/pdf/single-report.blade.php'],
-                ['strategy' => 'overwrite', 'target' => '.claude/golden-example/pdf/list-report.blade.php', 'source' => 'stubs/golden-example/pdf/list-report.blade.php'],
+                // Golden examples are now served via Forge MCP `search-patterns` tool.
+                // Remove the local directory on upgrade.
+                [
+                    'strategy' => 'ensure_absent',
+                    'target' => '.claude/golden-example/',
+                    'reason' => 'Golden examples moved to Forge MCP — use search-patterns tool instead',
+                ],
             ],
         ],
 
         'pipeline' => [
-            'label' => 'Pipeline Templates (.claude/planning/pipeline/)',
+            'label' => 'Pipeline Templates (removed — now via Forge MCP)',
             'entries' => [
+                // Pipeline templates are now delivered via Forge MCP.
+                // Remove local copies on upgrade.
                 [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/planning/pipeline/pipeline-template.md',
-                    'source' => 'stubs/pipeline/pipeline-template.md',
+                    'strategy' => 'ensure_absent',
+                    'target' => '.claude/planning/pipeline/',
+                    'reason' => 'Pipeline templates moved to Forge MCP',
                 ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/planning/pipeline/project-plan-template.md',
-                    'source' => 'stubs/pipeline/project-plan-template.md',
-                ],
-                [
-                    'strategy' => 'overwrite',
-                    'target' => '.claude/planning/pipeline/work-pipeline-template.md',
-                    'source' => 'stubs/pipeline/work-pipeline-template.md',
-                ],
-                // active/ and tmp/ are project-owned — NOT managed
             ],
         ],
 

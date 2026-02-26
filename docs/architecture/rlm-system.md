@@ -358,7 +358,7 @@ All live in `packages/aicl/src/` with `Aicl\` namespace:
 | `GenerationTrace` | Generation audit trails | Structural/semantic scores, duration, phase data, file manifest, `pattern_set_version`, `scaffolder_version`, `signature_hash` (Sprint W/X) |
 | `PreventionRule` | Contextual prevention advice | Links to RlmFailure, entity type + phase targeting, severity |
 | `RlmScore` | Validation score history | Per-entity structural + semantic scores, trend tracking |
-| `GoldenAnnotation` | Golden example annotations | Links golden example files to the knowledge graph, entity context |
+| `GoldenAnnotation` | Golden example annotations | Links golden example patterns (served via Forge MCP) to the knowledge graph, entity context |
 | `DistilledLesson` | Agent-targeted synthesized guidance | Clustered from failures, effectiveness-weighted ranking, `surfaced_count`, `base_impact_score`, per agent/phase, When-Then rules |
 | `KnowledgeLink` | Cross-entity knowledge connections | Links patterns, failures, lessons, annotations for graph traversal; `link_type` (golden_entity_file/test_case/commit_sha/doc_anchor) with proof strength ranking (Sprint W) |
 | `EntityWaiver` | Pattern validation exceptions (Sprint W) | Entity/pattern binding, reason, scope_justification, ticket_url, budget math (cost = pattern weight), auto-expiry |

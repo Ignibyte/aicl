@@ -32,13 +32,16 @@ use Aicl\Filament\Widgets\GlobalSearchWidget;
 use Aicl\Filament\Widgets\PresenceIndicator;
 use Aicl\Filament\Widgets\QueueStatsWidget;
 use Aicl\Filament\Widgets\RecentFailedJobsWidget;
+use Aicl\Http\Middleware\MustTwoFactor;
 use Aicl\Http\Middleware\TrackPresenceMiddleware;
 use Aicl\Services\VersionService;
+use Aicl\Settings\FeatureSettings;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 
 class AiclPlugin implements Plugin
 {
@@ -62,6 +65,26 @@ class AiclPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
+        // Register Breezy for profile + MFA (unless project already registered it)
+        if (! $panel->hasPlugin('filament-breezy')) {
+            $panel->plugin(
+                BreezyCore::make()
+                    ->myProfile(
+                        shouldRegisterUserMenu: true,
+                        shouldRegisterNavigation: false,
+                        hasAvatars: true,
+                    )
+                    ->enableTwoFactorAuthentication(
+                        authMiddleware: MustTwoFactor::class,
+                    )
+            );
+        }
+
+        // Conditionally enable registration based on config + database settings
+        if (static::isRegistrationEnabled()) {
+            $panel->registration();
+        }
+
         $panel
             ->resources($this->getResources())
             ->pages($this->getPages())
@@ -70,6 +93,27 @@ class AiclPlugin implements Plugin
                 TrackPresenceMiddleware::class,
             ])
             ->topNavigation();
+    }
+
+    /**
+     * Check if user registration is enabled via env config OR database settings.
+     *
+     * The env flag (AICL_ALLOW_REGISTRATION) provides infrastructure-level control.
+     * The database toggle (Settings > Features > User Registration) provides admin UI control.
+     * Either being true enables registration.
+     */
+    public static function isRegistrationEnabled(): bool
+    {
+        if (config('aicl.features.allow_registration', false)) {
+            return true;
+        }
+
+        try {
+            return app(FeatureSettings::class)->enable_registration;
+        } catch (\Throwable) {
+            // Database may not be available yet (fresh install, pre-migration)
+            return false;
+        }
     }
 
     public function boot(Panel $panel): void

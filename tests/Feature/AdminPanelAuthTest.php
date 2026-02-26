@@ -34,9 +34,8 @@ class AdminPanelAuthTest extends TestCase
 
     public function test_registration_page_redirects_when_disabled(): void
     {
-        // Registration is disabled by default (config aicl.features.allow_registration = false).
-        // The panel registration route is only registered at boot time, so runtime
-        // config changes cannot toggle it — we test the default (disabled) behavior.
+        // Registration is disabled by default. AiclPlugin::isRegistrationEnabled() checks
+        // config (false) then database (unavailable during panel boot) — returns false.
         $response = $this->get('/admin/register');
 
         $response->assertRedirect();

@@ -25,14 +25,12 @@ Golden examples and world model rules live in the Forge database, not local file
 
 ## Available Agents
 
-- `/generate` — Generate entities via the 8-phase pipeline (primary workflow — fast, single-agent)
-- `/pm` — Step-by-step pipeline orchestration with human review at each phase gate
-- `/rlm` — Validate entity quality against 42 patterns
-- `/scan-all` — Run PHPStan + Semgrep + Snyk scans
-- `/scan-phpstan` — PHPStan static analysis
-- `/scan-semgrep` — Semgrep SAST security scan
-- `/scan-snyk` — Snyk dependency vulnerability scan
-- `/test-dusk` — Laravel Dusk browser tests
+### Shipped with Package
+- `/forge-connect` — Register project with Forge and configure MCP connection
+- `/init-help` — Bootstrap project with Forge (CLAUDE.md, slash commands, MCP config)
+
+### Delivered via Forge MCP
+All other agents (entity generation, pipeline sub-agents, quality scans, maintenance) are delivered dynamically by the Forge MCP server after running `/forge-connect`. Run `/init-help` to get started.
 
 ## Entity Generation
 

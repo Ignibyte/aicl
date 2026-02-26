@@ -66,11 +66,10 @@ aicl_dev/
 ├── .claude/
 │   ├── architecture/       # Architecture docs (framework-only, excluded from skeleton)
 │   ├── commands/           # Agent prompts (framework + pipeline variants)
-│   ├── planning/
-│   │   ├── framework/      # Framework dev planning (.internal marker)
-│   │   ├── pipeline/       # Entity generation pipeline (ships with product)
-│   │   └── rlm/            # RLM patterns and validation (ships with product)
-│   └── golden-example/     # Reference implementation
+│   └── planning/
+│       ├── framework/      # Framework dev planning (.internal marker)
+│       ├── pipeline/       # Entity generation pipeline (ships with product)
+│       └── rlm/            # RLM patterns and validation (ships with product)
 │
 ├── dist/                   # Skeleton build system
 │   ├── build-skeleton.sh   # Assembly script

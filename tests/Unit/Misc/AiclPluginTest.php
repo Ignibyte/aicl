@@ -15,8 +15,10 @@ use Aicl\Filament\Widgets\GlobalSearchWidget;
 use Aicl\Filament\Widgets\PresenceIndicator;
 use Aicl\Filament\Widgets\QueueStatsWidget;
 use Aicl\Filament\Widgets\RecentFailedJobsWidget;
+use Aicl\Http\Middleware\MustTwoFactor;
 use Aicl\Http\Middleware\TrackPresenceMiddleware;
 use Filament\Contracts\Plugin;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 use PHPUnit\Framework\TestCase;
 
 class AiclPluginTest extends TestCase
@@ -144,5 +146,81 @@ class AiclPluginTest extends TestCase
 
         $this->assertStringContainsString(TrackPresenceMiddleware::class, $source);
         $this->assertStringContainsString('authMiddleware', $source);
+    }
+
+    // ── Breezy / MFA Registration ─────────────────────
+
+    public function test_register_source_includes_breezy_plugin(): void
+    {
+        $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
+
+        $this->assertStringContainsString(BreezyCore::class, $source);
+        $this->assertStringContainsString('myProfile', $source);
+        $this->assertStringContainsString('enableTwoFactorAuthentication', $source);
+    }
+
+    public function test_register_source_uses_must_two_factor_middleware(): void
+    {
+        $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
+
+        $this->assertStringContainsString(MustTwoFactor::class, $source);
+    }
+
+    public function test_register_source_checks_for_existing_breezy_plugin(): void
+    {
+        $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
+
+        // Should guard against double-registration
+        $this->assertStringContainsString("hasPlugin('filament-breezy')", $source);
+    }
+
+    // ── Registration Toggle ─────────────────────
+
+    public function test_has_is_registration_enabled_method(): void
+    {
+        $this->assertTrue(method_exists(AiclPlugin::class, 'isRegistrationEnabled'));
+
+        $reflection = new \ReflectionMethod(AiclPlugin::class, 'isRegistrationEnabled');
+        $this->assertTrue($reflection->isStatic());
+        $this->assertTrue($reflection->isPublic());
+    }
+
+    public function test_register_source_calls_registration_conditionally(): void
+    {
+        $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
+
+        $this->assertStringContainsString('isRegistrationEnabled()', $source);
+        $this->assertStringContainsString('->registration()', $source);
+    }
+
+    public function test_is_registration_enabled_source_checks_config(): void
+    {
+        $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
+
+        $this->assertStringContainsString("config('aicl.features.allow_registration'", $source);
+    }
+
+    public function test_is_registration_enabled_source_checks_database_setting(): void
+    {
+        $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
+
+        $this->assertStringContainsString('FeatureSettings', $source);
+        $this->assertStringContainsString('enable_registration', $source);
+    }
+
+    public function test_is_registration_enabled_source_has_try_catch(): void
+    {
+        $reflection = new \ReflectionMethod(AiclPlugin::class, 'isRegistrationEnabled');
+        $startLine = $reflection->getStartLine();
+        $endLine = $reflection->getEndLine();
+        $source = implode("\n", array_slice(
+            file($reflection->getFileName()),
+            $startLine - 1,
+            $endLine - $startLine + 1
+        ));
+
+        // Must have try/catch for database unavailability (fresh install, pre-migration)
+        $this->assertStringContainsString('try {', $source);
+        $this->assertStringContainsString('catch (\Throwable)', $source);
     }
 }
