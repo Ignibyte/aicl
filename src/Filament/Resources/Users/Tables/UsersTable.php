@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -29,6 +30,15 @@ class UsersTable
                     ->label('Roles')
                     ->badge()
                     ->separator(','),
+                IconColumn::make('mfa_enabled')
+                    ->label('MFA')
+                    ->state(fn ($record): bool => $record->hasConfirmedTwoFactor())
+                    ->boolean()
+                    ->trueIcon('heroicon-o-lock-closed')
+                    ->falseIcon('heroicon-o-lock-open')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->toggleable(),
                 TextColumn::make('email_verified_at')
                     ->label('Verified')
                     ->dateTime()

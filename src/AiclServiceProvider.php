@@ -71,7 +71,7 @@ use Livewire\Livewire;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.1.1';
+    public const VERSION = '1.1.2';
 
     public function register(): void
     {

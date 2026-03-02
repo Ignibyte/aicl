@@ -59,7 +59,7 @@ class ManageSettings extends Page implements HasForms
             'enable_registration' => $features->enable_registration,
             'enable_social_login' => $features->enable_social_login,
             'enable_saml' => $features->enable_saml,
-            'enable_mfa' => $features->enable_mfa,
+            'require_mfa' => $features->require_mfa,
             'enable_api' => $features->enable_api,
         ]);
     }
@@ -142,9 +142,9 @@ class ManageSettings extends Page implements HasForms
                         Toggle::make('enable_saml')
                             ->label('SAML SSO')
                             ->helperText('Enable SAML 2.0 single sign-on with an identity provider'),
-                        Toggle::make('enable_mfa')
-                            ->label('Multi-Factor Authentication')
-                            ->helperText('Enable two-factor authentication for users'),
+                        Toggle::make('require_mfa')
+                            ->label('Require MFA for All Users')
+                            ->helperText('Multi-factor authentication is always available as an opt-in. When enabled, all users must set up 2FA before accessing the admin panel.'),
                         Toggle::make('enable_api')
                             ->label('API Access')
                             ->helperText('Enable API endpoints and token authentication'),
@@ -177,7 +177,7 @@ class ManageSettings extends Page implements HasForms
         $features->enable_registration = $data['enable_registration'];
         $features->enable_social_login = $data['enable_social_login'];
         $features->enable_saml = $data['enable_saml'];
-        $features->enable_mfa = $data['enable_mfa'];
+        $features->require_mfa = $data['require_mfa'];
         $features->enable_api = $data['enable_api'];
         $features->save();
 

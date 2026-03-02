@@ -144,7 +144,7 @@ AICL uses `spatie/laravel-settings` for application settings that persist to the
 |-------|---------|--------|
 | `GeneralSettings` | Site name, timezone, date format, items per page | `site_name`, `timezone`, `date_format`, `items_per_page` |
 | `MailSettings` | Mail driver configuration | `mail_driver`, `mail_host`, `mail_port`, `mail_from_address`, `mail_from_name` |
-| `FeatureSettings` | Feature flags | `enable_mfa`, `enable_social_login`, `enable_saml`, `enable_api`, `enable_websockets` |
+| `FeatureSettings` | Feature flags | `require_mfa`, `enable_social_login`, `enable_saml`, `enable_api`, `enable_websockets` |
 
 ### Settings in Code
 

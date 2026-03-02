@@ -10,7 +10,29 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.1.1`
+Current version: `1.1.2`
+
+---
+
+## [1.1.2] - 2026-03-02
+
+### Added
+
+- **Per-user MFA enforcement** — `force_mfa` boolean column on users table allows admins to selectively require 2FA for individual users from the user edit page.
+- **MFA status column** — Users table now shows an MFA icon column (lock icon) indicating whether each user has confirmed 2FA.
+- **Reset 2FA action** — Admin user edit page has a "Reset 2FA" header action that clears a user's two-factor setup, requiring them to re-enroll.
+- **Enhanced user edit form** — UserForm rebuilt with three profile-like sections: Personal Information (with avatar display), Roles & Permissions, and Security (MFA status badge + force toggle).
+- **Settings migration** — Renames `enable_mfa` to `require_mfa` for existing installs, resets to `false`.
+
+### Changed
+
+- **`FeatureSettings::$enable_mfa` renamed to `$require_mfa`** — The old toggle was a dead setting that saved to DB but was never checked. Now wired to BreezyCore's force mechanism.
+- **ManageSettings UI** — "Enable MFA" toggle replaced with "Require MFA for All Users" toggle with helper text explaining that MFA is always available as opt-in.
+- **BreezyCore force closure** — `AiclPlugin` now passes a closure to `enableTwoFactorAuthentication(force:)` that checks both global `require_mfa` setting and per-user `force_mfa` flag. Uses `rescue()` for pre-migration safety.
+
+### Fixed
+
+- **MFA enforcement was impossible** — BreezyCore was always registered with `force: false`. The settings toggle saved a value but nothing read it. Now global and per-user enforcement both work correctly through Breezy's `shouldForceTwoFactor()` mechanism.
 
 ---
 

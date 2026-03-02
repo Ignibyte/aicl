@@ -73,7 +73,7 @@ class SettingsTest extends TestCase
 
         $this->assertTrue($reflection->hasProperty('enable_registration'));
         $this->assertTrue($reflection->hasProperty('enable_social_login'));
-        $this->assertTrue($reflection->hasProperty('enable_mfa'));
+        $this->assertTrue($reflection->hasProperty('require_mfa'));
         $this->assertTrue($reflection->hasProperty('enable_saml'));
         $this->assertTrue($reflection->hasProperty('enable_api'));
     }
@@ -85,7 +85,7 @@ class SettingsTest extends TestCase
         $booleanProperties = [
             'enable_registration',
             'enable_social_login',
-            'enable_mfa',
+            'require_mfa',
             'enable_saml',
             'enable_api',
         ];

@@ -65,6 +65,11 @@ class AiclPlugin implements Plugin
                         hasAvatars: true,
                     )
                     ->enableTwoFactorAuthentication(
+                        force: fn (): bool => rescue(
+                            fn () => app(FeatureSettings::class)->require_mfa
+                                  || (bool) filament()->auth()->user()?->force_mfa,
+                            false
+                        ),
                         authMiddleware: MustTwoFactor::class,
                     )
             );

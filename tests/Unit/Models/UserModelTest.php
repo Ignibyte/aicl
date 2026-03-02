@@ -52,7 +52,7 @@ class UserModelTest extends TestCase
         $user = new User;
 
         $this->assertEquals(
-            ['name', 'email', 'password', 'avatar_url'],
+            ['name', 'email', 'password', 'avatar_url', 'force_mfa'],
             $user->getFillable()
         );
     }

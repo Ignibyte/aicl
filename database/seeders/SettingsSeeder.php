@@ -27,7 +27,7 @@ class SettingsSeeder extends Seeder
             ['group' => 'features', 'name' => 'enable_registration', 'payload' => json_encode(false)],
             ['group' => 'features', 'name' => 'enable_social_login', 'payload' => json_encode(false)],
             ['group' => 'features', 'name' => 'enable_saml', 'payload' => json_encode(false)],
-            ['group' => 'features', 'name' => 'enable_mfa', 'payload' => json_encode(false)],
+            ['group' => 'features', 'name' => 'require_mfa', 'payload' => json_encode(false)],
             ['group' => 'features', 'name' => 'enable_api', 'payload' => json_encode(true)],
         ];
 

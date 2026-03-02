@@ -8,7 +8,7 @@ return new class extends SettingsMigration
     {
         $this->migrator->add('features.enable_registration', true);
         $this->migrator->add('features.enable_social_login', false);
-        $this->migrator->add('features.enable_mfa', true);
+        $this->migrator->add('features.require_mfa', false);
         $this->migrator->add('features.enable_api', true);
     }
 };

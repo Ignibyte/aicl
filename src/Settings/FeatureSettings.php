@@ -10,7 +10,7 @@ class FeatureSettings extends Settings
 
     public bool $enable_social_login;
 
-    public bool $enable_mfa;
+    public bool $require_mfa;
 
     public bool $enable_saml;
 
