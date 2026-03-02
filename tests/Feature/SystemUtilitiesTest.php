@@ -22,62 +22,42 @@ class SystemUtilitiesTest extends TestCase
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
-    public function test_failed_jobs_page_is_accessible_to_admin(): void
+    public function test_queue_manager_is_accessible_to_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
 
-        $response = $this->actingAs($user)->get('/admin/failed-jobs');
+        $response = $this->actingAs($user)->get('/admin/queue-manager');
 
         $response->assertStatus(200);
     }
 
-    public function test_failed_jobs_page_is_not_accessible_to_viewer(): void
+    public function test_queue_manager_is_not_accessible_to_viewer(): void
     {
         $user = User::factory()->create();
         $user->assignRole('viewer');
 
-        $response = $this->actingAs($user)->get('/admin/failed-jobs');
+        $response = $this->actingAs($user)->get('/admin/queue-manager');
 
         $this->assertFilamentAccessDenied($response);
     }
 
-    public function test_queue_dashboard_is_accessible_to_admin(): void
+    public function test_activity_log_is_accessible_to_super_admin(): void
     {
         $user = User::factory()->create();
-        $user->assignRole('admin');
+        $user->assignRole('super_admin');
 
-        $response = $this->actingAs($user)->get('/admin/queue-dashboard');
+        $response = $this->actingAs($user)->get('/admin/activity-log');
 
         $response->assertStatus(200);
     }
 
-    public function test_queue_dashboard_is_not_accessible_to_viewer(): void
+    public function test_activity_log_is_not_accessible_to_viewer(): void
     {
         $user = User::factory()->create();
         $user->assignRole('viewer');
 
-        $response = $this->actingAs($user)->get('/admin/queue-dashboard');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_log_viewer_is_accessible_to_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-
-        $response = $this->actingAs($user)->get('/admin/log-viewer');
-
-        $response->assertStatus(200);
-    }
-
-    public function test_log_viewer_is_not_accessible_to_viewer(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('viewer');
-
-        $response = $this->actingAs($user)->get('/admin/log-viewer');
+        $response = $this->actingAs($user)->get('/admin/activity-log');
 
         $this->assertFilamentAccessDenied($response);
     }

@@ -7,9 +7,11 @@ use UnitEnum;
 
 class AiAssistant extends Page
 {
-    protected static string|UnitEnum|null $navigationGroup = 'Tools';
+    protected static bool $shouldRegisterNavigation = false;
 
-    protected static ?int $navigationSort = 5;
+    protected static string|UnitEnum|null $navigationGroup = 'System';
+
+    protected static ?int $navigationSort = 8;
 
     protected static ?string $navigationLabel = 'AI Assistant';
 

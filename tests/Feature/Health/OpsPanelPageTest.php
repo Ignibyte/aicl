@@ -133,7 +133,7 @@ class OpsPanelPageTest extends TestCase
         $reflection = new \ReflectionClass(OpsPanel::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertSame(10, $defaults['navigationSort']);
+        $this->assertSame(5, $defaults['navigationSort']);
     }
 
     public function test_page_title(): void

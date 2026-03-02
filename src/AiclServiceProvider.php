@@ -71,6 +71,8 @@ use Livewire\Livewire;
 
 class AiclServiceProvider extends ServiceProvider
 {
+    public const VERSION = '1.1.1';
+
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/aicl.php', 'aicl');
@@ -236,6 +238,10 @@ class AiclServiceProvider extends ServiceProvider
         $this->loadViewComponentsAs('aicl', []);
 
         Livewire::component('aicl-activity-feed', \Aicl\Livewire\ActivityFeed::class);
+        Livewire::component('aicl::audit-table', \Aicl\Livewire\AuditTable::class);
+        Livewire::component('aicl::domain-event-table', \Aicl\Livewire\DomainEventTable::class);
+        Livewire::component('aicl::notification-log-table', \Aicl\Livewire\NotificationLogTable::class);
+        Livewire::component('aicl::queued-jobs-table', \Aicl\Livewire\QueuedJobsTable::class);
         Livewire::component('toolbar-presence', Filament\Widgets\ToolbarPresence::class);
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');

@@ -14,7 +14,7 @@ class Changelog extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 
-    protected static ?int $navigationSort = 15;
+    protected static ?int $navigationSort = 9;
 
     protected static ?string $navigationLabel = 'Changelog';
 

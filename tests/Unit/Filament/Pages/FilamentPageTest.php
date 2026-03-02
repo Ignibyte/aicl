@@ -2,58 +2,58 @@
 
 namespace Aicl\Tests\Unit\Filament\Pages;
 
+use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
-use Aicl\Filament\Pages\LogViewer;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
-use Aicl\Filament\Pages\QueueDashboard;
+use Aicl\Filament\Pages\QueueManager;
 use Aicl\Filament\Pages\Search;
 use Filament\Pages\Page;
 use PHPUnit\Framework\TestCase;
 
 class FilamentPageTest extends TestCase
 {
-    // ─── QueueDashboard ─────────────────────────────────────
+    // ─── QueueManager ─────────────────────────────────────
 
-    public function test_queue_dashboard_extends_page(): void
+    public function test_queue_manager_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(QueueDashboard::class, Page::class));
+        $this->assertTrue(is_subclass_of(QueueManager::class, Page::class));
     }
 
-    public function test_queue_dashboard_slug(): void
+    public function test_queue_manager_slug(): void
     {
-        $reflection = new \ReflectionClass(QueueDashboard::class);
+        $reflection = new \ReflectionClass(QueueManager::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('queue-dashboard', $defaults['slug']);
+        $this->assertEquals('queue-manager', $defaults['slug']);
     }
 
-    public function test_queue_dashboard_navigation_group(): void
+    public function test_queue_manager_navigation_group(): void
     {
-        $reflection = new \ReflectionClass(QueueDashboard::class);
+        $reflection = new \ReflectionClass(QueueManager::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertEquals('System', $defaults['navigationGroup']);
     }
 
-    // ─── LogViewer ──────────────────────────────────────────
+    // ─── ActivityLog ─────────────────────────────────────────
 
-    public function test_log_viewer_extends_page(): void
+    public function test_activity_log_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(LogViewer::class, Page::class));
+        $this->assertTrue(is_subclass_of(ActivityLog::class, Page::class));
     }
 
-    public function test_log_viewer_slug(): void
+    public function test_activity_log_slug(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('log-viewer', $defaults['slug']);
+        $this->assertEquals('activity-log', $defaults['slug']);
     }
 
-    public function test_log_viewer_default_properties(): void
+    public function test_activity_log_default_properties(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertNull($defaults['selectedFile']);
@@ -61,6 +61,7 @@ class FilamentPageTest extends TestCase
         $this->assertNull($defaults['search']);
         $this->assertFalse($defaults['liveMode']);
         $this->assertEquals(100, $defaults['limit']);
+        $this->assertEquals('app-logs', $defaults['activeTab']);
     }
 
     // ─── ManageSettings ─────────────────────────────────────

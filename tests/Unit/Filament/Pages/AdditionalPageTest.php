@@ -2,15 +2,13 @@
 
 namespace Aicl\Tests\Unit\Filament\Pages;
 
+use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\Backups;
-use Aicl\Filament\Pages\LogViewer;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
-use Aicl\Filament\Pages\QueueDashboard;
+use Aicl\Filament\Pages\QueueManager;
 use Aicl\Filament\Pages\Search;
-use Aicl\Filament\Widgets\QueueStatsWidget;
-use Aicl\Filament\Widgets\RecentFailedJobsWidget;
 use App\Models\User;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
@@ -174,7 +172,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(ManageSettings::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Settings', $defaults['navigationGroup']);
+        $this->assertEquals('System', $defaults['navigationGroup']);
     }
 
     public function test_manage_settings_navigation_sort(): void
@@ -302,80 +300,80 @@ class AdditionalPageTest extends TestCase
         $this->assertTrue(method_exists(NotificationCenter::class, 'form'));
     }
 
-    // ─── LogViewer (gap coverage) ───────────────────────────────
+    // ─── ActivityLog (gap coverage) ─────────────────────────────
 
-    public function test_log_viewer_implements_has_forms(): void
+    public function test_activity_log_implements_has_forms(): void
     {
-        $this->assertTrue(is_subclass_of(LogViewer::class, HasForms::class));
+        $this->assertTrue(is_subclass_of(ActivityLog::class, HasForms::class));
     }
 
-    public function test_log_viewer_navigation_icon(): void
+    public function test_activity_log_navigation_icon(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertNull($defaults['navigationIcon']);
     }
 
-    public function test_log_viewer_navigation_group(): void
+    public function test_activity_log_navigation_group(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertEquals('System', $defaults['navigationGroup']);
     }
 
-    public function test_log_viewer_navigation_sort(): void
+    public function test_activity_log_navigation_sort(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(12, $defaults['navigationSort']);
+        $this->assertEquals(7, $defaults['navigationSort']);
     }
 
-    public function test_log_viewer_navigation_label(): void
+    public function test_activity_log_navigation_label(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Log Viewer', $defaults['navigationLabel']);
+        $this->assertEquals('Activity Log', $defaults['navigationLabel']);
     }
 
-    public function test_log_viewer_title(): void
+    public function test_activity_log_title(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Log Viewer', $defaults['title']);
+        $this->assertEquals('Activity Log', $defaults['title']);
     }
 
-    public function test_log_viewer_view(): void
+    public function test_activity_log_view(): void
     {
-        $reflection = new \ReflectionClass(LogViewer::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $property = $reflection->getProperty('view');
 
-        $this->assertEquals('aicl::filament.pages.log-viewer', $property->getDefaultValue());
+        $this->assertEquals('aicl::filament.pages.activity-log', $property->getDefaultValue());
     }
 
-    public function test_log_viewer_has_form_method(): void
+    public function test_activity_log_has_form_method(): void
     {
-        $this->assertTrue(method_exists(LogViewer::class, 'form'));
+        $this->assertTrue(method_exists(ActivityLog::class, 'form'));
     }
 
-    public function test_log_viewer_has_log_entries_computed_method(): void
+    public function test_activity_log_has_log_entries_computed_method(): void
     {
-        $this->assertTrue(method_exists(LogViewer::class, 'logEntries'));
+        $this->assertTrue(method_exists(ActivityLog::class, 'logEntries'));
     }
 
-    public function test_log_viewer_has_log_files_computed_method(): void
+    public function test_activity_log_has_log_files_computed_method(): void
     {
-        $this->assertTrue(method_exists(LogViewer::class, 'logFiles'));
+        $this->assertTrue(method_exists(ActivityLog::class, 'logFiles'));
     }
 
-    public function test_log_viewer_has_header_actions(): void
+    public function test_activity_log_has_header_actions(): void
     {
-        $page = new LogViewer;
-        $method = new \ReflectionMethod(LogViewer::class, 'getHeaderActions');
+        $page = new ActivityLog;
+        $method = new \ReflectionMethod(ActivityLog::class, 'getHeaderActions');
         $method->setAccessible(true);
         $actions = $method->invoke($page);
 
@@ -388,98 +386,96 @@ class AdditionalPageTest extends TestCase
         $this->assertContains('delete', $actionNames);
     }
 
-    // ─── QueueDashboard (gap coverage) ──────────────────────────
+    // ─── QueueManager (gap coverage) ──────────────────────────
 
-    public function test_queue_dashboard_navigation_icon(): void
+    public function test_queue_manager_navigation_icon(): void
     {
-        $reflection = new \ReflectionClass(QueueDashboard::class);
+        $reflection = new \ReflectionClass(QueueManager::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertNull($defaults['navigationIcon']);
     }
 
-    public function test_queue_dashboard_navigation_sort(): void
+    public function test_queue_manager_navigation_sort(): void
     {
-        $reflection = new \ReflectionClass(QueueDashboard::class);
+        $reflection = new \ReflectionClass(QueueManager::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(11, $defaults['navigationSort']);
+        $this->assertEquals(6, $defaults['navigationSort']);
     }
 
-    public function test_queue_dashboard_navigation_label(): void
+    public function test_queue_manager_navigation_label(): void
     {
-        $reflection = new \ReflectionClass(QueueDashboard::class);
+        $reflection = new \ReflectionClass(QueueManager::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Queue Dashboard', $defaults['navigationLabel']);
+        $this->assertEquals('Queue Manager', $defaults['navigationLabel']);
     }
 
-    public function test_queue_dashboard_title(): void
+    public function test_queue_manager_title(): void
     {
-        $reflection = new \ReflectionClass(QueueDashboard::class);
+        $reflection = new \ReflectionClass(QueueManager::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Queue Dashboard', $defaults['title']);
+        $this->assertEquals('Queue Manager', $defaults['title']);
     }
 
-    public function test_queue_dashboard_view(): void
+    public function test_queue_manager_view(): void
     {
-        $reflection = new \ReflectionClass(QueueDashboard::class);
+        $reflection = new \ReflectionClass(QueueManager::class);
         $property = $reflection->getProperty('view');
 
-        $this->assertEquals('aicl::filament.pages.queue-dashboard', $property->getDefaultValue());
+        $this->assertEquals('aicl::filament.pages.queue-manager', $property->getDefaultValue());
     }
 
-    public function test_queue_dashboard_header_widgets_contain_queue_stats(): void
+    public function test_queue_manager_has_active_tab_property(): void
     {
-        $page = new QueueDashboard;
-        $method = new \ReflectionMethod(QueueDashboard::class, 'getHeaderWidgets');
-        $method->setAccessible(true);
-        $widgets = $method->invoke($page);
+        $reflection = new \ReflectionClass(QueueManager::class);
+        $defaults = $reflection->getDefaultProperties();
 
-        $this->assertContains(QueueStatsWidget::class, $widgets);
+        $this->assertEquals('overview', $defaults['activeTab']);
     }
 
-    public function test_queue_dashboard_footer_widgets_contain_recent_failed_jobs(): void
+    public function test_queue_manager_has_table_method(): void
     {
-        $page = new QueueDashboard;
-        $method = new \ReflectionMethod(QueueDashboard::class, 'getFooterWidgets');
-        $method->setAccessible(true);
-        $widgets = $method->invoke($page);
-
-        $this->assertContains(RecentFailedJobsWidget::class, $widgets);
+        $this->assertTrue(method_exists(QueueManager::class, 'table'));
     }
 
-    public function test_queue_dashboard_accessible_by_super_admin(): void
+    public function test_queue_manager_has_get_queue_stats_method(): void
+    {
+        $this->assertTrue(method_exists(QueueManager::class, 'getQueueStats'));
+    }
+
+    public function test_queue_manager_accessible_by_super_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('super_admin');
         $this->actingAs($user);
 
-        $this->assertTrue(QueueDashboard::canAccess());
+        $this->assertTrue(QueueManager::canAccess());
     }
 
-    public function test_queue_dashboard_accessible_by_admin(): void
+    public function test_queue_manager_accessible_by_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
         $this->actingAs($user);
 
-        $this->assertTrue(QueueDashboard::canAccess());
+        $this->assertTrue(QueueManager::canAccess());
     }
 
-    public function test_queue_dashboard_not_accessible_by_viewer(): void
+    public function test_queue_manager_not_accessible_by_viewer(): void
     {
         $user = User::factory()->create();
         $user->assignRole('viewer');
         $this->actingAs($user);
 
-        $this->assertFalse(QueueDashboard::canAccess());
+        $this->assertFalse(QueueManager::canAccess());
     }
 
-    public function test_queue_dashboard_not_accessible_without_auth(): void
+    public function test_queue_manager_not_accessible_without_auth(): void
     {
-        $this->assertFalse(QueueDashboard::canAccess());
+        $this->assertFalse(QueueManager::canAccess());
     }
 
     // ─── ApiTokens (gap coverage) ───────────────────────────────
@@ -497,7 +493,7 @@ class AdditionalPageTest extends TestCase
         $reflection = new \ReflectionClass(ApiTokens::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Settings', $defaults['navigationGroup']);
+        $this->assertEquals('System', $defaults['navigationGroup']);
     }
 
     public function test_api_tokens_navigation_sort(): void
@@ -578,38 +574,38 @@ class AdditionalPageTest extends TestCase
         $this->assertFalse(ManageSettings::canAccess());
     }
 
-    // ─── LogViewer access control (gap coverage) ────────────────
+    // ─── ActivityLog access control (gap coverage) ──────────────
 
-    public function test_log_viewer_accessible_by_super_admin(): void
+    public function test_activity_log_accessible_by_super_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('super_admin');
         $this->actingAs($user);
 
-        $this->assertTrue(LogViewer::canAccess());
+        $this->assertTrue(ActivityLog::canAccess());
     }
 
-    public function test_log_viewer_accessible_by_admin(): void
+    public function test_activity_log_not_accessible_by_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
         $this->actingAs($user);
 
-        $this->assertTrue(LogViewer::canAccess());
+        $this->assertFalse(ActivityLog::canAccess());
     }
 
-    public function test_log_viewer_not_accessible_by_viewer(): void
+    public function test_activity_log_not_accessible_by_viewer(): void
     {
         $user = User::factory()->create();
         $user->assignRole('viewer');
         $this->actingAs($user);
 
-        $this->assertFalse(LogViewer::canAccess());
+        $this->assertFalse(ActivityLog::canAccess());
     }
 
-    public function test_log_viewer_not_accessible_without_auth(): void
+    public function test_activity_log_not_accessible_without_auth(): void
     {
-        $this->assertFalse(LogViewer::canAccess());
+        $this->assertFalse(ActivityLog::canAccess());
     }
 
     // ─── Search access control (gap coverage) ───────────────────

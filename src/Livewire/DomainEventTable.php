@@ -1,43 +1,24 @@
 <?php
 
-namespace Aicl\Filament\Pages;
+namespace Aicl\Livewire;
 
 use Aicl\Events\Enums\ActorType;
 use Aicl\Models\DomainEventRecord;
 use App\Models\User;
-use BackedEnum;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
-use UnitEnum;
 
-class DomainEventViewer extends Page implements HasForms, HasTable
+class DomainEventTable extends TableWidget
 {
-    use InteractsWithForms;
-    use InteractsWithTable;
+    protected static bool $isDiscovered = false;
 
-    protected static string|BackedEnum|null $navigationIcon = null;
-
-    protected static string|UnitEnum|null $navigationGroup = 'System';
-
-    protected static ?int $navigationSort = 13;
-
-    protected static ?string $navigationLabel = 'Domain Events';
-
-    protected static ?string $title = 'Domain Events';
-
-    protected static ?string $slug = 'domain-events';
-
-    protected string $view = 'aicl::filament.pages.domain-event-viewer';
+    protected string $view = 'aicl::livewire.domain-event-table';
 
     public function table(Table $table): Table
     {
@@ -160,12 +141,5 @@ class DomainEventViewer extends Page implements HasForms, HasTable
             ->emptyStateDescription('Domain events will appear here as they are dispatched throughout the application.')
             ->emptyStateIcon('heroicon-o-bolt')
             ->paginated([10, 25, 50, 100]);
-    }
-
-    public static function canAccess(): bool
-    {
-        $user = auth()->user();
-
-        return $user && $user->hasRole('super_admin');
     }
 }

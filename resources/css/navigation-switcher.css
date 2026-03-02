@@ -35,6 +35,18 @@
     }
 }
 
+/* --- Sidebar Collapse Persistence (Early-Init) ---
+   When data-sidebar-collapsed="true" is set by the early-init script (before
+   Alpine boots), force the sidebar into collapsed-rail state to prevent
+   flash-of-wrong-sidebar-width. Once Alpine initializes and takes over,
+   this attribute is removed by the navigationSwitcher component. */
+@media (min-width: 1024px) {
+    [data-sidebar-collapsed="true"][data-nav-mode="sidebar"] .fi-body.fi-body-has-top-navigation .fi-sidebar {
+        translate: 0 !important;
+        position: sticky !important;
+    }
+}
+
 /* --- Topbar Mode Overrides ---
    When user prefers topbar, Filament's default topNavigation CSS applies
    naturally. Hide sidebar artifacts that shouldn't be visible. */

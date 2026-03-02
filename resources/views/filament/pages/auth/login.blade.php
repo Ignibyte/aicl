@@ -95,8 +95,8 @@
                 {{-- Filament Login Form --}}
                 {{ $this->content }}
 
-                {{-- Registration Link --}}
-                @if(filament()->hasRegistration())
+                {{-- Registration Link (runtime check — respects admin settings toggle immediately) --}}
+                @if(\Aicl\AiclPlugin::isRegistrationEnabled())
                     <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                         {{ __('Don\'t have an account?') }}
                         <a href="{{ filament()->getRegistrationUrl() }}" class="font-medium text-primary-600 hover:text-primary-500">

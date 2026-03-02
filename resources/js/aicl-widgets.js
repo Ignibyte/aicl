@@ -258,13 +258,18 @@ window.aiChat = function (config) {
  * Manipulates the `data-nav-mode` attribute on <html> and toggles the
  * `fi-body-has-top-navigation` class on the Filament body element.
  * Default is 'sidebar' when no preference is stored.
+ *
+ * Also persists sidebar collapse state to localStorage ('aicl_sidebar_collapsed')
+ * so collapsing the sidebar survives page loads and topbar↔sidebar switches.
  */
 window.navigationSwitcher = function () {
     return {
         mode: localStorage.getItem('aicl_nav_layout') || 'sidebar',
+        _sidebarWatcher: null,
 
         init() {
             this.applyMode(this.mode);
+            this._watchSidebarCollapse();
         },
 
         toggle() {
@@ -283,16 +288,78 @@ window.navigationSwitcher = function () {
             // break the CSS selectors that depend on it.
 
             if (mode === 'topbar') {
-                // Close sidebar on desktop when switching to topbar
+                // Close sidebar on desktop when switching to topbar — but do NOT
+                // overwrite the persisted collapse state (already saved by watcher)
                 if (window.innerWidth >= 1024 && window.Alpine && Alpine.store('sidebar')) {
                     Alpine.store('sidebar').close();
                 }
             } else {
-                // Re-open sidebar on desktop when switching back
+                // Restore sidebar collapse preference when switching back to sidebar
                 if (window.innerWidth >= 1024 && window.Alpine && Alpine.store('sidebar')) {
-                    Alpine.store('sidebar').open();
+                    var wasCollapsed = localStorage.getItem('aicl_sidebar_collapsed') === 'true';
+                    if (wasCollapsed) {
+                        Alpine.store('sidebar').close();
+                    } else {
+                        Alpine.store('sidebar').open();
+                    }
                 }
+                // Remove the early-init data attribute — Alpine is now in control
+                document.documentElement.removeAttribute('data-sidebar-collapsed');
             }
+        },
+
+        /**
+         * Watch Filament's sidebar store for collapse/expand changes and persist
+         * to localStorage. Only tracks changes on desktop (>= 1024px) since
+         * mobile sidebar is a drawer, not a collapsible rail.
+         */
+        _watchSidebarCollapse() {
+            var self = this;
+
+            var setupWatcher = function () {
+                if (!window.Alpine || !Alpine.store('sidebar')) return false;
+
+                var store = Alpine.store('sidebar');
+
+                // Sync initial state
+                if (window.innerWidth >= 1024) {
+                    localStorage.setItem('aicl_sidebar_collapsed', !store.isOpen ? 'true' : 'false');
+                }
+
+                // Remove early-init attribute now that Alpine controls the sidebar
+                document.documentElement.removeAttribute('data-sidebar-collapsed');
+
+                // Watch for changes using Alpine.effect
+                Alpine.effect(function () {
+                    var isOpen = Alpine.store('sidebar').isOpen;
+
+                    if (window.innerWidth >= 1024) {
+                        var currentMode = localStorage.getItem('aicl_nav_layout') || 'sidebar';
+                        if (currentMode === 'sidebar') {
+                            localStorage.setItem('aicl_sidebar_collapsed', !isOpen ? 'true' : 'false');
+                        }
+                    }
+                });
+
+                return true;
+            };
+
+            // Try immediately (store may already exist if Alpine booted before this script)
+            if (setupWatcher()) return;
+
+            // Try on alpine:initialized event
+            document.addEventListener('alpine:initialized', function () {
+                requestAnimationFrame(function () { setupWatcher(); });
+            });
+
+            // Fallback: poll briefly in case both above missed the window
+            var attempts = 0;
+            var poll = setInterval(function () {
+                attempts++;
+                if (setupWatcher() || attempts > 20) {
+                    clearInterval(poll);
+                }
+            }, 100);
         },
     };
 };

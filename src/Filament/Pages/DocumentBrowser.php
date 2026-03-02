@@ -10,15 +10,17 @@ use UnitEnum;
 
 class DocumentBrowser extends Page
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 
-    protected static ?int $navigationSort = 16;
+    protected static ?int $navigationSort = 10;
 
-    protected static ?string $navigationLabel = 'Documents';
+    protected static ?string $navigationLabel = 'Architecture Docs';
 
-    protected static ?string $title = 'Document Browser';
+    protected static ?string $title = 'Architecture Docs';
 
     protected static ?string $slug = 'documents';
 

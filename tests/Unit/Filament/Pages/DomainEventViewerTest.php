@@ -2,59 +2,33 @@
 
 namespace Aicl\Tests\Unit\Filament\Pages;
 
-use Aicl\Filament\Pages\DomainEventViewer;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Pages\Page;
+use Aicl\Livewire\DomainEventTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Widgets\TableWidget;
 use PHPUnit\Framework\TestCase;
 
 class DomainEventViewerTest extends TestCase
 {
-    public function test_extends_page(): void
+    public function test_extends_table_widget(): void
     {
-        $this->assertTrue(is_subclass_of(DomainEventViewer::class, Page::class));
+        $this->assertTrue(is_subclass_of(DomainEventTable::class, TableWidget::class));
     }
 
     public function test_implements_has_table(): void
     {
-        $this->assertTrue(is_subclass_of(DomainEventViewer::class, HasTable::class));
+        $this->assertTrue(is_subclass_of(DomainEventTable::class, HasTable::class));
     }
 
-    public function test_implements_has_forms(): void
+    public function test_has_table_method(): void
     {
-        $this->assertTrue(is_subclass_of(DomainEventViewer::class, HasForms::class));
+        $this->assertTrue(method_exists(DomainEventTable::class, 'table'));
     }
 
-    public function test_slug(): void
+    public function test_is_not_auto_discovered(): void
     {
-        $reflection = new \ReflectionClass(DomainEventViewer::class);
+        $reflection = new \ReflectionClass(DomainEventTable::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('domain-events', $defaults['slug']);
-    }
-
-    public function test_navigation_group(): void
-    {
-        $reflection = new \ReflectionClass(DomainEventViewer::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('System', $defaults['navigationGroup']);
-    }
-
-    public function test_navigation_sort(): void
-    {
-        $reflection = new \ReflectionClass(DomainEventViewer::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals(13, $defaults['navigationSort']);
-    }
-
-    public function test_view_is_non_static_instance_property(): void
-    {
-        $reflection = new \ReflectionClass(DomainEventViewer::class);
-        $property = $reflection->getProperty('view');
-
-        $this->assertFalse($property->isStatic());
-        $this->assertEquals('aicl::filament.pages.domain-event-viewer', $property->getDefaultValue());
+        $this->assertFalse($defaults['isDiscovered']);
     }
 }

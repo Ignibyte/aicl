@@ -1,39 +1,20 @@
 <?php
 
-namespace Aicl\Filament\Pages;
+namespace Aicl\Livewire;
 
 use Aicl\Models\NotificationLog;
 use App\Models\User;
-use BackedEnum;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
-use UnitEnum;
 
-class NotificationLogPage extends Page implements HasForms, HasTable
+class NotificationLogTable extends TableWidget
 {
-    use InteractsWithForms;
-    use InteractsWithTable;
+    protected static bool $isDiscovered = false;
 
-    protected static string|BackedEnum|null $navigationIcon = null;
-
-    protected static string|UnitEnum|null $navigationGroup = 'System';
-
-    protected static ?int $navigationSort = 15;
-
-    protected static ?string $navigationLabel = 'Notification Log';
-
-    protected static ?string $title = 'Notification Log';
-
-    protected static ?string $slug = 'notification-log';
-
-    protected string $view = 'aicl::filament.pages.notification-log';
+    protected string $view = 'aicl::livewire.notification-log-table';
 
     public function table(Table $table): Table
     {
@@ -161,12 +142,5 @@ class NotificationLogPage extends Page implements HasForms, HasTable
             ->emptyStateDescription('Notification logs will appear here as notifications are sent through the system.')
             ->emptyStateIcon('heroicon-o-bell-slash')
             ->paginated([10, 25, 50, 100]);
-    }
-
-    public static function canAccess(): bool
-    {
-        $user = auth()->user();
-
-        return $user && $user->hasRole('super_admin');
     }
 }

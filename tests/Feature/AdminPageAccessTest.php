@@ -5,15 +5,12 @@ namespace Aicl\Tests\Feature;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
+use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\ApiTokens;
-use Aicl\Filament\Pages\AuditLog;
-use Aicl\Filament\Pages\DomainEventViewer;
-use Aicl\Filament\Pages\LogViewer;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
-use Aicl\Filament\Pages\NotificationLogPage;
-use Aicl\Filament\Pages\QueueDashboard;
+use Aicl\Filament\Pages\QueueManager;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -52,113 +49,113 @@ class AdminPageAccessTest extends TestCase
         $this->viewer->assignRole('viewer');
     }
 
-    // Queue Dashboard
+    // Queue Manager
 
-    public function test_queue_dashboard_accessible_by_super_admin(): void
+    public function test_queue_manager_accessible_by_super_admin(): void
     {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/queue-dashboard');
+        $response = $this->actingAs($this->superAdmin)->get('/admin/queue-manager');
 
         $response->assertOk();
     }
 
-    public function test_queue_dashboard_accessible_by_admin(): void
+    public function test_queue_manager_accessible_by_admin(): void
     {
-        $response = $this->actingAs($this->admin)->get('/admin/queue-dashboard');
+        $response = $this->actingAs($this->admin)->get('/admin/queue-manager');
 
         $response->assertOk();
     }
 
-    public function test_queue_dashboard_forbidden_for_viewer(): void
+    public function test_queue_manager_forbidden_for_viewer(): void
     {
-        $response = $this->actingAs($this->viewer)->get('/admin/queue-dashboard');
+        $response = $this->actingAs($this->viewer)->get('/admin/queue-manager');
 
         $this->assertFilamentAccessDenied($response);
     }
 
-    public function test_queue_dashboard_can_access_returns_false_for_null_user(): void
+    public function test_queue_manager_can_access_returns_false_for_null_user(): void
     {
-        $this->assertFalse(QueueDashboard::canAccess());
+        $this->assertFalse(QueueManager::canAccess());
     }
 
-    public function test_queue_dashboard_has_header_widgets(): void
+    public function test_queue_manager_has_header_actions(): void
     {
-        $page = new QueueDashboard;
-        $widgets = $this->callProtectedMethod($page, 'getHeaderWidgets');
+        $page = new QueueManager;
+        $actions = $this->callProtectedMethod($page, 'getHeaderActions');
 
-        $this->assertNotEmpty($widgets);
+        $this->assertNotEmpty($actions);
     }
 
-    public function test_queue_dashboard_has_footer_widgets(): void
+    // Activity Log (consolidated from LogViewer + AuditLog + DomainEventViewer + NotificationLogPage)
+
+    public function test_activity_log_accessible_by_super_admin(): void
     {
-        $page = new QueueDashboard;
-        $widgets = $this->callProtectedMethod($page, 'getFooterWidgets');
-
-        $this->assertNotEmpty($widgets);
-    }
-
-    // Log Viewer
-
-    public function test_log_viewer_accessible_by_super_admin(): void
-    {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/log-viewer');
+        $response = $this->actingAs($this->superAdmin)->get('/admin/activity-log');
 
         $response->assertOk();
     }
 
-    public function test_log_viewer_accessible_by_admin(): void
+    public function test_activity_log_forbidden_for_admin(): void
     {
-        $response = $this->actingAs($this->admin)->get('/admin/log-viewer');
-
-        $response->assertOk();
-    }
-
-    public function test_log_viewer_forbidden_for_viewer(): void
-    {
-        $response = $this->actingAs($this->viewer)->get('/admin/log-viewer');
+        $response = $this->actingAs($this->admin)->get('/admin/activity-log');
 
         $this->assertFilamentAccessDenied($response);
     }
 
-    public function test_log_viewer_can_access_returns_false_for_null_user(): void
+    public function test_activity_log_forbidden_for_viewer(): void
     {
-        $this->assertFalse(LogViewer::canAccess());
+        $response = $this->actingAs($this->viewer)->get('/admin/activity-log');
+
+        $this->assertFilamentAccessDenied($response);
     }
 
-    public function test_log_viewer_get_level_color(): void
+    public function test_activity_log_can_access_returns_false_for_null_user(): void
+    {
+        $this->assertFalse(ActivityLog::canAccess());
+    }
+
+    public function test_activity_log_get_level_color(): void
     {
         $this->actingAs($this->superAdmin);
 
-        $page = new LogViewer;
+        $page = new ActivityLog;
         $this->assertEquals('danger', $page->getLevelColor('ERROR'));
         $this->assertEquals('warning', $page->getLevelColor('WARNING'));
         $this->assertEquals('info', $page->getLevelColor('INFO'));
     }
 
-    public function test_log_viewer_polling_interval_when_disabled(): void
+    public function test_activity_log_polling_interval_when_disabled(): void
     {
-        $page = new LogViewer;
-        $page->autoRefresh = false;
+        $page = new ActivityLog;
 
         $this->assertNull($page->getPollingInterval());
     }
 
-    public function test_log_viewer_polling_interval_when_enabled(): void
+    public function test_activity_log_polling_interval_when_enabled(): void
     {
-        $page = new LogViewer;
+        $page = new ActivityLog;
         $page->liveMode = true;
 
         $this->assertEquals('2s', $page->getPollingInterval());
     }
 
-    public function test_log_viewer_default_properties(): void
+    public function test_activity_log_default_properties(): void
     {
-        $page = new LogViewer;
+        $page = new ActivityLog;
 
         $this->assertNull($page->selectedFile);
         $this->assertNull($page->levelFilter);
         $this->assertNull($page->search);
         $this->assertFalse($page->liveMode);
         $this->assertEquals(100, $page->limit);
+        $this->assertEquals('app-logs', $page->activeTab);
+    }
+
+    public function test_activity_log_has_header_actions(): void
+    {
+        $page = new ActivityLog;
+        $actions = $this->callProtectedMethod($page, 'getHeaderActions');
+
+        $this->assertNotEmpty($actions);
     }
 
     // Manage Settings
@@ -226,61 +223,7 @@ class AdminPageAccessTest extends TestCase
         $this->assertEquals('danger', NotificationCenter::getNavigationBadgeColor());
     }
 
-    // Notification Log Page
-
-    public function test_notification_log_accessible_by_super_admin(): void
-    {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/notification-log');
-
-        $response->assertOk();
-    }
-
-    public function test_notification_log_forbidden_for_admin(): void
-    {
-        $response = $this->actingAs($this->admin)->get('/admin/notification-log');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_notification_log_forbidden_for_viewer(): void
-    {
-        $response = $this->actingAs($this->viewer)->get('/admin/notification-log');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_notification_log_can_access_returns_false_for_null_user(): void
-    {
-        $this->assertFalse(NotificationLogPage::canAccess());
-    }
-
-    // Audit Log
-
-    public function test_audit_log_accessible_by_super_admin(): void
-    {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/audit-log');
-
-        $response->assertOk();
-    }
-
-    public function test_audit_log_forbidden_for_admin(): void
-    {
-        $response = $this->actingAs($this->admin)->get('/admin/audit-log');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_audit_log_forbidden_for_viewer(): void
-    {
-        $response = $this->actingAs($this->viewer)->get('/admin/audit-log');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_audit_log_can_access_returns_false_for_null_user(): void
-    {
-        $this->assertFalse(AuditLog::canAccess());
-    }
+    // Activity Log (old routes removed — notification-log, audit-log, domain-events are now tabs)
 
     // API Tokens
 
@@ -341,16 +284,16 @@ class AdminPageAccessTest extends TestCase
 
     // Guest redirects for all pages
 
-    public function test_queue_dashboard_redirects_guest(): void
+    public function test_queue_manager_redirects_guest(): void
     {
-        $response = $this->get('/admin/queue-dashboard');
+        $response = $this->get('/admin/queue-manager');
 
         $response->assertRedirect();
     }
 
-    public function test_log_viewer_redirects_guest(): void
+    public function test_activity_log_redirects_guest(): void
     {
-        $response = $this->get('/admin/log-viewer');
+        $response = $this->get('/admin/activity-log');
 
         $response->assertRedirect();
     }
@@ -362,54 +305,7 @@ class AdminPageAccessTest extends TestCase
         $response->assertRedirect();
     }
 
-    public function test_notification_log_redirects_guest(): void
-    {
-        $response = $this->get('/admin/notification-log');
-
-        $response->assertRedirect();
-    }
-
-    public function test_audit_log_redirects_guest(): void
-    {
-        $response = $this->get('/admin/audit-log');
-
-        $response->assertRedirect();
-    }
-
-    // Domain Event Viewer
-
-    public function test_domain_events_accessible_by_super_admin(): void
-    {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/domain-events');
-
-        $response->assertOk();
-    }
-
-    public function test_domain_events_forbidden_for_admin(): void
-    {
-        $response = $this->actingAs($this->admin)->get('/admin/domain-events');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_domain_events_forbidden_for_viewer(): void
-    {
-        $response = $this->actingAs($this->viewer)->get('/admin/domain-events');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_domain_events_can_access_returns_false_for_null_user(): void
-    {
-        $this->assertFalse(DomainEventViewer::canAccess());
-    }
-
-    public function test_domain_events_redirects_guest(): void
-    {
-        $response = $this->get('/admin/domain-events');
-
-        $response->assertRedirect();
-    }
+    // Old standalone pages removed — notification-log, audit-log, domain-events routes no longer exist
 
     // AI Assistant
 

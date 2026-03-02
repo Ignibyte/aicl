@@ -1,39 +1,20 @@
 <?php
 
-namespace Aicl\Filament\Pages;
+namespace Aicl\Livewire;
 
 use App\Models\User;
-use BackedEnum;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Models\Activity;
-use UnitEnum;
 
-class AuditLog extends Page implements HasForms, HasTable
+class AuditTable extends TableWidget
 {
-    use InteractsWithForms;
-    use InteractsWithTable;
+    protected static bool $isDiscovered = false;
 
-    protected static string|BackedEnum|null $navigationIcon = null;
-
-    protected static string|UnitEnum|null $navigationGroup = 'System';
-
-    protected static ?int $navigationSort = 14;
-
-    protected static ?string $navigationLabel = 'Audit Log';
-
-    protected static ?string $title = 'Audit Log';
-
-    protected static ?string $slug = 'audit-log';
-
-    protected string $view = 'aicl::filament.pages.audit-log';
+    protected string $view = 'aicl::livewire.audit-table';
 
     public function table(Table $table): Table
     {
@@ -106,12 +87,5 @@ class AuditLog extends Page implements HasForms, HasTable
             ->emptyStateDescription('Activity will appear here as entities are created, updated, and deleted.')
             ->emptyStateIcon('heroicon-o-clipboard-document-list')
             ->paginated([10, 25, 50, 100]);
-    }
-
-    public static function canAccess(): bool
-    {
-        $user = auth()->user();
-
-        return $user && $user->hasRole('super_admin');
     }
 }

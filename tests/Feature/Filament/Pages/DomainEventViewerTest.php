@@ -3,7 +3,8 @@
 namespace Aicl\Tests\Feature\Filament\Pages;
 
 use Aicl\Events\Enums\ActorType;
-use Aicl\Filament\Pages\DomainEventViewer;
+use Aicl\Filament\Pages\ActivityLog;
+use Aicl\Livewire\DomainEventTable;
 use Aicl\Models\DomainEventRecord;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,15 +27,23 @@ class DomainEventViewerTest extends TestCase
         $this->superAdmin->assignRole('super_admin');
     }
 
-    public function test_page_renders_successfully(): void
+    public function test_activity_log_page_renders_successfully(): void
     {
         $this->actingAs($this->superAdmin);
 
-        Livewire::test(DomainEventViewer::class)
+        Livewire::test(ActivityLog::class)
             ->assertSuccessful();
     }
 
-    public function test_page_displays_domain_events(): void
+    public function test_domain_event_table_renders_successfully(): void
+    {
+        $this->actingAs($this->superAdmin);
+
+        Livewire::test(DomainEventTable::class)
+            ->assertSuccessful();
+    }
+
+    public function test_domain_event_table_displays_events(): void
     {
         DomainEventRecord::create([
             'event_type' => 'order.created',
@@ -49,7 +58,7 @@ class DomainEventViewerTest extends TestCase
 
         $this->actingAs($this->superAdmin);
 
-        Livewire::test(DomainEventViewer::class)
+        Livewire::test(DomainEventTable::class)
             ->assertSuccessful()
             ->assertSee('order.created');
     }
@@ -61,7 +70,7 @@ class DomainEventViewerTest extends TestCase
 
         $this->actingAs($this->superAdmin);
 
-        Livewire::test(DomainEventViewer::class)
+        Livewire::test(DomainEventTable::class)
             ->assertSuccessful()
             ->assertSee('No domain events');
     }
@@ -87,7 +96,7 @@ class DomainEventViewerTest extends TestCase
 
         $this->actingAs($this->superAdmin);
 
-        Livewire::test(DomainEventViewer::class)
+        Livewire::test(DomainEventTable::class)
             ->filterTable('actor_type', ActorType::User->value)
             ->assertCanSeeTableRecords(
                 DomainEventRecord::where('actor_type', ActorType::User->value)->get()
@@ -121,7 +130,7 @@ class DomainEventViewerTest extends TestCase
 
         $this->actingAs($this->superAdmin);
 
-        Livewire::test(DomainEventViewer::class)
+        Livewire::test(DomainEventTable::class)
             ->filterTable('entity_type', 'App\\Models\\Order')
             ->assertCanSeeTableRecords(
                 DomainEventRecord::where('entity_type', 'App\\Models\\Order')->get()
@@ -151,7 +160,7 @@ class DomainEventViewerTest extends TestCase
 
         $this->actingAs($this->superAdmin);
 
-        Livewire::test(DomainEventViewer::class)
+        Livewire::test(DomainEventTable::class)
             ->assertCanSeeTableRecords([$newer, $older], inOrder: true);
     }
 }

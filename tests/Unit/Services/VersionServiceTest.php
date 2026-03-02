@@ -2,45 +2,29 @@
 
 namespace Aicl\Tests\Unit\Services;
 
+use Aicl\AiclServiceProvider;
 use Aicl\Services\VersionService;
-use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class VersionServiceTest extends TestCase
 {
-    public function test_framework_version_extracts_version_from_changelog(): void
+    public function test_framework_version_returns_constant(): void
     {
-        Cache::forget('aicl.version.framework');
-
         $service = new VersionService;
 
-        $version = $service->frameworkVersion();
-
-        // The CHANGELOG_FRAMEWORK.md always starts with a version heading
-        $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', $version);
-    }
-
-    public function test_current_returns_cached_version(): void
-    {
-        Cache::forget('aicl.version.framework');
-
-        $service = new VersionService;
-
-        $version = $service->current();
-
-        $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', $version);
-
-        // Verify it was cached under the new key
-        $this->assertSame($version, Cache::get('aicl.version.framework'));
+        $this->assertSame(AiclServiceProvider::VERSION, $service->frameworkVersion());
     }
 
     public function test_current_delegates_to_framework_version(): void
     {
-        Cache::forget('aicl.version.framework');
-
         $service = new VersionService;
 
         $this->assertSame($service->frameworkVersion(), $service->current());
+    }
+
+    public function test_framework_version_matches_semver_format(): void
+    {
+        $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', AiclServiceProvider::VERSION);
     }
 
     public function test_project_version_returns_unknown_when_changelog_missing(): void
@@ -53,8 +37,6 @@ class VersionServiceTest extends TestCase
             rename($path, $backup);
         }
 
-        Cache::forget('aicl.version.project');
-
         try {
             $service = new VersionService;
             $this->assertSame('unknown', $service->projectVersion());
@@ -62,34 +44,6 @@ class VersionServiceTest extends TestCase
             if ($exists) {
                 rename($backup, $path);
             }
-            Cache::forget('aicl.version.project');
-        }
-    }
-
-    public function test_framework_version_falls_back_to_composer_when_changelog_missing(): void
-    {
-        $path = base_path('CHANGELOG_FRAMEWORK.md');
-        $backup = $path.'.bak';
-        $exists = file_exists($path);
-
-        if ($exists) {
-            rename($path, $backup);
-        }
-
-        Cache::forget('aicl.version.framework');
-
-        try {
-            $service = new VersionService;
-            $version = $service->frameworkVersion();
-
-            // Should get version from Composer InstalledVersions (dev path repo)
-            // or 'unknown' if not resolvable — but never crash
-            $this->assertMatchesRegularExpression('/^(\d+\.\d+\.\d+|unknown)$/', $version);
-        } finally {
-            if ($exists) {
-                rename($backup, $path);
-            }
-            Cache::forget('aicl.version.framework');
         }
     }
 

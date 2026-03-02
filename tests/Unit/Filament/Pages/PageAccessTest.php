@@ -2,14 +2,12 @@
 
 namespace Aicl\Tests\Unit\Filament\Pages;
 
+use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\AiAssistant;
-use Aicl\Filament\Pages\AuditLog;
-use Aicl\Filament\Pages\NotificationLogPage;
 use Aicl\Filament\Pages\OpsPanel;
 use App\Models\User;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
-use Filament\Tables\Contracts\HasTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +42,15 @@ class PageAccessTest extends TestCase
         $reflection = new \ReflectionClass(AiAssistant::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Tools', $defaults['navigationGroup']);
+        $this->assertEquals('System', $defaults['navigationGroup']);
+    }
+
+    public function test_ai_assistant_hidden_from_navigation(): void
+    {
+        $reflection = new \ReflectionClass(AiAssistant::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertFalse($defaults['shouldRegisterNavigation']);
     }
 
     public function test_ai_assistant_navigation_sort(): void
@@ -52,7 +58,7 @@ class PageAccessTest extends TestCase
         $reflection = new \ReflectionClass(AiAssistant::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(5, $defaults['navigationSort']);
+        $this->assertEquals(8, $defaults['navigationSort']);
     }
 
     public function test_ai_assistant_view(): void
@@ -123,7 +129,7 @@ class PageAccessTest extends TestCase
         $reflection = new \ReflectionClass(OpsPanel::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(10, $defaults['navigationSort']);
+        $this->assertEquals(5, $defaults['navigationSort']);
     }
 
     public function test_ops_panel_view(): void
@@ -186,165 +192,79 @@ class PageAccessTest extends TestCase
         $this->assertFalse(OpsPanel::canAccess());
     }
 
-    // ─── AuditLog ───────────────────────────────────────────────
+    // ─── ActivityLog ───────────────────────────────────────────
 
-    public function test_audit_log_extends_page(): void
+    public function test_activity_log_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(AuditLog::class, Page::class));
+        $this->assertTrue(is_subclass_of(ActivityLog::class, Page::class));
     }
 
-    public function test_audit_log_implements_has_table(): void
+    public function test_activity_log_implements_has_forms(): void
     {
-        $this->assertTrue(is_subclass_of(AuditLog::class, HasTable::class));
+        $this->assertTrue(is_subclass_of(ActivityLog::class, HasForms::class));
     }
 
-    public function test_audit_log_implements_has_forms(): void
+    public function test_activity_log_slug(): void
     {
-        $this->assertTrue(is_subclass_of(AuditLog::class, HasForms::class));
-    }
-
-    public function test_audit_log_slug(): void
-    {
-        $reflection = new \ReflectionClass(AuditLog::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $prop = $reflection->getProperty('slug');
 
-        $this->assertEquals('audit-log', $prop->getDefaultValue());
+        $this->assertEquals('activity-log', $prop->getDefaultValue());
     }
 
-    public function test_audit_log_navigation_group(): void
+    public function test_activity_log_navigation_group(): void
     {
-        $reflection = new \ReflectionClass(AuditLog::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertEquals('System', $defaults['navigationGroup']);
     }
 
-    public function test_audit_log_navigation_sort(): void
+    public function test_activity_log_navigation_sort(): void
     {
-        $reflection = new \ReflectionClass(AuditLog::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals(14, $defaults['navigationSort']);
+        $this->assertEquals(7, $defaults['navigationSort']);
     }
 
-    public function test_audit_log_view(): void
+    public function test_activity_log_view(): void
     {
-        $reflection = new \ReflectionClass(AuditLog::class);
+        $reflection = new \ReflectionClass(ActivityLog::class);
         $property = $reflection->getProperty('view');
 
-        $this->assertEquals('aicl::filament.pages.audit-log', $property->getDefaultValue());
+        $this->assertEquals('aicl::filament.pages.activity-log', $property->getDefaultValue());
     }
 
-    public function test_audit_log_accessible_by_super_admin(): void
+    public function test_activity_log_accessible_by_super_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('super_admin');
         $this->actingAs($user);
 
-        $this->assertTrue(AuditLog::canAccess());
+        $this->assertTrue(ActivityLog::canAccess());
     }
 
-    public function test_audit_log_not_accessible_by_admin(): void
+    public function test_activity_log_not_accessible_by_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
         $this->actingAs($user);
 
-        $this->assertFalse(AuditLog::canAccess());
+        $this->assertFalse(ActivityLog::canAccess());
     }
 
-    public function test_audit_log_not_accessible_by_viewer(): void
+    public function test_activity_log_not_accessible_by_viewer(): void
     {
         $user = User::factory()->create();
         $user->assignRole('viewer');
         $this->actingAs($user);
 
-        $this->assertFalse(AuditLog::canAccess());
+        $this->assertFalse(ActivityLog::canAccess());
     }
 
-    public function test_audit_log_not_accessible_without_auth(): void
+    public function test_activity_log_not_accessible_without_auth(): void
     {
-        $this->assertFalse(AuditLog::canAccess());
-    }
-
-    // ─── NotificationLogPage ────────────────────────────────────
-
-    public function test_notification_log_extends_page(): void
-    {
-        $this->assertTrue(is_subclass_of(NotificationLogPage::class, Page::class));
-    }
-
-    public function test_notification_log_implements_has_table(): void
-    {
-        $this->assertTrue(is_subclass_of(NotificationLogPage::class, HasTable::class));
-    }
-
-    public function test_notification_log_implements_has_forms(): void
-    {
-        $this->assertTrue(is_subclass_of(NotificationLogPage::class, HasForms::class));
-    }
-
-    public function test_notification_log_slug(): void
-    {
-        $reflection = new \ReflectionClass(NotificationLogPage::class);
-        $prop = $reflection->getProperty('slug');
-
-        $this->assertEquals('notification-log', $prop->getDefaultValue());
-    }
-
-    public function test_notification_log_navigation_group(): void
-    {
-        $reflection = new \ReflectionClass(NotificationLogPage::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('System', $defaults['navigationGroup']);
-    }
-
-    public function test_notification_log_navigation_sort(): void
-    {
-        $reflection = new \ReflectionClass(NotificationLogPage::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals(15, $defaults['navigationSort']);
-    }
-
-    public function test_notification_log_view(): void
-    {
-        $reflection = new \ReflectionClass(NotificationLogPage::class);
-        $property = $reflection->getProperty('view');
-
-        $this->assertEquals('aicl::filament.pages.notification-log', $property->getDefaultValue());
-    }
-
-    public function test_notification_log_accessible_by_super_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('super_admin');
-        $this->actingAs($user);
-
-        $this->assertTrue(NotificationLogPage::canAccess());
-    }
-
-    public function test_notification_log_not_accessible_by_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-        $this->actingAs($user);
-
-        $this->assertFalse(NotificationLogPage::canAccess());
-    }
-
-    public function test_notification_log_not_accessible_by_viewer(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('viewer');
-        $this->actingAs($user);
-
-        $this->assertFalse(NotificationLogPage::canAccess());
-    }
-
-    public function test_notification_log_not_accessible_without_auth(): void
-    {
-        $this->assertFalse(NotificationLogPage::canAccess());
+        $this->assertFalse(ActivityLog::canAccess());
     }
 }

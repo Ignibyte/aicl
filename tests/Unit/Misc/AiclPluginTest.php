@@ -3,14 +3,14 @@
 namespace Aicl\Tests\Unit\Misc;
 
 use Aicl\AiclPlugin;
+use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
-use Aicl\Filament\Pages\LogViewer;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\OpsPanel;
-use Aicl\Filament\Pages\QueueDashboard;
+use Aicl\Filament\Pages\QueueManager;
 use Aicl\Filament\Pages\Search;
-use Aicl\Filament\Resources\FailedJobs\FailedJobResource;
+use Aicl\Filament\Pages\Tools;
 use Aicl\Filament\Widgets\GlobalSearchWidget;
 use Aicl\Filament\Widgets\PresenceIndicator;
 use Aicl\Filament\Widgets\QueueStatsWidget;
@@ -60,7 +60,7 @@ class AiclPluginTest extends TestCase
         $this->assertTrue(method_exists(AiclPlugin::class, 'boot'));
     }
 
-    public function test_get_resources_includes_failed_job_resource(): void
+    public function test_get_resources_does_not_include_failed_job_resource(): void
     {
         $reflection = new \ReflectionMethod(AiclPlugin::class, 'getResources');
         $reflection->setAccessible(true);
@@ -68,7 +68,10 @@ class AiclPluginTest extends TestCase
         $plugin = new AiclPlugin;
         $resources = $reflection->invoke($plugin);
 
-        $this->assertContains(FailedJobResource::class, $resources);
+        // FailedJobResource removed — replaced by QueueManager tabbed page
+        foreach ($resources as $resource) {
+            $this->assertStringNotContainsString('FailedJobResource', $resource);
+        }
     }
 
     public function test_get_pages_includes_all_pages(): void
@@ -80,10 +83,11 @@ class AiclPluginTest extends TestCase
         $pages = $reflection->invoke($plugin);
 
         $expectedPages = [
+            ActivityLog::class,
             OpsPanel::class,
-            QueueDashboard::class,
-            LogViewer::class,
+            QueueManager::class,
             ManageSettings::class,
+            Tools::class,
             NotificationCenter::class,
             Search::class,
             ApiTokens::class,
@@ -105,6 +109,20 @@ class AiclPluginTest extends TestCase
         // OnlineUsers was removed in Sprint H — consolidated into OpsPanel
         foreach ($pages as $page) {
             $this->assertStringNotContainsString('OnlineUsers', $page);
+        }
+    }
+
+    public function test_get_pages_does_not_include_styleguide(): void
+    {
+        $reflection = new \ReflectionMethod(AiclPlugin::class, 'getPages');
+        $reflection->setAccessible(true);
+
+        $plugin = new AiclPlugin;
+        $pages = $reflection->invoke($plugin);
+
+        // Styleguide pages removed in Nav Consolidation sprint — dev-only content
+        foreach ($pages as $page) {
+            $this->assertStringNotContainsString('Styleguide', $page);
         }
     }
 
@@ -185,12 +203,13 @@ class AiclPluginTest extends TestCase
         $this->assertTrue($reflection->isPublic());
     }
 
-    public function test_register_source_calls_registration_conditionally(): void
+    public function test_register_source_calls_registration_with_custom_page(): void
     {
         $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
 
-        $this->assertStringContainsString('isRegistrationEnabled()', $source);
-        $this->assertStringContainsString('->registration()', $source);
+        // Registration is always registered with a custom page that gates at runtime
+        $this->assertStringContainsString('->registration(', $source);
+        $this->assertStringContainsString('Register::class', $source);
     }
 
     public function test_is_registration_enabled_source_checks_config(): void

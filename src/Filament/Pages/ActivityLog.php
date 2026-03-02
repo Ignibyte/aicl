@@ -18,10 +18,16 @@ use Livewire\Attributes\Computed;
 use UnitEnum;
 
 /**
+ * Consolidated activity log page with four tabs:
+ * - Application Logs (file-based log parsing)
+ * - Audit Trail (Spatie Activity Log)
+ * - Domain Events (DomainEventRecord)
+ * - Notifications (NotificationLog)
+ *
  * @property Schema $form
  * @property Collection $logEntries
  */
-class LogViewer extends Page implements HasForms
+class ActivityLog extends Page implements HasForms
 {
     use InteractsWithForms;
 
@@ -29,15 +35,19 @@ class LogViewer extends Page implements HasForms
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 7;
 
-    protected static ?string $navigationLabel = 'Log Viewer';
+    protected static ?string $navigationLabel = 'Activity Log';
 
-    protected static ?string $title = 'Log Viewer';
+    protected static ?string $title = 'Activity Log';
 
-    protected static ?string $slug = 'log-viewer';
+    protected static ?string $slug = 'activity-log';
 
-    protected string $view = 'aicl::filament.pages.log-viewer';
+    protected string $view = 'aicl::filament.pages.activity-log';
+
+    public string $activeTab = 'app-logs';
+
+    // ── Application Logs tab properties ─────────────────────
 
     public ?string $selectedFile = null;
 
@@ -145,7 +155,8 @@ class LogViewer extends Page implements HasForms
 
                     return response()->download($this->selectedFile);
                 })
-                ->disabled(fn () => ! $this->selectedFile),
+                ->disabled(fn () => ! $this->selectedFile)
+                ->visible(fn (): bool => $this->activeTab === 'app-logs'),
             Action::make('clear')
                 ->label('Clear Log')
                 ->icon('heroicon-o-trash')
@@ -176,7 +187,8 @@ class LogViewer extends Page implements HasForms
                             ->send();
                     }
                 })
-                ->disabled(fn () => ! $this->selectedFile),
+                ->disabled(fn () => ! $this->selectedFile)
+                ->visible(fn (): bool => $this->activeTab === 'app-logs'),
             Action::make('delete')
                 ->label('Delete File')
                 ->icon('heroicon-o-x-circle')
@@ -210,7 +222,8 @@ class LogViewer extends Page implements HasForms
                             ->send();
                     }
                 })
-                ->disabled(fn () => ! $this->selectedFile),
+                ->disabled(fn () => ! $this->selectedFile)
+                ->visible(fn (): bool => $this->activeTab === 'app-logs'),
         ];
     }
 
@@ -227,7 +240,7 @@ class LogViewer extends Page implements HasForms
             return false;
         }
 
-        return $user->hasRole(['super_admin', 'admin']);
+        return $user->hasRole('super_admin');
     }
 
     public function getPollingInterval(): ?string

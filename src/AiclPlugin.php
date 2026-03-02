@@ -2,31 +2,21 @@
 
 namespace Aicl;
 
+use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\ApiTokens;
-use Aicl\Filament\Pages\AuditLog;
 use Aicl\Filament\Pages\Changelog;
 use Aicl\Filament\Pages\DocumentBrowser;
-use Aicl\Filament\Pages\DomainEventViewer;
 use Aicl\Filament\Pages\Errors\Forbidden;
 use Aicl\Filament\Pages\Errors\NotFound;
 use Aicl\Filament\Pages\Errors\ServerError;
 use Aicl\Filament\Pages\Errors\ServiceUnavailable;
-use Aicl\Filament\Pages\LogViewer;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
-use Aicl\Filament\Pages\NotificationLogPage;
 use Aicl\Filament\Pages\OpsPanel;
-use Aicl\Filament\Pages\QueueDashboard;
+use Aicl\Filament\Pages\QueueManager;
 use Aicl\Filament\Pages\Search;
-use Aicl\Filament\Pages\Styleguide\ActionComponents;
-use Aicl\Filament\Pages\Styleguide\DataDisplayComponents;
-use Aicl\Filament\Pages\Styleguide\FeedbackComponents;
-use Aicl\Filament\Pages\Styleguide\InteractiveComponents;
-use Aicl\Filament\Pages\Styleguide\LayoutComponents;
-use Aicl\Filament\Pages\Styleguide\MetricComponents;
-use Aicl\Filament\Pages\Styleguide\StyleguideOverview;
-use Aicl\Filament\Resources\FailedJobs\FailedJobResource;
+use Aicl\Filament\Pages\Tools;
 use Aicl\Filament\Resources\Users\UserResource;
 use Aicl\Filament\Widgets\GlobalSearchWidget;
 use Aicl\Filament\Widgets\PresenceIndicator;
@@ -80,10 +70,11 @@ class AiclPlugin implements Plugin
             );
         }
 
-        // Conditionally enable registration based on config + database settings
-        if (static::isRegistrationEnabled()) {
-            $panel->registration();
-        }
+        // Always register the registration route — runtime gating is handled by
+        // the custom Register page (checks isRegistrationEnabled() on each request).
+        // This avoids Octane boot-time caching issues where toggling the admin
+        // setting had no effect until workers were reloaded.
+        $panel->registration(\Aicl\Filament\Pages\Auth\Register::class);
 
         $panel
             ->resources($this->getResources())
@@ -166,7 +157,6 @@ class AiclPlugin implements Plugin
     protected function getResources(): array
     {
         return [
-            FailedJobResource::class,
             UserResource::class,
         ];
     }
@@ -177,26 +167,17 @@ class AiclPlugin implements Plugin
     protected function getPages(): array
     {
         return [
+            ActivityLog::class,
             AiAssistant::class,
             OpsPanel::class,
-            QueueDashboard::class,
-            LogViewer::class,
+            QueueManager::class,
             ManageSettings::class,
-            AuditLog::class,
             Changelog::class,
             DocumentBrowser::class,
-            DomainEventViewer::class,
+            Tools::class,
             NotificationCenter::class,
-            NotificationLogPage::class,
             Search::class,
             ApiTokens::class,
-            StyleguideOverview::class,
-            LayoutComponents::class,
-            MetricComponents::class,
-            DataDisplayComponents::class,
-            ActionComponents::class,
-            InteractiveComponents::class,
-            FeedbackComponents::class,
             NotFound::class,
             Forbidden::class,
             ServerError::class,

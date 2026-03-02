@@ -10,7 +10,53 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.0.3`
+Current version: `1.1.1`
+
+---
+
+## [1.1.1] - 2026-03-02
+
+### Added
+
+- **Queued Jobs tab** — New tab on Queue Manager showing pending jobs from the `jobs` database table via embedded Livewire TableWidget. Driver-aware empty state explains visibility when using Redis queue driver.
+- **QueuedJob model** — Eloquent model for Laravel's built-in `jobs` table with accessors for job name, timestamps, and reserved status.
+
+### Changed
+
+- **Version badge** — Replaced `Cache::rememberForever` with `AiclServiceProvider::VERSION` constant. Version is now read directly from the constant at runtime — no Redis caching, no stale values after releases.
+- **Release process** — Updated `/release` Phase 4 to bump the VERSION constant alongside the changelog.
+
+---
+
+## [1.1.0] - 2026-03-02
+
+### Summary
+
+**Navigation Consolidation Sprint** — Admin navigation reduced from 6 sidebar groups / 29 items to 3 groups / 17 items. Related pages consolidated into tabbed interfaces. Development-only Styleguide removed entirely.
+
+### Added
+
+- **Queue Manager** — Tabbed page combining Queue Dashboard + Failed Jobs Resource into one page with Overview (stats) and Failed Jobs (table with retry/delete actions) tabs
+- **Activity Log** — Tabbed page combining Log Viewer, Audit Log, Domain Events, and Notification Log into one page with 4 tabs and 3 embedded Livewire table widgets
+- **Tools dashboard** — Card-grid landing page linking to AI Assistant and Architecture Docs (renamed from Document Browser)
+- **Sidebar collapse persistence** — Collapse state saved to localStorage, restored across page loads and topbar/sidebar mode switches
+- **Register page** — Custom registration page class for auth flow
+
+### Changed
+
+- Settings, API Tokens, and Backups moved from Settings group into System group
+- AI Assistant hidden from nav (accessible via Tools dashboard)
+- Document Browser renamed to Architecture Docs, hidden from nav
+- Navigation sort orders reorganized for System group (Settings=1, API Tokens=2, Backups=3, Ops Panel=5, Queue Manager=6, Activity Log=7, Tools=8, Changelog=9)
+- `AiclServiceProvider` registers 3 new Livewire components (`aicl::audit-table`, `aicl::domain-event-table`, `aicl::notification-log-table`)
+
+### Removed
+
+- **Styleguide** — 7 pages, 7 Blade views, 3 test files (development-only, not production content)
+- **FailedJobResource** — Resource + 2 sub-pages replaced by Queue Manager
+- **QueueDashboard** — Standalone page replaced by Queue Manager
+- **LogViewer, AuditLog, DomainEventViewer, NotificationLogPage** — 4 standalone pages replaced by Activity Log
+- **Navigation groups** — Settings, Tools, RLM Hub, Styleguide groups removed from AdminPanelProvider
 
 ---
 
