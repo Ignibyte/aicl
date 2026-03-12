@@ -96,7 +96,7 @@ use Spatie\Permission\Models\Role;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.2.0';
+    public const VERSION = '1.2.1';
 
     public function register(): void
     {

@@ -10,7 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.2.0`
+Current version: `1.2.1`
+
+---
+
+## [1.2.1] - 2026-03-11
+
+### Fixed
+
+- **Queue Manager TypeError** — Cast `$afterIndex` to `(int)` in `RedisJobRepository::getJobsByType()` to prevent `Unsupported operand types: string + int` on PHP 8+ when browsing paginated queue job lists.
 
 ---
 
