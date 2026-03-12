@@ -145,19 +145,11 @@ class PageAccessTest extends TestCase
         $this->assertTrue(method_exists(OpsPanel::class, 'getServiceChecks'));
     }
 
-    public function test_ops_panel_has_get_active_sessions_method(): void
+    public function test_ops_panel_no_longer_has_session_methods(): void
     {
-        $this->assertTrue(method_exists(OpsPanel::class, 'getActiveSessions'));
-    }
-
-    public function test_ops_panel_has_terminate_session_method(): void
-    {
-        $this->assertTrue(method_exists(OpsPanel::class, 'terminateSession'));
-    }
-
-    public function test_ops_panel_has_kill_session_action_method(): void
-    {
-        $this->assertTrue(method_exists(OpsPanel::class, 'killSessionAction'));
+        $this->assertFalse(method_exists(OpsPanel::class, 'getActiveSessions'));
+        $this->assertFalse(method_exists(OpsPanel::class, 'terminateSession'));
+        $this->assertFalse(method_exists(OpsPanel::class, 'killSessionAction'));
     }
 
     public function test_ops_panel_accessible_by_super_admin(): void

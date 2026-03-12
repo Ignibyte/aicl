@@ -10,9 +10,21 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.3.0`
+Current version: `1.3.1`
 
 ---
+
+## [1.3.1] - 2026-03-12
+
+### Added
+
+- **Project Config Overlay** — `config/aicl-project.php` deep-merges on top of `config/aicl.php` at boot via `array_replace_recursive`. Makes `aicl.php` safely overwritable by skeleton upgrades while preserving project-specific settings (Keycloak SSO, AI tools, branding, custom system prompts) in the overlay file. Stub ships with skeleton, protected by `ensure_present` in upgrade manifest.
+- **Sessions section on Operations Manager** — Connected Sessions table with active session list, online indicators, and Kill Session action (super_admin only) now lives on the Operations Manager page.
+- **5 config overlay tests** + **8 session management tests** on OperationsManager.
+
+### Fixed
+
+- **Session terminate restored** — `getActiveSessions()`, `terminateSession()`, and `killSessionAction()` were missing from the new Operations Manager page (v1.3.0 regression). Migrated from OpsPanel and removed from OpsPanel to avoid duplication.
 
 ## [1.3.0] - 2026-03-12
 

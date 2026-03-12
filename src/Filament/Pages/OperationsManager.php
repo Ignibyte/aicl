@@ -11,6 +11,7 @@ use Aicl\Models\ScheduleHistory;
 use Aicl\Notifications\Enums\DeliveryStatus;
 use Aicl\Notifications\Models\NotificationChannel;
 use Aicl\Notifications\Models\NotificationDeliveryLog;
+use Aicl\Services\PresenceRegistry;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\Action as TableRowAction;
@@ -292,6 +293,77 @@ class OperationsManager extends Page implements HasForms, HasTable
             ->where('status', DeliveryStatus::Pending)
             ->where('created_at', '<', now()->subMinutes(30))
             ->count();
+    }
+
+    // ── Sessions Section ──────────────────────────────────────
+
+    /**
+     * Get all active admin sessions from the PresenceRegistry.
+     *
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    public function getActiveSessions(): \Illuminate\Support\Collection
+    {
+        return app(PresenceRegistry::class)->allSessions();
+    }
+
+    /**
+     * Terminate a session by its ID (super_admin only).
+     */
+    public function terminateSession(string $sessionId): void
+    {
+        $user = auth()->user();
+
+        if (! $user || ! $user->hasRole('super_admin')) {
+            Notification::make()
+                ->title('Unauthorized')
+                ->body('Only super admins can terminate sessions.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $currentSessionId = request()->hasSession() ? request()->session()->getId() : null;
+
+        if ($currentSessionId !== null && $sessionId === $currentSessionId) {
+            Notification::make()
+                ->title('Cannot Terminate')
+                ->body('You cannot terminate your own current session.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $result = app(PresenceRegistry::class)->terminateSession($sessionId);
+
+        if ($result) {
+            Notification::make()
+                ->title('Session Terminated')
+                ->body('The session has been forcefully terminated.')
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Session Not Found')
+                ->body('The session may have already expired.')
+                ->warning()
+                ->send();
+        }
+    }
+
+    public function killSessionAction(): Action
+    {
+        return Action::make('killSession')
+            ->label('Kill Session')
+            ->color('danger')
+            ->icon('heroicon-o-x-mark')
+            ->requiresConfirmation()
+            ->modalHeading('Terminate Session')
+            ->modalDescription(fn (array $arguments): string => 'Are you sure you want to terminate the session for '.($arguments['userName'] ?? 'this user').'? They will be logged out immediately.')
+            ->modalSubmitActionLabel('Yes, terminate')
+            ->action(fn (array $arguments) => $this->terminateSession($arguments['sessionId'] ?? ''));
     }
 
     // ── Shared ───────────────────────────────────────────────

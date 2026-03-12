@@ -145,6 +145,13 @@ return [
                     'target' => '.env.dusk.local',
                     'source' => 'stubs/env.dusk.local',
                 ],
+                // config/aicl-project.php — project-owned overlay, never overwritten.
+                // Copied once if missing so new projects know it exists.
+                [
+                    'strategy' => 'ensure_present',
+                    'target' => 'config/aicl-project.php',
+                    'source' => 'config/aicl-project.php',
+                ],
                 // config/aicl.php is NOT managed — client customizes it. New keys
                 // are handled by mergeConfigFrom() in the service provider (package
                 // defaults act as fallbacks for keys not in the published config).

@@ -100,11 +100,17 @@ use Spatie\Permission\Models\Role;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.3.0';
+    public const VERSION = '1.3.1';
 
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/aicl.php', 'aicl');
+        $this->mergeConfigFrom(__DIR__.'/../config/aicl-project.php', 'aicl-project');
+
+        $projectConfig = config('aicl-project', []);
+        if (! empty($projectConfig)) {
+            config(['aicl' => array_replace_recursive(config('aicl', []), $projectConfig)]);
+        }
 
         $this->app->singleton(DriverRegistry::class, function ($app): DriverRegistry {
             $registry = new DriverRegistry($app);

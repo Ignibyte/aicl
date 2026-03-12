@@ -2,16 +2,52 @@
 
 namespace Aicl\Tests\Feature\Horizon;
 
+use Aicl\Events\EntityCreated;
+use Aicl\Events\EntityDeleted;
+use Aicl\Events\EntityUpdated;
+use Aicl\Events\SessionTerminated;
 use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Horizon\Contracts\JobRepository;
 use Aicl\Horizon\Contracts\MetricsRepository;
 use Aicl\Horizon\Contracts\SupervisorRepository;
 use Aicl\Horizon\Contracts\WorkloadRepository;
+use Aicl\Services\PresenceRegistry;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
 class OperationsManagerPageTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected User $superAdmin;
+
+    protected User $admin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
+        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
+
+        Event::fake([
+            EntityCreated::class,
+            EntityUpdated::class,
+            EntityDeleted::class,
+        ]);
+
+        $this->superAdmin = User::factory()->create();
+        $this->superAdmin->assignRole('super_admin');
+
+        $this->admin = User::factory()->create();
+        $this->admin->assignRole('admin');
+    }
+
     public function test_operations_manager_page_exists(): void
     {
         $this->assertTrue(class_exists(OperationsManager::class));
@@ -280,6 +316,136 @@ class OperationsManagerPageTest extends TestCase
     public function test_can_access_returns_false_for_guests(): void
     {
         $this->assertFalse(OperationsManager::canAccess());
+    }
+
+    // ── Sessions Section ──────────────────────────────────
+
+    public function test_get_active_sessions_returns_collection(): void
+    {
+        Cache::forget('presence:session_index');
+
+        $page = new OperationsManager;
+        $sessions = $page->getActiveSessions();
+
+        $this->assertInstanceOf(Collection::class, $sessions);
+    }
+
+    public function test_get_active_sessions_delegates_to_presence_registry(): void
+    {
+        $registry = app(PresenceRegistry::class);
+
+        $registry->touch('test-sess-001', $this->superAdmin->getKey(), [
+            'user_name' => $this->superAdmin->name,
+            'user_email' => $this->superAdmin->email,
+            'current_url' => 'https://app.test/admin/dashboard',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        $page = new OperationsManager;
+        $sessions = $page->getActiveSessions();
+
+        $this->assertCount(1, $sessions);
+        $this->assertSame($this->superAdmin->getKey(), $sessions->first()['user_id']);
+
+        // Cleanup
+        $registry->forget('test-sess-001');
+    }
+
+    public function test_kill_session_action_exists(): void
+    {
+        $page = new OperationsManager;
+        $action = $page->killSessionAction();
+
+        $this->assertSame('killSession', $action->getName());
+    }
+
+    public function test_kill_session_action_requires_confirmation(): void
+    {
+        $page = new OperationsManager;
+        $action = $page->killSessionAction();
+
+        $this->assertTrue($action->isConfirmationRequired());
+    }
+
+    public function test_kill_session_action_is_danger_colored(): void
+    {
+        $page = new OperationsManager;
+        $action = $page->killSessionAction();
+
+        $this->assertSame('danger', $action->getColor());
+    }
+
+    public function test_terminate_session_requires_super_admin(): void
+    {
+        Event::fake([SessionTerminated::class]);
+
+        $this->actingAs($this->admin);
+
+        $registry = app(PresenceRegistry::class);
+        $registry->touch('target-sess', 99, [
+            'user_name' => 'Victim',
+            'user_email' => 'victim@example.com',
+            'current_url' => '/',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        $page = new OperationsManager;
+        $page->terminateSession('target-sess');
+
+        // Session should NOT be terminated (admin != super_admin)
+        $this->assertNotNull(Cache::get('presence:sessions:target-sess'));
+        Event::assertNotDispatched(SessionTerminated::class);
+
+        // Cleanup
+        $registry->forget('target-sess');
+    }
+
+    public function test_terminate_session_succeeds_for_super_admin(): void
+    {
+        Event::fake([SessionTerminated::class]);
+
+        $registry = app(PresenceRegistry::class);
+        $registry->touch('target-sess', $this->admin->getKey(), [
+            'user_name' => $this->admin->name,
+            'user_email' => $this->admin->email,
+            'current_url' => '/',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        $this->actingAs($this->superAdmin)->get('/admin/operations-manager');
+
+        $page = new OperationsManager;
+        $page->terminateSession('target-sess');
+
+        $this->assertNull(Cache::get('presence:sessions:target-sess'));
+        Event::assertDispatched(SessionTerminated::class);
+    }
+
+    public function test_terminate_session_prevents_self_termination(): void
+    {
+        Event::fake([SessionTerminated::class]);
+
+        $this->actingAs($this->superAdmin)->get('/admin/operations-manager');
+
+        $currentSessionId = session()->getId();
+
+        $registry = app(PresenceRegistry::class);
+        $registry->touch($currentSessionId, $this->superAdmin->getKey(), [
+            'user_name' => $this->superAdmin->name,
+            'user_email' => $this->superAdmin->email,
+            'current_url' => '/',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        $page = new OperationsManager;
+        $page->terminateSession($currentSessionId);
+
+        // Should NOT be terminated (own session)
+        $this->assertNotNull(Cache::get('presence:sessions:'.$currentSessionId));
+        Event::assertNotDispatched(SessionTerminated::class);
+
+        // Cleanup
+        $registry->forget($currentSessionId);
     }
 
     protected function tearDown(): void

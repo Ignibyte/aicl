@@ -5,14 +5,12 @@ namespace Aicl\Tests\Feature\Health;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
-use Aicl\Events\SessionTerminated;
 use Aicl\Filament\Pages\OpsPanel;
 use Aicl\Health\HealthCheckRegistry;
 use Aicl\Health\ServiceCheckResult;
-use Aicl\Services\PresenceRegistry;
 use App\Models\User;
+use Filament\Pages\Page;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
@@ -109,7 +107,7 @@ class OpsPanelPageTest extends TestCase
 
     public function test_page_extends_filament_page(): void
     {
-        $this->assertTrue(is_subclass_of(OpsPanel::class, \Filament\Pages\Page::class));
+        $this->assertTrue(is_subclass_of(OpsPanel::class, Page::class));
     }
 
     public function test_page_slug(): void
@@ -198,141 +196,5 @@ class OpsPanelPageTest extends TestCase
 
         $this->assertNotEmpty($actions);
         $this->assertSame('forceRefresh', $actions[0]->getName());
-    }
-
-    // ── getActiveSessions() ─────────────────────────────────
-
-    public function test_get_active_sessions_returns_collection(): void
-    {
-        Cache::forget('presence:session_index');
-
-        $page = new OpsPanel;
-        $sessions = $page->getActiveSessions();
-
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $sessions);
-    }
-
-    public function test_get_active_sessions_delegates_to_presence_registry(): void
-    {
-        $registry = app(PresenceRegistry::class);
-
-        $registry->touch('test-sess-001', $this->superAdmin->getKey(), [
-            'user_name' => $this->superAdmin->name,
-            'user_email' => $this->superAdmin->email,
-            'current_url' => 'https://app.test/admin/dashboard',
-            'ip_address' => '127.0.0.1',
-        ]);
-
-        $page = new OpsPanel;
-        $sessions = $page->getActiveSessions();
-
-        $this->assertCount(1, $sessions);
-        $this->assertSame($this->superAdmin->getKey(), $sessions->first()['user_id']);
-
-        // Cleanup
-        $registry->forget('test-sess-001');
-    }
-
-    // ── killSessionAction() ────────────────────────────────
-
-    public function test_kill_session_action_exists(): void
-    {
-        $page = new OpsPanel;
-        $action = $page->killSessionAction();
-
-        $this->assertSame('killSession', $action->getName());
-    }
-
-    public function test_kill_session_action_requires_confirmation(): void
-    {
-        $page = new OpsPanel;
-        $action = $page->killSessionAction();
-
-        $this->assertTrue($action->isConfirmationRequired());
-    }
-
-    public function test_kill_session_action_is_danger_colored(): void
-    {
-        $page = new OpsPanel;
-        $action = $page->killSessionAction();
-
-        $this->assertSame('danger', $action->getColor());
-    }
-
-    // ── terminateSession() ──────────────────────────────────
-
-    public function test_terminate_session_requires_super_admin(): void
-    {
-        Event::fake([SessionTerminated::class]);
-
-        $this->actingAs($this->admin);
-
-        $registry = app(PresenceRegistry::class);
-        $registry->touch('target-sess', 99, [
-            'user_name' => 'Victim',
-            'user_email' => 'victim@example.com',
-            'current_url' => '/',
-            'ip_address' => '127.0.0.1',
-        ]);
-
-        $page = new OpsPanel;
-        $page->terminateSession('target-sess');
-
-        // Session should NOT be terminated (admin != super_admin)
-        $this->assertNotNull(Cache::get('presence:sessions:target-sess'));
-        Event::assertNotDispatched(SessionTerminated::class);
-
-        // Cleanup
-        $registry->forget('target-sess');
-    }
-
-    public function test_terminate_session_succeeds_for_super_admin(): void
-    {
-        Event::fake([SessionTerminated::class]);
-
-        $registry = app(PresenceRegistry::class);
-        $registry->touch('target-sess', $this->admin->getKey(), [
-            'user_name' => $this->admin->name,
-            'user_email' => $this->admin->email,
-            'current_url' => '/',
-            'ip_address' => '127.0.0.1',
-        ]);
-
-        // Use an HTTP request so session is available
-        $this->actingAs($this->superAdmin)->get('/admin/ops-panel');
-
-        $page = new OpsPanel;
-        $page->terminateSession('target-sess');
-
-        $this->assertNull(Cache::get('presence:sessions:target-sess'));
-        Event::assertDispatched(SessionTerminated::class);
-    }
-
-    public function test_terminate_session_prevents_self_termination(): void
-    {
-        Event::fake([SessionTerminated::class]);
-
-        // Make an HTTP request to get a real session
-        $this->actingAs($this->superAdmin)->get('/admin/ops-panel');
-
-        $currentSessionId = session()->getId();
-
-        $registry = app(PresenceRegistry::class);
-        $registry->touch($currentSessionId, $this->superAdmin->getKey(), [
-            'user_name' => $this->superAdmin->name,
-            'user_email' => $this->superAdmin->email,
-            'current_url' => '/',
-            'ip_address' => '127.0.0.1',
-        ]);
-
-        $page = new OpsPanel;
-        $page->terminateSession($currentSessionId);
-
-        // Should NOT be terminated (own session)
-        $this->assertNotNull(Cache::get('presence:sessions:'.$currentSessionId));
-        Event::assertNotDispatched(SessionTerminated::class);
-
-        // Cleanup
-        $registry->forget($currentSessionId);
     }
 }
