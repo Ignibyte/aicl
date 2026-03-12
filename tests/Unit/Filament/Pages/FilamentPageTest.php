@@ -6,31 +6,31 @@ use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
-use Aicl\Filament\Pages\QueueManager;
+use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\Search;
 use Filament\Pages\Page;
 use PHPUnit\Framework\TestCase;
 
 class FilamentPageTest extends TestCase
 {
-    // ─── QueueManager ─────────────────────────────────────
+    // ─── OperationsManager ─────────────────────────────────────
 
-    public function test_queue_manager_extends_page(): void
+    public function test_operations_manager_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(QueueManager::class, Page::class));
+        $this->assertTrue(is_subclass_of(OperationsManager::class, Page::class));
     }
 
-    public function test_queue_manager_slug(): void
+    public function test_operations_manager_slug(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('queue-manager', $defaults['slug']);
+        $this->assertEquals('operations-manager', $defaults['slug']);
     }
 
-    public function test_queue_manager_navigation_group(): void
+    public function test_operations_manager_navigation_group(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertEquals('System', $defaults['navigationGroup']);

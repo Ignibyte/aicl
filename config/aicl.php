@@ -32,40 +32,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Entity Defaults
-    |--------------------------------------------------------------------------
-    |
-    | Default traits and behaviors applied to AI-generated entities.
-    | These control which base traits are included by default when
-    | generating new entities via aicl:make-entity.
-    |
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Default Owner ID
-    |--------------------------------------------------------------------------
-    |
-    | The user ID to assign as owner when no authenticated user is available
-    | (e.g., CLI commands, seeders, background jobs). Set to your admin user's ID.
-    |
-    */
-
-    'default_owner_id' => (int) env('AICL_DEFAULT_OWNER_ID', 1),
-
-    'entity_defaults' => [
-        'traits' => [
-            'entity_events' => true,
-            'audit_trail' => true,
-            'standard_scopes' => true,
-            'media_collections' => false,
-            'searchable_fields' => false,
-            'tagging' => false,
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Feature Flags
     |--------------------------------------------------------------------------
     |
@@ -215,21 +181,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Redis Database Mapping
-    |--------------------------------------------------------------------------
-    |
-    | Separate Redis databases for isolation between cache, sessions, and queues.
-    |
-    */
-
-    'redis' => [
-        'cache' => 0,
-        'sessions' => 1,
-        'queues' => 2,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Notifications
     |--------------------------------------------------------------------------
     |
@@ -279,6 +230,22 @@ return [
             ['label' => 'Architecture', 'path' => '.claude/architecture'],
             ['label' => 'Project Docs', 'path' => 'docs/architecture'],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduler
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the scheduled task monitoring system.
+    |
+    */
+
+    'scheduler' => [
+        'history_retention_days' => (int) env('AICL_SCHEDULER_RETENTION_DAYS', 30),
+        'output_max_bytes' => (int) env('AICL_SCHEDULER_OUTPUT_MAX_BYTES', 10240),
+        'health_degraded_minutes' => 5,
+        'health_down_minutes' => 15,
     ],
 
     /*

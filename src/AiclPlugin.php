@@ -14,8 +14,8 @@ use Aicl\Filament\Pages\Errors\ServerError;
 use Aicl\Filament\Pages\Errors\ServiceUnavailable;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
+use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\OpsPanel;
-use Aicl\Filament\Pages\QueueManager;
 use Aicl\Filament\Pages\Search;
 use Aicl\Filament\Pages\Tools;
 use Aicl\Filament\Resources\Users\UserResource;
@@ -196,7 +196,7 @@ class AiclPlugin implements Plugin
             ActivityLog::class,
             AiAssistant::class,
             OpsPanel::class,
-            QueueManager::class,
+            OperationsManager::class,
             ManageSettings::class,
             Changelog::class,
             DocumentBrowser::class,

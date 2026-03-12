@@ -30,20 +30,9 @@ All AICL package services MUST follow this three-tier model:
 - **Log level:** `Log::warning()` with structured context array
 - **Exception:** NEVER throw to callers -- catch internally and degrade
 - **Examples:**
-  - ES search fails -> `Log::warning('KnowledgeService: ES search failed', [...])` -> return `null`
-  - Embedding API times out -> `Log::warning('EmbeddingService: embed() call failed', [...])` -> return `null`
-  - Hub sync connection fails -> `Log::warning(...)` -> enqueue for retry
+  - External service call fails -> `Log::warning(...)` -> return `null` or enqueue for retry
 
 ## Exception Classes
-
-Located in `packages/aicl/src/Rlm/Exceptions/`:
-
-| Class | Extends | Tier | Purpose |
-|-------|---------|------|---------|
-| `RlmException` | `\RuntimeException` | Base | Base class for all RLM runtime exceptions |
-| `RlmInvalidArgumentException` | `\InvalidArgumentException` | 2 | Programming errors (missing required fields, invalid contracts) |
-| `EmbeddingException` | `RlmException` | Internal | Wraps driver failures; caught within EmbeddingService |
-| `SearchUnavailableException` | `RlmException` | Internal | Wraps ES failures; caught within KnowledgeService |
 
 Located in `packages/aicl/src/Services/Exceptions/`:
 

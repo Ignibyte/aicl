@@ -7,7 +7,7 @@ use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\Backups;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
-use Aicl\Filament\Pages\QueueManager;
+use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\Search;
 use App\Models\User;
 use Filament\Forms\Contracts\HasForms;
@@ -386,96 +386,104 @@ class AdditionalPageTest extends TestCase
         $this->assertContains('delete', $actionNames);
     }
 
-    // ─── QueueManager (gap coverage) ──────────────────────────
+    // ─── OperationsManager (gap coverage) ──────────────────────────
 
-    public function test_queue_manager_navigation_icon(): void
+    public function test_operations_manager_navigation_icon(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertNull($defaults['navigationIcon']);
     }
 
-    public function test_queue_manager_navigation_sort(): void
+    public function test_operations_manager_navigation_sort(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertEquals(6, $defaults['navigationSort']);
     }
 
-    public function test_queue_manager_navigation_label(): void
+    public function test_operations_manager_navigation_label(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Queue Manager', $defaults['navigationLabel']);
+        $this->assertEquals('Operations Manager', $defaults['navigationLabel']);
     }
 
-    public function test_queue_manager_title(): void
+    public function test_operations_manager_title(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $defaults = $reflection->getDefaultProperties();
 
-        $this->assertEquals('Queue Manager', $defaults['title']);
+        $this->assertEquals('Operations Manager', $defaults['title']);
     }
 
-    public function test_queue_manager_view(): void
+    public function test_operations_manager_view(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $property = $reflection->getProperty('view');
 
-        $this->assertEquals('aicl::filament.pages.queue-manager', $property->getDefaultValue());
+        $this->assertEquals('aicl::filament.pages.operations-manager', $property->getDefaultValue());
     }
 
-    public function test_queue_manager_has_active_tab_property(): void
+    public function test_operations_manager_has_active_tab_property(): void
     {
-        $reflection = new \ReflectionClass(QueueManager::class);
+        $reflection = new \ReflectionClass(OperationsManager::class);
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertEquals('overview', $defaults['activeTab']);
     }
 
-    public function test_queue_manager_has_table_method(): void
+    public function test_operations_manager_has_active_section_property(): void
     {
-        $this->assertTrue(method_exists(QueueManager::class, 'table'));
+        $reflection = new \ReflectionClass(OperationsManager::class);
+        $defaults = $reflection->getDefaultProperties();
+
+        $this->assertEquals('queues', $defaults['activeSection']);
     }
 
-    public function test_queue_manager_has_get_queue_stats_method(): void
+    public function test_operations_manager_has_table_method(): void
     {
-        $this->assertTrue(method_exists(QueueManager::class, 'getQueueStats'));
+        $this->assertTrue(method_exists(OperationsManager::class, 'table'));
     }
 
-    public function test_queue_manager_accessible_by_super_admin(): void
+    public function test_operations_manager_has_get_queue_stats_method(): void
+    {
+        $this->assertTrue(method_exists(OperationsManager::class, 'getQueueStats'));
+    }
+
+    public function test_operations_manager_accessible_by_super_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('super_admin');
         $this->actingAs($user);
 
-        $this->assertTrue(QueueManager::canAccess());
+        $this->assertTrue(OperationsManager::canAccess());
     }
 
-    public function test_queue_manager_accessible_by_admin(): void
+    public function test_operations_manager_accessible_by_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
         $this->actingAs($user);
 
-        $this->assertTrue(QueueManager::canAccess());
+        $this->assertTrue(OperationsManager::canAccess());
     }
 
-    public function test_queue_manager_not_accessible_by_viewer(): void
+    public function test_operations_manager_not_accessible_by_viewer(): void
     {
         $user = User::factory()->create();
         $user->assignRole('viewer');
         $this->actingAs($user);
 
-        $this->assertFalse(QueueManager::canAccess());
+        $this->assertFalse(OperationsManager::canAccess());
     }
 
-    public function test_queue_manager_not_accessible_without_auth(): void
+    public function test_operations_manager_not_accessible_without_auth(): void
     {
-        $this->assertFalse(QueueManager::canAccess());
+        $this->assertFalse(OperationsManager::canAccess());
     }
 
     // ─── ApiTokens (gap coverage) ───────────────────────────────

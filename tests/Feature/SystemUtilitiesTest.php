@@ -22,22 +22,22 @@ class SystemUtilitiesTest extends TestCase
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
-    public function test_queue_manager_is_accessible_to_admin(): void
+    public function test_operations_manager_is_accessible_to_admin(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
 
-        $response = $this->actingAs($user)->get('/admin/queue-manager');
+        $response = $this->actingAs($user)->get('/admin/operations-manager');
 
         $response->assertStatus(200);
     }
 
-    public function test_queue_manager_is_not_accessible_to_viewer(): void
+    public function test_operations_manager_is_not_accessible_to_viewer(): void
     {
         $user = User::factory()->create();
         $user->assignRole('viewer');
 
-        $response = $this->actingAs($user)->get('/admin/queue-manager');
+        $response = $this->actingAs($user)->get('/admin/operations-manager');
 
         $this->assertFilamentAccessDenied($response);
     }

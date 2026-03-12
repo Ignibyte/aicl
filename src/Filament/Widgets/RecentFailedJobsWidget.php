@@ -2,7 +2,7 @@
 
 namespace Aicl\Filament\Widgets;
 
-use Aicl\Filament\Pages\QueueManager;
+use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Models\FailedJob;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -52,7 +52,7 @@ class RecentFailedJobsWidget extends TableWidget
                 Action::make('view')
                     ->label('View')
                     ->icon('heroicon-o-eye')
-                    ->url(fn (FailedJob $record): string => QueueManager::getUrl().'?activeTab=failed-jobs'),
+                    ->url(fn (FailedJob $record): string => OperationsManager::getUrl().'?activeTab=failed-jobs'),
             ])
             ->paginated(false)
             ->emptyStateHeading('No failed jobs')

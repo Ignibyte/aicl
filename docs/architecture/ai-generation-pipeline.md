@@ -2,13 +2,13 @@
 
 **Version:** 1.1
 **Last Updated:** 2026-02-11
-**Owner:** `/rlm`, `/architect`
+**Owner:** `/architect`
 
 ---
 
 ## Overview
 
-This document defines the structural validation rules (L1 patterns) and scaffolding pipeline that govern AI code generation in AICL. For the full RLM system architecture (L0 knowledge base, L2 semantic validation, L3 pattern discovery, hub entities, sync), see [RLM System](rlm-system.md).
+This document defines the structural validation rules (patterns) and scaffolding pipeline that govern AI code generation in AICL. Validation is now managed via Forge MCP — the RLM system was extracted from AICL in Sprint F0.
 
 **Golden Reference:** The Project entity (`packages/aicl/src/Models/Project.php`) is the canonical example. All generated entities should follow its patterns exactly.
 
@@ -78,11 +78,11 @@ php artisan aicl:make-entity {Name}
 
 ---
 
-## RLM Validation Patterns (40 Base Patterns)
+## Validation Patterns (40 Structural Patterns)
 
 ### Pattern Registry
 
-Location: `packages/aicl/src/Rlm/PatternRegistry.php`
+These patterns define the structural rules for well-formed generated code. Validation is managed via Forge MCP.
 
 The validator checks each pattern and calculates a weighted score. Target: **100%**.
 
@@ -638,9 +638,7 @@ Before marking an entity complete:
 
 ## Related Documents
 
-- [RLM System](rlm-system.md) — Full RLM architecture (L0-L3, hub, sync)
 - [Foundation](foundation.md)
 - [Entity System](entity-system.md)
 - [Filament UI](filament-ui.md)
 - [Testing & Quality](testing-quality.md)
-- [Golden Entity Guide](../planning/rlm/golden-entity-guide.md)

@@ -16,14 +16,18 @@ use Aicl\Health\Checks\PostgresCheck;
 use Aicl\Health\Checks\QueueCheck;
 use Aicl\Health\Checks\RedisCheck;
 use Aicl\Health\Checks\ReverbCheck;
+use Aicl\Health\Checks\SchedulerCheck;
 use Aicl\Health\Checks\SwooleCheck;
 use Aicl\Health\HealthCheckRegistry;
 use Aicl\Listeners\EntityEventNotificationListener;
 use Aicl\Listeners\NotificationSentLogger;
+use Aicl\Listeners\ScheduleEventSubscriber;
 use Aicl\Livewire\ActivityFeed;
 use Aicl\Livewire\AuditTable;
 use Aicl\Livewire\DomainEventTable;
+use Aicl\Livewire\FailedDeliveriesTable;
 use Aicl\Livewire\NotificationLogTable;
+use Aicl\Livewire\ScheduleHistoryTable;
 use Aicl\Notifications\ChannelRateLimiter;
 use Aicl\Notifications\Contracts\NotificationChannelResolver;
 use Aicl\Notifications\Contracts\NotificationRecipientResolver;
@@ -96,7 +100,7 @@ use Spatie\Permission\Models\Role;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.2.1';
+    public const VERSION = '1.3.0';
 
     public function register(): void
     {
@@ -137,6 +141,7 @@ class AiclServiceProvider extends ServiceProvider
                 ReverbCheck::class,
                 ElasticsearchCheck::class,
                 QueueCheck::class,
+                SchedulerCheck::class,
                 ApplicationCheck::class,
             ]);
 
@@ -206,6 +211,9 @@ class AiclServiceProvider extends ServiceProvider
         // Domain event bus — auto-persists all DomainEvent subclasses
         Event::subscribe(DomainEventSubscriber::class);
 
+        // Scheduler event tracking — records schedule execution history
+        Event::subscribe(ScheduleEventSubscriber::class);
+
         // Register entity lifecycle events for DomainEvent replay support
         EntityCreated::register();
         EntityUpdated::register();
@@ -271,6 +279,8 @@ class AiclServiceProvider extends ServiceProvider
         Livewire::component('aicl::audit-table', AuditTable::class);
         Livewire::component('aicl::domain-event-table', DomainEventTable::class);
         Livewire::component('aicl::notification-log-table', NotificationLogTable::class);
+        Livewire::component('aicl::schedule-history-table', ScheduleHistoryTable::class);
+        Livewire::component('aicl::failed-deliveries-table', FailedDeliveriesTable::class);
         // Horizon Livewire components registered in HorizonServiceProvider::boot()
         // BatchesTable is always available (reads from job_batches DB table, not Horizon-dependent)
         Livewire::component('aicl::horizon-batches-table', Horizon\Livewire\BatchesTable::class);
@@ -304,6 +314,7 @@ class AiclServiceProvider extends ServiceProvider
                 Console\Commands\PipelineContextCommand::class,
                 Console\Commands\RemoveEntityCommand::class,
                 Console\Commands\ScoutImportCommand::class,
+                Console\Commands\PruneScheduleHistoryCommand::class,
                 Console\Commands\UpgradeCommand::class,
                 Console\Commands\ValidateSpecCommand::class,
             ]);

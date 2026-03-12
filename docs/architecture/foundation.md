@@ -21,7 +21,7 @@ Traditional Laravel development requires a developer to make hundreds of micro-d
 AICL eliminates this by encoding every decision into:
 - **Traits and contracts** that enforce patterns at the code level
 - **A golden entity** (Project) that demonstrates every pattern once
-- **An RLM validation system** (40 base patterns) that scores generated code for correctness
+- **A validation system** (40 structural patterns) that scores generated code for correctness
 - **A component library** (21 components) that constrains UI composition to proven patterns
 
 The result: AI generates production-quality code that looks hand-written, passes static analysis, and works with all standard Laravel tooling.
@@ -46,7 +46,7 @@ The result: AI generates production-quality code that looks hand-written, passes
 │   │  Component Library (21 dashboard components)            │  │
 │   │  System Utilities (queue, logs, settings, notifications)│  │
 │   │  Search + WebSockets + Export/PDF                       │  │
-│   │  RLM Validation Pipeline                                │  │
+│   │  Validation Pipeline (via Forge MCP)                     │  │
 │   └────────────────────────────────────────────────────────┘  │
 │                          │                                     │
 │                          ▼                                     │
@@ -79,7 +79,7 @@ Every pattern must be explicit, documented, and verifiable. If the AI can't gene
 
 - No implicit conventions — everything is in traits, contracts, or config
 - Golden examples for every pattern (the Project entity)
-- Machine-verifiable validation (40 RLM base patterns, target: 100%)
+- Machine-verifiable validation (40 structural patterns, target: 100%)
 - Explicit decision rules for when to use optional features
 
 ### 2. Extension, Not Modification
@@ -179,7 +179,7 @@ AICL is built on a curated, opinionated set of Laravel ecosystem packages. Every
 
 ### vs. a Starter Kit (Jetstream, Breeze)
 
-Starter kits give you scaffolding once. AICL gives you a living package that generates entities on demand. The entity system, component library, and RLM validation are not scaffolding — they're runtime traits and tooling that every generated entity uses.
+Starter kits give you scaffolding once. AICL gives you a living package that generates entities on demand. The entity system and component library are not scaffolding — they're runtime traits and tooling that every generated entity uses.
 
 ### vs. a CMS (WordPress, Drupal, Statamic)
 
@@ -191,7 +191,7 @@ Filament is one layer of AICL, not the whole thing. AICL adds entity traits, con
 
 ### vs. Hand-Written Laravel
 
-AICL IS hand-written Laravel — the generated code is standard Laravel. The difference is consistency. Hand-written code drifts over time. AICL's traits, contracts, and RLM validation ensure every entity follows the same patterns, forever.
+AICL IS hand-written Laravel — the generated code is standard Laravel. The difference is consistency. Hand-written code drifts over time. AICL's traits, contracts, and validation patterns ensure every entity follows the same patterns, forever.
 
 ---
 
@@ -210,7 +210,7 @@ Each framework component has its own architecture document:
 | [Notifications](notifications.md) | Dispatcher, channels, logging, broadcast bell |
 | [Search & Real-time](search-realtime.md) | Scout search, Reverb WebSockets, broadcast events |
 | [Export & PDF](export-pdf.md) | CSV export actions, PDF generator, DomPDF templates |
-| [AI Generation Pipeline](ai-generation-pipeline.md) | Scaffolding, RLM validation, 40 patterns, quality pipeline |
+| [AI Generation Pipeline](ai-generation-pipeline.md) | Scaffolding, validation patterns, quality pipeline |
 | [Testing & Quality](testing-quality.md) | PHPUnit, Dusk, Pint, PHPStan, test strategy |
 
 ---
@@ -228,5 +228,5 @@ Each framework component has its own architecture document:
 | **Scaffold command** | `php artisan aicl:make-entity {Name}` |
 | **Validate command** | `php artisan aicl:validate {Name}` |
 | **Test count** | 4,404+ PHPUnit + 16 Dusk |
-| **RLM patterns** | 40 (base patterns, target: 100%) |
+| **Validation patterns** | 40 (structural patterns, target: 100%) |
 | **Components** | 21 (20 Blade + 1 Livewire) |

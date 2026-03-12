@@ -190,4 +190,47 @@ class DocumentBrowserTest extends TestCase
 
         $this->assertContains('docs/architecture', $paths);
     }
+
+    public function test_get_doc_paths_includes_framework_docs(): void
+    {
+        $page = new DocumentBrowser;
+        $paths = $page->getDocPaths();
+
+        $labels = array_column($paths, 'label');
+        $this->assertContains('Framework Docs', $labels);
+
+        // The framework docs path should resolve to a real directory
+        $frameworkEntry = collect($paths)->firstWhere('label', 'Framework Docs');
+        $this->assertNotNull($frameworkEntry);
+        $this->assertDirectoryExists(base_path($frameworkEntry['path']));
+    }
+
+    public function test_get_files_includes_framework_docs(): void
+    {
+        $page = new DocumentBrowser;
+        $files = $page->getFiles();
+
+        $groups = array_unique(array_column($files, 'group'));
+        $this->assertContains('Framework Docs', $groups);
+
+        // Should find at least one framework doc (e.g., foundation.md)
+        $frameworkFiles = array_filter($files, fn ($f) => $f['group'] === 'Framework Docs');
+        $this->assertNotEmpty($frameworkFiles);
+    }
+
+    public function test_framework_doc_file_is_readable_via_document_html(): void
+    {
+        $page = new DocumentBrowser;
+        $files = $page->getFiles();
+
+        $frameworkFile = collect($files)->firstWhere('group', 'Framework Docs');
+        $this->assertNotNull($frameworkFile, 'No framework docs found');
+
+        $page->file = $frameworkFile['relative'];
+        $html = $page->getDocumentHtml();
+
+        $this->assertNotEmpty($html);
+        $this->assertStringNotContainsString('Access denied', $html);
+        $this->assertStringNotContainsString('File not found', $html);
+    }
 }

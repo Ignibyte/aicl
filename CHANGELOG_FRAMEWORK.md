@@ -10,7 +10,33 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.2.1`
+Current version: `1.3.0`
+
+---
+
+## [1.3.0] - 2026-03-12
+
+### Summary
+
+**Operations Manager** — Evolved the Queue Manager into a unified operational dashboard covering three interrelated subsystems: Queues & Jobs (existing), Scheduled Tasks (new), and Notification Delivery (new ops view).
+
+### Added
+
+- **Operations Manager page** — Replaced `QueueManager` with `OperationsManager` at `/admin/operations-manager`. Sectioned tab layout with three collapsible groups (Queues & Jobs, Scheduler, Notifications) driven by Alpine.js. All existing queue/Horizon tabs preserved.
+- **Scheduler monitoring** — `ScheduleHistory` model with `schedule_history` table logging every scheduled task execution (command, expression, duration, exit code, output, status). `ScheduleEventSubscriber` captures Laravel `ScheduledTaskStarting`/`Finished`/`Failed` events. Registered Tasks tab, Execution History tab (Livewire `ScheduleHistoryTable`), Failures tab.
+- **Scheduler health check** — `SchedulerCheck` (order 55) on the Ops Panel. Healthy when last task ran within 5 minutes, degraded at 5-15 minutes, down after 15 minutes or no history. Configurable thresholds via `aicl.scheduler.*` config.
+- **Prune command** — `schedule:prune-history` deletes records older than configurable retention period (default 30 days). Scheduled daily at 04:00.
+- **Notification ops tabs** — Delivery Health tab shows per-channel success/failure rates (24h), queue depth, stuck deliveries count. Failed Deliveries tab (`FailedDeliveriesTable` Livewire widget) with retry action.
+- **DDEV schedule daemon** — `schedule:work` added to `web_extra_daemons` for local scheduler event capture.
+- **51 new tests** — OperationsManagerPageTest (23), ScheduleHistoryTest (11), ScheduleEventSubscriberTest (8), SchedulerCheckTest (6), PruneScheduleHistoryCommandTest (3).
+
+### Changed
+
+- **QueueManager → OperationsManager** — Class, view, slug, and all references renamed. Navigation item, widget links, and test files updated.
+
+### Removed
+
+- `QueueManager.php`, `queue-manager.blade.php`, `QueueManagerPageTest.php` — replaced by Operations Manager equivalents.
 
 ---
 

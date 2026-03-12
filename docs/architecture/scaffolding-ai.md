@@ -134,7 +134,7 @@ aicl:remove-entity ──→ EntityRegistry::flush()
 
 ### Philosophy: Add, Don't Replace
 
-NeuronAI provides the AI/agent framework layer. The existing RLM search stack (KnowledgeService + Scout + Elasticsearch hybrid search) is **untouched**. NeuronAI handles what it's good at (LLM abstraction, embeddings, streaming) while the proven search pipeline stays in place.
+NeuronAI provides the AI/agent framework layer. NeuronAI handles LLM abstraction, embeddings, and streaming. The RLM knowledge system was extracted to Forge in Sprint F0.
 
 ### Layer Diagram
 
@@ -154,12 +154,10 @@ NeuronAI provides the AI/agent framework layer. The existing RLM search stack (K
 └─────────────────────────────────────────────────┘
 
                     ╔═══════════════════════╗
-                    ║   UNCHANGED (RLM)     ║
-                    ║  KnowledgeService     ║
-                    ║  Scout + ES           ║
-                    ║  kNN + BM25 + RRF     ║
-                    ║  HasEmbeddings trait   ║
-                    ║  GenerateEmbeddingJob  ║
+                    ║   EXTERNAL (Forge)    ║
+                    ║  Knowledge base       ║
+                    ║  Validation patterns  ║
+                    ║  via Forge MCP tools  ║
                     ╚═══════════════════════╝
 ```
 
@@ -233,9 +231,6 @@ Serializes any Eloquent model into a structured format for LLM consumption.
 ### Files
 
 - `packages/aicl/src/Traits/HasAiContext.php`
-- `packages/aicl/src/Rlm/EmbeddingService.php`
-- `packages/aicl/src/Rlm/Embeddings/NeuronAiEmbeddingAdapter.php`
-- `packages/aicl/src/Rlm/Embeddings/NullDriver.php`
 - `packages/aicl/src/AI/AiProviderFactory.php`
 - `packages/aicl/src/AI/AiAssistantController.php`
 
@@ -403,7 +398,7 @@ ddev artisan aicl:make-entity Invoice --from-spec --no-interaction
 ddev artisan aicl:make-entity Invoice --spec-path=path/to/spec.md --no-interaction
 ```
 
-### RLM Patterns (P-043 through P-046)
+### Spec Validation Patterns (P-043 through P-046)
 
 | Pattern | Target | Severity | Description |
 |---------|--------|----------|-------------|
@@ -648,7 +643,7 @@ Description paragraph.
 
 | Topic | Document |
 |-------|----------|
-| RLM System (KnowledgeService, Scout, ES) | `.claude/architecture/rlm-system.md` |
+| Knowledge & Validation | Managed via Forge MCP (extracted from AICL in Sprint F0) |
 | Real-Time Layer (Broadcasting, Polling) | `.claude/architecture/event-realtime-layer.md` |
 | Swoole Foundations (Concurrent, SwooleCache) | `.claude/architecture/swoole-foundations.md` |
 | Entity System (traits, contracts, generation) | `.claude/architecture/entity-system.md` |
@@ -661,8 +656,6 @@ Description paragraph.
 |-----------|-------|--------|
 | BaseSchemaInspector / `--base=` flag | 10 | `tests/Framework/BaseSchemaFlagTest.php` |
 | EntityRegistry | 22 | `packages/aicl/tests/Unit/Services/EntityRegistryTest.php` |
-| NeuronAiEmbeddingAdapter | 12 | `packages/aicl/tests/Unit/Rlm/NeuronAiEmbeddingAdapterTest.php` |
-| EmbeddingService | 8 | `packages/aicl/tests/Unit/Rlm/EmbeddingServiceTest.php` |
 | HasAiContext | 21 | `packages/aicl/tests/Unit/Traits/HasAiContextTest.php` |
 | AiAssistantController | 7 | `packages/aicl/tests/Feature/AI/AiAssistantControllerTest.php` |
 | AI Tool Registry | 9 | `packages/aicl/tests/Unit/AI/AiToolRegistryTest.php` |

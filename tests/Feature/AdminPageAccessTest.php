@@ -10,7 +10,7 @@ use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
-use Aicl\Filament\Pages\QueueManager;
+use Aicl\Filament\Pages\OperationsManager;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -49,37 +49,37 @@ class AdminPageAccessTest extends TestCase
         $this->viewer->assignRole('viewer');
     }
 
-    // Queue Manager
+    // Operations Manager (formerly Queue Manager)
 
-    public function test_queue_manager_accessible_by_super_admin(): void
+    public function test_operations_manager_accessible_by_super_admin(): void
     {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/queue-manager');
+        $response = $this->actingAs($this->superAdmin)->get('/admin/operations-manager');
 
         $response->assertOk();
     }
 
-    public function test_queue_manager_accessible_by_admin(): void
+    public function test_operations_manager_accessible_by_admin(): void
     {
-        $response = $this->actingAs($this->admin)->get('/admin/queue-manager');
+        $response = $this->actingAs($this->admin)->get('/admin/operations-manager');
 
         $response->assertOk();
     }
 
-    public function test_queue_manager_forbidden_for_viewer(): void
+    public function test_operations_manager_forbidden_for_viewer(): void
     {
-        $response = $this->actingAs($this->viewer)->get('/admin/queue-manager');
+        $response = $this->actingAs($this->viewer)->get('/admin/operations-manager');
 
         $this->assertFilamentAccessDenied($response);
     }
 
-    public function test_queue_manager_can_access_returns_false_for_null_user(): void
+    public function test_operations_manager_can_access_returns_false_for_null_user(): void
     {
-        $this->assertFalse(QueueManager::canAccess());
+        $this->assertFalse(OperationsManager::canAccess());
     }
 
-    public function test_queue_manager_has_header_actions(): void
+    public function test_operations_manager_has_header_actions(): void
     {
-        $page = new QueueManager;
+        $page = new OperationsManager;
         $actions = $this->callProtectedMethod($page, 'getHeaderActions');
 
         $this->assertNotEmpty($actions);
@@ -284,9 +284,9 @@ class AdminPageAccessTest extends TestCase
 
     // Guest redirects for all pages
 
-    public function test_queue_manager_redirects_guest(): void
+    public function test_operations_manager_redirects_guest(): void
     {
-        $response = $this->get('/admin/queue-manager');
+        $response = $this->get('/admin/operations-manager');
 
         $response->assertRedirect();
     }

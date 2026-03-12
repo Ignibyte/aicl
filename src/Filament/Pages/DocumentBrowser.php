@@ -30,15 +30,30 @@ class DocumentBrowser extends Page
     public ?string $file = null;
 
     /**
-     * Get configured document paths.
+     * Get configured document paths, including auto-discovered framework docs.
      *
      * @return array<array{label: string, path: string}>
      */
     public function getDocPaths(): array
     {
-        return config('aicl.docs.paths', [
+        $paths = config('aicl.docs.paths', [
             ['label' => 'Architecture', 'path' => '.claude/architecture'],
         ]);
+
+        // Auto-discover the framework package docs directory.
+        // Uses __DIR__ so the path resolves correctly whether the package
+        // is installed as a path repo (packages/aicl/) or via Composer (vendor/aicl/aicl/).
+        $packageDocsDir = dirname(__DIR__, 3).'/docs';
+
+        if (is_dir($packageDocsDir)) {
+            $realPackageDocs = realpath($packageDocsDir);
+            $basePath = base_path();
+            $relativePath = ltrim(str_replace($basePath, '', $realPackageDocs), DIRECTORY_SEPARATOR);
+
+            $paths[] = ['label' => 'Framework Docs', 'path' => $relativePath];
+        }
+
+        return $paths;
     }
 
     /**

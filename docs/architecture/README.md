@@ -46,8 +46,7 @@ Each major system has its own document explaining how it works in the AICL conte
 
 | Document | What It Covers | Primary Audience |
 |----------|---------------|-----------------|
-| [RLM System](rlm-system.md) | Full RLM architecture: PG + ES two-layer, L1 structural patterns, L2 semantic validation, L3 pattern discovery, hub entities, embeddings, KnowledgeService | `/rlm`, `/architect`, `/solutions` |
-| [AI Generation Pipeline](ai-generation-pipeline.md) | Scaffolding command, 40 RLM patterns, validation rules, quality checklist | `/rlm`, `/architect` |
+| [AI Generation Pipeline](ai-generation-pipeline.md) | Scaffolding command, 40 structural patterns, validation rules, quality checklist | `/architect` |
 | [Testing & Quality](testing-quality.md) | PHPUnit, Dusk, Pint, PHPStan, test strategy, security scanning | `/tester` |
 
 ### Infrastructure & Release
@@ -69,11 +68,10 @@ Each major system has its own document explaining how it works in the AICL conte
 6. Reference infrastructure docs (queue, cache, notifications) as needed
 
 ### `/rlm` — Validating Generated Code
-1. Use [RLM System](rlm-system.md) for the full validation architecture (L0-L3, hub, sync)
-2. Use [AI Generation Pipeline](ai-generation-pipeline.md) for L1 pattern details and scaffolding rules
-3. Cross-reference with [Entity System](entity-system.md) for trait/contract patterns
-4. Check [Filament UI](filament-ui.md) for resource structure patterns
-5. Target 100% on `aicl:validate` for all generated entities
+1. Use [AI Generation Pipeline](ai-generation-pipeline.md) for structural pattern details and scaffolding rules
+2. Cross-reference with [Entity System](entity-system.md) for trait/contract patterns
+3. Check [Filament UI](filament-ui.md) for resource structure patterns
+4. Validation is managed via Forge MCP (RLM extracted from AICL in Sprint F0)
 
 ### `/tester` — Writing Tests
 1. Read [Testing & Quality](testing-quality.md) for test strategy and conventions

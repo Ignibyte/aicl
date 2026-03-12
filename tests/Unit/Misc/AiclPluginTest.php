@@ -7,8 +7,8 @@ use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
+use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\OpsPanel;
-use Aicl\Filament\Pages\QueueManager;
 use Aicl\Filament\Pages\Search;
 use Aicl\Filament\Pages\Tools;
 use Aicl\Filament\Widgets\GlobalSearchWidget;
@@ -85,7 +85,7 @@ class AiclPluginTest extends TestCase
         $expectedPages = [
             ActivityLog::class,
             OpsPanel::class,
-            QueueManager::class,
+            OperationsManager::class,
             ManageSettings::class,
             Tools::class,
             NotificationCenter::class,

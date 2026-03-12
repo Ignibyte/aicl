@@ -253,6 +253,6 @@ Additional quality tools available via agent commands:
 
 ## Related Documents
 
-- [AI Generation Pipeline](ai-generation-pipeline.md) — RLM validation patterns
+- [AI Generation Pipeline](ai-generation-pipeline.md) — Structural validation patterns
 - [Entity System](entity-system.md) — What to test per entity
 - [Foundation](foundation.md) — Quality philosophy

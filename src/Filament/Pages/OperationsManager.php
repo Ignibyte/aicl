@@ -7,6 +7,10 @@ use Aicl\Horizon\Contracts\MetricsRepository;
 use Aicl\Horizon\Contracts\SupervisorRepository;
 use Aicl\Horizon\Contracts\WorkloadRepository;
 use Aicl\Models\FailedJob;
+use Aicl\Models\ScheduleHistory;
+use Aicl\Notifications\Enums\DeliveryStatus;
+use Aicl\Notifications\Models\NotificationChannel;
+use Aicl\Notifications\Models\NotificationDeliveryLog;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\Action as TableRowAction;
@@ -30,7 +34,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
 use UnitEnum;
 
-class QueueManager extends Page implements HasForms, HasTable
+class OperationsManager extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
@@ -41,28 +45,26 @@ class QueueManager extends Page implements HasForms, HasTable
 
     protected static ?int $navigationSort = 6;
 
-    protected static ?string $navigationLabel = 'Queue Manager';
+    protected static ?string $navigationLabel = 'Operations Manager';
 
-    protected static ?string $title = 'Queue Manager';
+    protected static ?string $title = 'Operations Manager';
 
-    protected static ?string $slug = 'queue-manager';
+    protected static ?string $slug = 'operations-manager';
 
-    protected string $view = 'aicl::filament.pages.queue-manager';
+    protected string $view = 'aicl::filament.pages.operations-manager';
+
+    public string $activeSection = 'queues';
 
     public string $activeTab = 'overview';
 
-    /**
-     * Check if Horizon is enabled and its repositories are available.
-     */
+    // ── Queue Section ────────────────────────────────────────
+
     public function isHorizonAvailable(): bool
     {
         return config('aicl.features.horizon', true)
             && app()->bound(JobRepository::class);
     }
 
-    /**
-     * Get the configured queue connection driver name.
-     */
     public function getQueueDriver(): string
     {
         $connection = config('queue.default', 'sync');
@@ -71,11 +73,9 @@ class QueueManager extends Page implements HasForms, HasTable
     }
 
     /**
-     * Get available tabs based on current queue configuration.
-     *
      * @return array<string, string>
      */
-    public function getAvailableTabs(): array
+    public function getQueueTabs(): array
     {
         $tabs = ['overview' => 'Overview'];
 
@@ -97,6 +97,204 @@ class QueueManager extends Page implements HasForms, HasTable
 
         return $tabs;
     }
+
+    /**
+     * @return array{pending: int, pending_high: int, pending_low: int, failed: int, last_failed: ?FailedJob, jobs_per_minute: float, total_processes: int, workload: array}
+     */
+    public function getQueueStats(): array
+    {
+        $failedCount = FailedJob::count();
+        $lastFailed = FailedJob::latest('failed_at')->first();
+
+        $stats = [
+            'pending' => 0,
+            'pending_high' => 0,
+            'pending_low' => 0,
+            'failed' => $failedCount,
+            'last_failed' => $lastFailed,
+            'jobs_per_minute' => 0.0,
+            'total_processes' => 0,
+            'workload' => [],
+        ];
+
+        if (config('aicl.features.horizon', true) && app()->bound(JobRepository::class)) {
+            $stats['pending'] = app(JobRepository::class)->countPending();
+            $stats['failed'] = max($failedCount, app(JobRepository::class)->countFailed());
+
+            if (app()->bound(WorkloadRepository::class)) {
+                $stats['workload'] = app(WorkloadRepository::class)->get();
+                $stats['total_processes'] = collect($stats['workload'])->sum('processes');
+            }
+
+            if (app()->bound(MetricsRepository::class)) {
+                $snapshots = app(MetricsRepository::class)->snapshotsForQueue('default');
+                if (! empty($snapshots)) {
+                    $latest = end($snapshots);
+                    $stats['jobs_per_minute'] = (float) ($latest->throughput ?? 0);
+                }
+            }
+        } else {
+            $stats['pending'] = $this->getQueueSize('default') + $this->getQueueSize('high') + $this->getQueueSize('low');
+            $stats['pending_high'] = $this->getQueueSize('high');
+            $stats['pending_low'] = $this->getQueueSize('low');
+        }
+
+        return $stats;
+    }
+
+    public function getSupervisors(): array
+    {
+        if (! config('aicl.features.horizon', true) || ! app()->bound(SupervisorRepository::class)) {
+            return [];
+        }
+
+        return app(SupervisorRepository::class)->all();
+    }
+
+    // ── Scheduler Section ────────────────────────────────────
+
+    /**
+     * @return array<string, string>
+     */
+    public function getSchedulerTabs(): array
+    {
+        return [
+            'registered' => 'Registered Tasks',
+            'history' => 'Execution History',
+            'schedule-failures' => 'Failures',
+        ];
+    }
+
+    /**
+     * Get registered scheduled tasks by parsing artisan schedule:list output.
+     *
+     * @return array<int, array{command: string, expression: string, description: string|null, next_due: string|null, last_status: string|null, last_run: string|null}>
+     */
+    public function getRegisteredTasks(): array
+    {
+        try {
+            Artisan::call('schedule:list');
+            $output = Artisan::output();
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $tasks = [];
+        $lines = array_filter(explode("\n", trim($output)));
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+
+            if ($line === '' || str_starts_with($line, 'NOTE:')) {
+                continue;
+            }
+
+            // Parse the schedule:list output format: "expression  command  next_due"
+            if (preg_match('/^([\*\/\d,\-\s]{9,20})\s+(.+?)\s{2,}(.+)$/', $line, $matches)) {
+                $command = trim($matches[2]);
+                $expression = trim($matches[1]);
+                $nextDue = trim($matches[3]);
+
+                // Look up last execution from history
+                $lastRun = ScheduleHistory::query()
+                    ->forCommand($command)
+                    ->latest('started_at')
+                    ->first();
+
+                $tasks[] = [
+                    'command' => $command,
+                    'expression' => $expression,
+                    'description' => null,
+                    'next_due' => $nextDue,
+                    'last_status' => $lastRun?->status,
+                    'last_run' => $lastRun?->started_at?->diffForHumans(),
+                ];
+            }
+        }
+
+        return $tasks;
+    }
+
+    /**
+     * @return array{total_registered: int, last_run_at: string|null, failed_24h: int, success_rate_24h: float}
+     */
+    public function getSchedulerStats(): array
+    {
+        $lastRun = ScheduleHistory::query()->latest('started_at')->first();
+        $recent = ScheduleHistory::query()->recent(24);
+        $totalRecent = (clone $recent)->count();
+        $failedRecent = (clone $recent)->failed()->count();
+
+        return [
+            'total_registered' => count($this->getRegisteredTasks()),
+            'last_run_at' => $lastRun?->started_at?->diffForHumans(),
+            'failed_24h' => $failedRecent,
+            'success_rate_24h' => $totalRecent > 0
+                ? round((($totalRecent - $failedRecent) / $totalRecent) * 100, 1)
+                : 100.0,
+        ];
+    }
+
+    // ── Notifications Section ────────────────────────────────
+
+    /**
+     * @return array<string, string>
+     */
+    public function getNotificationTabs(): array
+    {
+        return [
+            'delivery-health' => 'Delivery Health',
+            'failed-deliveries' => 'Failed Deliveries',
+        ];
+    }
+
+    /**
+     * Get per-channel delivery health stats for the last 24 hours.
+     *
+     * @return array<int, array{channel_name: string, channel_type: string, total: int, delivered: int, failed: int, pending: int, success_rate: float}>
+     */
+    public function getNotificationDeliveryHealth(): array
+    {
+        $channels = NotificationChannel::query()->active()->get();
+        $stats = [];
+
+        foreach ($channels as $channel) {
+            $logs = $channel->deliveryLogs()
+                ->where('created_at', '>=', now()->subHours(24));
+
+            $total = (clone $logs)->count();
+            $delivered = (clone $logs)->where('status', DeliveryStatus::Delivered)->count();
+            $failed = (clone $logs)->where('status', DeliveryStatus::Failed)->count();
+            $pending = (clone $logs)->where('status', DeliveryStatus::Pending)->count();
+
+            $stats[] = [
+                'channel_name' => $channel->name,
+                'channel_type' => $channel->type->label(),
+                'total' => $total,
+                'delivered' => $delivered,
+                'failed' => $failed,
+                'pending' => $pending,
+                'success_rate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 100.0,
+            ];
+        }
+
+        return $stats;
+    }
+
+    public function getNotificationQueueDepth(): int
+    {
+        return $this->getQueueSize('notifications');
+    }
+
+    public function getStuckDeliveries(): int
+    {
+        return NotificationDeliveryLog::query()
+            ->where('status', DeliveryStatus::Pending)
+            ->where('created_at', '<', now()->subMinutes(30))
+            ->count();
+    }
+
+    // ── Shared ───────────────────────────────────────────────
 
     public static function canAccess(): bool
     {
@@ -128,7 +326,7 @@ class QueueManager extends Page implements HasForms, HasTable
                         ->body('All failed jobs have been queued for retry.')
                         ->send();
                 })
-                ->visible(fn (): bool => $this->activeTab === 'failed-jobs'),
+                ->visible(fn (): bool => $this->activeSection === 'queues' && $this->activeTab === 'failed-jobs'),
             Action::make('flush')
                 ->label('Flush All')
                 ->icon('heroicon-o-trash')
@@ -145,7 +343,7 @@ class QueueManager extends Page implements HasForms, HasTable
                         ->body('All failed jobs have been permanently deleted.')
                         ->send();
                 })
-                ->visible(fn (): bool => $this->activeTab === 'failed-jobs'),
+                ->visible(fn (): bool => $this->activeSection === 'queues' && $this->activeTab === 'failed-jobs'),
         ];
     }
 
@@ -304,64 +502,6 @@ class QueueManager extends Page implements HasForms, HasTable
             ->emptyStateHeading('No failed jobs')
             ->emptyStateDescription('All jobs have completed successfully.')
             ->emptyStateIcon('heroicon-o-check-circle');
-    }
-
-    /**
-     * Get queue stats for the Overview tab using Horizon repositories when available.
-     *
-     * @return array{pending: int, pending_high: int, pending_low: int, failed: int, last_failed: ?FailedJob, jobs_per_minute: float, total_processes: int, workload: array}
-     */
-    public function getQueueStats(): array
-    {
-        $failedCount = FailedJob::count();
-        $lastFailed = FailedJob::latest('failed_at')->first();
-
-        $stats = [
-            'pending' => 0,
-            'pending_high' => 0,
-            'pending_low' => 0,
-            'failed' => $failedCount,
-            'last_failed' => $lastFailed,
-            'jobs_per_minute' => 0.0,
-            'total_processes' => 0,
-            'workload' => [],
-        ];
-
-        if (config('aicl.features.horizon', true) && app()->bound(JobRepository::class)) {
-            $stats['pending'] = app(JobRepository::class)->countPending();
-            $stats['failed'] = max($failedCount, app(JobRepository::class)->countFailed());
-
-            if (app()->bound(WorkloadRepository::class)) {
-                $stats['workload'] = app(WorkloadRepository::class)->get();
-                $stats['total_processes'] = collect($stats['workload'])->sum('processes');
-            }
-
-            if (app()->bound(MetricsRepository::class)) {
-                $snapshots = app(MetricsRepository::class)->snapshotsForQueue('default');
-                if (! empty($snapshots)) {
-                    $latest = end($snapshots);
-                    $stats['jobs_per_minute'] = (float) ($latest->throughput ?? 0);
-                }
-            }
-        } else {
-            $stats['pending'] = $this->getQueueSize('default') + $this->getQueueSize('high') + $this->getQueueSize('low');
-            $stats['pending_high'] = $this->getQueueSize('high');
-            $stats['pending_low'] = $this->getQueueSize('low');
-        }
-
-        return $stats;
-    }
-
-    /**
-     * Get supervisor status for the Supervisors tab.
-     */
-    public function getSupervisors(): array
-    {
-        if (! config('aicl.features.horizon', true) || ! app()->bound(SupervisorRepository::class)) {
-            return [];
-        }
-
-        return app(SupervisorRepository::class)->all();
     }
 
     protected function getQueueSize(string $queue): int
