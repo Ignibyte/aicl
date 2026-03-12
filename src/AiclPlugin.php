@@ -5,6 +5,7 @@ namespace Aicl;
 use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\ApiTokens;
+use Aicl\Filament\Pages\Auth\Register;
 use Aicl\Filament\Pages\Changelog;
 use Aicl\Filament\Pages\DocumentBrowser;
 use Aicl\Filament\Pages\Errors\Forbidden;
@@ -79,7 +80,11 @@ class AiclPlugin implements Plugin
         // the custom Register page (checks isRegistrationEnabled() on each request).
         // This avoids Octane boot-time caching issues where toggling the admin
         // setting had no effect until workers were reloaded.
-        $panel->registration(\Aicl\Filament\Pages\Auth\Register::class);
+        $panel->registration(Register::class);
+
+        // Email verification — always register the route, runtime-gated by setting.
+        // The emailVerification page handles the "verify your email" prompt.
+        $panel->emailVerification();
 
         $panel
             ->resources($this->getResources())
@@ -109,6 +114,22 @@ class AiclPlugin implements Plugin
         } catch (\Throwable) {
             // Database may not be available yet (fresh install, pre-migration)
             return false;
+        }
+    }
+
+    /**
+     * Check if email verification is required via database settings.
+     *
+     * When disabled, users bypass the email verification prompt even though
+     * the User model implements MustVerifyEmail. Override hasVerifiedEmail()
+     * in the User model to use this check.
+     */
+    public static function isEmailVerificationRequired(): bool
+    {
+        try {
+            return app(FeatureSettings::class)->require_email_verification;
+        } catch (\Throwable) {
+            return true;
         }
     }
 

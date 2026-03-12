@@ -2,6 +2,10 @@
 
 namespace Aicl\Filament\Pages;
 
+use Aicl\Horizon\Contracts\JobRepository;
+use Aicl\Horizon\Contracts\MetricsRepository;
+use Aicl\Horizon\Contracts\SupervisorRepository;
+use Aicl\Horizon\Contracts\WorkloadRepository;
 use Aicl\Models\FailedJob;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -46,6 +50,53 @@ class QueueManager extends Page implements HasForms, HasTable
     protected string $view = 'aicl::filament.pages.queue-manager';
 
     public string $activeTab = 'overview';
+
+    /**
+     * Check if Horizon is enabled and its repositories are available.
+     */
+    public function isHorizonAvailable(): bool
+    {
+        return config('aicl.features.horizon', true)
+            && app()->bound(JobRepository::class);
+    }
+
+    /**
+     * Get the configured queue connection driver name.
+     */
+    public function getQueueDriver(): string
+    {
+        $connection = config('queue.default', 'sync');
+
+        return config("queue.connections.{$connection}.driver", $connection);
+    }
+
+    /**
+     * Get available tabs based on current queue configuration.
+     *
+     * @return array<string, string>
+     */
+    public function getAvailableTabs(): array
+    {
+        $tabs = ['overview' => 'Overview'];
+
+        if ($this->isHorizonAvailable()) {
+            $tabs['recent'] = 'Recent Jobs';
+            $tabs['pending'] = 'Pending';
+            $tabs['completed'] = 'Completed';
+        }
+
+        $tabs['failed-jobs'] = 'Failed Jobs';
+        $tabs['batches'] = 'Batches';
+
+        if ($this->isHorizonAvailable()) {
+            $tabs['metrics'] = 'Metrics';
+            $tabs['workload'] = 'Workload';
+            $tabs['supervisors'] = 'Supervisors';
+            $tabs['monitoring'] = 'Monitoring';
+        }
+
+        return $tabs;
+    }
 
     public static function canAccess(): bool
     {
@@ -256,26 +307,61 @@ class QueueManager extends Page implements HasForms, HasTable
     }
 
     /**
-     * Get queue stats for the Overview tab.
+     * Get queue stats for the Overview tab using Horizon repositories when available.
      *
-     * @return array{pending: int, pending_high: int, pending_low: int, failed: int, last_failed: ?FailedJob}
+     * @return array{pending: int, pending_high: int, pending_low: int, failed: int, last_failed: ?FailedJob, jobs_per_minute: float, total_processes: int, workload: array}
      */
     public function getQueueStats(): array
     {
         $failedCount = FailedJob::count();
         $lastFailed = FailedJob::latest('failed_at')->first();
 
-        $pendingDefault = $this->getQueueSize('default');
-        $pendingHigh = $this->getQueueSize('high');
-        $pendingLow = $this->getQueueSize('low');
-
-        return [
-            'pending' => $pendingDefault + $pendingHigh + $pendingLow,
-            'pending_high' => $pendingHigh,
-            'pending_low' => $pendingLow,
+        $stats = [
+            'pending' => 0,
+            'pending_high' => 0,
+            'pending_low' => 0,
             'failed' => $failedCount,
             'last_failed' => $lastFailed,
+            'jobs_per_minute' => 0.0,
+            'total_processes' => 0,
+            'workload' => [],
         ];
+
+        if (config('aicl.features.horizon', true) && app()->bound(JobRepository::class)) {
+            $stats['pending'] = app(JobRepository::class)->countPending();
+            $stats['failed'] = max($failedCount, app(JobRepository::class)->countFailed());
+
+            if (app()->bound(WorkloadRepository::class)) {
+                $stats['workload'] = app(WorkloadRepository::class)->get();
+                $stats['total_processes'] = collect($stats['workload'])->sum('processes');
+            }
+
+            if (app()->bound(MetricsRepository::class)) {
+                $snapshots = app(MetricsRepository::class)->snapshotsForQueue('default');
+                if (! empty($snapshots)) {
+                    $latest = end($snapshots);
+                    $stats['jobs_per_minute'] = (float) ($latest->throughput ?? 0);
+                }
+            }
+        } else {
+            $stats['pending'] = $this->getQueueSize('default') + $this->getQueueSize('high') + $this->getQueueSize('low');
+            $stats['pending_high'] = $this->getQueueSize('high');
+            $stats['pending_low'] = $this->getQueueSize('low');
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Get supervisor status for the Supervisors tab.
+     */
+    public function getSupervisors(): array
+    {
+        if (! config('aicl.features.horizon', true) || ! app()->bound(SupervisorRepository::class)) {
+            return [];
+        }
+
+        return app(SupervisorRepository::class)->all();
     }
 
     protected function getQueueSize(string $queue): int

@@ -42,7 +42,7 @@ class DocumentBrowser extends Page
     }
 
     /**
-     * Get all markdown files across configured paths.
+     * Get all markdown files across configured paths (recursive).
      *
      * @return array<array{name: string, path: string, relative: string, group: string}>
      */
@@ -57,17 +57,22 @@ class DocumentBrowser extends Page
                 continue;
             }
 
-            $mdFiles = glob($fullPath.'/*.md');
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($fullPath, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::LEAVES_ONLY,
+            );
 
-            if ($mdFiles === false) {
-                continue;
-            }
+            foreach ($iterator as $file) {
+                if ($file->getExtension() !== 'md') {
+                    continue;
+                }
 
-            foreach ($mdFiles as $mdFile) {
+                $relativePath = str_replace($fullPath.'/', '', $file->getPathname());
+
                 $files[] = [
-                    'name' => basename($mdFile, '.md'),
-                    'path' => $mdFile,
-                    'relative' => $docPath['path'].'/'.basename($mdFile),
+                    'name' => basename($file->getFilename(), '.md'),
+                    'path' => $file->getPathname(),
+                    'relative' => $docPath['path'].'/'.$relativePath,
                     'group' => $docPath['label'],
                 ];
             }

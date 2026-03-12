@@ -1,0 +1,42 @@
+<?php
+
+namespace Aicl\Horizon\Livewire;
+
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
+
+class BatchesTable extends Component
+{
+    public function render()
+    {
+        $batches = collect();
+
+        try {
+            $batches = DB::table('job_batches')
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get()
+                ->map(function ($batch) {
+                    $batch->progress = $batch->total_jobs > 0
+                        ? round((($batch->total_jobs - $batch->pending_jobs) / $batch->total_jobs) * 100)
+                        : 0;
+
+                    $batch->created_at_formatted = $batch->created_at
+                        ? now()->createFromTimestamp($batch->created_at)->diffForHumans()
+                        : null;
+
+                    $batch->finished_at_formatted = $batch->finished_at
+                        ? now()->createFromTimestamp($batch->finished_at)->diffForHumans()
+                        : null;
+
+                    return $batch;
+                });
+        } catch (\Throwable) {
+            // job_batches table may not exist
+        }
+
+        return view('aicl::horizon.livewire.batches-table', [
+            'batches' => $batches,
+        ]);
+    }
+}

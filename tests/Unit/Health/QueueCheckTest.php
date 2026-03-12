@@ -17,6 +17,10 @@ class QueueCheckTest extends TestCase
     {
         parent::setUp();
 
+        // These tests verify the direct-Redis fallback path (Horizon disabled).
+        // Horizon-aware path is tested in Feature\Horizon\QueueCheckTest.
+        config(['aicl.features.horizon' => false]);
+
         $this->check = new QueueCheck;
     }
 

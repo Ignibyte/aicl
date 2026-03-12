@@ -81,6 +81,7 @@ return [
         'api' => true,
         'websockets' => env('AICL_WEBSOCKETS', true),
         'scout_driver' => env('AICL_SCOUT_DRIVER', false),
+        'horizon' => env('AICL_HORIZON', true),
     ],
 
     /*
@@ -101,6 +102,9 @@ return [
             'host' => env('ELASTICSEARCH_HOST', 'elasticsearch'),
             'port' => (int) env('ELASTICSEARCH_PORT', 9200),
             'scheme' => env('ELASTICSEARCH_SCHEME', 'http'),
+            'api_key' => env('ELASTICSEARCH_API_KEY'),
+            'username' => env('ELASTICSEARCH_USERNAME'),
+            'password' => env('ELASTICSEARCH_PASSWORD'),
         ],
     ],
 
@@ -273,6 +277,7 @@ return [
     'docs' => [
         'paths' => [
             ['label' => 'Architecture', 'path' => '.claude/architecture'],
+            ['label' => 'Project Docs', 'path' => 'docs/architecture'],
         ],
     ],
 

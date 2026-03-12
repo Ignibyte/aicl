@@ -4,6 +4,7 @@ namespace Aicl\Health\Checks;
 
 use Aicl\Health\Contracts\ServiceHealthCheck;
 use Aicl\Health\ServiceCheckResult;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -22,7 +23,9 @@ class ElasticsearchCheck implements ServiceHealthCheck
                 );
             }
 
-            $healthResponse = Http::timeout(2)->get("{$host}/_cluster/health");
+            $http = $this->buildHttpClient();
+
+            $healthResponse = $http->get("{$host}/_cluster/health");
 
             if (! $healthResponse->successful()) {
                 return ServiceCheckResult::down(
@@ -40,7 +43,7 @@ class ElasticsearchCheck implements ServiceHealthCheck
             $docCount = 0;
 
             try {
-                $indicesResponse = Http::timeout(2)->get("{$host}/_cat/indices", ['format' => 'json']);
+                $indicesResponse = $this->buildHttpClient()->get("{$host}/_cat/indices", ['format' => 'json']);
 
                 if ($indicesResponse->successful()) {
                     $indices = $indicesResponse->json();
@@ -89,6 +92,31 @@ class ElasticsearchCheck implements ServiceHealthCheck
     public function order(): int
     {
         return 40;
+    }
+
+    /**
+     * Build an HTTP client with authentication when configured.
+     */
+    protected function buildHttpClient(): PendingRequest
+    {
+        $http = Http::timeout(2);
+
+        // API key authentication (takes precedence)
+        $apiKey = config('aicl.search.elasticsearch.api_key');
+        if ($apiKey) {
+            return $http->withHeaders([
+                'Authorization' => "ApiKey {$apiKey}",
+            ]);
+        }
+
+        // Basic authentication fallback
+        $username = config('aicl.search.elasticsearch.username');
+        $password = config('aicl.search.elasticsearch.password');
+        if ($username && $password) {
+            return $http->withBasicAuth($username, $password);
+        }
+
+        return $http;
     }
 
     protected function getHost(): ?string

@@ -10,7 +10,51 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.1.2`
+Current version: `1.2.0`
+
+---
+
+## [1.2.0] - 2026-03-11
+
+### Summary
+
+**Horizon Integration + Ops Enhancements** — Ported Laravel Horizon's queue monitoring backend (MIT) into the AICL core package with native Filament dashboard. Added Reverb health check, configurable email verification, Elasticsearch auth support, recursive document browser, and PHPUnit 12 upgrade.
+
+### Added
+
+- **Horizon backend** — 124 PHP files ported from `laravel/horizon` under `Aicl\Horizon\` namespace. Includes contracts, Redis repositories, event listeners, process management (MasterSupervisor, Supervisor, AutoScaler), and 18 artisan commands (`aicl:horizon:*`).
+- **Filament Queue Manager dashboard** — 10-tab layout (Overview, Recent Jobs, Pending, Completed, Failed Jobs, Batches, Metrics, Workload, Supervisors, Monitoring) with real-time Livewire polling and Horizon Redis repository integration.
+- **Queue driver awareness** — QueueManager page dynamically adapts tabs based on whether Horizon is enabled. Shows 10 tabs with Horizon, 3 tabs (Overview, Failed Jobs, Batches) without. Overview displays driver badge and Horizon status indicator.
+- **7 Livewire components** — `RecentJobsTable`, `PendingJobsTable`, `CompletedJobsTable`, `FailedJobsTable`, `MonitoredTagsTable`, `MetricsCharts`, `BatchesTable` under `Aicl\Horizon\Livewire\`.
+- **Horizon config** — `config/aicl-horizon.php` with Redis prefix, trim intervals, auto-scaling settings, per-environment supervisor config.
+- **Feature flag** — `config('aicl.features.horizon')` (default: true, env: `AICL_HORIZON`). When disabled, zero Horizon code loads.
+- **DDEV daemon** — Horizon runs as `web_extra_daemons` entry replacing `queue-worker`.
+- **Scheduled snapshot** — `aicl:horizon:snapshot` runs every 5 minutes for metrics collection.
+- **LongWaitDetected notification** — Mail notification when queue wait times exceed thresholds.
+- **Reverb health check** — New `ReverbCheck` (order 35) on the Ops Panel. Pings the Reverb WebSocket server, reports healthy/degraded/down with host, port, and process status.
+- **Configurable email verification** — New `require_email_verification` toggle in Settings > Features. When disabled, all users bypass the email verification prompt via `AiclPlugin::isEmailVerificationRequired()`.
+- **Elasticsearch authentication** — `ElasticsearchCheck` sends `Authorization: ApiKey` or Basic Auth headers when `ELASTICSEARCH_API_KEY` or `ELASTICSEARCH_USERNAME`/`ELASTICSEARCH_PASSWORD` env vars are set. Scout driver config also passes auth credentials.
+- **Recursive document browser** — `DocumentBrowser::getFiles()` scans subdirectories recursively. Default `aicl.docs.paths` now includes `docs/architecture` alongside `.claude/architecture`.
+- **122+ new tests** across Horizon, health checks, document browser, and queue manager.
+
+### Changed
+
+- **QueueStatsWidget** — Now shows Horizon throughput (jobs/min) stat when Horizon is available.
+- **QueueManager page** — Replaced basic queue size display with full Horizon-powered dashboard.
+- **QueueCheck** — Uses Horizon supervisor/metrics data when available, falls back to direct Redis.
+- **PHPUnit 12** — Upgraded from PHPUnit 11 to 12. Fixed data provider arg count strictness and date-sensitive test.
+- **phpcpd 8.3** — Upgraded from 8.0 to 8.3 (unlocked by PHPUnit 12 upgrade).
+
+### Removed
+
+- **`QueuedJob` model** — Replaced by Horizon's `RedisJobRepository`.
+- **`QueuedJobsTable` Livewire component** — Replaced by Horizon Livewire table components.
+
+### Fixed
+
+- **Tab scrollbar on Queue Manager** — Replaced `overflow-x-auto` with `flex-wrap` so tabs wrap on smaller screens.
+- **Queue driver blindness** — Queue Manager now detects active queue driver and conditionally renders Horizon-specific tabs.
+- **Elasticsearch 401 on authenticated clusters** — Health check now sends API key/basic auth headers.
 
 ---
 

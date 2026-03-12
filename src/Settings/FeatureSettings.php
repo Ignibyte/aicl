@@ -8,6 +8,8 @@ class FeatureSettings extends Settings
 {
     public bool $enable_registration;
 
+    public bool $require_email_verification;
+
     public bool $enable_social_login;
 
     public bool $require_mfa;

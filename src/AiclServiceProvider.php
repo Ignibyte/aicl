@@ -9,15 +9,21 @@ use Aicl\Events\DomainEventSubscriber;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
+use Aicl\Events\SessionTerminated;
 use Aicl\Health\Checks\ApplicationCheck;
 use Aicl\Health\Checks\ElasticsearchCheck;
 use Aicl\Health\Checks\PostgresCheck;
 use Aicl\Health\Checks\QueueCheck;
 use Aicl\Health\Checks\RedisCheck;
+use Aicl\Health\Checks\ReverbCheck;
 use Aicl\Health\Checks\SwooleCheck;
 use Aicl\Health\HealthCheckRegistry;
 use Aicl\Listeners\EntityEventNotificationListener;
 use Aicl\Listeners\NotificationSentLogger;
+use Aicl\Livewire\ActivityFeed;
+use Aicl\Livewire\AuditTable;
+use Aicl\Livewire\DomainEventTable;
+use Aicl\Livewire\NotificationLogTable;
 use Aicl\Notifications\ChannelRateLimiter;
 use Aicl\Notifications\Contracts\NotificationChannelResolver;
 use Aicl\Notifications\Contracts\NotificationRecipientResolver;
@@ -54,24 +60,43 @@ use Aicl\Notifications\Templates\Resolvers\ChannelVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\ModelVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\RecipientVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\UserVariableResolver;
+use Aicl\Policies\RolePolicy;
+use Aicl\Policies\UserPolicy;
 use Aicl\Services\EntityRegistry;
 use Aicl\Services\NotificationDispatcher;
 use Aicl\Services\PresenceRegistry;
+use Aicl\Swoole\Listeners\RestoreSwooleTimers;
+use Aicl\Swoole\Listeners\WarmSwooleCaches;
+use Aicl\Workflows\Events\ApprovalGranted;
+use Aicl\Workflows\Events\ApprovalRejected;
+use Aicl\Workflows\Events\ApprovalRequested;
+use Aicl\Workflows\Events\ApprovalRevoked;
+use App\Models\User;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Events\NotificationSent;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Octane\Events\WorkerStarting;
 use Livewire\Livewire;
+use Matchish\ScoutElasticSearch\ElasticSearchServiceProvider;
+use Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Saml2\Provider;
+use Spatie\Permission\Models\Role;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.1.2';
+    public const VERSION = '1.2.0';
 
     public function register(): void
     {
@@ -109,6 +134,7 @@ class AiclServiceProvider extends ServiceProvider
                 SwooleCheck::class,
                 PostgresCheck::class,
                 RedisCheck::class,
+                ReverbCheck::class,
                 ElasticsearchCheck::class,
                 QueueCheck::class,
                 ApplicationCheck::class,
@@ -154,6 +180,10 @@ class AiclServiceProvider extends ServiceProvider
         $this->registerTemplateEngine();
 
         $this->configureScoutDriver();
+
+        if (config('aicl.features.horizon', true)) {
+            $this->app->register(Horizon\HorizonServiceProvider::class);
+        }
     }
 
     public function boot(): void
@@ -162,11 +192,11 @@ class AiclServiceProvider extends ServiceProvider
         // This prevents mixed-content issues when nginx proxies HTTPS
         // to Swoole/Octane over internal HTTP.
         if (str_starts_with((string) config('app.url'), 'https://')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
-        Gate::policy(\App\Models\User::class, \Aicl\Policies\UserPolicy::class);
-        Gate::policy(\Spatie\Permission\Models\Role::class, \Aicl\Policies\RolePolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Role::class, RolePolicy::class);
 
         Event::listen(EntityCreated::class, [EntityEventNotificationListener::class, 'handleCreated']);
         Event::listen(EntityUpdated::class, [EntityEventNotificationListener::class, 'handleUpdated']);
@@ -182,21 +212,21 @@ class AiclServiceProvider extends ServiceProvider
         EntityDeleted::register();
 
         // Register approval workflow events for DomainEvent replay support
-        \Aicl\Workflows\Events\ApprovalRequested::register();
-        \Aicl\Workflows\Events\ApprovalGranted::register();
-        \Aicl\Workflows\Events\ApprovalRejected::register();
-        \Aicl\Workflows\Events\ApprovalRevoked::register();
+        ApprovalRequested::register();
+        ApprovalGranted::register();
+        ApprovalRejected::register();
+        ApprovalRevoked::register();
 
         // Register session lifecycle events for DomainEvent replay support
-        \Aicl\Events\SessionTerminated::register();
+        SessionTerminated::register();
 
         // Swoole/Octane cache wiring and listeners
         Swoole\Cache\PermissionCacheManager::register();
         Swoole\Cache\NotificationBadgeCacheManager::register();
         Swoole\Cache\ServiceHealthCacheManager::register();
 
-        Event::listen(\Laravel\Octane\Events\WorkerStarting::class, \Aicl\Swoole\Listeners\WarmSwooleCaches::class);
-        Event::listen(\Laravel\Octane\Events\WorkerStarting::class, \Aicl\Swoole\Listeners\RestoreSwooleTimers::class);
+        Event::listen(WorkerStarting::class, WarmSwooleCaches::class);
+        Event::listen(WorkerStarting::class, RestoreSwooleTimers::class);
 
         // Default SwooleTimer jobs — register only when Redis is reachable
         if (! app()->runningUnitTests()) {
@@ -237,11 +267,13 @@ class AiclServiceProvider extends ServiceProvider
         // Register non-SDC utility view components (no component.json)
         $this->loadViewComponentsAs('aicl', []);
 
-        Livewire::component('aicl-activity-feed', \Aicl\Livewire\ActivityFeed::class);
-        Livewire::component('aicl::audit-table', \Aicl\Livewire\AuditTable::class);
-        Livewire::component('aicl::domain-event-table', \Aicl\Livewire\DomainEventTable::class);
-        Livewire::component('aicl::notification-log-table', \Aicl\Livewire\NotificationLogTable::class);
-        Livewire::component('aicl::queued-jobs-table', \Aicl\Livewire\QueuedJobsTable::class);
+        Livewire::component('aicl-activity-feed', ActivityFeed::class);
+        Livewire::component('aicl::audit-table', AuditTable::class);
+        Livewire::component('aicl::domain-event-table', DomainEventTable::class);
+        Livewire::component('aicl::notification-log-table', NotificationLogTable::class);
+        // Horizon Livewire components registered in HorizonServiceProvider::boot()
+        // BatchesTable is always available (reads from job_batches DB table, not Horizon-dependent)
+        Livewire::component('aicl::horizon-batches-table', Horizon\Livewire\BatchesTable::class);
         Livewire::component('toolbar-presence', Filament\Widgets\ToolbarPresence::class);
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
@@ -256,8 +288,8 @@ class AiclServiceProvider extends ServiceProvider
         if (config('aicl.features.saml', false)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/saml.php');
 
-            Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event): void {
-                $event->extendSocialite('saml2', \SocialiteProviders\Saml2\Provider::class);
+            Event::listen(function (SocialiteWasCalled $event): void {
+                $event->extendSocialite('saml2', Provider::class);
             });
         }
 
@@ -313,7 +345,7 @@ class AiclServiceProvider extends ServiceProvider
         // Register discovered components as Blade components
         foreach ($registry->all() as $definition) {
             $shortTag = $definition->shortTag();
-            \Illuminate\Support\Facades\Blade::component($definition->class, "aicl-{$shortTag}");
+            Blade::component($definition->class, "aicl-{$shortTag}");
         }
     }
 
@@ -393,12 +425,12 @@ class AiclServiceProvider extends ServiceProvider
      */
     protected function registerSecurityMiddleware(): void
     {
-        /** @var \Illuminate\Foundation\Http\Kernel $kernel */
+        /** @var Kernel $kernel */
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
         $kernel->pushMiddleware(Http\Middleware\SecurityHeadersMiddleware::class);
 
         if (config('aicl.security.api_logging', true)) {
-            /** @var \Illuminate\Routing\Router $router */
+            /** @var Router $router */
             $router = $this->app['router'];
             $router->pushMiddlewareToGroup('api', Http\Middleware\ApiRequestLogMiddleware::class);
         }
@@ -441,14 +473,14 @@ class AiclServiceProvider extends ServiceProvider
      */
     protected function registerPresenceMiddleware(): void
     {
-        /** @var \Illuminate\Routing\Router $router */
+        /** @var Router $router */
         $router = $this->app['router'];
         $router->aliasMiddleware('track-presence', Http\Middleware\TrackPresenceMiddleware::class);
     }
 
     protected function configureElasticsearch(): void
     {
-        if (! class_exists(\Matchish\ScoutElasticSearch\ElasticSearchServiceProvider::class)) {
+        if (! class_exists(ElasticSearchServiceProvider::class)) {
             return;
         }
 
@@ -456,15 +488,28 @@ class AiclServiceProvider extends ServiceProvider
         $port = config('aicl.search.elasticsearch.port', 9200);
         $scheme = config('aicl.search.elasticsearch.scheme', 'http');
 
-        config([
-            'scout.driver' => \Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine::class,
+        $esConfig = [
+            'scout.driver' => ElasticSearchEngine::class,
             'elasticsearch.host' => "{$scheme}://{$host}:{$port}",
-        ]);
+        ];
+
+        // Pass authentication to the Elasticsearch client when configured
+        $apiKey = config('aicl.search.elasticsearch.api_key');
+        $username = config('aicl.search.elasticsearch.username');
+        $password = config('aicl.search.elasticsearch.password');
+
+        if ($apiKey) {
+            $esConfig['elasticsearch.api-key'] = $apiKey;
+        } elseif ($username && $password) {
+            $esConfig['elasticsearch.basicAuthentication'] = [$username, $password];
+        }
+
+        config($esConfig);
 
         // Ensure the deferred ElasticSearchServiceProvider is explicitly registered
         // so Client::class binding is available before Scout observers fire
-        if (! $this->app->providerIsLoaded(\Matchish\ScoutElasticSearch\ElasticSearchServiceProvider::class)) {
-            $this->app->register(\Matchish\ScoutElasticSearch\ElasticSearchServiceProvider::class);
+        if (! $this->app->providerIsLoaded(ElasticSearchServiceProvider::class)) {
+            $this->app->register(ElasticSearchServiceProvider::class);
         }
     }
 }

@@ -288,4 +288,104 @@ class ElasticsearchCheckTest extends TestCase
 
         $this->assertSame('http://my-es:9200', $method->invoke($this->check));
     }
+
+    // ── Authentication ───────────────────────────────────────
+
+    public function test_sends_api_key_header_when_configured(): void
+    {
+        config([
+            'elasticsearch.host' => 'http://localhost:9200',
+            'aicl.search.elasticsearch.api_key' => 'my-test-api-key',
+        ]);
+
+        Http::fake([
+            'localhost:9200/_cluster/health' => Http::response([
+                'status' => 'green',
+                'cluster_name' => 'auth-cluster',
+                'number_of_nodes' => 1,
+            ]),
+            'localhost:9200/_cat/indices*' => Http::response([]),
+        ]);
+
+        $result = $this->check->check();
+
+        $this->assertSame(ServiceStatus::Healthy, $result->status);
+
+        Http::assertSent(function ($request) {
+            return $request->hasHeader('Authorization', 'ApiKey my-test-api-key');
+        });
+    }
+
+    public function test_sends_basic_auth_when_username_password_configured(): void
+    {
+        config([
+            'elasticsearch.host' => 'http://localhost:9200',
+            'aicl.search.elasticsearch.api_key' => null,
+            'aicl.search.elasticsearch.username' => 'elastic',
+            'aicl.search.elasticsearch.password' => 'secret123',
+        ]);
+
+        Http::fake([
+            'localhost:9200/_cluster/health' => Http::response([
+                'status' => 'green',
+                'cluster_name' => 'basic-auth-cluster',
+                'number_of_nodes' => 1,
+            ]),
+            'localhost:9200/_cat/indices*' => Http::response([]),
+        ]);
+
+        $result = $this->check->check();
+
+        $this->assertSame(ServiceStatus::Healthy, $result->status);
+
+        Http::assertSent(function ($request) {
+            return $request->hasHeader('Authorization')
+                && str_starts_with($request->header('Authorization')[0], 'Basic ');
+        });
+    }
+
+    public function test_api_key_takes_precedence_over_basic_auth(): void
+    {
+        config([
+            'elasticsearch.host' => 'http://localhost:9200',
+            'aicl.search.elasticsearch.api_key' => 'my-api-key',
+            'aicl.search.elasticsearch.username' => 'elastic',
+            'aicl.search.elasticsearch.password' => 'secret',
+        ]);
+
+        Http::fake([
+            'localhost:9200/_cluster/health' => Http::response([
+                'status' => 'green',
+                'cluster_name' => 'test',
+                'number_of_nodes' => 1,
+            ]),
+            'localhost:9200/_cat/indices*' => Http::response([]),
+        ]);
+
+        $result = $this->check->check();
+
+        $this->assertSame(ServiceStatus::Healthy, $result->status);
+
+        Http::assertSent(function ($request) {
+            return $request->hasHeader('Authorization', 'ApiKey my-api-key');
+        });
+    }
+
+    public function test_returns_down_on_401_without_auth(): void
+    {
+        config([
+            'elasticsearch.host' => 'http://localhost:9200',
+            'aicl.search.elasticsearch.api_key' => null,
+            'aicl.search.elasticsearch.username' => null,
+        ]);
+
+        Http::fake([
+            'localhost:9200/_cluster/health' => Http::response(['error' => 'security_exception'], 401),
+        ]);
+
+        $result = $this->check->check();
+
+        $this->assertSame(ServiceStatus::Down, $result->status);
+        $this->assertStringContainsString('401', $result->error);
+    }
 }

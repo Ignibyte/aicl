@@ -83,6 +83,17 @@ Filament provides built-in authentication pages that integrate seamlessly with t
 | Password Reset | `/admin/password-reset` | Password recovery |
 | Email Verification | `/admin/email-verification` | Verify email address |
 
+### Configurable Email Verification
+
+Email verification can be toggled on/off via **Settings > Features > Require Email Verification**.
+
+When disabled, `User::hasVerifiedEmail()` always returns `true`, bypassing the verification prompt for all users. The route remains registered (Octane-safe), but users are never redirected to the verification page.
+
+```php
+// AiclPlugin::isEmailVerificationRequired() checks the database setting
+// User::hasVerifiedEmail() defers to this when the setting is off
+```
+
 ### Extended Login Page
 
 AICL extends the default Filament login to add social login buttons:

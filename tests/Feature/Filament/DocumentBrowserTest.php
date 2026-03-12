@@ -154,4 +154,40 @@ class DocumentBrowserTest extends TestCase
         $this->assertArrayHasKey('docs', $config);
         $this->assertArrayHasKey('paths', $config['docs']);
     }
+
+    public function test_get_files_scans_subdirectories_recursively(): void
+    {
+        // Create a nested subdirectory within the project base path
+        $relPath = 'storage/app/doc-test-'.uniqid();
+        $fullPath = base_path($relPath);
+        mkdir($fullPath.'/sub', 0755, true);
+        file_put_contents($fullPath.'/top.md', '# Top Level');
+        file_put_contents($fullPath.'/sub/nested.md', '# Nested');
+
+        config(['aicl.docs.paths' => [
+            ['label' => 'Test', 'path' => $relPath],
+        ]]);
+
+        $page = new DocumentBrowser;
+        $files = $page->getFiles();
+
+        // Clean up
+        unlink($fullPath.'/top.md');
+        unlink($fullPath.'/sub/nested.md');
+        rmdir($fullPath.'/sub');
+        rmdir($fullPath);
+
+        // Both top-level and nested files should be found
+        $names = array_column($files, 'name');
+        $this->assertContains('top', $names);
+        $this->assertContains('nested', $names);
+    }
+
+    public function test_default_config_includes_project_docs_path(): void
+    {
+        $config = require base_path('packages/aicl/config/aicl.php');
+        $paths = array_column($config['docs']['paths'], 'path');
+
+        $this->assertContains('docs/architecture', $paths);
+    }
 }

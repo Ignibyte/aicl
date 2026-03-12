@@ -285,7 +285,7 @@ class DomainEventBusTest extends TestCase
             'entity_type' => $user->getMorphClass(),
             'entity_id' => (string) $user->getKey(),
             'event_type' => 'user.updated',
-            'occurred_at' => Carbon::parse('2026-03-01 12:00:00'),
+            'occurred_at' => Carbon::now()->addYear(),
         ]);
         $this->createRecord([
             'entity_type' => $user->getMorphClass(),

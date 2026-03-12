@@ -2,6 +2,7 @@
 
 namespace Aicl\Filament\Widgets;
 
+use Aicl\Horizon\Contracts\MetricsRepository;
 use Aicl\Models\FailedJob;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -21,7 +22,7 @@ class QueueStatsWidget extends StatsOverviewWidget
         $pendingLow = $this->getQueueSize('low');
         $totalPending = $pendingDefault + $pendingHigh + $pendingLow;
 
-        return [
+        $stats = [
             Stat::make('Pending Jobs', $totalPending)
                 ->description($pendingHigh > 0 ? "{$pendingHigh} high priority" : 'Queue is processing')
                 ->descriptionIcon($totalPending > 100 ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-clock')
@@ -37,6 +38,19 @@ class QueueStatsWidget extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-o-clock')
                 ->color($lastFailed && $lastFailed->failed_at->isToday() ? 'warning' : 'gray'),
         ];
+
+        // Add Horizon metrics when available
+        if (config('aicl.features.horizon', true) && app()->bound(MetricsRepository::class)) {
+            $metrics = app(MetricsRepository::class);
+
+            $jobsPerMinute = $this->getJobsPerMinute($metrics);
+            $stats[] = Stat::make('Jobs / Min', number_format($jobsPerMinute, 1))
+                ->description('Throughput')
+                ->descriptionIcon('heroicon-o-bolt')
+                ->color($jobsPerMinute > 0 ? 'success' : 'gray');
+        }
+
+        return $stats;
     }
 
     protected function getQueueSize(string $queue): int
@@ -46,5 +60,21 @@ class QueueStatsWidget extends StatsOverviewWidget
         } catch (\Throwable) {
             return 0;
         }
+    }
+
+    /**
+     * Calculate approximate jobs per minute from Horizon metrics snapshots.
+     */
+    protected function getJobsPerMinute(MetricsRepository $metrics): float
+    {
+        $snapshots = $metrics->snapshotsForQueue('default');
+
+        if (empty($snapshots)) {
+            return 0.0;
+        }
+
+        $latest = end($snapshots);
+
+        return (float) ($latest->throughput ?? 0);
     }
 }

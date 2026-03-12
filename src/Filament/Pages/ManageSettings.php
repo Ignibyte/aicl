@@ -57,6 +57,7 @@ class ManageSettings extends Page implements HasForms
             'from_name' => $mail->from_name,
             'reply_to' => $mail->reply_to,
             'enable_registration' => $features->enable_registration,
+            'require_email_verification' => $features->require_email_verification,
             'enable_social_login' => $features->enable_social_login,
             'enable_saml' => $features->enable_saml,
             'require_mfa' => $features->require_mfa,
@@ -136,6 +137,9 @@ class ManageSettings extends Page implements HasForms
                         Toggle::make('enable_registration')
                             ->label('User Registration')
                             ->helperText('Allow new users to register accounts. Can also be enabled via AICL_ALLOW_REGISTRATION env var.'),
+                        Toggle::make('require_email_verification')
+                            ->label('Require Email Verification')
+                            ->helperText('When enabled, new users must verify their email address before accessing the application.'),
                         Toggle::make('enable_social_login')
                             ->label('Social Login')
                             ->helperText('Allow users to login with social providers'),
@@ -175,6 +179,7 @@ class ManageSettings extends Page implements HasForms
 
         $features = app(FeatureSettings::class);
         $features->enable_registration = $data['enable_registration'];
+        $features->require_email_verification = $data['require_email_verification'];
         $features->enable_social_login = $data['enable_social_login'];
         $features->enable_saml = $data['enable_saml'];
         $features->require_mfa = $data['require_mfa'];

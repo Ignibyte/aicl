@@ -43,7 +43,7 @@ class ConsoleCommandTest extends TestCase
         $this->assertStringContainsString($expectedName, $defaults['signature']);
     }
 
-    #[DataProvider('commandWithSignatureProvider')]
+    #[DataProvider('commandProvider')]
     public function test_command_has_non_empty_description(string $commandClass): void
     {
         $reflection = new \ReflectionClass($commandClass);
