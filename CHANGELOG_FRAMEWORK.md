@@ -10,9 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.3.1`
+Current version: `1.3.2`
 
 ---
+
+## [1.3.2] - 2026-03-12
+
+### Fixed
+
+- **Horizon worker/supervisor command prefix mismatch** — `SupervisorCommandString` and `WorkerCommandString` hardcoded `horizon:supervisor` and `horizon:work` as shell-out targets, but AICL registers these commands as `aicl:horizon:supervisor` and `aicl:horizon:work`. This caused the master supervisor to silently fail to spawn child processes — Horizon appeared "running" but no workers were active.
 
 ## [1.3.1] - 2026-03-12
 

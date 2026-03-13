@@ -9,7 +9,7 @@ class SupervisorCommandString
      *
      * @var string
      */
-    public static $command = 'exec @php artisan horizon:supervisor';
+    public static $command = 'exec @php artisan aicl:horizon:supervisor';
 
     /**
      * Get the command-line representation of the options for a supervisor.
@@ -44,6 +44,6 @@ class SupervisorCommandString
      */
     public static function reset()
     {
-        static::$command = 'exec @php artisan horizon:supervisor';
+        static::$command = 'exec @php artisan aicl:horizon:supervisor';
     }
 }

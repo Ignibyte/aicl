@@ -9,7 +9,7 @@ class WorkerCommandString
      *
      * @var string
      */
-    public static $command = 'exec @php artisan horizon:work';
+    public static $command = 'exec @php artisan aicl:horizon:work';
 
     /**
      * Get the command-line representation of the options for a worker.
@@ -44,6 +44,6 @@ class WorkerCommandString
      */
     public static function reset()
     {
-        static::$command = 'exec @php artisan horizon:work';
+        static::$command = 'exec @php artisan aicl:horizon:work';
     }
 }
