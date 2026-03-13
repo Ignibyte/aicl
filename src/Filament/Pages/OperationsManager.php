@@ -17,6 +17,8 @@ use Filament\Actions\Action;
 use Filament\Actions\Action as TableRowAction;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -35,8 +37,9 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
 use UnitEnum;
 
-class OperationsManager extends Page implements HasForms, HasTable
+class OperationsManager extends Page implements HasActions, HasForms, HasTable
 {
+    use InteractsWithActions;
     use InteractsWithForms;
     use InteractsWithTable;
 

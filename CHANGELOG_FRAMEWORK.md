@@ -10,9 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.3.3`
+Current version: `1.3.4`
 
 ---
+
+## [1.3.4] - 2026-03-12
+
+### Fixed
+
+- **OperationsManager kill session action** — `killSessionAction()` was silently ignored because the page implemented `HasTable` but not `HasActions`. Added `HasActions` interface and `InteractsWithActions` trait so standalone page actions fire correctly in Filament v4.
 
 ## [1.3.3] - 2026-03-12
 
