@@ -599,7 +599,7 @@
         {{-- ═══════════════════════════════════════════════════════════ --}}
         {{-- SESSIONS SECTION                                            --}}
         {{-- ═══════════════════════════════════════════════════════════ --}}
-        <div x-show="activeSection === 'sessions'" x-cloak>
+        <div x-show="activeSection === 'sessions'" x-cloak x-data="{ killModal: false, killSessionId: null, killUserName: null }">
             @php
                 $sessions = $this->getActiveSessions();
                 $currentSessionId = request()->session()->getId();
@@ -693,8 +693,7 @@
                                                             color="danger"
                                                             size="xs"
                                                             icon="heroicon-o-x-mark"
-                                                            wire:click="terminateSession('{{ $session['session_id'] }}')"
-                                                            wire:confirm="Are you sure you want to terminate the session for {{ $session['user_name'] ?? 'this user' }}? They will be logged out immediately."
+                                                            x-on:click="killSessionId = '{{ $session['session_id'] }}'; killUserName = '{{ addslashes($session['user_name'] ?? 'this user') }}'; killModal = true"
                                                         >
                                                             Kill
                                                         </x-filament::button>
@@ -710,6 +709,67 @@
                         </div>
                     @endif
                 </x-filament::section>
+            </div>
+
+            {{-- Kill Session Confirmation Modal --}}
+            <div
+                x-show="killModal"
+                x-cloak
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                x-on:keydown.escape.window="killModal = false"
+            >
+                {{-- Backdrop --}}
+                <div class="absolute inset-0 bg-gray-950/50 dark:bg-gray-950/75" x-on:click="killModal = false"></div>
+
+                {{-- Modal Panel --}}
+                <div
+                    x-show="killModal"
+                    x-transition:enter="ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10"
+                >
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger-100 dark:bg-danger-500/20">
+                            <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-danger-600 dark:text-danger-400" />
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-base font-semibold text-gray-950 dark:text-white">
+                                Terminate Session
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                Are you sure you want to terminate the session for
+                                <span class="font-medium text-gray-700 dark:text-gray-300" x-text="killUserName"></span>?
+                                They will be logged out immediately.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end gap-3">
+                        <x-filament::button
+                            color="gray"
+                            x-on:click="killModal = false"
+                        >
+                            Cancel
+                        </x-filament::button>
+                        <x-filament::button
+                            color="danger"
+                            icon="heroicon-o-x-mark"
+                            x-on:click="$wire.terminateSession(killSessionId); killModal = false"
+                        >
+                            Terminate Session
+                        </x-filament::button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

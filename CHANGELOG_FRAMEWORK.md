@@ -10,7 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.4.0`
+Current version: `1.4.1`
+
+---
+
+## [1.4.1] - 2026-03-13
+
+### Fixed
+
+- **Kill Session button** — replaced browser `confirm()` alert with a proper styled modal dialog (backdrop, danger icon, Cancel/Terminate buttons, Escape to dismiss, dark mode support)
 
 ---
 
