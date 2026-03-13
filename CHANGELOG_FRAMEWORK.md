@@ -10,9 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.3.4`
+Current version: `1.3.5`
 
 ---
+
+## [1.3.5] - 2026-03-12
+
+### Fixed
+
+- **Fatal error from unreleased SearchServiceProvider** — `AiclServiceProvider` registered `SearchServiceProvider`, `PruneSearchLogsCommand`, and `SearchReindexCommand` which don't exist in the released package. Removed until search feature ships.
 
 ## [1.3.4] - 2026-03-12
 

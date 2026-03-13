@@ -100,7 +100,7 @@ use Spatie\Permission\Models\Role;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.3.4';
+    public const VERSION = '1.3.5';
 
     public function register(): void
     {
@@ -194,10 +194,6 @@ class AiclServiceProvider extends ServiceProvider
 
         if (config('aicl.features.horizon', true)) {
             $this->app->register(Horizon\HorizonServiceProvider::class);
-        }
-
-        if (config('aicl.search.enabled', true)) {
-            $this->app->register(Providers\SearchServiceProvider::class);
         }
     }
 
@@ -322,10 +318,8 @@ class AiclServiceProvider extends ServiceProvider
                 Console\Commands\InstallCommand::class,
                 Console\Commands\MakeEntityCommand::class,
                 Console\Commands\PipelineContextCommand::class,
-                Console\Commands\PruneSearchLogsCommand::class,
                 Console\Commands\RemoveEntityCommand::class,
                 Console\Commands\ScoutImportCommand::class,
-                Console\Commands\SearchReindexCommand::class,
                 Console\Commands\PruneScheduleHistoryCommand::class,
                 Console\Commands\UpgradeCommand::class,
                 Console\Commands\ValidateSpecCommand::class,
