@@ -196,7 +196,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
         }
 
         if (config('aicl-horizon.fast_termination')) {
-            app(CacheFactory::class)->forget('aicl-horizon:terminate:wait');
+            app(CacheFactory::class)->forget('aicl:horizon:terminate:wait');
         }
 
         $this->exit($status);

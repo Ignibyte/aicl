@@ -233,7 +233,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     protected function shouldWait()
     {
         return ! config('aicl-horizon.fast_termination') ||
-            app(CacheFactory::class)->get('aicl-horizon:terminate:wait');
+            app(CacheFactory::class)->get('aicl:horizon:terminate:wait');
     }
 
     /**

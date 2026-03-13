@@ -10,9 +10,16 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.3.2`
+Current version: `1.3.3`
 
 ---
+
+## [1.3.3] - 2026-03-12
+
+### Fixed
+
+- **Horizon process inspector pgrep patterns** — `ProcessInspector::current()` used `pgrep -f [h]orizon` which doesn't match AICL's `aicl:horizon:*` process names. Updated to `pgrep -f [a]icl:horizon`. Same fix for the `horizon:purge` exclusion pattern.
+- **Fast-termination cache key mismatch** — `TerminateCommand` wrote the `--wait` flag to cache key `aicl:horizon:terminate:wait` but `Supervisor::shouldWait()` and `MasterSupervisor::terminate()` read/forgot `aicl-horizon:terminate:wait` (hyphen vs colon). The `--wait` flag was silently ignored.
 
 ## [1.3.2] - 2026-03-12
 
