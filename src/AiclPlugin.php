@@ -94,6 +94,11 @@ class AiclPlugin implements Plugin
                 TrackPresenceMiddleware::class,
             ])
             ->topNavigation();
+
+        // Always disable Filament's built-in global search.
+        // When aicl.search.enabled=true, the custom nav search bar replaces it.
+        // When disabled, no search bar is shown at all.
+        $panel->globalSearch(false);
     }
 
     /**
@@ -146,6 +151,14 @@ class AiclPlugin implements Plugin
             FilamentView::registerRenderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_AFTER,
                 fn (): string => Blade::render('@livewire(\'toolbar-presence\')'),
+            );
+        }
+
+        // Nav search bar — replaces Filament's built-in global search
+        if (config('aicl.search.enabled', false)) {
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                fn (): string => view('aicl::components.nav-search-bar')->render(),
             );
         }
 

@@ -2,6 +2,7 @@
 
 namespace Aicl\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
 /**
@@ -11,7 +12,9 @@ use Laravel\Scout\Searchable;
  * common entity fields. Override toSearchableArray() in your model
  * to customize which fields are indexed.
  *
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
+ *
+ * @phpstan-ignore trait.unused
  */
 trait HasSearchableFields
 {
@@ -81,5 +84,18 @@ trait HasSearchableFields
         }
 
         return true;
+    }
+
+    /**
+     * Return permission metadata for the global search index.
+     *
+     * @return array{owner_id: string|int|null, team_ids: array<int, string|int>}
+     */
+    public function getSearchPermissionMeta(): array
+    {
+        return [
+            'owner_id' => $this->getAttribute('owner_id') ?? $this->getAttribute('user_id'),
+            'team_ids' => $this->getAttribute('team_id') ? [(string) $this->getAttribute('team_id')] : [],
+        ];
     }
 }

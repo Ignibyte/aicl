@@ -149,7 +149,7 @@ class AdditionalPageTest extends TestCase
 
     public function test_search_has_results_computed_method(): void
     {
-        $this->assertTrue(method_exists(Search::class, 'results'));
+        $this->assertTrue(method_exists(Search::class, 'searchResults'));
     }
 
     // ─── ManageSettings (gap coverage) ──────────────────────────

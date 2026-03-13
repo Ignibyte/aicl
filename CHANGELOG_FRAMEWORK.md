@@ -10,9 +10,52 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.3.5`
+Current version: `1.4.0`
 
 ---
+
+## [1.4.0] - 2026-03-13
+
+### Added
+
+- **Global Search Enhancement** — ES-powered cross-entity full-text search with unified index, permission-filtered results, and search analytics
+  - `SearchService` — query orchestration with multi_match, fuzzy search, per-entity boost via function_score
+  - `SearchIndexingService` — index lifecycle with alias-based zero-downtime reindex (`search:reindex --fresh`)
+  - `SearchDocumentBuilder` — builds ES documents from models with field resolution (enums, dates, arrays)
+  - `PermissionFilterBuilder` — translates visibility rules (`authenticated`, `owner`, `role:{name}`, `policy`) into ES bool filters
+  - `SearchResult` / `SearchResultCollection` — immutable value objects with facets and pagination
+  - `SearchObserver` — auto-indexes models on create/update/delete via queued `IndexSearchDocumentJob`
+  - `ReindexPermissionsJob` — re-indexes user's documents on role/permission changes
+  - `SearchLog` model — search analytics with `MassPrunable` support
+  - `SearchServiceProvider` — conditional registration (only when `aicl.search.enabled = true`)
+  - `PruneSearchLogsCommand` (`search:prune-logs`) — retention-based log cleanup
+  - `SearchReindexCommand` (`search:reindex`) — full/partial/fresh reindex with chunked bulk indexing
+  - Full-page Search page (`/admin/search`) with Livewire debounced input, entity type facets, paginated results, URL deep-linking (`?q=`, `?type=`, `?page=`)
+  - `GlobalSearchWidget` — dashboard search widget with top 5 results
+  - Nav search bar — Alpine.js topbar component with `Ctrl+K` / `Cmd+K` keyboard shortcut
+  - `Searchable` contract and `HasSearchableFields` trait for model integration
+  - Architecture documentation at `docs/architecture/search.md`
+  - 117 tests, 193 assertions (5 unit + 3 feature test files)
+
+### Changed
+
+- **Filament global search disabled** — Filament's built-in global search is always disabled via `$panel->globalSearch(false)`. When `aicl.search.enabled = true`, the custom AICL nav search bar replaces it. When disabled, no search bar appears.
+- **Search config expanded** — `aicl.search` config now includes `enabled`, `index`, `min_query_length`, `entities`, and `analytics` keys (previously only `elasticsearch` connection)
+
+### Fixed
+
+- **Search page accessibility** — ARIA attributes, focus styles, semantic form markup, `<x-aicl-empty-state>` component reuse
+- **Dark mode coverage** — Filament opacity-based conventions (`dark:bg-white/5`, `dark:ring-white/10`) across all search views
+- **Widget array access bug** — GlobalSearchWidget view used array access on `SearchResult` objects (fixed to property access)
+- **Hardcoded routes** — Nav search bar and widget "See all results" link replaced hardcoded `/admin/search` with `Search::getUrl()`
+
+## [1.3.6] - 2026-03-13
+
+### Fixed
+
+- **OperationsManager section navigation** — `@entangle()` directives lacked `.live` modifier, so clicking section nav buttons (Queues, Scheduler, Notifications, Sessions) did not switch views. Alpine-side changes were deferred and never synced to Livewire.
+- **Kill session button** — Replaced Filament `mountAction('killSession')` approach with direct `wire:click` + `wire:confirm`. Filament action modals do not render for inline buttons on custom page templates. The new approach uses Livewire v3 native confirmation and calls `terminateSession()` directly.
+- Removed unused `killSessionAction()` method (superseded by `wire:confirm`).
 
 ## [1.3.5] - 2026-03-12
 

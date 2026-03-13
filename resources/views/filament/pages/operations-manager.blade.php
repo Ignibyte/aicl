@@ -4,7 +4,7 @@
         $queueDriver = $this->getQueueDriver();
     @endphp
 
-    <div x-data="{ activeSection: @entangle('activeSection'), activeTab: @entangle('activeTab') }">
+    <div x-data="{ activeSection: @entangle('activeSection').live, activeTab: @entangle('activeTab').live }">
         {{-- Section Navigation --}}
         <div class="mb-6 flex flex-wrap gap-2">
             <button
@@ -693,7 +693,8 @@
                                                             color="danger"
                                                             size="xs"
                                                             icon="heroicon-o-x-mark"
-                                                            wire:click="mountAction('killSession', { sessionId: '{{ $session['session_id'] }}', userName: '{{ addslashes($session['user_name'] ?? 'this user') }}' })"
+                                                            wire:click="terminateSession('{{ $session['session_id'] }}')"
+                                                            wire:confirm="Are you sure you want to terminate the session for {{ $session['user_name'] ?? 'this user' }}? They will be logged out immediately."
                                                         >
                                                             Kill
                                                         </x-filament::button>

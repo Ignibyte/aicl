@@ -64,6 +64,10 @@ return [
     */
 
     'search' => [
+        'enabled' => env('AICL_SEARCH_ENABLED', false),
+        'index' => env('AICL_SEARCH_INDEX', 'aicl_global_search'),
+        'min_query_length' => 2,
+
         'elasticsearch' => [
             'host' => env('ELASTICSEARCH_HOST', 'elasticsearch'),
             'port' => (int) env('ELASTICSEARCH_PORT', 9200),
@@ -71,6 +75,15 @@ return [
             'api_key' => env('ELASTICSEARCH_API_KEY'),
             'username' => env('ELASTICSEARCH_USERNAME'),
             'password' => env('ELASTICSEARCH_PASSWORD'),
+        ],
+
+        // Entity types registered for global search indexing.
+        // Key = model FQCN, value = config array with fields, label, visibility, etc.
+        'entities' => [],
+
+        'analytics' => [
+            'enabled' => env('AICL_SEARCH_ANALYTICS', true),
+            'retention_days' => (int) env('AICL_SEARCH_RETENTION_DAYS', 90),
         ],
     ],
 

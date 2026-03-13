@@ -356,19 +356,6 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
         }
     }
 
-    public function killSessionAction(): Action
-    {
-        return Action::make('killSession')
-            ->label('Kill Session')
-            ->color('danger')
-            ->icon('heroicon-o-x-mark')
-            ->requiresConfirmation()
-            ->modalHeading('Terminate Session')
-            ->modalDescription(fn (array $arguments): string => 'Are you sure you want to terminate the session for '.($arguments['userName'] ?? 'this user').'? They will be logged out immediately.')
-            ->modalSubmitActionLabel('Yes, terminate')
-            ->action(fn (array $arguments) => $this->terminateSession($arguments['sessionId'] ?? ''));
-    }
-
     // ── Shared ───────────────────────────────────────────────
 
     public static function canAccess(): bool

@@ -100,7 +100,7 @@ class FilamentPageTest extends TestCase
         $defaults = $reflection->getDefaultProperties();
 
         $this->assertEquals('', $defaults['query']);
-        $this->assertNull($defaults['entityType']);
+        $this->assertSame('', $defaults['entityType']);
     }
 
     public function test_search_not_registered_in_navigation(): void

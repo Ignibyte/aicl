@@ -2,17 +2,17 @@
 
 namespace Aicl\Filament\Widgets;
 
+use Aicl\Search\SearchResultCollection;
+use Aicl\Search\SearchService;
 use Filament\Widgets\Widget;
-use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 
 /**
  * Compact search widget for dashboards.
  *
- * Delegates to Filament's built-in global search. When entities are registered
- * as resources with getGloballySearchableAttributes(), they appear automatically.
+ * Queries the unified Elasticsearch index via SearchService.
  *
- * @property Collection $results
+ * @property SearchResultCollection $results
  */
 class GlobalSearchWidget extends Widget
 {
@@ -26,7 +26,7 @@ class GlobalSearchWidget extends Widget
 
     public function updatedQuery(): void
     {
-        $this->showResults = strlen($this->query) >= 2;
+        $this->showResults = strlen($this->query) >= (int) config('aicl.search.min_query_length', 2);
         unset($this->results);
     }
 
@@ -38,21 +38,29 @@ class GlobalSearchWidget extends Widget
     }
 
     #[Computed]
-    public function results(): Collection
+    public function results(): SearchResultCollection
     {
-        if (strlen($this->query) < 2) {
-            return collect();
+        $minLength = (int) config('aicl.search.min_query_length', 2);
+
+        if (strlen($this->query) < $minLength || ! config('aicl.search.enabled', false)) {
+            return SearchResultCollection::empty();
         }
 
-        // Search is handled by Filament's global search when resources
-        // define getGloballySearchableAttributes(). This widget provides
-        // a compact dashboard entry point. Without registered searchable
-        // resources, results will be empty.
-        return collect();
+        $user = auth()->user();
+
+        if ($user === null) {
+            return SearchResultCollection::empty();
+        }
+
+        return app(SearchService::class)->search(
+            query: $this->query,
+            user: $user,
+            perPage: 5,
+        );
     }
 
     public static function canView(): bool
     {
-        return auth()->check();
+        return auth()->check() && config('aicl.search.enabled', false);
     }
 }
