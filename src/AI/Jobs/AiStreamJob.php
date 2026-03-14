@@ -3,7 +3,6 @@
 namespace Aicl\AI\Jobs;
 
 use Aicl\AI\AiProviderFactory;
-use Aicl\AI\AiToolRegistry;
 use Aicl\AI\Events\AiStreamCompleted;
 use Aicl\AI\Events\AiStreamFailed;
 use Aicl\AI\Events\AiStreamStarted;
@@ -20,6 +19,7 @@ use NeuronAI\AgentInterface;
 use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
 use NeuronAI\Chat\Messages\ToolCallMessage;
+use NeuronAI\Providers\AIProviderInterface;
 
 class AiStreamJob implements ShouldQueue
 {
@@ -125,24 +125,17 @@ class AiStreamJob implements ShouldQueue
     }
 
     /**
-     * Build the NeuronAI agent with the configured provider and registered tools.
+     * Build the NeuronAI agent with the configured provider.
+     *
+     * Tools are intentionally disabled on this legacy endpoint — it has no
+     * agent context to scope tool access. Use the conversation-based
+     * AiConversationStreamJob for tool-enabled interactions.
      */
-    protected function buildAgent(\NeuronAI\Providers\AIProviderInterface $provider): AgentInterface
+    protected function buildAgent(AIProviderInterface $provider): AgentInterface
     {
-        $agent = Agent::make()
+        return Agent::make()
             ->setAiProvider($provider)
             ->setInstructions($this->systemPrompt ?? config('aicl.ai.system_prompt', ''));
-
-        if (config('aicl.ai.tools_enabled', true)) {
-            $registry = app(AiToolRegistry::class);
-            $tools = $registry->resolve($this->userId);
-
-            if (! empty($tools)) {
-                $agent->addTool($tools);
-            }
-        }
-
-        return $agent;
     }
 
     /**

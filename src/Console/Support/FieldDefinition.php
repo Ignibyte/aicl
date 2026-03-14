@@ -2,6 +2,8 @@
 
 namespace Aicl\Console\Support;
 
+use Illuminate\Support\Str;
+
 class FieldDefinition
 {
     public function __construct(
@@ -53,6 +55,14 @@ class FieldDefinition
         );
     }
 
+    /**
+     * Alias for isForeignKey() — used by ViewGenerator and other generators.
+     */
+    public function isForeignId(): bool
+    {
+        return $this->type === 'foreignId';
+    }
+
     public function isForeignKey(): bool
     {
         return $this->type === 'foreignId';
@@ -61,6 +71,26 @@ class FieldDefinition
     public function isEnum(): bool
     {
         return $this->type === 'enum';
+    }
+
+    /**
+     * Get a human-readable label for this field.
+     * Converts snake_case to Title Case, stripping _id suffix.
+     * e.g., assigned_user_id → Assigned User, category_name → Category Name
+     */
+    public function label(): string
+    {
+        $name = $this->name;
+
+        // Strip _id suffix for foreign keys to get a cleaner label
+        if ($this->isForeignId()) {
+            $name = preg_replace('/_id$/', '', $name) ?? $name;
+        }
+
+        return Str::of($name)
+            ->replace('_', ' ')
+            ->title()
+            ->toString();
     }
 
     /**
@@ -76,7 +106,7 @@ class FieldDefinition
 
         $cleaned = preg_replace('/_id$/', '', $this->name);
 
-        return \Illuminate\Support\Str::camel($cleaned);
+        return Str::camel($cleaned);
     }
 
     /**
@@ -89,8 +119,8 @@ class FieldDefinition
             return null;
         }
 
-        return \Illuminate\Support\Str::studly(
-            \Illuminate\Support\Str::singular($this->typeArgument)
+        return Str::studly(
+            Str::singular($this->typeArgument)
         );
     }
 }

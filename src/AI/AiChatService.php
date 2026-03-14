@@ -68,16 +68,19 @@ class AiChatService
         // Store user for channel authorization (auto-expires in 5 minutes)
         Cache::put("ai-stream:{$streamId}:user", $userId, 300);
 
-        // Enforce concurrent stream limit
+        // Enforce concurrent stream limit (atomic increment to prevent TOCTOU race)
         $maxConcurrent = (int) config('aicl.ai.streaming.max_concurrent_per_user', 2);
         $countKey = "ai-stream:user:{$userId}:count";
-        $currentCount = (int) Cache::get($countKey, 0);
 
-        if ($currentCount >= $maxConcurrent) {
+        // Initialize key if missing (increment requires existing key on some drivers)
+        Cache::add($countKey, 0, 300);
+        $newCount = (int) Cache::increment($countKey);
+
+        if ($newCount > $maxConcurrent) {
+            Cache::decrement($countKey);
+
             throw new \RuntimeException('Too many concurrent AI streams. Please wait for a current stream to finish.');
         }
-
-        Cache::put($countKey, $currentCount + 1, 300);
 
         // Dispatch conversation stream job
         AiConversationStreamJob::dispatch(

@@ -21,6 +21,7 @@ class AiChatController extends Controller
             $result = $chatService->sendMessage(
                 $conversation,
                 $request->input('message'),
+                $request->user(),
             );
 
             return response()->json($result);

@@ -10,9 +10,30 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.5.3`
+Current version: `1.5.4`
 
 ---
+
+## [1.5.4] - 2026-03-14
+
+### Security
+
+- **[Critical] XSS in user messages** — User message bubbles now sanitized via DOMPurify+marked instead of raw `x-html` with `\n→<br>` replacement
+- **[Critical] IDOR in conversation loading** — `loadMessages()` now enforces `WHERE user_id = auth()->id()` to prevent reading other users' conversations via manipulated UUID
+- **[Critical] Prompt injection via API** — `AiMessageController::store()` restricted to `role=user` only; `metadata` field removed from accepted input
+- **[High] Auth bypass on API chat** — `AiChatController::send()` now passes `$request->user()` to enforce agent role-access checks
+- **[High] Tool restriction bypass** — Legacy `AiStreamJob` tools disabled (no agent context to scope); use conversation-based streaming for tool access
+- **[High] SQL column oracle** — `QueryEntityTool` filters now blocked for sensitive columns (password, token, etc.) and restricted to fillable + safe columns
+- **[High] Infrastructure data leak** — `HealthStatusTool` redacts error details that could expose DB hostnames, DSNs, and connection strings
+- **[High] Unauthenticated tool access** — `WhosOnlineTool` and `HealthStatusTool` now require auth context
+- **[High] Race condition** — Concurrent stream limit uses atomic `Cache::increment()`/`decrement()` instead of non-atomic get/put
+- **[Medium] XSS in conversation title** — Alpine `x-data` title escaping uses `Js::from()` instead of manual `str_replace`
+- **[Medium] CDN integrity** — Added SRI hashes + `crossorigin="anonymous"` to marked.js and DOMPurify script tags
+- **[Medium] Shell injection hardening** — `ProcessInspector` PID interpolation uses `(int)` cast + `escapeshellarg()`
+
+### Fixed
+
+- **PHPStan level 5 clean** — Fixed 4 genuine bugs: missing `FieldDefinition::label()`/`isForeignId()` methods, missing `ServiceCheckResult::down()` `$details` parameter, wrong null-safe operator in `AiAgentResource`. Updated baseline (0 errors).
 
 ## [1.5.3] - 2026-03-14
 

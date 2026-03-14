@@ -20,13 +20,18 @@ class WhosOnlineTool extends BaseTool
         return 'system';
     }
 
+    public function requiresAuth(): bool
+    {
+        return true;
+    }
+
     public function renderAs(): ToolRenderType
     {
         return ToolRenderType::Table;
     }
 
     /**
-     * @return array{type: string, data: array{columns: array<string>, rows: array<int, array<string, mixed>>}}
+     * @return array{type: string, data: mixed}
      */
     public function formatResultForDisplay(mixed $result): array
     {

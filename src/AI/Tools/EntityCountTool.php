@@ -43,7 +43,7 @@ class EntityCountTool extends BaseTool
     }
 
     /**
-     * @return array{type: string, data: array{pairs: array<int, array{key: string, value: mixed}>}}
+     * @return array{type: string, data: mixed}
      */
     public function formatResultForDisplay(mixed $result): array
     {

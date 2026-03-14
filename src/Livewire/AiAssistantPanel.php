@@ -210,7 +210,16 @@ class AiAssistantPanel extends Component
             return [];
         }
 
-        $conversation = AiConversation::find($this->activeConversationId);
+        $user = auth()->user();
+
+        if (! $user) {
+            return [];
+        }
+
+        // Enforce ownership — prevent IDOR via manipulated activeConversationId
+        $conversation = AiConversation::query()
+            ->where('user_id', $user->id)
+            ->find($this->activeConversationId);
 
         if (! $conversation) {
             return [];

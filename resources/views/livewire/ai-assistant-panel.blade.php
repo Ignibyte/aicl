@@ -13,8 +13,8 @@
     wire:ignore.self
 >
     {{-- Markdown rendering libraries (loaded once) --}}
-    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" integrity="sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js" integrity="sha384-qSFej5dZNviyoPgYJ5+Xk4bEbX8AYddxAHPuzs1aSgRiXxJ3qmyWNaPsRkpv/+x5" crossorigin="anonymous" defer></script>
 
     {{-- Prose styles for chat markdown --}}
     <style>
@@ -120,7 +120,7 @@
                     @foreach ($this->conversations as $convo)
                         <div
                             wire:key="convo-{{ $convo->id }}"
-                            x-data="{ hovered: false, editing: false, editTitle: '{{ str_replace("'", "\\'", $convo->display_title) }}' }"
+                            x-data="{ hovered: false, editing: false, editTitle: {{ \Illuminate\Support\Js::from($convo->display_title) }} }"
                             x-on:mouseenter="hovered = true"
                             x-on:mouseleave="hovered = false"
                             x-on:click="if (!editing) switchConversation('{{ $convo->id }}')"
@@ -139,7 +139,7 @@
                                 x-model="editTitle"
                                 x-on:click.stop
                                 x-on:keydown.enter.prevent="$wire.renameConversation('{{ $convo->id }}', editTitle); editing = false"
-                                x-on:keydown.escape.prevent="editing = false; editTitle = '{{ str_replace("'", "\\'", $convo->display_title) }}'"
+                                x-on:keydown.escape.prevent="editing = false; editTitle = {{ \Illuminate\Support\Js::from($convo->display_title) }}"
                                 x-on:blur="if (editTitle.trim()) { $wire.renameConversation('{{ $convo->id }}', editTitle); } editing = false"
                                 x-ref="renameInput{{ $loop->index }}"
                                 class="flex-1 truncate border-0 bg-transparent p-0 text-sm text-white focus:ring-0"
@@ -328,7 +328,7 @@
                                         {{-- Bubble --}}
                                         <div class="ml-auto w-fit max-w-[80%]">
                                             <div class="rounded-2xl rounded-tr-sm bg-primary-500 px-4 py-2.5 text-white">
-                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap break-words text-sm leading-relaxed"></div>
+                                                <div x-html="_renderMarkdown(msg.content || '')" class="prose-chat text-sm leading-relaxed [overflow-wrap:anywhere]"></div>
                                             </div>
                                         </div>
                                     </div>

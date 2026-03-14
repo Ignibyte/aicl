@@ -21,6 +21,7 @@ class AiConversationPolicy extends BasePolicy
             return true;
         }
 
+        /** @phpstan-ignore-next-line property.notFound */
         return $record->user_id === $user->id;
     }
 
@@ -33,6 +34,7 @@ class AiConversationPolicy extends BasePolicy
             return true;
         }
 
+        /** @phpstan-ignore-next-line property.notFound */
         return $record->user_id === $user->id;
     }
 
@@ -45,6 +47,7 @@ class AiConversationPolicy extends BasePolicy
             return true;
         }
 
+        /** @phpstan-ignore-next-line property.notFound */
         return $record->user_id === $user->id;
     }
 }

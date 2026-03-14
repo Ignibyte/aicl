@@ -31,10 +31,9 @@ class AiMessageController extends Controller
         $this->authorize('update', $conversation);
 
         $validated = $request->validate([
-            'role' => ['required', 'string', 'in:user,assistant,system'],
-            'content' => ['required', 'string'],
+            'role' => ['required', 'string', 'in:user'],
+            'content' => ['required', 'string', 'max:2000'],
             'token_count' => ['nullable', 'integer', 'min:0'],
-            'metadata' => ['nullable', 'array'],
         ]);
 
         $message = $conversation->messages()->create($validated);

@@ -140,13 +140,23 @@ class QueryEntityTool extends BaseTool
         return null;
     }
 
+    /** @var array<string> Columns that must never be used in WHERE filters. */
+    private const BLOCKED_COLUMNS = [
+        'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes',
+        'api_token', 'secret', 'token', 'hash',
+    ];
+
     /**
      * Apply "field:value" filter pairs to the query.
+     * Only allows filtering on columns that exist in the model's fillable
+     * attributes or the table schema, excluding sensitive columns.
      *
      * @param  Builder<Model>  $query
      */
     private function applyFilters(mixed $query, string $filters): void
     {
+        $model = $query->getModel();
+        $fillable = $model->getFillable();
         $pairs = array_map('trim', explode(',', $filters));
 
         foreach ($pairs as $pair) {
@@ -161,6 +171,17 @@ class QueryEntityTool extends BaseTool
             $value = trim($value);
 
             if ($field === '' || $value === '') {
+                continue;
+            }
+
+            // Block sensitive columns
+            if (in_array(strtolower($field), self::BLOCKED_COLUMNS, true)) {
+                continue;
+            }
+
+            // Only allow fillable columns + common safe columns
+            if (! empty($fillable) && ! in_array($field, $fillable, true)
+                && ! in_array($field, ['id', 'status', 'state', 'created_at', 'updated_at', 'name', 'title', 'email', 'slug', 'type'], true)) {
                 continue;
             }
 

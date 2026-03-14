@@ -38,8 +38,8 @@ class AiAgentResource extends JsonResource
             'max_requests_per_minute' => $this->max_requests_per_minute,
             'state' => $this->state->getValue(),
             'is_configured' => $this->is_configured,
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            'created_at' => $this->created_at->toISOString(),
+            'updated_at' => $this->updated_at->toISOString(),
         ];
     }
 }

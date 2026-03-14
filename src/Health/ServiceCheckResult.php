@@ -42,12 +42,16 @@ final class ServiceCheckResult
         );
     }
 
-    public static function down(string $name, string $icon, ?string $error = null): static
+    /**
+     * @param  array<string, string>  $details
+     */
+    public static function down(string $name, string $icon, array $details = [], ?string $error = null): static
     {
         return new static(
             name: $name,
             status: ServiceStatus::Down,
             icon: $icon,
+            details: $details,
             error: $error,
         );
     }

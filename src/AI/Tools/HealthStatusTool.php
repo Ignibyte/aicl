@@ -20,13 +20,18 @@ class HealthStatusTool extends BaseTool
         return 'system';
     }
 
+    public function requiresAuth(): bool
+    {
+        return true;
+    }
+
     public function renderAs(): ToolRenderType
     {
         return ToolRenderType::Status;
     }
 
     /**
-     * @return array{type: string, data: array{items: array<int, array{label: string, status: string, detail: string|null}>}}
+     * @return array{type: string, data: mixed}
      */
     public function formatResultForDisplay(mixed $result): array
     {
@@ -58,8 +63,8 @@ class HealthStatusTool extends BaseTool
             'service' => $result->name,
             'status' => $result->status->value,
             'icon' => $result->icon,
-            'details' => $result->details,
-            'error' => $result->error,
+            // Redact connection details — only expose safe summary fields
+            'error' => $result->error ? 'Service error detected' : null,
         ], $results);
     }
 }
