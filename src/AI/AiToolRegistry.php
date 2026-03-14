@@ -4,6 +4,7 @@ namespace Aicl\AI;
 
 use Aicl\AI\Contracts\AiTool;
 use Aicl\AI\Tools\BaseTool;
+use Aicl\Models\AiAgent;
 use Illuminate\Contracts\Container\Container;
 
 class AiToolRegistry
@@ -50,6 +51,49 @@ class AiToolRegistry
         $instances = [];
 
         foreach ($this->tools as $toolClass) {
+            /** @var AiTool $tool */
+            $tool = $this->container->make($toolClass);
+
+            if ($userId !== null && $tool->requiresAuth() && $tool instanceof BaseTool) {
+                $tool->setAuthenticatedUser($userId);
+            }
+
+            $instances[] = $tool;
+        }
+
+        return $instances;
+    }
+
+    /**
+     * Resolve tools scoped to a specific agent's capabilities.
+     *
+     * If the agent has tools disabled, returns empty array.
+     * If the agent has an allowed_tools list, only those tools are returned.
+     * If allowed_tools is null (unrestricted), all registered tools are returned.
+     *
+     * @return array<AiTool>
+     */
+    public function resolveForAgent(AiAgent $agent, ?int $userId = null): array
+    {
+        if (! $agent->hasToolsEnabled()) {
+            return [];
+        }
+
+        $allowedTools = $agent->getAllowedTools();
+
+        // null = all tools allowed
+        if ($allowedTools === null) {
+            return $this->resolve($userId);
+        }
+
+        // Filter to only allowed tool classes
+        $instances = [];
+
+        foreach ($this->tools as $toolClass) {
+            if (! in_array($toolClass, $allowedTools, true)) {
+                continue;
+            }
+
             /** @var AiTool $tool */
             $tool = $this->container->make($toolClass);
 

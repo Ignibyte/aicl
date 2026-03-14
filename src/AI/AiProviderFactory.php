@@ -2,6 +2,8 @@
 
 namespace Aicl\AI;
 
+use Aicl\Enums\AiProvider;
+use Aicl\Models\AiAgent;
 use NeuronAI\Providers\AIProviderInterface;
 use NeuronAI\Providers\Anthropic\Anthropic;
 use NeuronAI\Providers\Ollama\Ollama;
@@ -38,6 +40,50 @@ final class AiProviderFactory
             'anthropic' => ! empty(config('aicl.ai.anthropic.api_key')),
             'ollama' => ! empty(config('aicl.ai.ollama.host')),
             default => false,
+        };
+    }
+
+    /**
+     * Create a provider instance from an AiAgent's configuration.
+     *
+     * Uses the agent's provider, model, temperature, and max_tokens
+     * instead of global config. API keys are still read from config.
+     */
+    public static function makeFromAgent(AiAgent $agent): ?AIProviderInterface
+    {
+        $driver = $agent->provider->value;
+
+        if (! self::isConfigured($driver)) {
+            return null;
+        }
+
+        $parameters = [];
+
+        if ($agent->temperature) {
+            $parameters['temperature'] = (float) $agent->temperature;
+        }
+
+        return match ($agent->provider) {
+            AiProvider::OpenAi => new OpenAI(
+                key: config('aicl.ai.openai.api_key'),
+                model: $agent->model,
+                parameters: array_filter([
+                    ...$parameters,
+                    'max_tokens' => $agent->max_tokens > 0 ? $agent->max_tokens : null,
+                ]),
+            ),
+            AiProvider::Anthropic => new Anthropic(
+                key: config('aicl.ai.anthropic.api_key'),
+                model: $agent->model,
+                max_tokens: $agent->max_tokens > 0 ? $agent->max_tokens : 8192,
+                parameters: $parameters,
+            ),
+            AiProvider::Ollama => new Ollama(
+                url: rtrim(config('aicl.ai.ollama.host', 'http://localhost:11434'), '/').'/api',
+                model: $agent->model,
+                parameters: $parameters,
+            ),
+            AiProvider::Custom => self::make($driver),
         };
     }
 

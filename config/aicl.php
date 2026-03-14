@@ -328,6 +328,16 @@ return [
                 'scheme' => env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'http')),
             ],
         ],
+
+        'assistant' => [
+            'enabled' => env('AICL_AI_ASSISTANT_ENABLED', false),
+            'keyboard_shortcut' => 'cmd+j',
+            'default_agent' => env('AICL_AI_DEFAULT_AGENT'),
+            'compaction_threshold' => 50,
+            'compaction_delete_old_messages' => false,
+            'token_budget_daily' => null,
+            'context_injection' => true,
+        ],
     ],
 
 ];

@@ -10,7 +10,61 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.4.1`
+Current version: `1.5.0`
+
+---
+
+## [1.5.0] - 2026-03-14
+
+### Added
+
+- **AI Agent Entity** — Full-stack AI agent management with Filament CRUD, API, states (Draft/Active/Archived), per-agent model/provider configuration
+  - `AiAgent` model with provider enum (OpenAI, Anthropic, Ollama), temperature, max tokens, context window, system prompt
+  - `AiConversation` model with message history, compaction support, and automatic title generation
+  - `AiMessage` model with role enum (User/Assistant/System), token counting, metadata storage
+  - Filament resources for AI Agents and Conversations with View/Edit sub-navigation
+  - `AiAgentStatsWidget` — dashboard widget showing agent/conversation/message counts
+  - API controllers with full CRUD for agents, conversations, and messages
+  - Observers, policies, exporters, factories, and seeders for all three models
+
+- **AI Assistant Widget** — Full-screen expandable chat panel available on all admin pages
+  - Livewire + Alpine.js real-time chat with WebSocket streaming via Reverb
+  - Agent selector dropdown with per-agent configuration
+  - Conversation history sidebar with create/switch/delete
+  - Suggested prompts from agent configuration
+  - Tool call visualization with status chips
+  - Markdown rendering and code block support
+  - Keyboard shortcut (Cmd+J) to toggle panel
+  - Responsive design matching Filament dark theme
+
+- **AI Chat Service** — Backend orchestration for AI conversations
+  - `AiChatService` — message creation, stream dispatching, concurrent stream limiting
+  - `AiConversationStreamJob` — queued job for WebSocket-streamed AI responses via NeuronAI
+  - `AiProviderFactory` — creates NeuronAI provider instances from agent config (OpenAI, Anthropic, Ollama)
+  - Broadcast events: `AiStreamStarted`, `AiStreamCompleted`, `AiStreamFailed`, `AiTokenEvent`, `AiToolCallEvent`
+
+- **Conversation Compaction** — Automatic context management for long conversations
+  - `CompactionService` — summarizes old messages using AI to stay within context limits
+  - `CompactConversationJob` — queued compaction triggered after configurable message threshold
+  - `CompactConversationsCommand` (`ai:compact-conversations`) — scheduled batch compaction
+  - Conversation states: Active → Summarized (via Spatie model-states)
+
+- **Per-Agent Security** — Role-based access control and function tool scoping
+  - `visible_to_roles` JSON column — restrict agent visibility by Spatie permission roles
+  - `capabilities` JSON column — `tools_enabled` toggle and `allowed_tools` FQCN whitelist
+  - `AiToolRegistry::resolveForAgent()` — scopes tools per agent's allow-list
+  - Three-layer enforcement: UI filtering → Livewire authorization → Job-level tool scoping
+  - `isAccessibleByUser()`, `hasToolsEnabled()`, `getAllowedTools()` model methods
+
+- **Function Tools Form** — Filament form section for per-agent tool configuration
+  - Toggle to enable/disable function calling per agent
+  - CheckboxList populated from `AiToolRegistry` with readable labels
+  - Reactive visibility (checkbox list hidden when tools disabled)
+
+### Changed
+
+- **AI navigation** — AI Agents and AI Conversations hidden from sidebar navigation (`$shouldRegisterNavigation = false`), accessible via Tools page cards
+- **Tools page** — Added AI Assistant, AI Agents, and AI Conversations cards
 
 ---
 

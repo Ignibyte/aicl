@@ -23,11 +23,15 @@ use Aicl\Listeners\EntityEventNotificationListener;
 use Aicl\Listeners\NotificationSentLogger;
 use Aicl\Listeners\ScheduleEventSubscriber;
 use Aicl\Livewire\ActivityFeed;
+use Aicl\Livewire\AiAssistantPanel;
 use Aicl\Livewire\AuditTable;
 use Aicl\Livewire\DomainEventTable;
 use Aicl\Livewire\FailedDeliveriesTable;
 use Aicl\Livewire\NotificationLogTable;
 use Aicl\Livewire\ScheduleHistoryTable;
+use Aicl\Models\AiAgent;
+use Aicl\Models\AiConversation;
+use Aicl\Models\AiMessage;
 use Aicl\Notifications\ChannelRateLimiter;
 use Aicl\Notifications\Contracts\NotificationChannelResolver;
 use Aicl\Notifications\Contracts\NotificationRecipientResolver;
@@ -64,6 +68,11 @@ use Aicl\Notifications\Templates\Resolvers\ChannelVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\ModelVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\RecipientVariableResolver;
 use Aicl\Notifications\Templates\Resolvers\UserVariableResolver;
+use Aicl\Observers\AiAgentObserver;
+use Aicl\Observers\AiConversationObserver;
+use Aicl\Observers\AiMessageObserver;
+use Aicl\Policies\AiAgentPolicy;
+use Aicl\Policies\AiConversationPolicy;
 use Aicl\Policies\RolePolicy;
 use Aicl\Policies\UserPolicy;
 use Aicl\Services\EntityRegistry;
@@ -100,7 +109,7 @@ use Spatie\Permission\Models\Role;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.4.1';
+    public const VERSION = '1.5.0';
 
     public function register(): void
     {
@@ -212,6 +221,12 @@ class AiclServiceProvider extends ServiceProvider
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(AiAgent::class, AiAgentPolicy::class);
+        Gate::policy(AiConversation::class, AiConversationPolicy::class);
+
+        AiAgent::observe(AiAgentObserver::class);
+        AiConversation::observe(AiConversationObserver::class);
+        AiMessage::observe(AiMessageObserver::class);
 
         Event::listen(EntityCreated::class, [EntityEventNotificationListener::class, 'handleCreated']);
         Event::listen(EntityUpdated::class, [EntityEventNotificationListener::class, 'handleUpdated']);
@@ -285,6 +300,7 @@ class AiclServiceProvider extends ServiceProvider
         // Register non-SDC utility view components (no component.json)
         $this->loadViewComponentsAs('aicl', []);
 
+        Livewire::component('aicl::ai-assistant-panel', AiAssistantPanel::class);
         Livewire::component('aicl-activity-feed', ActivityFeed::class);
         Livewire::component('aicl::audit-table', AuditTable::class);
         Livewire::component('aicl::domain-event-table', DomainEventTable::class);
@@ -329,6 +345,7 @@ class AiclServiceProvider extends ServiceProvider
                 Console\Commands\PruneScheduleHistoryCommand::class,
                 Console\Commands\UpgradeCommand::class,
                 Console\Commands\ValidateSpecCommand::class,
+                Console\Commands\CompactConversationsCommand::class,
             ]);
         }
     }

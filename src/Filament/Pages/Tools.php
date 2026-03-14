@@ -2,6 +2,8 @@
 
 namespace Aicl\Filament\Pages;
 
+use Aicl\Filament\Resources\AiAgents\AiAgentResource;
+use Aicl\Filament\Resources\AiConversations\AiConversationResource;
 use BackedEnum;
 use Filament\Pages\Page;
 use UnitEnum;
@@ -46,6 +48,18 @@ class Tools extends Page
                 'description' => 'Chat with AI for code generation, debugging, and assistance',
                 'icon' => 'heroicon-o-cpu-chip',
                 'url' => AiAssistant::getUrl(),
+            ],
+            [
+                'title' => 'AI Agents',
+                'description' => 'Configure AI agents, models, tools, and role-based access',
+                'icon' => 'heroicon-o-cog-6-tooth',
+                'url' => AiAgentResource::getUrl(),
+            ],
+            [
+                'title' => 'AI Conversations',
+                'description' => 'View and manage AI conversation history',
+                'icon' => 'heroicon-o-chat-bubble-left-right',
+                'url' => AiConversationResource::getUrl(),
             ],
             [
                 'title' => 'Architecture Docs',

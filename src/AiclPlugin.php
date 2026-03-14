@@ -18,7 +18,10 @@ use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\OpsPanel;
 use Aicl\Filament\Pages\Search;
 use Aicl\Filament\Pages\Tools;
+use Aicl\Filament\Resources\AiAgents\AiAgentResource;
+use Aicl\Filament\Resources\AiConversations\AiConversationResource;
 use Aicl\Filament\Resources\Users\UserResource;
+use Aicl\Filament\Widgets\AiAgentStatsWidget;
 use Aicl\Filament\Widgets\GlobalSearchWidget;
 use Aicl\Filament\Widgets\PresenceIndicator;
 use Aicl\Filament\Widgets\QueueStatsWidget;
@@ -188,6 +191,21 @@ class AiclPlugin implements Plugin
                 'version' => app(VersionService::class)->current(),
             ])->render(),
         );
+
+        // AI Assistant floating widget — injected on all admin pages when enabled
+        if (config('aicl.ai.assistant.enabled', false)) {
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::BODY_END,
+                function (): string {
+                    $user = auth()->user();
+                    if (! $user || ! $user->hasRole(['super_admin', 'admin'])) {
+                        return '';
+                    }
+
+                    return Blade::render('@livewire(\'aicl::ai-assistant-panel\')');
+                },
+            );
+        }
     }
 
     /**
@@ -196,6 +214,8 @@ class AiclPlugin implements Plugin
     protected function getResources(): array
     {
         return [
+            AiAgentResource::class,
+            AiConversationResource::class,
             UserResource::class,
         ];
     }
@@ -230,6 +250,7 @@ class AiclPlugin implements Plugin
     protected function getWidgets(): array
     {
         return [
+            AiAgentStatsWidget::class,
             GlobalSearchWidget::class,
             PresenceIndicator::class,
             QueueStatsWidget::class,

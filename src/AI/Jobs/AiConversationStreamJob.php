@@ -1,0 +1,220 @@
+<?php
+
+namespace Aicl\AI\Jobs;
+
+use Aicl\AI\AiChatService;
+use Aicl\AI\AiProviderFactory;
+use Aicl\AI\AiToolRegistry;
+use Aicl\AI\Events\AiStreamCompleted;
+use Aicl\AI\Events\AiStreamFailed;
+use Aicl\AI\Events\AiStreamStarted;
+use Aicl\AI\Events\AiTokenEvent;
+use Aicl\AI\Events\AiToolCallEvent;
+use Aicl\Enums\AiMessageRole;
+use Aicl\Models\AiAgent;
+use Aicl\Models\AiConversation;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use NeuronAI\Agent;
+use NeuronAI\AgentInterface;
+use NeuronAI\Chat\Messages\ToolCallMessage;
+use NeuronAI\Providers\AIProviderInterface;
+
+class AiConversationStreamJob implements ShouldQueue
+{
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+
+    public int $tries = 1;
+
+    public int $timeout = 120;
+
+    public function __construct(
+        public string $streamId,
+        public string $conversationId,
+    ) {
+        $this->timeout = (int) config('aicl.ai.streaming.timeout', 120);
+        $this->onQueue(config('aicl.ai.streaming.queue', 'default'));
+    }
+
+    public function handle(AiChatService $chatService): void
+    {
+        $conversation = AiConversation::with('agent')->find($this->conversationId);
+
+        if (! $conversation || ! $conversation->agent) {
+            Log::error('AI conversation stream: conversation or agent not found', [
+                'stream_id' => $this->streamId,
+                'conversation_id' => $this->conversationId,
+            ]);
+
+            return;
+        }
+
+        $agent = $conversation->agent;
+        $userId = $conversation->user_id;
+
+        broadcast(new AiStreamStarted($this->streamId, $userId));
+
+        try {
+            $provider = AiProviderFactory::makeFromAgent($agent);
+
+            if (! $provider) {
+                broadcast(new AiStreamFailed(
+                    $this->streamId,
+                    $userId,
+                    'AI provider not configured for this agent.',
+                ));
+
+                return;
+            }
+
+            $neuronAgent = $this->buildNeuronAgent($provider, $agent);
+            $messages = $chatService->buildMessageHistory($conversation);
+
+            $fullResponse = '';
+            $index = 0;
+
+            $generator = $neuronAgent->stream($messages);
+
+            foreach ($generator as $chunk) {
+                if ($chunk instanceof ToolCallMessage) {
+                    broadcast(new AiToolCallEvent(
+                        $this->streamId,
+                        $userId,
+                        collect($chunk->getTools())->map(fn ($t): array => [
+                            'name' => $t->getName(),
+                            'inputs' => $t->getInputs(),
+                        ])->toArray(),
+                    ));
+
+                    continue;
+                }
+
+                $token = (string) $chunk;
+                $fullResponse .= $token;
+
+                broadcast(new AiTokenEvent(
+                    $this->streamId,
+                    $userId,
+                    $token,
+                    $index++,
+                ));
+            }
+
+            $usage = $this->extractUsage($generator);
+
+            // Persist assistant response as AiMessage
+            $totalTokens = ($usage['input_tokens'] ?? 0) + ($usage['output_tokens'] ?? 0);
+
+            $conversation->messages()->create([
+                'role' => AiMessageRole::Assistant,
+                'content' => $fullResponse,
+                'token_count' => $totalTokens > 0 ? $totalTokens : null,
+                'metadata' => [
+                    'model' => $agent->model,
+                    'provider' => $agent->provider->value,
+                    'usage' => $usage,
+                    'stream_id' => $this->streamId,
+                ],
+            ]);
+
+            broadcast(new AiStreamCompleted(
+                $this->streamId,
+                $userId,
+                $index,
+                $usage,
+            ));
+
+            Log::info('AI conversation stream completed', [
+                'stream_id' => $this->streamId,
+                'conversation_id' => $this->conversationId,
+                'agent' => $agent->slug,
+                'total_tokens' => $index,
+                'usage' => $usage,
+            ]);
+
+            // Auto-compact if conversation exceeds threshold
+            $conversation->refresh();
+            if ($conversation->is_compactable) {
+                CompactConversationJob::dispatch($conversation->id);
+            }
+        } catch (\Throwable $e) {
+            Log::error('AI conversation stream failed', [
+                'stream_id' => $this->streamId,
+                'conversation_id' => $this->conversationId,
+                'error' => $e->getMessage(),
+            ]);
+
+            broadcast(new AiStreamFailed(
+                $this->streamId,
+                $userId,
+                'An error occurred while generating the response.',
+            ));
+        } finally {
+            $this->decrementConcurrentCount($userId);
+        }
+    }
+
+    /**
+     * Build the NeuronAI agent with the agent-specific provider and tools.
+     *
+     * Tool resolution respects the agent's capabilities:
+     * - Global tools_enabled config must be true
+     * - Agent must have capabilities.tools_enabled = true
+     * - Only allowed_tools are attached (or all if unrestricted)
+     */
+    protected function buildNeuronAgent(AIProviderInterface $provider, AiAgent $agent): AgentInterface
+    {
+        $neuronAgent = Agent::make()
+            ->setAiProvider($provider)
+            ->setInstructions($agent->system_prompt ?? config('aicl.ai.system_prompt', ''));
+
+        if (config('aicl.ai.tools_enabled', true)) {
+            $registry = app(AiToolRegistry::class);
+            $tools = $registry->resolveForAgent($agent);
+
+            if (! empty($tools)) {
+                $neuronAgent->addTool($tools);
+            }
+        }
+
+        return $neuronAgent;
+    }
+
+    /**
+     * Extract usage data from the completed generator.
+     *
+     * @return array<string, int>
+     */
+    private function extractUsage(\Generator $generator): array
+    {
+        $response = $generator->getReturn();
+
+        if ($response && method_exists($response, 'getUsage') && $response->getUsage()) {
+            return [
+                'input_tokens' => $response->getUsage()->inputTokens,
+                'output_tokens' => $response->getUsage()->outputTokens,
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * Decrement the concurrent stream count for this user.
+     */
+    private function decrementConcurrentCount(int $userId): void
+    {
+        $key = "ai-stream:user:{$userId}:count";
+        $current = (int) Cache::get($key, 0);
+
+        if ($current > 0) {
+            Cache::put($key, $current - 1, 300);
+        }
+    }
+}
