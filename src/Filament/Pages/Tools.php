@@ -44,12 +44,6 @@ class Tools extends Page
     {
         return [
             [
-                'title' => 'AI Assistant',
-                'description' => 'Chat with AI for code generation, debugging, and assistance',
-                'icon' => 'heroicon-o-cpu-chip',
-                'url' => AiAssistant::getUrl(),
-            ],
-            [
                 'title' => 'AI Agents',
                 'description' => 'Configure AI agents, models, tools, and role-based access',
                 'icon' => 'heroicon-o-cog-6-tooth',

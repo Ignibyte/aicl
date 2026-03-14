@@ -14,8 +14,6 @@ NeuronAI provides the AI/agent framework layer for AICL, handling LLM provider a
 | `EmbeddingService` | Pluggable embedding generation with auto-driver resolution |
 | `HasAiContext` | Model trait providing structured context for LLM prompts |
 
-> **See also:** [AI Assistant Streaming](ai-assistant.md) for the real-time WebSocket streaming architecture (Sprint I).
-
 ---
 
 ## AiProviderFactory
@@ -183,17 +181,11 @@ protected function aiContextFields(): array
 
 ---
 
-## AI Assistant Page
+## AI Assistant Panel
 
-A Filament page at `/admin/ai-assistant` with a real-time streaming chat UI. Dispatches a queued job that broadcasts tokens via Reverb WebSocket — zero Swoole worker occupation.
+The AI Assistant is a floating overlay panel (Cmd+J) available on every admin page. It uses WebSocket streaming via Reverb with multi-turn conversations, tool calling, and per-agent configuration.
 
-**Access:** `super_admin` or `admin` role required. Rate limited (10 requests/minute). Max 2 concurrent streams per user.
-
-**Endpoint:** `POST /ai/ask` with `{ prompt, entity_type?, entity_id? }`
-
-Entity context is injected when both `entity_type` and `entity_id` are provided and the model uses `HasAiContext`.
-
-**Full documentation:** See [AI Assistant Streaming](ai-assistant.md) for architecture, configuration, and usage details.
+**Access:** `super_admin` or `admin` role required. Max 2 concurrent streams per user.
 
 ---
 
@@ -208,4 +200,4 @@ Entity context is injected when both `entity_type` and `entity_id` are provided 
 | `src/Rlm/Embeddings/NeuronAiEmbeddingAdapter.php` | NeuronAI adapter |
 | `src/Rlm/Embeddings/NullDriver.php` | No-op fallback driver |
 | `src/Traits/HasAiContext.php` | Model AI context trait |
-| `src/Filament/Pages/AiAssistant.php` | Filament chat page |
+| `src/Livewire/AiAssistantPanel.php` | Floating overlay chat panel (Cmd+J) |

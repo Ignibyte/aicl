@@ -2,6 +2,7 @@
 
 namespace Aicl\AI\Tools;
 
+use Aicl\AI\Enums\ToolRenderType;
 use Aicl\Health\HealthCheckRegistry;
 
 class HealthStatusTool extends BaseTool
@@ -17,6 +18,32 @@ class HealthStatusTool extends BaseTool
     public function category(): string
     {
         return 'system';
+    }
+
+    public function renderAs(): ToolRenderType
+    {
+        return ToolRenderType::Status;
+    }
+
+    /**
+     * @return array{type: string, data: array{items: array<int, array{label: string, status: string, detail: string|null}>}}
+     */
+    public function formatResultForDisplay(mixed $result): array
+    {
+        if (is_string($result)) {
+            return ['type' => ToolRenderType::Text->value, 'data' => $result];
+        }
+
+        return [
+            'type' => ToolRenderType::Status->value,
+            'data' => [
+                'items' => collect($result)->map(fn (array $r): array => [
+                    'label' => $r['service'] ?? 'Unknown',
+                    'status' => $r['status'] ?? 'unknown',
+                    'detail' => is_array($r['details'] ?? null) ? json_encode($r['details']) : ($r['details'] ?? null),
+                ])->toArray(),
+            ],
+        ];
     }
 
     /**

@@ -13,7 +13,7 @@ class AiToolCallEvent implements ShouldBroadcastNow
     use InteractsWithSockets;
 
     /**
-     * @param  array<int, array{name: string, inputs: array<string, mixed>}>  $tools
+     * @param  array<int, array{name: string, inputs: array<string, mixed>, render?: array{type: string, data: mixed}}>  $tools
      */
     public function __construct(
         public string $streamId,

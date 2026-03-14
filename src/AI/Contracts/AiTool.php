@@ -2,6 +2,7 @@
 
 namespace Aicl\AI\Contracts;
 
+use Aicl\AI\Enums\ToolRenderType;
 use NeuronAI\Tools\ToolInterface;
 
 interface AiTool extends ToolInterface
@@ -16,4 +17,17 @@ interface AiTool extends ToolInterface
      * If true, the current user is injected before execution.
      */
     public function requiresAuth(): bool;
+
+    /**
+     * How the tool's result should be rendered in the frontend.
+     */
+    public function renderAs(): ToolRenderType;
+
+    /**
+     * Transform the raw __invoke() result into a structured shape
+     * the frontend can render as a card/table/badge.
+     *
+     * @return array{type: string, data: mixed}
+     */
+    public function formatResultForDisplay(mixed $result): array;
 }

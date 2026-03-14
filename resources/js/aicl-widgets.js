@@ -547,6 +547,7 @@ window.aiAssistantPanel = function (config) {
                                 this.messages[msgIndex].tools.push({
                                     name: tool.name,
                                     inputs: tool.inputs || {},
+                                    render: tool.render || null,
                                 });
                             });
                         }
@@ -661,13 +662,103 @@ window.aiAssistantPanel = function (config) {
                     depth--;
                     if (depth === 0) {
                         const remaining = trimmed.substring(i + 1).trimStart();
-                        return remaining || text;
+                        return remaining || '';
                     }
                 }
             }
 
             // JSON array not yet closed — hide the partial JSON while streaming
             return '';
+        },
+
+        /**
+         * Check if the current response is still buffering tool call JSON.
+         * Returns true while the opening [{ hasn't been closed yet.
+         */
+        _isBufferingJson(text) {
+            if (!text) return false;
+            const trimmed = text.trimStart();
+            if (!trimmed.startsWith('[{')) return false;
+
+            let depth = 0;
+            let inString = false;
+            let escape = false;
+
+            for (let i = 0; i < trimmed.length; i++) {
+                const ch = trimmed[i];
+                if (escape) { escape = false; continue; }
+                if (ch === '\\' && inString) { escape = true; continue; }
+                if (ch === '"') { inString = !inString; continue; }
+                if (inString) continue;
+                if (ch === '[') depth++;
+                if (ch === ']') { depth--; if (depth === 0) return false; }
+            }
+
+            return true;
+        },
+
+        /**
+         * Render markdown to sanitized HTML.
+         * Falls back to basic newline→br if marked/DOMPurify aren't loaded.
+         */
+        _renderMarkdown(text) {
+            if (!text) return '';
+            if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                try {
+                    return DOMPurify.sanitize(marked.parse(text, { breaks: true }));
+                } catch (e) {
+                    // Fall through to basic rendering
+                }
+            }
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+        },
+
+        /**
+         * Render a structured tool result card as HTML.
+         * Returns empty string if no render data or type is 'text'.
+         */
+        _renderToolCard(tool) {
+            if (!tool.render || !tool.render.data) return '';
+            const { type, data } = tool.render;
+
+            if (type === 'text' || typeof data === 'string') return '';
+
+            if (type === 'table' && data.columns && data.rows) {
+                const ths = data.columns.map(c => `<th class="px-3 py-1.5 text-left text-xs font-medium text-gray-400">${this._esc(c)}</th>`).join('');
+                const trs = data.rows.map(row => {
+                    const tds = data.columns.map(c => `<td class="px-3 py-1.5 text-xs text-gray-300">${this._esc(String(row[c] ?? '-'))}</td>`).join('');
+                    return `<tr class="border-t border-white/5">${tds}</tr>`;
+                }).join('');
+                return `<div class="overflow-x-auto rounded-lg border border-white/5 bg-gray-800/30"><table class="w-full"><thead><tr class="border-b border-white/10">${ths}</tr></thead><tbody>${trs}</tbody></table></div>`;
+            }
+
+            if (type === 'key-value' && data.pairs) {
+                const items = data.pairs.map(p =>
+                    `<div class="flex justify-between gap-4 py-1.5"><span class="text-xs text-gray-400">${this._esc(p.key)}</span><span class="text-xs font-medium text-gray-200">${this._esc(String(p.value))}</span></div>`
+                ).join('');
+                return `<div class="rounded-lg border border-white/5 bg-gray-800/30 px-3 divide-y divide-white/5">${items}</div>`;
+            }
+
+            if (type === 'status' && data.items) {
+                const badges = data.items.map(item => {
+                    const color = item.status === 'healthy' ? 'text-green-400 bg-green-400/10 ring-green-400/20'
+                        : item.status === 'degraded' ? 'text-yellow-400 bg-yellow-400/10 ring-yellow-400/20'
+                        : 'text-red-400 bg-red-400/10 ring-red-400/20';
+                    return `<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${color}"><span class="h-1.5 w-1.5 rounded-full" style="background: currentColor"></span>${this._esc(item.label)}</span>`;
+                }).join('');
+                return `<div class="flex flex-wrap gap-1.5">${badges}</div>`;
+            }
+
+            return '';
+        },
+
+        /**
+         * Escape HTML entities for safe rendering in tool cards.
+         */
+        _esc(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         },
 
         scrollToBottom() {

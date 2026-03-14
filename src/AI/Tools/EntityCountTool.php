@@ -2,7 +2,9 @@
 
 namespace Aicl\AI\Tools;
 
+use Aicl\AI\Enums\ToolRenderType;
 use Aicl\Services\EntityRegistry;
+use Illuminate\Support\Collection;
 use NeuronAI\Tools\PropertyType;
 use NeuronAI\Tools\ToolProperty;
 
@@ -35,6 +37,39 @@ class EntityCountTool extends BaseTool
         return 'queries';
     }
 
+    public function renderAs(): ToolRenderType
+    {
+        return ToolRenderType::KeyValue;
+    }
+
+    /**
+     * @return array{type: string, data: array{pairs: array<int, array{key: string, value: mixed}>}}
+     */
+    public function formatResultForDisplay(mixed $result): array
+    {
+        if (is_string($result)) {
+            return ['type' => ToolRenderType::Text->value, 'data' => $result];
+        }
+
+        $pairs = [];
+
+        foreach ($result as $key => $value) {
+            if (is_array($value)) {
+                // Grouped by status: "Entity" => ["active" => 5, "draft" => 2]
+                foreach ($value as $status => $count) {
+                    $pairs[] = ['key' => "{$key} ({$status})", 'value' => $count];
+                }
+            } else {
+                $pairs[] = ['key' => (string) $key, 'value' => $value];
+            }
+        }
+
+        return [
+            'type' => ToolRenderType::KeyValue->value,
+            'data' => ['pairs' => $pairs],
+        ];
+    }
+
     /**
      * @return string|array<string, mixed>
      */
@@ -57,7 +92,7 @@ class EntityCountTool extends BaseTool
     /**
      * @return array<string, int>|string
      */
-    private function simpleCounts(\Illuminate\Support\Collection $allTypes, ?string $entityType): array|string
+    private function simpleCounts(Collection $allTypes, ?string $entityType): array|string
     {
         if ($entityType !== null) {
             $normalizedType = strtolower(str_replace([' ', '-'], '_', $entityType));

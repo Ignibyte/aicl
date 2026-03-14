@@ -12,6 +12,37 @@
     class="ai-assistant-widget"
     wire:ignore.self
 >
+    {{-- Markdown rendering libraries (loaded once) --}}
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js" defer></script>
+
+    {{-- Prose styles for chat markdown --}}
+    <style>
+        .prose-chat { line-height: 1.6; }
+        .prose-chat p { margin: 0.25em 0; }
+        .prose-chat p:first-child { margin-top: 0; }
+        .prose-chat p:last-child { margin-bottom: 0; }
+        .prose-chat strong { font-weight: 600; color: hsl(var(--aicl-foreground, 0 0% 100%)); }
+        .prose-chat em { font-style: italic; }
+        .prose-chat ul, .prose-chat ol { margin: 0.5em 0; padding-left: 1.5em; }
+        .prose-chat li { margin: 0.15em 0; }
+        .prose-chat li::marker { color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); }
+        .prose-chat code { font-size: 0.85em; padding: 0.15em 0.35em; border-radius: 0.25rem; background: rgba(255,255,255,0.08); color: hsl(var(--aicl-primary, 32 95% 55%)); font-family: ui-monospace, 'JetBrains Mono', monospace; }
+        .prose-chat pre { margin: 0.5em 0; padding: 0.75em 1em; border-radius: 0.5rem; background: rgba(0,0,0,0.3); overflow-x: auto; border: 1px solid rgba(255,255,255,0.05); }
+        .prose-chat pre code { padding: 0; background: none; color: hsl(var(--aicl-foreground, 0 0% 83%)); font-size: 0.8em; }
+        .prose-chat a { color: hsl(var(--aicl-primary, 32 95% 55%)); text-decoration: underline; }
+        .prose-chat a:hover { opacity: 0.8; }
+        .prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 600; color: hsl(var(--aicl-foreground, 0 0% 100%)); margin: 0.75em 0 0.25em; }
+        .prose-chat h1 { font-size: 1.15em; }
+        .prose-chat h2 { font-size: 1.05em; }
+        .prose-chat h3 { font-size: 0.95em; }
+        .prose-chat table { width: 100%; border-collapse: collapse; margin: 0.5em 0; font-size: 0.85em; }
+        .prose-chat th { text-align: left; padding: 0.35em 0.5em; border-bottom: 1px solid rgba(255,255,255,0.1); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); font-weight: 500; }
+        .prose-chat td { padding: 0.35em 0.5em; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .prose-chat blockquote { margin: 0.5em 0; padding-left: 0.75em; border-left: 3px solid rgba(255,255,255,0.15); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); }
+        .prose-chat hr { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 0.75em 0; }
+    </style>
+
     {{-- Floating Toggle Button --}}
     <button
         x-show="!panelOpen"
@@ -89,10 +120,10 @@
                     @foreach ($this->conversations as $convo)
                         <div
                             wire:key="convo-{{ $convo->id }}"
-                            x-data="{ hovered: false }"
+                            x-data="{ hovered: false, editing: false, editTitle: '{{ str_replace("'", "\\'", $convo->display_title) }}' }"
                             x-on:mouseenter="hovered = true"
                             x-on:mouseleave="hovered = false"
-                            x-on:click="switchConversation('{{ $convo->id }}')"
+                            x-on:click="if (!editing) switchConversation('{{ $convo->id }}')"
                             :class="activeConversationId === '{{ $convo->id }}'
                                 ? 'bg-primary-500/15 text-primary-400'
                                 : 'text-gray-300 hover:bg-white/5'"
@@ -101,17 +132,51 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
                             </svg>
-                            <span class="flex-1 truncate">{{ $convo->display_title }}</span>
-                            <button
-                                x-show="hovered"
-                                x-on:click.stop="deleteConversation('{{ $convo->id }}')"
-                                class="shrink-0 rounded p-1 text-gray-500 transition hover:text-danger-400"
-                                title="Delete"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                </svg>
-                            </button>
+
+                            {{-- Inline rename input --}}
+                            <input
+                                x-show="editing"
+                                x-model="editTitle"
+                                x-on:click.stop
+                                x-on:keydown.enter.prevent="$wire.renameConversation('{{ $convo->id }}', editTitle); editing = false"
+                                x-on:keydown.escape.prevent="editing = false; editTitle = '{{ str_replace("'", "\\'", $convo->display_title) }}'"
+                                x-on:blur="if (editTitle.trim()) { $wire.renameConversation('{{ $convo->id }}', editTitle); } editing = false"
+                                x-ref="renameInput{{ $loop->index }}"
+                                class="flex-1 truncate border-0 bg-transparent p-0 text-sm text-white focus:ring-0"
+                                maxlength="100"
+                            />
+
+                            {{-- Display title (double-click to rename) --}}
+                            <span
+                                x-show="!editing"
+                                x-on:dblclick.stop="editing = true; $nextTick(() => $refs['renameInput{{ $loop->index }}'].focus())"
+                                class="flex-1 truncate"
+                                title="Double-click to rename"
+                            >{{ $convo->display_title }}</span>
+
+                            {{-- Action buttons (on hover) --}}
+                            <div x-show="hovered && !editing" class="flex shrink-0 items-center gap-0.5">
+                                {{-- Rename --}}
+                                <button
+                                    x-on:click.stop="editing = true; $nextTick(() => $refs['renameInput{{ $loop->index }}'].focus())"
+                                    class="rounded p-1 text-gray-500 transition hover:text-gray-300"
+                                    title="Rename"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                    </svg>
+                                </button>
+                                {{-- Delete --}}
+                                <button
+                                    x-on:click.stop="deleteConversation('{{ $convo->id }}')"
+                                    class="rounded p-1 text-gray-500 transition hover:text-danger-400"
+                                    title="Delete"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     @endforeach
 
@@ -283,24 +348,34 @@
                                             <span class="text-[11px] text-gray-500" x-text="msg.timestamp || ''"></span>
                                         </div>
 
-                                        {{-- Tool Call Chips --}}
-                                        <template x-if="msg.tools && msg.tools.length > 0">
-                                            <div class="mb-1.5 ml-9 flex flex-wrap gap-1">
-                                                <template x-for="(tool, tIdx) in msg.tools" :key="tIdx">
-                                                    <span class="inline-flex items-center gap-1 rounded-full bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-400 ring-1 ring-inset ring-primary-400/20">
-                                                        <svg class="h-2.5 w-2.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fill-rule="evenodd" d="M14.5 10a4.5 4.5 0 004.284-5.882c-.105-.324-.51-.391-.752-.15L15.34 6.66a.454.454 0 01-.493.11 3.01 3.01 0 01-1.618-1.616.455.455 0 01.11-.494l2.694-2.692c.24-.241.174-.647-.15-.752a4.5 4.5 0 00-5.873 4.575c.055.873-.128 1.808-.8 2.368l-7.23 6.024a2.724 2.724 0 103.837 3.837l6.024-7.23c.56-.672 1.495-.855 2.368-.8.18.013.36.017.54.017zM5 16a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd" />
-                                                        </svg>
-                                                        <span x-text="tool.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())"></span>
-                                                    </span>
-                                                </template>
-                                            </div>
-                                        </template>
-
-                                        {{-- Bubble --}}
-                                        <div x-show="msg.content" class="max-w-full">
+                                        {{-- Response Bubble (contains tool chips, cards, and text) --}}
+                                        <div x-show="(msg.tools && msg.tools.length > 0) || (msg.content && !_isBufferingJson(_currentResponse && messages.indexOf(msg) === messages.length - 1 ? _currentResponse : ''))" class="max-w-full">
                                             <div class="rounded-2xl rounded-tl-sm border border-white/5 bg-gray-800/50 px-4 py-2.5 text-gray-100">
-                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]"></div>
+                                                {{-- Tool Call Chips --}}
+                                                <template x-if="msg.tools && msg.tools.length > 0">
+                                                    <div class="mb-2 flex flex-wrap gap-1">
+                                                        <template x-for="(tool, tIdx) in msg.tools" :key="tIdx">
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-400 ring-1 ring-inset ring-primary-400/20">
+                                                                <svg class="h-2.5 w-2.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fill-rule="evenodd" d="M14.5 10a4.5 4.5 0 004.284-5.882c-.105-.324-.51-.391-.752-.15L15.34 6.66a.454.454 0 01-.493.11 3.01 3.01 0 01-1.618-1.616.455.455 0 01.11-.494l2.694-2.692c.24-.241.174-.647-.15-.752a4.5 4.5 0 00-5.873 4.575c.055.873-.128 1.808-.8 2.368l-7.23 6.024a2.724 2.724 0 103.837 3.837l6.024-7.23c.56-.672 1.495-.855 2.368-.8.18.013.36.017.54.017zM5 16a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd" />
+                                                                </svg>
+                                                                <span x-text="tool.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())"></span>
+                                                            </span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+
+                                                {{-- Structured Tool Result Cards --}}
+                                                <template x-if="msg.tools && msg.tools.length > 0">
+                                                    <div class="mb-2 space-y-1.5">
+                                                        <template x-for="(tool, tIdx) in msg.tools" :key="'card-' + tIdx">
+                                                            <div x-show="tool.render && tool.render.type !== 'text'" x-html="_renderToolCard(tool)" class="text-sm"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+
+                                                {{-- Text Content --}}
+                                                <div x-show="msg.content && !_isBufferingJson(_currentResponse && messages.indexOf(msg) === messages.length - 1 ? _currentResponse : '')" x-html="_renderMarkdown(msg.content || '')" class="prose-chat text-sm [overflow-wrap:anywhere]"></div>
                                             </div>
                                         </div>
                                     </div>

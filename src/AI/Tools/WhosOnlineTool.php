@@ -2,6 +2,7 @@
 
 namespace Aicl\AI\Tools;
 
+use Aicl\AI\Enums\ToolRenderType;
 use Aicl\Services\PresenceRegistry;
 
 class WhosOnlineTool extends BaseTool
@@ -17,6 +18,34 @@ class WhosOnlineTool extends BaseTool
     public function category(): string
     {
         return 'system';
+    }
+
+    public function renderAs(): ToolRenderType
+    {
+        return ToolRenderType::Table;
+    }
+
+    /**
+     * @return array{type: string, data: array{columns: array<string>, rows: array<int, array<string, mixed>>}}
+     */
+    public function formatResultForDisplay(mixed $result): array
+    {
+        if (is_string($result)) {
+            return ['type' => ToolRenderType::Text->value, 'data' => $result];
+        }
+
+        return [
+            'type' => ToolRenderType::Table->value,
+            'data' => [
+                'columns' => ['User', 'Role', 'Last Seen', 'IP'],
+                'rows' => collect($result)->map(fn (array $s): array => [
+                    'User' => $s['user'] ?? 'Unknown',
+                    'Role' => $s['role'] ?? '-',
+                    'Last Seen' => $s['last_seen'] ?? '-',
+                    'IP' => $s['ip'] ?? '-',
+                ])->toArray(),
+            ],
+        ];
     }
 
     /**

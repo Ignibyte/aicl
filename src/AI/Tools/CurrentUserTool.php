@@ -2,6 +2,7 @@
 
 namespace Aicl\AI\Tools;
 
+use Aicl\AI\Enums\ToolRenderType;
 use App\Models\User;
 
 class CurrentUserTool extends BaseTool
@@ -22,6 +23,33 @@ class CurrentUserTool extends BaseTool
     public function requiresAuth(): bool
     {
         return true;
+    }
+
+    public function renderAs(): ToolRenderType
+    {
+        return ToolRenderType::KeyValue;
+    }
+
+    /**
+     * @return array{type: string, data: array{pairs: array<int, array{key: string, value: mixed}>}}
+     */
+    public function formatResultForDisplay(mixed $result): array
+    {
+        if (is_string($result)) {
+            return ['type' => ToolRenderType::Text->value, 'data' => $result];
+        }
+
+        return [
+            'type' => ToolRenderType::KeyValue->value,
+            'data' => [
+                'pairs' => [
+                    ['key' => 'Name', 'value' => $result['name'] ?? '-'],
+                    ['key' => 'Email', 'value' => $result['email'] ?? '-'],
+                    ['key' => 'Roles', 'value' => implode(', ', $result['roles'] ?? []) ?: '-'],
+                    ['key' => 'Member Since', 'value' => $result['created_at'] ?? '-'],
+                ],
+            ],
+        ];
     }
 
     /**

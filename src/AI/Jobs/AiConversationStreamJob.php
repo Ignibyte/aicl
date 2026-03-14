@@ -10,6 +10,7 @@ use Aicl\AI\Events\AiStreamFailed;
 use Aicl\AI\Events\AiStreamStarted;
 use Aicl\AI\Events\AiTokenEvent;
 use Aicl\AI\Events\AiToolCallEvent;
+use Aicl\AI\Tools\BaseTool;
 use Aicl\Enums\AiMessageRole;
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
@@ -73,23 +74,38 @@ class AiConversationStreamJob implements ShouldQueue
                 return;
             }
 
-            $neuronAgent = $this->buildNeuronAgent($provider, $agent);
+            $neuronAgent = $this->buildNeuronAgent($provider, $agent, $userId);
             $messages = $chatService->buildMessageHistory($conversation);
 
             $fullResponse = '';
             $index = 0;
+            $toolResults = [];
 
             $generator = $neuronAgent->stream($messages);
 
             foreach ($generator as $chunk) {
                 if ($chunk instanceof ToolCallMessage) {
+                    $toolData = collect($chunk->getTools())->map(function ($t) use (&$toolResults): array {
+                        $entry = [
+                            'name' => $t->getName(),
+                            'inputs' => $t->getInputs(),
+                        ];
+
+                        // Include structured render data if the tool supports it
+                        if ($t instanceof BaseTool) {
+                            $rawResult = json_decode($t->getResult(), true);
+                            $render = $t->formatResultForDisplay($rawResult);
+                            $entry['render'] = $render;
+                            $toolResults[] = $entry;
+                        }
+
+                        return $entry;
+                    })->toArray();
+
                     broadcast(new AiToolCallEvent(
                         $this->streamId,
                         $userId,
-                        collect($chunk->getTools())->map(fn ($t): array => [
-                            'name' => $t->getName(),
-                            'inputs' => $t->getInputs(),
-                        ])->toArray(),
+                        $toolData,
                     ));
 
                     continue;
@@ -116,16 +132,22 @@ class AiConversationStreamJob implements ShouldQueue
             // Persist assistant response as AiMessage
             $totalTokens = ($usage['input_tokens'] ?? 0) + ($usage['output_tokens'] ?? 0);
 
+            $metadata = [
+                'model' => $agent->model,
+                'provider' => $agent->provider->value,
+                'usage' => $usage,
+                'stream_id' => $this->streamId,
+            ];
+
+            if (! empty($toolResults)) {
+                $metadata['tool_results'] = $toolResults;
+            }
+
             $conversation->messages()->create([
                 'role' => AiMessageRole::Assistant,
                 'content' => $cleanResponse,
                 'token_count' => $totalTokens > 0 ? $totalTokens : null,
-                'metadata' => [
-                    'model' => $agent->model,
-                    'provider' => $agent->provider->value,
-                    'usage' => $usage,
-                    'stream_id' => $this->streamId,
-                ],
+                'metadata' => $metadata,
             ]);
 
             broadcast(new AiStreamCompleted(
@@ -173,7 +195,7 @@ class AiConversationStreamJob implements ShouldQueue
      * - Agent must have capabilities.tools_enabled = true
      * - Only allowed_tools are attached (or all if unrestricted)
      */
-    protected function buildNeuronAgent(AIProviderInterface $provider, AiAgent $agent): AgentInterface
+    protected function buildNeuronAgent(AIProviderInterface $provider, AiAgent $agent, int $userId): AgentInterface
     {
         $neuronAgent = Agent::make()
             ->setAiProvider($provider)
@@ -181,7 +203,7 @@ class AiConversationStreamJob implements ShouldQueue
 
         if (config('aicl.ai.tools_enabled', true)) {
             $registry = app(AiToolRegistry::class);
-            $tools = $registry->resolveForAgent($agent);
+            $tools = $registry->resolveForAgent($agent, $userId);
 
             if (! empty($tools)) {
                 $neuronAgent->addTool($tools);

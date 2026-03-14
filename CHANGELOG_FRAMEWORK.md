@@ -10,9 +10,29 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.5.2`
+Current version: `1.5.3`
 
 ---
+
+## [1.5.3] - 2026-03-14
+
+### Added
+
+- **Tool Output Contract** — `ToolRenderType` enum (Text, Table, KeyValue, Status) with `renderAs()` and `formatResultForDisplay()` on `AiTool` contract. Tools declare how their results should render in the frontend.
+- **Structured Tool Cards** — All 5 built-in tools implement structured output: WhosOnline (table), CurrentUser (key-value), QueryEntity (table), HealthStatus (status badges), EntityCount (key-value). Frontend renders cards inside the response bubble.
+- **Markdown Rendering** — `marked.js` + `DOMPurify` via CDN with `.prose-chat` styles using `--aicl-*` design tokens. Headings, bold, lists, code blocks, tables, links all render correctly.
+- **JSON Buffering** — `_isBufferingJson()` hides the assistant bubble while NeuronAI tool call JSON is still streaming, preventing raw JSON flash.
+- **Conversation Auto-Title** — New conversations are titled from the first user message (truncated to 60 chars) instead of "New Conversation".
+- **Conversation Rename** — Double-click or pencil icon on sidebar conversations to rename inline. Saves on Enter/blur, cancels on Escape.
+
+### Fixed
+
+- **`$userId` not passed to tool registry** — `AiConversationStreamJob::buildNeuronAgent()` now passes `$userId` to `resolveForAgent()`. Auth-dependent tools (QueryEntity, CurrentUser) receive the correct user context.
+- **Tool result data stored in message metadata** — Structured render data is broadcast in `ai.tool_call` events AND stored in `metadata.tool_results` for consistent replay on `loadMessages()`.
+
+### Removed
+
+- **Standalone AI Assistant page** (`/admin/ai-assistant`) — Removed Filament page, Blade view, plugin registration, Tools card link, and 5 access tests. Use the floating overlay panel (Cmd+J) instead.
 
 ## [1.5.2] - 2026-03-14
 

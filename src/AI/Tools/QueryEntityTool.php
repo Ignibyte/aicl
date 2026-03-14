@@ -2,8 +2,10 @@
 
 namespace Aicl\AI\Tools;
 
+use Aicl\AI\Enums\ToolRenderType;
 use Aicl\Services\EntityRegistry;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use NeuronAI\Tools\PropertyType;
@@ -47,6 +49,35 @@ class QueryEntityTool extends BaseTool
     public function requiresAuth(): bool
     {
         return true;
+    }
+
+    public function renderAs(): ToolRenderType
+    {
+        return ToolRenderType::Table;
+    }
+
+    /**
+     * @return array{type: string, data: mixed}
+     */
+    public function formatResultForDisplay(mixed $result): array
+    {
+        if (is_string($result)) {
+            return ['type' => ToolRenderType::Text->value, 'data' => $result];
+        }
+
+        if (! is_array($result) || empty($result)) {
+            return ['type' => ToolRenderType::Text->value, 'data' => 'No results.'];
+        }
+
+        $columns = array_keys($result[0]);
+
+        return [
+            'type' => ToolRenderType::Table->value,
+            'data' => [
+                'columns' => $columns,
+                'rows' => $result,
+            ],
+        ];
     }
 
     /**
@@ -112,7 +143,7 @@ class QueryEntityTool extends BaseTool
     /**
      * Apply "field:value" filter pairs to the query.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<Model>  $query
+     * @param  Builder<Model>  $query
      */
     private function applyFilters(mixed $query, string $filters): void
     {

@@ -3,7 +3,6 @@
 namespace Aicl;
 
 use Aicl\Filament\Pages\ActivityLog;
-use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\Auth\Register;
 use Aicl\Filament\Pages\Changelog;
@@ -227,7 +226,6 @@ class AiclPlugin implements Plugin
     {
         return [
             ActivityLog::class,
-            AiAssistant::class,
             OpsPanel::class,
             OperationsManager::class,
             ManageSettings::class,

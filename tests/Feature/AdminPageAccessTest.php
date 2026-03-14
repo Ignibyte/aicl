@@ -6,7 +6,6 @@ use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
 use Aicl\Filament\Pages\ActivityLog;
-use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
@@ -307,40 +306,7 @@ class AdminPageAccessTest extends TestCase
 
     // Old standalone pages removed — notification-log, audit-log, domain-events routes no longer exist
 
-    // AI Assistant
-
-    public function test_ai_assistant_accessible_by_super_admin(): void
-    {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/ai-assistant');
-
-        $response->assertOk();
-    }
-
-    public function test_ai_assistant_accessible_by_admin(): void
-    {
-        $response = $this->actingAs($this->admin)->get('/admin/ai-assistant');
-
-        $response->assertOk();
-    }
-
-    public function test_ai_assistant_forbidden_for_viewer(): void
-    {
-        $response = $this->actingAs($this->viewer)->get('/admin/ai-assistant');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_ai_assistant_can_access_returns_false_for_null_user(): void
-    {
-        $this->assertFalse(AiAssistant::canAccess());
-    }
-
-    public function test_ai_assistant_redirects_guest(): void
-    {
-        $response = $this->get('/admin/ai-assistant');
-
-        $response->assertRedirect();
-    }
+    // AI Assistant standalone page removed — use the floating overlay panel (Cmd+J) instead
 
     protected function callProtectedMethod(object $object, string $method, array $args = []): mixed
     {

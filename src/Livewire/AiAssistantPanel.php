@@ -40,7 +40,8 @@ class AiAssistantPanel extends Component
         }
 
         // Create conversation if none active
-        if (! $this->activeConversationId) {
+        $isNewConversation = ! $this->activeConversationId;
+        if ($isNewConversation) {
             $this->createConversation();
         }
 
@@ -53,6 +54,14 @@ class AiAssistantPanel extends Component
         // Verify role-based access to the agent
         if (! $conversation->agent?->isAccessibleByUser($user)) {
             return ['error' => 'You do not have access to this AI agent.'];
+        }
+
+        // Auto-title new conversations from the first message
+        if ($isNewConversation) {
+            $title = mb_strlen($message) > 60
+                ? mb_substr($message, 0, 57).'...'
+                : $message;
+            $conversation->update(['title' => $title]);
         }
 
         try {
@@ -163,6 +172,34 @@ class AiAssistantPanel extends Component
     }
 
     /**
+     * Rename a conversation.
+     */
+    public function renameConversation(string $conversationId, string $title): void
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $title = trim($title);
+
+        if ($title === '') {
+            return;
+        }
+
+        $conversation = AiConversation::query()
+            ->where('user_id', $user->id)
+            ->find($conversationId);
+
+        if (! $conversation) {
+            return;
+        }
+
+        $conversation->update(['title' => mb_substr($title, 0, 100)]);
+    }
+
+    /**
      * Get messages for the active conversation.
      *
      * @return array<int, array{role: string, content: string, tools: array<int, array{name: string}>, timestamp: string, agent_name: string|null}>
@@ -193,6 +230,37 @@ class AiAssistantPanel extends Component
                     $extracted = $this->extractToolCalls($content);
                     $content = $extracted['content'];
                     $tools = $extracted['tools'];
+                }
+
+                // Merge structured tool render data from metadata (for replay)
+                $metadata = $msg->metadata ?? [];
+                $toolResults = $metadata['tool_results'] ?? [];
+
+                if (! empty($toolResults)) {
+                    // Enrich tool entries with render data from metadata
+                    $renderByName = collect($toolResults)->keyBy('name');
+
+                    $tools = collect($tools)->map(function (array $tool) use ($renderByName): array {
+                        $stored = $renderByName->get($tool['name']);
+
+                        if ($stored && isset($stored['render'])) {
+                            $tool['render'] = $stored['render'];
+                        }
+
+                        return $tool;
+                    })->toArray();
+
+                    // Add any tools from metadata not found via JSON extraction
+                    foreach ($toolResults as $tr) {
+                        $exists = collect($tools)->contains(fn (array $t): bool => $t['name'] === $tr['name']);
+
+                        if (! $exists) {
+                            $tools[] = [
+                                'name' => $tr['name'],
+                                'render' => $tr['render'] ?? null,
+                            ];
+                        }
+                    }
                 }
 
                 return [
