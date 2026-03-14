@@ -59,8 +59,8 @@
         {{-- Main Panel Container --}}
         <div
             :class="fullScreen
-                ? 'relative z-10 m-4 flex flex-1 overflow-hidden rounded-2xl border border-white/5 bg-gray-900 shadow-2xl sm:m-6 md:m-8 lg:m-10'
-                : 'flex flex-1 overflow-hidden rounded-xl border border-white/5 bg-gray-900 shadow-2xl'"
+                ? 'relative z-10 m-4 flex min-w-0 flex-1 overflow-hidden rounded-2xl border border-white/5 bg-gray-900 shadow-2xl sm:m-6 md:m-8 lg:m-10'
+                : 'flex min-w-0 flex-1 overflow-hidden rounded-xl border border-white/5 bg-gray-900 shadow-2xl'"
         >
             {{-- Conversation Sidebar (full-screen only) --}}
             <div
@@ -87,28 +87,32 @@
                 <div class="flex-1 overflow-y-auto px-3 pb-3">
                     <div class="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Recent</div>
                     @foreach ($this->conversations as $convo)
-                        <button
+                        <div
                             wire:key="convo-{{ $convo->id }}"
+                            x-data="{ hovered: false }"
+                            x-on:mouseenter="hovered = true"
+                            x-on:mouseleave="hovered = false"
                             x-on:click="switchConversation('{{ $convo->id }}')"
                             :class="activeConversationId === '{{ $convo->id }}'
                                 ? 'bg-primary-500/15 text-primary-400'
                                 : 'text-gray-300 hover:bg-white/5'"
-                            class="group flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition"
+                            class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
                             </svg>
                             <span class="flex-1 truncate">{{ $convo->display_title }}</span>
                             <button
+                                x-show="hovered"
                                 x-on:click.stop="deleteConversation('{{ $convo->id }}')"
-                                class="hidden rounded p-1 text-gray-500 transition hover:text-danger-400 group-hover:block"
+                                class="shrink-0 rounded p-1 text-gray-500 transition hover:text-danger-400"
                                 title="Delete"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                                 </svg>
                             </button>
-                        </button>
+                        </div>
                     @endforeach
 
                     @if ($this->conversations->isEmpty())
@@ -124,7 +128,7 @@
             </div>
 
             {{-- Chat Area --}}
-            <div class="flex flex-1 flex-col">
+            <div class="flex min-w-0 flex-1 flex-col">
                 {{-- Header --}}
                 <div class="flex items-center border-b border-white/5 px-3 py-2">
                     {{-- Left side: Sidebar toggle OR AI Assistant label --}}
@@ -159,9 +163,9 @@
                     <div class="flex-1"></div>
 
                     {{-- Right side: Agent selector + action buttons --}}
-                    <div class="flex items-center gap-1">
+                    <div class="flex min-w-0 items-center gap-1">
                         {{-- Agent Selector (compact dropdown, Replit-style) --}}
-                        <div class="relative inline-flex w-[170px]">
+                        <div class="relative inline-flex" :class="fullScreen ? 'w-[170px]' : 'w-[120px]'">
                             <select
                                 x-model="selectedAgentId"
                                 x-on:change="onAgentChange"
@@ -294,9 +298,9 @@
                                         </template>
 
                                         {{-- Bubble --}}
-                                        <div x-show="msg.content" class="max-w-[85%]">
+                                        <div x-show="msg.content" class="max-w-full">
                                             <div class="rounded-2xl rounded-tl-sm border border-white/5 bg-gray-800/50 px-4 py-2.5 text-gray-100">
-                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap break-words text-sm leading-relaxed"></div>
+                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]"></div>
                                             </div>
                                         </div>
                                     </div>

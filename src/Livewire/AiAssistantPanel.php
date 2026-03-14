@@ -3,6 +3,7 @@
 namespace Aicl\Livewire;
 
 use Aicl\AI\AiChatService;
+use Aicl\Enums\AiMessageRole;
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
 use App\Models\User;

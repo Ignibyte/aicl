@@ -556,11 +556,15 @@ window.aiAssistantPanel = function (config) {
                     case 'ai.token': {
                         const payload = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
                         this._currentResponse += payload.token;
-                        this.messages[msgIndex].content = this._currentResponse;
+                        this.messages[msgIndex].content = this._stripToolCallJson(this._currentResponse);
                         this.$nextTick(() => this.scrollToBottom());
                         break;
                     }
                     case 'ai.completed':
+                        // Final cleanup of tool call JSON from the completed response
+                        if (this._currentResponse) {
+                            this.messages[msgIndex].content = this._stripToolCallJson(this._currentResponse);
+                        }
                         this._cleanup();
                         break;
                     case 'ai.failed': {
@@ -629,6 +633,41 @@ window.aiAssistantPanel = function (config) {
                 this._ws.close();
                 this._ws = null;
             }
+        },
+
+        /**
+         * Strip leading tool call JSON from streamed response text.
+         *
+         * NeuronAI streams tool call/result data as a JSON array before
+         * the natural language response: [{callId, name, ...}]Text here.
+         * This removes the JSON portion and returns the clean text.
+         */
+        _stripToolCallJson(text) {
+            const trimmed = text.trimStart();
+            if (!trimmed.startsWith('[{')) return text;
+
+            let depth = 0;
+            let inString = false;
+            let escape = false;
+
+            for (let i = 0; i < trimmed.length; i++) {
+                const ch = trimmed[i];
+                if (escape) { escape = false; continue; }
+                if (ch === '\\' && inString) { escape = true; continue; }
+                if (ch === '"') { inString = !inString; continue; }
+                if (inString) continue;
+                if (ch === '[') depth++;
+                if (ch === ']') {
+                    depth--;
+                    if (depth === 0) {
+                        const remaining = trimmed.substring(i + 1).trimStart();
+                        return remaining || text;
+                    }
+                }
+            }
+
+            // JSON array not yet closed — hide the partial JSON while streaming
+            return '';
         },
 
         scrollToBottom() {
