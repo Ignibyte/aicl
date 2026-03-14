@@ -451,7 +451,7 @@ window.aiAssistantPanel = function (config) {
             this.messages = loaded.map(msg => ({
                 role: msg.role,
                 content: msg.content,
-                tools: [],
+                tools: msg.tools || [],
                 timestamp: msg.timestamp || '',
                 agent_name: msg.agent_name || null,
             }));

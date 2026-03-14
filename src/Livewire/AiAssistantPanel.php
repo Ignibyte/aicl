@@ -164,7 +164,7 @@ class AiAssistantPanel extends Component
     /**
      * Get messages for the active conversation.
      *
-     * @return array<int, array{role: string, content: string, timestamp: string, agent_name: string|null}>
+     * @return array<int, array{role: string, content: string, tools: array<int, array{name: string}>, timestamp: string, agent_name: string|null}>
      */
     public function loadMessages(): array
     {
@@ -183,13 +183,132 @@ class AiAssistantPanel extends Component
         return $conversation->messages()
             ->orderBy('created_at')
             ->get()
-            ->map(fn ($msg): array => [
-                'role' => $msg->role->value,
-                'content' => $msg->content,
-                'timestamp' => $msg->created_at->format('g:i A'),
-                'agent_name' => $msg->role->value === 'assistant' ? $agentName : null,
-            ])
+            ->map(function ($msg) use ($agentName): array {
+                $content = $msg->content;
+                $tools = [];
+
+                // Extract tool call JSON from persisted assistant content
+                if ($msg->role === AiMessageRole::Assistant && $content) {
+                    $extracted = $this->extractToolCalls($content);
+                    $content = $extracted['content'];
+                    $tools = $extracted['tools'];
+                }
+
+                return [
+                    'role' => $msg->role->value,
+                    'content' => $content,
+                    'tools' => $tools,
+                    'timestamp' => $msg->created_at->format('g:i A'),
+                    'agent_name' => $msg->role->value === 'assistant' ? $agentName : null,
+                ];
+            })
             ->toArray();
+    }
+
+    /**
+     * Extract tool call JSON from persisted message content.
+     *
+     * NeuronAI may include tool call results as JSON in the text stream,
+     * producing content like: [{...tool calls...}]Natural language response.
+     * This parses the JSON, extracts tool names for chip display, and
+     * returns the clean text content.
+     *
+     * @return array{content: string, tools: array<int, array{name: string}>}
+     */
+    private function extractToolCalls(string $content): array
+    {
+        $trimmed = trim($content);
+
+        if (! str_starts_with($trimmed, '[{')) {
+            return ['content' => $content, 'tools' => []];
+        }
+
+        // Find the closing bracket of the top-level JSON array
+        $endPos = $this->findJsonArrayEnd($trimmed);
+
+        if ($endPos === false) {
+            return ['content' => $content, 'tools' => []];
+        }
+
+        $jsonStr = substr($trimmed, 0, $endPos + 1);
+        $decoded = json_decode($jsonStr, true);
+
+        if (! is_array($decoded) || empty($decoded)) {
+            return ['content' => $content, 'tools' => []];
+        }
+
+        $tools = [];
+
+        foreach ($decoded as $call) {
+            if (isset($call['name'])) {
+                $tools[] = ['name' => $call['name']];
+            }
+        }
+
+        if (empty($tools)) {
+            return ['content' => $content, 'tools' => []];
+        }
+
+        $remaining = trim(substr($trimmed, $endPos + 1));
+
+        return [
+            'content' => $remaining !== '' ? $remaining : $content,
+            'tools' => $tools,
+        ];
+    }
+
+    /**
+     * Find the position of the closing bracket for a JSON array.
+     *
+     * Tracks bracket depth and string boundaries to correctly
+     * handle nested objects and escaped characters.
+     */
+    private function findJsonArrayEnd(string $text): int|false
+    {
+        $depth = 0;
+        $inString = false;
+        $escape = false;
+        $len = strlen($text);
+
+        for ($i = 0; $i < $len; $i++) {
+            $char = $text[$i];
+
+            if ($escape) {
+                $escape = false;
+
+                continue;
+            }
+
+            if ($char === '\\' && $inString) {
+                $escape = true;
+
+                continue;
+            }
+
+            if ($char === '"') {
+                $inString = ! $inString;
+
+                continue;
+            }
+
+            if ($inString) {
+                continue;
+            }
+
+            if ($char === '[') {
+                $depth++;
+            }
+
+            if ($char === ']') {
+                $depth--;
+
+                if ($depth === 0) {
+                    return $i;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

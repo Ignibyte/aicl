@@ -10,9 +10,17 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.5.0`
+Current version: `1.5.1`
 
 ---
+
+## [1.5.1] - 2026-03-14
+
+### Fixed
+
+- **AI Assistant — Tool call JSON display** — Strip tool call+result JSON from persisted message content; NeuronAI echoes `[{callId, name, inputs, result}]` in the text stream which was saved and displayed as raw JSON. Now stripped at save time (`AiConversationStreamJob`) and parsed on load (`AiAssistantPanel::loadMessages()`) with tool names shown as chips
+- **AI Assistant — User bubble alignment** — User chat messages now shrink to fit content width (`w-fit`) and float right, instead of spanning the full width of the chat area
+- **AI Assistant — Compact panel overflow** — Added `max-height: calc(100vh - 3rem)` to prevent the compact panel from exceeding viewport bounds; added `break-words` to message content to prevent long text from overflowing
 
 ## [1.5.0] - 2026-03-14
 

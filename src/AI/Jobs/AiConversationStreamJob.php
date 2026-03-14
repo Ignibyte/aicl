@@ -108,12 +108,17 @@ class AiConversationStreamJob implements ShouldQueue
 
             $usage = $this->extractUsage($generator);
 
+            // Strip any tool call JSON from the response before persisting.
+            // NeuronAI may include tool call+result data as [{...}] in the
+            // text stream — this should not be saved as message content.
+            $cleanResponse = $this->stripToolCallJson($fullResponse);
+
             // Persist assistant response as AiMessage
             $totalTokens = ($usage['input_tokens'] ?? 0) + ($usage['output_tokens'] ?? 0);
 
             $conversation->messages()->create([
                 'role' => AiMessageRole::Assistant,
-                'content' => $fullResponse,
+                'content' => $cleanResponse,
                 'token_count' => $totalTokens > 0 ? $totalTokens : null,
                 'metadata' => [
                     'model' => $agent->model,
@@ -203,6 +208,78 @@ class AiConversationStreamJob implements ShouldQueue
         }
 
         return [];
+    }
+
+    /**
+     * Strip leading tool call JSON from the response text.
+     *
+     * NeuronAI may include tool call+result data as a JSON array
+     * at the start of the text stream (e.g., [{...}]Natural language).
+     * This removes the JSON portion and returns the clean text.
+     */
+    private function stripToolCallJson(string $response): string
+    {
+        $trimmed = trim($response);
+
+        if (! str_starts_with($trimmed, '[{')) {
+            return $response;
+        }
+
+        // Find closing bracket by tracking bracket depth
+        $depth = 0;
+        $inString = false;
+        $escape = false;
+        $len = strlen($trimmed);
+
+        for ($i = 0; $i < $len; $i++) {
+            $char = $trimmed[$i];
+
+            if ($escape) {
+                $escape = false;
+
+                continue;
+            }
+
+            if ($char === '\\' && $inString) {
+                $escape = true;
+
+                continue;
+            }
+
+            if ($char === '"') {
+                $inString = ! $inString;
+
+                continue;
+            }
+
+            if ($inString) {
+                continue;
+            }
+
+            if ($char === '[') {
+                $depth++;
+            }
+
+            if ($char === ']') {
+                $depth--;
+
+                if ($depth === 0) {
+                    $jsonStr = substr($trimmed, 0, $i + 1);
+                    $decoded = json_decode($jsonStr, true);
+
+                    // Only strip if it's a valid tool call array
+                    if (is_array($decoded) && ! empty($decoded) && isset($decoded[0]['name'])) {
+                        $remaining = trim(substr($trimmed, $i + 1));
+
+                        return $remaining !== '' ? $remaining : $response;
+                    }
+
+                    return $response;
+                }
+            }
+        }
+
+        return $response;
     }
 
     /**

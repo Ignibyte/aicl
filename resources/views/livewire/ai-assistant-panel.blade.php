@@ -40,7 +40,7 @@
         :class="fullScreen
             ? 'fixed inset-0 z-50 flex'
             : 'fixed bottom-6 right-6 z-50 flex'"
-        :style="!fullScreen ? 'width: 380px; height: 600px; max-width: calc(100vw - 3rem);' : ''"
+        :style="!fullScreen ? 'width: 380px; height: 600px; max-width: calc(100vw - 3rem); max-height: calc(100vh - 3rem);' : ''"
         x-cloak
     >
         {{-- Backdrop (full-screen only) --}}
@@ -257,9 +257,9 @@
                                             @endif
                                         </div>
                                         {{-- Bubble --}}
-                                        <div class="ml-auto max-w-[80%]">
+                                        <div class="ml-auto w-fit max-w-[80%]">
                                             <div class="rounded-2xl rounded-tr-sm bg-primary-500 px-4 py-2.5 text-white">
-                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap text-sm leading-relaxed"></div>
+                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap break-words text-sm leading-relaxed"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -296,7 +296,7 @@
                                         {{-- Bubble --}}
                                         <div x-show="msg.content" class="max-w-[85%]">
                                             <div class="rounded-2xl rounded-tl-sm border border-white/5 bg-gray-800/50 px-4 py-2.5 text-gray-100">
-                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap text-sm leading-relaxed"></div>
+                                                <div x-html="msg.content ? msg.content.replace(/\n/g, '<br>') : ''" class="whitespace-pre-wrap break-words text-sm leading-relaxed"></div>
                                             </div>
                                         </div>
                                     </div>
