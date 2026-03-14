@@ -10,9 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.5.4`
+Current version: `1.5.5`
 
 ---
+
+## [1.5.5] - 2026-03-14
+
+### Fixed
+
+- **NeuronAI `getResult()` TypeError** — Guard against `Tool::getResult()` returning `null` when `ToolCallMessage` is yielded before the tool result property is populated (NeuronAI 2.13.0 compatibility). Prevents "Return value must be of type string, null returned" crash during tool-calling streams.
 
 ## [1.5.4] - 2026-03-14
 

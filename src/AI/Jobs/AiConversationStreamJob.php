@@ -92,10 +92,21 @@ class AiConversationStreamJob implements ShouldQueue
                         ];
 
                         // Include structured render data if the tool supports it
+                        // Guard against null result — NeuronAI may yield ToolCallMessage
+                        // before the tool's result property is populated
                         if ($t instanceof BaseTool) {
-                            $rawResult = json_decode($t->getResult(), true);
-                            $render = $t->formatResultForDisplay($rawResult);
-                            $entry['render'] = $render;
+                            try {
+                                $resultStr = $t->getResult();
+                                $rawResult = json_decode($resultStr, true) ?? $resultStr;
+                            } catch (\TypeError) {
+                                $rawResult = null;
+                            }
+
+                            if ($rawResult !== null) {
+                                $render = $t->formatResultForDisplay($rawResult);
+                                $entry['render'] = $render;
+                            }
+
                             $toolResults[] = $entry;
                         }
 
