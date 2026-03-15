@@ -48,6 +48,7 @@ return [
         'websockets' => env('AICL_WEBSOCKETS', true),
         'scout_driver' => env('AICL_SCOUT_DRIVER', false),
         'horizon' => env('AICL_HORIZON', true),
+        'mcp' => env('AICL_MCP_ENABLED', false),
     ],
 
     /*
@@ -273,6 +274,36 @@ return [
     'health' => [
         'queues' => ['default', 'notifications', 'high', 'low'],
         'failed_jobs_threshold' => 10,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Assistant
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the AI assistant chat feature. Supports OpenAI,
+    | Anthropic, and Ollama providers via NeuronAI.
+    |
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | MCP Server
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the Model Context Protocol server. When enabled,
+    | external AI agents can discover and interact with your application's
+    | entities via the MCP standard protocol.
+    |
+    */
+
+    'mcp' => [
+        'path' => env('AICL_MCP_PATH', '/mcp'),
+        'middleware' => ['api', 'auth:api', 'throttle:api'],
+        'server_info' => [
+            'name' => env('AICL_MCP_SERVER_NAME'),
+            'version' => '1.0.0',
+        ],
     ],
 
     /*

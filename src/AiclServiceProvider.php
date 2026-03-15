@@ -29,6 +29,7 @@ use Aicl\Livewire\DomainEventTable;
 use Aicl\Livewire\FailedDeliveriesTable;
 use Aicl\Livewire\NotificationLogTable;
 use Aicl\Livewire\ScheduleHistoryTable;
+use Aicl\Mcp\McpRegistry;
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
 use Aicl\Models\AiMessage;
@@ -99,7 +100,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Mcp\Facades\Mcp;
 use Laravel\Octane\Events\WorkerStarting;
+use Laravel\Passport\Passport;
 use Livewire\Livewire;
 use Matchish\ScoutElasticSearch\ElasticSearchServiceProvider;
 use Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine;
@@ -109,7 +112,7 @@ use Spatie\Permission\Models\Role;
 
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.5.5';
+    public const VERSION = '1.6.0';
 
     public function register(): void
     {
@@ -165,6 +168,7 @@ class AiclServiceProvider extends ServiceProvider
 
         $this->app->singleton(EntityRegistry::class);
         $this->app->singleton(PresenceRegistry::class);
+        $this->app->singleton(McpRegistry::class);
         $this->app->singleton(ComponentDiscoveryService::class);
         $this->app->singleton(ComponentRegistry::class);
 
@@ -217,6 +221,17 @@ class AiclServiceProvider extends ServiceProvider
         // to Swoole/Octane over internal HTTP.
         if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
+        }
+
+        // Register Passport token scopes for API and MCP access control
+        if (class_exists(Passport::class)) {
+            Passport::tokensCan([
+                'read' => 'Read — List and view entities',
+                'write' => 'Write — Create and update entities',
+                'delete' => 'Delete — Remove entities',
+                'mcp' => 'MCP — Access MCP server endpoint',
+                'transitions' => 'Transitions — Change entity states',
+            ]);
         }
 
         Gate::policy(User::class, UserPolicy::class);
@@ -318,6 +333,11 @@ class AiclServiceProvider extends ServiceProvider
         // Load social auth routes if enabled
         if (config('aicl.features.social_login', false)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/socialite.php');
+        }
+
+        // Load MCP server routes if enabled and laravel/mcp is installed
+        if (config('aicl.features.mcp', false) && class_exists(Mcp::class)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/mcp.php');
         }
 
         // Load SAML SSO routes and register Socialite SAML2 driver if enabled

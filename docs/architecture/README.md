@@ -41,6 +41,7 @@ Each major system has its own document explaining how it works in the AICL conte
 | [Notification & Observability](notification-observability.md) | External notification drivers (Slack, Email, Teams, PagerDuty, Webhook, SMS), message templates, Ops Panel health checks | `/architect` |
 | [Scaffolding & AI Layer](scaffolding-ai.md) | `--base=` flag, EntityRegistry, NeuronAI integration, AI tool calling, entity spec files | `/architect`, `/rlm` |
 | [Alpine Component System](alpine-component-system.md) | React→Alpine transformation, Blade component tiers, x-data patterns, CMS blocks | `/designer`, `/architect` |
+| [MCP Server](mcp-server.md) | Model Context Protocol server, entity auto-exposure, tools/resources/prompts, scope auth, extensibility | `/architect`, `/solutions` |
 
 ### AI & Quality
 

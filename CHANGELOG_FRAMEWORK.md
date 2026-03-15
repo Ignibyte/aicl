@@ -10,9 +10,36 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.5.5`
+Current version: `1.6.0`
 
 ---
+
+## [1.6.0] - 2026-03-14
+
+### Added
+
+- **MCP Server** — Full Model Context Protocol implementation via `laravel/mcp`. Any AICL app becomes an MCP server with `AICL_MCP_ENABLED=true`. External AI agents (Claude Desktop, Cursor, etc.) auto-discover and interact with application entities.
+- **Auto-generated entity tools** — 6 MCP tools per registered entity: `list_{entities}`, `show_{entity}`, `create_{entity}`, `update_{entity}`, `delete_{entity}`, `transition_{entity}` (stateful only). Schemas built dynamically from model fillable/casts/states.
+- **MCP Resources** — `EntitySchemaResource` exposes entity field definitions, casts, relationships, and states. `EntityListResource` catalogs all available entity types.
+- **MCP Prompts** — `CrudWorkflowPrompt` guides agents through CRUD operations. `InspectEntityPrompt` loads and displays entity data with state and relationships.
+- **Token scope enforcement** — `ChecksTokenScope` trait enforces Passport scopes per tool (`read`, `write`, `delete`, `transitions`). Route-level `scopes:mcp` middleware requires the `mcp` scope on all MCP requests. Double-layer auth: token scope + entity policy.
+- **McpRegistry** — Singleton registry for packages to contribute MCP tools, resources, and prompts via their service providers. Deduplicates registrations.
+- **Custom primitive auto-discovery** — Project-level tools (`app/Mcp/Tools/`), resources (`app/Mcp/Resources/`), and prompts (`app/Mcp/Prompts/`) auto-discovered alongside entity primitives.
+- **McpSettings** — Spatie Settings class (group: `mcp`) for runtime config: entity exposure toggles, custom tools toggle, rate limits, session limits, server description.
+- **Enhanced API & Integrations page** — Replaces "API Tokens" page with tabbed UI (Access Tokens + MCP Server). Token creation now supports scope selection with presets (Full Access, Read Only, MCP Client, MCP Read Only). MCP tab shows server status, connection URL, tool count, client config snippets (Claude Desktop, .mcp.json).
+- **Passport scope registration** — Registers `read`, `write`, `delete`, `mcp`, `transitions` scopes in Passport via AiclServiceProvider boot.
+- **OAuth well-known endpoints** — `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` for MCP client auto-discovery.
+- **Architecture documentation** — `.claude/architecture/mcp-server.md` with quick start, auth model, configuration, extensibility guide, and file map.
+- **123 new tests** (253 assertions) — Unit tests for all tool schemas, server boot, settings, registry. Feature tests for MCP endpoint auth, tool calls, Filament page rendering.
+
+### Changed
+
+- **API Tokens page** — Renamed to "API & Integrations", added ARIA accessibility attributes (role=tablist/tab/tabpanel, aria-selected, aria-controls), replaced inline empty state with `<x-aicl-empty-state>` component, added aria-label on token name input.
+- **AiclServiceProvider** — Conditionally loads MCP routes behind `aicl.features.mcp` flag. Registers McpRegistry singleton.
+
+### Docs
+
+- Moved `docs/architecture/search.md` to `.claude/architecture/search.md` (was in wrong directory — framework doc, not project doc).
 
 ## [1.5.5] - 2026-03-14
 
