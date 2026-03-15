@@ -47,6 +47,17 @@ class ApiTokens extends Page
         return __('API & Integrations');
     }
 
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole(['super_admin', 'admin']);
+    }
+
     public function mount(): void
     {
         abort_unless(config('aicl.features.api', true), 404);

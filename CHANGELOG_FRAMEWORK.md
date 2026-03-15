@@ -10,9 +10,16 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.6.0`
+Current version: `1.6.1`
 
 ---
+
+## [1.6.1] - 2026-03-15
+
+### Fixed
+
+- **ApiTokens page access control** — Added missing `canAccess()` role guard. The page predated the v1.1.0 pattern and was accessible to any authenticated admin panel user regardless of role. Now restricted to `super_admin` and `admin` roles, consistent with all other system pages.
+- **AdminPageAccessTest assertions** — Updated test to verify viewer denial instead of asserting buggy open access. Fixed stale title/label assertions (`API Tokens` → `API & Integrations`) from v1.6.0 rename.
 
 ## [1.6.0] - 2026-03-14
 

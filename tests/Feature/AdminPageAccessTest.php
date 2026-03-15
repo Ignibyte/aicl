@@ -226,13 +226,27 @@ class AdminPageAccessTest extends TestCase
 
     // API Tokens
 
-    public function test_api_tokens_accessible_when_feature_enabled(): void
+    public function test_api_tokens_accessible_by_admin(): void
+    {
+        config(['aicl.features.api' => true]);
+
+        $response = $this->actingAs($this->admin)->get('/admin/api-tokens');
+
+        $response->assertOk();
+    }
+
+    public function test_api_tokens_forbidden_for_viewer(): void
     {
         config(['aicl.features.api' => true]);
 
         $response = $this->actingAs($this->viewer)->get('/admin/api-tokens');
 
-        $response->assertOk();
+        $this->assertFilamentAccessDenied($response);
+    }
+
+    public function test_api_tokens_can_access_returns_false_for_null_user(): void
+    {
+        $this->assertFalse(ApiTokens::canAccess());
     }
 
     public function test_api_tokens_returns_404_when_feature_disabled(): void
@@ -255,12 +269,12 @@ class AdminPageAccessTest extends TestCase
     {
         $page = new ApiTokens;
 
-        $this->assertEquals('API Tokens', $page->getTitle());
+        $this->assertEquals('API & Integrations', $page->getTitle());
     }
 
     public function test_api_tokens_navigation_label(): void
     {
-        $this->assertEquals('API Tokens', ApiTokens::getNavigationLabel());
+        $this->assertEquals('API & Integrations', ApiTokens::getNavigationLabel());
     }
 
     public function test_api_tokens_default_properties(): void
