@@ -14,7 +14,6 @@ class SecurityHeadersTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
     public function test_responses_include_x_frame_options_header(): void

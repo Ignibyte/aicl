@@ -9,6 +9,15 @@ use Filament\Actions\Action;
 use Filament\Pages\Page;
 use UnitEnum;
 
+/**
+ * Operations panel page showing service health check statuses.
+ *
+ * Displays the cached results of all registered health checks (Swoole,
+ * PostgreSQL, Redis, Reverb, Elasticsearch, Queue, Scheduler, Application)
+ * with a force-refresh action. Restricted to super_admin and admin roles.
+ *
+ * @see HealthCheckRegistry  Registry that runs and caches health checks
+ */
 class OpsPanel extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = null;
@@ -35,6 +44,11 @@ class OpsPanel extends Page
         return app(HealthCheckRegistry::class)->runAllCached();
     }
 
+    /**
+     * Get the page header actions (force refresh button).
+     *
+     * @return array<Action>
+     */
     protected function getHeaderActions(): array
     {
         return [
@@ -48,6 +62,9 @@ class OpsPanel extends Page
         ];
     }
 
+    /**
+     * Restrict access to admin and super_admin roles.
+     */
     public static function canAccess(): bool
     {
         $user = auth()->user();

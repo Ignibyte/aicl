@@ -6,6 +6,15 @@ use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Resource;
 use Laravel\Mcp\Server\Tool;
 
+/**
+ * Programmatic registry for contributing MCP tools, resources, and prompts.
+ *
+ * Allows packages and application code to register MCP primitives that will
+ * be included in the AiclMcpServer alongside the auto-discovered entity tools.
+ * Registered primitives are class names resolved from the container at boot time.
+ *
+ * @see AiclMcpServer::registerFromMcpRegistry()  Consumes this registry
+ */
 class McpRegistry
 {
     /** @var array<int, class-string<Tool>> */

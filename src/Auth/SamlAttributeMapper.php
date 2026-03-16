@@ -2,8 +2,21 @@
 
 namespace Aicl\Auth;
 
+use Aicl\Http\Controllers\SocialAuthController;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
+use LightSaml\Model\Assertion\Attribute;
 
+/**
+ * Maps SAML assertion attributes to Laravel user fields and roles.
+ *
+ * Handles the translation between SAML IdP attribute names (which vary by provider
+ * and schema -- OID URNs, WS-Federation URIs, or plain names) and the standard user
+ * model fields. Supports configurable attribute maps and role mappings via aicl.saml config.
+ *
+ * Can be replaced with a custom mapper class via aicl.saml.mapper_class config.
+ *
+ * @see SocialAuthController  Uses this for SAML SSO login
+ */
 class SamlAttributeMapper
 {
     /**
@@ -147,7 +160,7 @@ class SamlAttributeMapper
         // a simple key => value array.
         $normalized = [];
         foreach ($raw as $attribute) {
-            if ($attribute instanceof \LightSaml\Model\Assertion\Attribute) {
+            if ($attribute instanceof Attribute) {
                 $values = $attribute->getAllAttributeValues();
                 $normalized[$attribute->getName()] = count($values) === 1 ? $values[0] : $values;
             }

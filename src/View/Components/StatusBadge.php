@@ -23,6 +23,11 @@ class StatusBadge extends Component
         public ?string $icon = null,
     ) {}
 
+    /**
+     * Get the Tailwind CSS classes for the badge based on its color.
+     *
+     * @return string Space-separated CSS class string
+     */
     public function colorClasses(): string
     {
         return match ($this->color) {
@@ -35,6 +40,9 @@ class StatusBadge extends Component
         };
     }
 
+    /**
+     * Render the component.
+     */
     public function render(): View
     {
         return view('aicl::components.status-badge');

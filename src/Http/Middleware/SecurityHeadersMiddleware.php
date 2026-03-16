@@ -14,6 +14,13 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SecurityHeadersMiddleware
 {
+    /**
+     * Apply OWASP security headers to the response.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
+     * @return mixed
+     */
     public function handle(Request $request, Closure $next)
     {
         $response = $next($request);
@@ -35,6 +42,11 @@ class SecurityHeadersMiddleware
         return $response;
     }
 
+    /**
+     * Apply standard security headers (X-Frame-Options, MIME sniffing, etc.).
+     *
+     * @param  Response  $response  The HTTP response
+     */
     protected function applyStandardHeaders(Response $response): void
     {
         $response->headers->set('X-Frame-Options', 'DENY');
@@ -44,6 +56,12 @@ class SecurityHeadersMiddleware
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     }
 
+    /**
+     * Apply HTTP Strict Transport Security header for HTTPS requests.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Response  $response  The HTTP response
+     */
     protected function applyHstsHeader(Request $request, Response $response): void
     {
         if (! config('aicl.security.headers.hsts', true)) {
@@ -58,6 +76,15 @@ class SecurityHeadersMiddleware
         $response->headers->set('Strict-Transport-Security', "max-age={$maxAge}; includeSubDomains");
     }
 
+    /**
+     * Apply Content-Security-Policy header with profile-specific directives.
+     *
+     * Uses a permissive CSP for Filament/admin (Livewire/Alpine compatibility)
+     * and a strict CSP for API endpoints.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Response  $response  The HTTP response
+     */
     protected function applyCspHeader(Request $request, Response $response): void
     {
         if (! config('aicl.security.csp.enabled', true)) {
@@ -77,6 +104,11 @@ class SecurityHeadersMiddleware
         $response->headers->set($headerName, $cspValue);
     }
 
+    /**
+     * Determine if this is a Filament admin panel request.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     */
     protected function isFilamentRequest(Request $request): bool
     {
         return $request->is('admin/*') || $request->is('admin');

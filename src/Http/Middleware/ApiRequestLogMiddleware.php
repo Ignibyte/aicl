@@ -15,6 +15,13 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ApiRequestLogMiddleware
 {
+    /**
+     * Log the API request with method, path, status, user, IP, and duration.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
+     * @return mixed
+     */
     public function handle(Request $request, Closure $next)
     {
         $startTime = microtime(true);

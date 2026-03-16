@@ -8,8 +8,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
+ * Unified notification audit log model.
+ *
+ * Records every notification dispatched through AICL's NotificationDispatcher
+ * and Laravel's native notification system (via NotificationSentLogger).
+ * Tracks channel-level delivery status, supports read/unread state, and
+ * provides scopes for filtering by user, type, and delivery status.
+ *
  * @property string|null $type
  * @property string|null $notifiable_type
  * @property string|int|null $notifiable_id
@@ -18,9 +26,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property array<int, string>|null $channels
  * @property array<string, string>|null $channel_status
  * @property array<string, mixed>|null $data
- * @property \Illuminate\Support\Carbon|null $read_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $read_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class NotificationLog extends Model
 {

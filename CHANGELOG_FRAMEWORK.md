@@ -10,9 +10,100 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.6.1`
+Current version: `1.7.0`
 
 ---
+
+## [1.7.0] - 2026-03-15
+
+### Breaking Changes
+
+- **Removed `spatie/laravel-settings` and `filament/spatie-laravel-settings-plugin`** — All settings previously stored in the `settings` database table are now read from `config/aicl.php`. Any code using `app(GeneralSettings::class)`, `app(MailSettings::class)`, `app(FeatureSettings::class)`, or `app(McpSettings::class)` must migrate to `config()` calls.
+- **Removed ManageSettings Filament page** — The `/admin/settings` page no longer exists. All configuration is managed via config files.
+- **Settings table dropped** — Migration `2026_03_15_100000_drop_settings_table.php` drops the `settings` table. Run `php artisan migrate` after updating.
+
+### Added
+
+- **Drupal-style `config/local.php` override mechanism** — Instance-specific configuration (database credentials, API keys, feature toggles) lives in a gitignored PHP file using dot-notation keys. Replaces `.env` as the primary configuration mechanism. `env()` calls remain in config files as fallback for container environments (Docker, CI, DDEV).
+- **`config/local.example.php` template** — Comprehensive documented template with all AICL config sections (Core, Database, Redis, Mail, Broadcasting, AI, Features, MCP, Search, SAML, Theme). Copy to `config/local.php` and customize.
+- **New config keys** — `aicl.site.description`, `aicl.display.date_format`, `aicl.display.items_per_page`, `aicl.mail.reply_to`, `aicl.features.require_mfa`, `aicl.features.require_email_verification`, `aicl.mcp.exposed_entities`, `aicl.mcp.custom_tools_enabled`, `aicl.mcp.rate_limit_per_minute`, `aicl.mcp.max_sessions`, `aicl.mcp.server_info.description`.
+- **Reverb config Blade injection** — `window.__reverb` object injected via Filament render hook, replacing `import.meta.env.VITE_*` vars in `echo.js`. Works without `.env` file.
+- **`DocblockCoverageTest`** — Meta-test using reflection to verify PHPDoc coverage across all `packages/aicl/src/` files. Baseline: 38% class coverage, warning mode.
+- **`ConfigConsolidationTest`** — 35 tests verifying all config reads for registration, email verification, MFA, MCP, social login, SAML, and local config loading.
+- **`ApiTokensCanAccessTest`** — 10 tests for role guards, MCP feature checks, and page metadata.
+- **`InstallCommandEnsureLocalConfigTest`** — 10 tests for local config generation flow.
+- **PHPDoc coverage** — 55 source files documented with ~1,207 lines of class/method/property docblocks across all core components (ServiceProvider, Plugin, MCP Server, Services, Traits, Policies, Events, Middleware, AI, Swoole, etc.).
+
+### Fixed
+
+- **SQL injection in MCP `ListEntityTool`** — `sort_by` parameter now whitelisted against model fillable columns + `id`, `created_at`, `updated_at`. Previously passed raw user input to `orderBy()`.
+- **TOCTOU race in `AiAssistantController`** — Concurrent stream counter now uses atomic `Cache::add()` + `Cache::increment()` + `Cache::decrement()` instead of non-atomic read-check-write pattern.
+- **MCP `CreateEntityTool` / `UpdateEntityTool` validation order** — Form Request `authorize()` and `rules()` now run BEFORE the database mutation. Previously, records were created/updated before validation ran.
+- **API token scope injection** — `ApiTokens::createToken()` now validates `selectedScopes` against allowed scopes list before calling Passport. Previously accepted arbitrary scope strings from Livewire wire:model.
+- **MCP tools use `$request->only()` instead of `$request->all()`** — Reduces mass-assignment surface area.
+
+### Changed
+
+- **`AiclPlugin::isRegistrationEnabled()`** — Simplified from 8-line dual-control (config OR database with try/catch) to single `config()` call.
+- **`AiclPlugin::isEmailVerificationRequired()`** — Simplified from 6-line DB read with try/catch to single `config()` call.
+- **`AiclMcpServer`** — Removed `McpSettings` dependency entirely. All 7 methods now read from `config('aicl.mcp.*')`.
+- **`ApiTokens` page** — Removed MCP toggle (`toggleMcp()`) and description update (`updateMcpDescription()`) write methods. MCP status now read-only from config.
+- **`Login` page** — `hasSocialLogin()` and `hasSamlLogin()` simplified to single `config()` reads, removed database fallback.
+- **`UserForm`** — MFA toggle helper text and disabled state read from `config('aicl.features.require_mfa')`.
+- **`InstallCommand`** — Removed settings seeding, added `ensureLocalConfig()` to generate `config/local.php` from template.
+- **`echo.js`** — Replaced 4 `import.meta.env.VITE_*` calls with `window.__reverb.*` reads from Blade injection.
+- **`require_mfa` default** — Changed from `true` to `false` (MFA is opt-in, matching previous SettingsSeeder behavior).
+
+### Removed
+
+- `packages/aicl/src/Settings/GeneralSettings.php`
+- `packages/aicl/src/Settings/MailSettings.php`
+- `packages/aicl/src/Settings/FeatureSettings.php`
+- `packages/aicl/src/Settings/McpSettings.php`
+- `packages/aicl/src/Filament/Pages/ManageSettings.php`
+- `packages/aicl/database/seeders/SettingsSeeder.php`
+- `packages/aicl/database/settings/general_settings.php`
+- `packages/aicl/database/settings/mail_settings.php`
+- `packages/aicl/database/settings/feature_settings.php`
+- `packages/aicl/tests/Unit/Settings/SettingsTest.php`
+- `packages/aicl/tests/Unit/Settings/McpSettingsTest.php`
+
+### Migration Guide
+
+**For existing projects upgrading from v1.6.x:**
+
+1. **Update the package:** `composer update aicl/aicl`
+2. **Run migrations:** `ddev artisan migrate` (drops `settings` table)
+3. **Create local config:** Copy `config/local.example.php` to `config/local.php`
+4. **Move settings from database to config:**
+
+   | Old (Database) | New (Config) |
+   |----------------|--------------|
+   | `app(GeneralSettings::class)->site_name` | `config('app.name')` |
+   | `app(GeneralSettings::class)->timezone` | `config('app.timezone')` |
+   | `app(GeneralSettings::class)->date_format` | `config('aicl.display.date_format')` |
+   | `app(GeneralSettings::class)->items_per_page` | `config('aicl.display.items_per_page')` |
+   | `app(MailSettings::class)->from_address` | `config('mail.from.address')` |
+   | `app(MailSettings::class)->from_name` | `config('mail.from.name')` |
+   | `app(MailSettings::class)->reply_to` | `config('aicl.mail.reply_to')` |
+   | `app(FeatureSettings::class)->enable_registration` | `config('aicl.features.allow_registration')` |
+   | `app(FeatureSettings::class)->require_email_verification` | `config('aicl.features.require_email_verification')` |
+   | `app(FeatureSettings::class)->require_mfa` | `config('aicl.features.require_mfa')` |
+   | `app(FeatureSettings::class)->enable_social_login` | `config('aicl.features.social_login')` |
+   | `app(FeatureSettings::class)->enable_saml` | `config('aicl.features.saml')` |
+   | `app(FeatureSettings::class)->enable_api` | `config('aicl.features.api')` |
+   | `app(McpSettings::class)->is_enabled` | `config('aicl.features.mcp')` |
+   | `app(McpSettings::class)->exposed_entities` | `config('aicl.mcp.exposed_entities')` |
+   | `app(McpSettings::class)->custom_tools_enabled` | `config('aicl.mcp.custom_tools_enabled')` |
+   | `app(McpSettings::class)->rate_limit_per_minute` | `config('aicl.mcp.rate_limit_per_minute')` |
+   | `app(McpSettings::class)->max_sessions` | `config('aicl.mcp.max_sessions')` |
+   | `app(McpSettings::class)->server_description` | `config('aicl.mcp.server_info.description')` |
+
+5. **Remove Spatie Settings references:** Search your project for `app(.*Settings::class)` and replace with `config()` calls per the table above.
+6. **Remove SettingsSeeder calls:** Search test files for `SettingsSeeder` and remove those lines.
+7. **Update `.gitignore`:** Add `/config/local.php` if not already present.
+8. **Rebuild frontend:** `ddev npm run build` (echo.js changed to use `window.__reverb`).
+9. **Reload Octane:** `ddev octane-reload`
 
 ## [1.6.1] - 2026-03-15
 

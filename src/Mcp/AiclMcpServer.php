@@ -13,7 +13,6 @@ use Aicl\Mcp\Tools\ShowEntityTool;
 use Aicl\Mcp\Tools\TransitionEntityTool;
 use Aicl\Mcp\Tools\UpdateEntityTool;
 use Aicl\Services\EntityRegistry;
-use Aicl\Settings\McpSettings;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -21,37 +20,64 @@ use Laravel\Mcp\Server\Attributes\Version;
 use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Resource;
 
+/**
+ * AICL Model Context Protocol (MCP) server.
+ *
+ * Auto-discovers registered entities from the EntityRegistry and exposes them
+ * as MCP tools (list, show, create, update, delete, transition), resources
+ * (entity schemas), and prompts (CRUD workflow, inspect entity). Supports
+ * selective entity exposure via the aicl.mcp.exposed_entities config.
+ *
+ * Also registers tools/resources/prompts from the McpRegistry (programmatic
+ * contributions from other packages) and auto-discovers custom primitives
+ * from app/Mcp/Tools/, app/Mcp/Resources/, and app/Mcp/Prompts/.
+ *
+ * @see McpRegistry  Programmatic registration of MCP primitives
+ * @see EntityRegistry  Central registry of all entity types
+ */
 #[Name('AICL MCP Server')]
 #[Version('1.0.0')]
 #[Description('Exposes AICL application entities via Model Context Protocol for AI agent interaction.')]
 class AiclMcpServer extends Server
 {
+    /**
+     * Boot the MCP server by registering all tools, resources, and prompts.
+     *
+     * Sets the server display name from config, then registers entity-derived
+     * tools and resources, built-in prompts, McpRegistry contributions,
+     * and auto-discovered custom primitives.
+     */
     protected function boot(): void
     {
-        $settings = app(McpSettings::class);
-
-        $serverName = $settings->server_description
+        $serverName = config('aicl.mcp.server_info.description')
             ?? config('aicl.mcp.server_info.name')
             ?? config('app.name', 'AICL');
 
         $this->name = $serverName.' MCP Server';
 
-        $this->registerEntityTools($settings);
-        $this->registerEntityResources($settings);
+        $this->registerEntityTools();
+        $this->registerEntityResources();
         $this->registerPrompts();
         $this->registerFromMcpRegistry();
-        $this->registerCustomTools($settings);
-        $this->registerCustomResources($settings);
-        $this->registerCustomPrompts($settings);
+        $this->registerCustomTools();
+        $this->registerCustomResources();
+        $this->registerCustomPrompts();
     }
 
-    protected function registerEntityTools(McpSettings $settings): void
+    /**
+     * Register CRUD and transition tools for each exposed entity.
+     *
+     * Iterates all entity types from the EntityRegistry, resolves which
+     * operations are enabled per entity (via config), and creates the
+     * corresponding MCP tool instances (list, show, create, update, delete, transition).
+     */
+    protected function registerEntityTools(): void
     {
         /** @var EntityRegistry $registry */
         $registry = app(EntityRegistry::class);
         $entities = $registry->allTypes();
 
-        $exposedConfig = $settings->exposed_entities;
+        $exposedConfig = config('aicl.mcp.exposed_entities', ['*']);
         $exposeAll = $exposedConfig === ['*'];
 
         foreach ($entities as $entry) {
@@ -94,13 +120,13 @@ class AiclMcpServer extends Server
     /**
      * Register schema resources for each exposed entity.
      */
-    protected function registerEntityResources(McpSettings $settings): void
+    protected function registerEntityResources(): void
     {
         /** @var EntityRegistry $registry */
         $registry = app(EntityRegistry::class);
         $entities = $registry->allTypes();
 
-        $exposedConfig = $settings->exposed_entities;
+        $exposedConfig = config('aicl.mcp.exposed_entities', ['*']);
         $exposeAll = $exposedConfig === ['*'];
 
         foreach ($entities as $entry) {
@@ -152,9 +178,12 @@ class AiclMcpServer extends Server
         }
     }
 
-    protected function registerCustomTools(McpSettings $settings): void
+    /**
+     * Auto-discover custom tool classes from app/Mcp/Tools/.
+     */
+    protected function registerCustomTools(): void
     {
-        if (! $settings->custom_tools_enabled) {
+        if (! config('aicl.mcp.custom_tools_enabled', true)) {
             return;
         }
 
@@ -169,9 +198,9 @@ class AiclMcpServer extends Server
     /**
      * Auto-discover custom resource classes from app/Mcp/Resources/.
      */
-    protected function registerCustomResources(McpSettings $settings): void
+    protected function registerCustomResources(): void
     {
-        if (! $settings->custom_tools_enabled) {
+        if (! config('aicl.mcp.custom_tools_enabled', true)) {
             return;
         }
 
@@ -186,9 +215,9 @@ class AiclMcpServer extends Server
     /**
      * Auto-discover custom prompt classes from app/Mcp/Prompts/.
      */
-    protected function registerCustomPrompts(McpSettings $settings): void
+    protected function registerCustomPrompts(): void
     {
-        if (! $settings->custom_tools_enabled) {
+        if (! config('aicl.mcp.custom_tools_enabled', true)) {
             return;
         }
 

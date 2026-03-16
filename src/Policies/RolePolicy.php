@@ -8,10 +8,23 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 use Spatie\Permission\Models\Role;
 
+/**
+ * Authorization policy for Spatie Role models.
+ *
+ * Uses Shield permission format (Action:Role) for all standard CRUD
+ * and bulk operations. Does not extend BasePolicy because Spatie's
+ * Role model is not an Eloquent Model subclass compatible with the
+ * base policy's type hints.
+ */
 class RolePolicy
 {
     use HandlesAuthorization;
 
+    /**
+     * Determine whether the user can view the roles index.
+     *
+     * @param  AuthUser  $authUser  The authenticated user
+     */
     public function viewAny(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAny:Role');

@@ -10,6 +10,18 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
+/**
+ * Abstract base class for domain broadcast events.
+ *
+ * Provides a consistent structure for real-time WebSocket events broadcast
+ * via Laravel Reverb. Each event has a unique ID, dot-notation type, and
+ * ISO 8601 timestamp. Broadcasts on a private 'dashboard' channel by default,
+ * and optionally on an entity-specific channel if getEntity() returns a model.
+ *
+ * Subclasses must define eventType() and may override toPayload() and getEntity().
+ *
+ * @see ChannelAuth  Channel authorization for private channels
+ */
 abstract class BaseBroadcastEvent implements ShouldBroadcast
 {
     use Dispatchable;

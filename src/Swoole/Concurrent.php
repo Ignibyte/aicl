@@ -11,6 +11,20 @@ use Swoole\Coroutine\Channel;
 use Swoole\Coroutine\WaitGroup;
 use Throwable;
 
+/**
+ * Coroutine-based concurrency utilities for parallel task execution.
+ *
+ * Provides three patterns for executing callables concurrently using Swoole
+ * coroutines: run() for parallel execution with keyed results, map() for
+ * applying a closure to items with concurrency limiting, and race() for
+ * returning the first successful result.
+ *
+ * All methods fall back to sequential execution when Swoole coroutine context
+ * is not available (e.g., in PHPUnit tests or non-Octane environments).
+ *
+ * @see SwooleCache  In-worker shared memory cache
+ * @see SwooleTimer  Coroutine-aware timer management
+ */
 final class Concurrent
 {
     /**

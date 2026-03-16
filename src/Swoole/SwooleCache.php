@@ -2,13 +2,32 @@
 
 namespace Aicl\Swoole;
 
+use Aicl\Swoole\Cache\PermissionCacheManager;
+use Aicl\Swoole\Listeners\WarmSwooleCaches;
 use Closure;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
 use JsonException;
+use Laravel\Octane\Facades\Octane;
+use Laravel\Octane\Swoole\WorkerState;
 use Swoole\Table;
 
+/**
+ * Swoole Table-backed in-worker shared memory cache.
+ *
+ * Provides a key-value cache backed by Swoole's shared memory tables, giving
+ * sub-microsecond reads across all worker processes without network overhead.
+ * Supports TTL-based lazy expiration, bulk warm loading, and event-driven
+ * cache invalidation.
+ *
+ * Tables must be registered at boot time (service provider) before Octane
+ * starts workers, since Swoole Tables are allocated in shared memory and
+ * cannot be resized after creation.
+ *
+ * @see PermissionCacheManager  Permission cache manager
+ * @see WarmSwooleCaches  Warms caches on worker boot
+ */
 final class SwooleCache
 {
     /**
@@ -263,14 +282,14 @@ final class SwooleCache
 
         // Must be in a Swoole worker context — extension loaded alone is insufficient
         // (PHPUnit runs with Swoole extension but no active server)
-        if (! extension_loaded('swoole') || ! class_exists(\Laravel\Octane\Facades\Octane::class)) {
+        if (! extension_loaded('swoole') || ! class_exists(Octane::class)) {
             return false;
         }
 
         // Check if we're actually inside an Octane worker by verifying
         // the WorkerState has been populated with tables
         try {
-            $workerState = app(\Laravel\Octane\Swoole\WorkerState::class); // @phpstan-ignore class.notFound
+            $workerState = app(WorkerState::class); // @phpstan-ignore class.notFound
             /** @var object{tables: mixed} $workerState */
 
             return is_array($workerState->tables) && $workerState->tables !== [];
@@ -387,7 +406,7 @@ final class SwooleCache
         }
 
         try {
-            return \Laravel\Octane\Facades\Octane::table($table);
+            return Octane::table($table);
         } catch (\Exception) {
             return null;
         }

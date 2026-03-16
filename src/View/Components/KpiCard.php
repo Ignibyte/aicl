@@ -24,6 +24,11 @@ class KpiCard extends Component
         public ?string $format = null,
     ) {}
 
+    /**
+     * Calculate the progress percentage (actual / target * 100, capped at 100).
+     *
+     * @return float Percentage between 0 and 100
+     */
     public function percentage(): float
     {
         if ($this->target == 0) {
@@ -33,6 +38,11 @@ class KpiCard extends Component
         return min(round(((float) $this->actual / (float) $this->target) * 100, 1), 100);
     }
 
+    /**
+     * Get the Tailwind CSS background color class based on progress percentage.
+     *
+     * @return string Tailwind bg-color class (green >= 80%, yellow >= 50%, red < 50%)
+     */
     public function progressColor(): string
     {
         $pct = $this->percentage();

@@ -11,7 +11,6 @@ use Aicl\Filament\Pages\Errors\Forbidden;
 use Aicl\Filament\Pages\Errors\NotFound;
 use Aicl\Filament\Pages\Errors\ServerError;
 use Aicl\Filament\Pages\Errors\ServiceUnavailable;
-use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\OpsPanel;
@@ -28,7 +27,6 @@ use Aicl\Filament\Widgets\RecentFailedJobsWidget;
 use Aicl\Http\Middleware\MustTwoFactor;
 use Aicl\Http\Middleware\TrackPresenceMiddleware;
 use Aicl\Services\VersionService;
-use Aicl\Settings\FeatureSettings;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\Support\Facades\FilamentView;
@@ -36,13 +34,32 @@ use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 
+/**
+ * Filament panel plugin for the AICL framework.
+ *
+ * Registers all AICL-provided Filament resources (Users, AI Agents, AI Conversations),
+ * pages (OpsPanel, ActivityLog, ApiTokens, NotificationCenter, error pages, etc.),
+ * and widgets (presence indicator, queue stats, AI agent stats, etc.) into the admin panel.
+ *
+ * Also configures Breezy (profile + MFA), email verification, top navigation mode,
+ * render hooks for WebSocket scripts, Reverb config injection, navigation switcher,
+ * favicon meta, version badge, search bar, and the AI assistant floating widget.
+ *
+ * @see AiclServiceProvider  Service provider that boots the underlying services
+ */
 class AiclPlugin implements Plugin
 {
+    /**
+     * Create a new plugin instance from the container.
+     */
     public static function make(): static
     {
         return app(static::class);
     }
 
+    /**
+     * Retrieve the registered plugin instance from the current Filament panel.
+     */
     public static function get(): static
     {
         /** @var static $plugin */
@@ -51,11 +68,24 @@ class AiclPlugin implements Plugin
         return $plugin;
     }
 
+    /**
+     * Get the unique plugin identifier.
+     */
     public function getId(): string
     {
         return 'aicl';
     }
 
+    /**
+     * Register resources, pages, widgets, auth middleware, and Breezy into the panel.
+     *
+     * Conditionally registers Breezy for profile and MFA if not already present.
+     * Always registers the registration route (runtime-gated by Register page)
+     * and email verification. Disables Filament's built-in global search in favor
+     * of the custom AICL search bar.
+     *
+     * @param  Panel  $panel  The Filament panel being configured
+     */
     public function register(Panel $panel): void
     {
         // Register Breezy for profile + MFA (unless project already registered it)
@@ -69,7 +99,7 @@ class AiclPlugin implements Plugin
                     )
                     ->enableTwoFactorAuthentication(
                         force: fn (): bool => rescue(
-                            fn () => app(FeatureSettings::class)->require_mfa
+                            fn () => (bool) config('aicl.features.require_mfa', true)
                                   || (bool) filament()->auth()->user()?->force_mfa,
                             false
                         ),
@@ -104,42 +134,31 @@ class AiclPlugin implements Plugin
     }
 
     /**
-     * Check if user registration is enabled via env config OR database settings.
-     *
-     * The env flag (AICL_ALLOW_REGISTRATION) provides infrastructure-level control.
-     * The database toggle (Settings > Features > User Registration) provides admin UI control.
-     * Either being true enables registration.
+     * Check if user registration is enabled via config.
      */
     public static function isRegistrationEnabled(): bool
     {
-        if (config('aicl.features.allow_registration', false)) {
-            return true;
-        }
-
-        try {
-            return app(FeatureSettings::class)->enable_registration;
-        } catch (\Throwable) {
-            // Database may not be available yet (fresh install, pre-migration)
-            return false;
-        }
+        return (bool) config('aicl.features.allow_registration', false);
     }
 
     /**
-     * Check if email verification is required via database settings.
-     *
-     * When disabled, users bypass the email verification prompt even though
-     * the User model implements MustVerifyEmail. Override hasVerifiedEmail()
-     * in the User model to use this check.
+     * Check if email verification is required via config.
      */
     public static function isEmailVerificationRequired(): bool
     {
-        try {
-            return app(FeatureSettings::class)->require_email_verification;
-        } catch (\Throwable) {
-            return true;
-        }
+        return (bool) config('aicl.features.require_email_verification', true);
     }
 
+    /**
+     * Boot render hooks for WebSocket scripts, search bar, nav switcher, and version badge.
+     *
+     * Injects JavaScript bundles (Echo/Reverb), the Reverb config object into window.__reverb,
+     * the toolbar presence indicator, the custom search bar (when search is enabled),
+     * the navigation switcher init script and toggle, extended favicon meta tags,
+     * a version badge, and the AI assistant floating panel (for admin users when enabled).
+     *
+     * @param  Panel  $panel  The Filament panel being booted
+     */
     public function boot(Panel $panel): void
     {
         if (config('aicl.features.websockets', true)) {
@@ -161,6 +180,21 @@ class AiclPlugin implements Plugin
             FilamentView::registerRenderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 fn (): string => view('aicl::components.nav-search-bar')->render(),
+            );
+        }
+
+        // Inject Reverb WebSocket config for echo.js (replaces VITE_REVERB_* env vars)
+        if (config('aicl.features.websockets', true)) {
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): string => Blade::render('<script>window.__reverb=@json($c);</script>', [
+                    'c' => [
+                        'key' => config('broadcasting.connections.reverb.key', ''),
+                        'host' => config('aicl.ai.streaming.reverb.host', 'localhost'),
+                        'port' => (int) config('aicl.ai.streaming.reverb.port', 8080),
+                        'scheme' => config('aicl.ai.streaming.reverb.scheme', 'http'),
+                    ],
+                ]),
             );
         }
 
@@ -208,6 +242,8 @@ class AiclPlugin implements Plugin
     }
 
     /**
+     * Get the Filament resource classes provided by AICL.
+     *
      * @return array<class-string>
      */
     protected function getResources(): array
@@ -220,6 +256,11 @@ class AiclPlugin implements Plugin
     }
 
     /**
+     * Get the Filament page classes provided by AICL.
+     *
+     * Includes ops panel, activity log, changelog, document browser, tools,
+     * notification center, search, API tokens, and custom error pages.
+     *
      * @return array<class-string>
      */
     protected function getPages(): array
@@ -228,7 +269,6 @@ class AiclPlugin implements Plugin
             ActivityLog::class,
             OpsPanel::class,
             OperationsManager::class,
-            ManageSettings::class,
             Changelog::class,
             DocumentBrowser::class,
             Tools::class,
@@ -243,6 +283,11 @@ class AiclPlugin implements Plugin
     }
 
     /**
+     * Get the Filament widget classes provided by AICL.
+     *
+     * Includes AI agent stats, global search, presence indicator,
+     * queue stats, and recent failed jobs.
+     *
      * @return array<class-string>
      */
     protected function getWidgets(): array

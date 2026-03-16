@@ -2,12 +2,22 @@
 
 namespace Aicl\Health;
 
+/**
+ * Health check status enum with UI presentation helpers.
+ *
+ * Represents the three possible states of a service health check:
+ * Healthy (operational), Degraded (partially functional), and Down (offline).
+ * Each case provides a label, Filament color, and Heroicon for consistent UI rendering.
+ */
 enum ServiceStatus: string
 {
     case Healthy = 'healthy';
     case Degraded = 'degraded';
     case Down = 'down';
 
+    /**
+     * Get the human-readable label for this status.
+     */
     public function label(): string
     {
         return match ($this) {
@@ -17,6 +27,9 @@ enum ServiceStatus: string
         };
     }
 
+    /**
+     * Get the Filament color name for this status.
+     */
     public function color(): string
     {
         return match ($this) {
@@ -26,6 +39,9 @@ enum ServiceStatus: string
         };
     }
 
+    /**
+     * Get the Heroicon name for this status.
+     */
     public function icon(): string
     {
         return match ($this) {

@@ -7,7 +7,6 @@ use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
 use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
-use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\OperationsManager;
 use App\Models\User;
@@ -30,7 +29,6 @@ class AdminPageAccessTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
 
         Event::fake([
             EntityCreated::class,
@@ -155,34 +153,6 @@ class AdminPageAccessTest extends TestCase
         $actions = $this->callProtectedMethod($page, 'getHeaderActions');
 
         $this->assertNotEmpty($actions);
-    }
-
-    // Manage Settings
-
-    public function test_settings_accessible_by_super_admin(): void
-    {
-        $response = $this->actingAs($this->superAdmin)->get('/admin/settings');
-
-        $response->assertOk();
-    }
-
-    public function test_settings_forbidden_for_admin(): void
-    {
-        $response = $this->actingAs($this->admin)->get('/admin/settings');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_settings_forbidden_for_viewer(): void
-    {
-        $response = $this->actingAs($this->viewer)->get('/admin/settings');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_settings_can_access_returns_false_for_null_user(): void
-    {
-        $this->assertFalse(ManageSettings::canAccess());
     }
 
     // Notification Center

@@ -12,6 +12,14 @@ use Illuminate\Http\Request;
  */
 trait PaginatesApiRequests
 {
+    /**
+     * Resolve the per-page count from the request, clamped to safe bounds.
+     *
+     * @param  Request  $request  The current HTTP request
+     * @param  int  $default  Default items per page when not specified
+     * @param  int  $max  Maximum allowed items per page (OWASP API4 protection)
+     * @return int Clamped per-page value between 1 and $max
+     */
     protected function getPerPage(Request $request, int $default = 15, int $max = 100): int
     {
         return max(1, min($request->integer('per_page', $default), $max));

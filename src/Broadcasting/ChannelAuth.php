@@ -2,6 +2,15 @@
 
 namespace Aicl\Broadcasting;
 
+/**
+ * Static authorization helpers for WebSocket broadcast channels.
+ *
+ * Provides reusable authorization logic for private and presence channels
+ * used throughout the AICL broadcasting system. Follows Spatie/Shield
+ * permission format for entity-specific channel authorization.
+ *
+ * @see BaseBroadcastEvent  Base class for broadcast events
+ */
 class ChannelAuth
 {
     /**

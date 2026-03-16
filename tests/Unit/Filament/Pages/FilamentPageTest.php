@@ -4,7 +4,6 @@ namespace Aicl\Tests\Unit\Filament\Pages;
 
 use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
-use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\Search;
@@ -62,21 +61,6 @@ class FilamentPageTest extends TestCase
         $this->assertFalse($defaults['liveMode']);
         $this->assertEquals(100, $defaults['limit']);
         $this->assertEquals('app-logs', $defaults['activeTab']);
-    }
-
-    // ─── ManageSettings ─────────────────────────────────────
-
-    public function test_manage_settings_extends_page(): void
-    {
-        $this->assertTrue(is_subclass_of(ManageSettings::class, Page::class));
-    }
-
-    public function test_manage_settings_slug(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('settings', $defaults['slug']);
     }
 
     // ─── Search ─────────────────────────────────────────────

@@ -10,8 +10,21 @@ use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
+/**
+ * Queued listener that creates database notifications for entity lifecycle events.
+ *
+ * When an entity is created, updated, or deleted, this listener creates
+ * DatabaseNotification records for the entity owner and super_admin users
+ * (excluding the actor who triggered the event). Also logs each notification
+ * to NotificationLog for audit trail.
+ *
+ * @see EntityCreated
+ * @see EntityUpdated
+ * @see EntityDeleted
+ */
 class EntityEventNotificationListener implements ShouldQueue
 {
     /**
@@ -123,9 +136,9 @@ class EntityEventNotificationListener implements ShouldQueue
     /**
      * Get users who should receive the notification.
      *
-     * @return \Illuminate\Support\Collection<int, User>
+     * @return Collection<int, User>
      */
-    protected function getRecipients(?Model $entity, ?int $actorId): \Illuminate\Support\Collection
+    protected function getRecipients(?Model $entity, ?int $actorId): Collection
     {
         $query = User::query();
 
@@ -150,6 +163,13 @@ class EntityEventNotificationListener implements ShouldQueue
         })->get();
     }
 
+    /**
+     * Extract a human-readable name from the entity model.
+     *
+     * Falls back to "ClassName #ID" if neither name nor title attributes exist.
+     *
+     * @param  Model  $entity  The entity instance
+     */
     protected function getEntityName(Model $entity): string
     {
         if (isset($entity->name)) {
@@ -163,6 +183,13 @@ class EntityEventNotificationListener implements ShouldQueue
         return class_basename($entity).' #'.$entity->getKey();
     }
 
+    /**
+     * Generate the notification title based on the action type.
+     *
+     * @param  string  $entityType  The entity class basename
+     * @param  string  $entityName  The entity display name
+     * @param  string  $action  The lifecycle action (created, updated, deleted)
+     */
     protected function getTitle(string $entityType, string $entityName, string $action): string
     {
         return match ($action) {
@@ -173,6 +200,14 @@ class EntityEventNotificationListener implements ShouldQueue
         };
     }
 
+    /**
+     * Generate the notification body message describing who did what.
+     *
+     * @param  string  $entityType  The entity class basename
+     * @param  string  $entityName  The entity display name
+     * @param  string  $action  The lifecycle action
+     * @param  string  $actorName  Name of the user who performed the action
+     */
     protected function getBody(string $entityType, string $entityName, string $action, string $actorName): string
     {
         return match ($action) {
@@ -183,6 +218,12 @@ class EntityEventNotificationListener implements ShouldQueue
         };
     }
 
+    /**
+     * Map an action to its corresponding Heroicon name.
+     *
+     * @param  string  $action  The lifecycle action
+     * @return string Heroicon component name
+     */
     protected function getIcon(string $action): string
     {
         return match ($action) {
@@ -193,6 +234,12 @@ class EntityEventNotificationListener implements ShouldQueue
         };
     }
 
+    /**
+     * Map an action to its corresponding Filament notification color.
+     *
+     * @param  string  $action  The lifecycle action
+     * @return string Filament color name
+     */
     protected function getColor(string $action): string
     {
         return match ($action) {
@@ -203,6 +250,13 @@ class EntityEventNotificationListener implements ShouldQueue
         };
     }
 
+    /**
+     * Build the Filament admin URL for viewing the entity.
+     *
+     * @param  Model  $entity  The entity model
+     * @param  string  $entityType  The entity class basename
+     * @return string|null The route URL, or null if the route does not exist
+     */
     protected function getEntityUrl(Model $entity, string $entityType): ?string
     {
         $slug = Str::plural(Str::kebab($entityType));

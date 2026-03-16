@@ -5,6 +5,7 @@ namespace Aicl\Tests\Feature;
 use Aicl\Models\NotificationLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class NotificationLogModelTest extends TestCase
@@ -15,7 +16,6 @@ class NotificationLogModelTest extends TestCase
     {
         parent::setUp();
 
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
     // ─── Relationships ────────────────────────────────────────
@@ -145,7 +145,7 @@ class NotificationLogModelTest extends TestCase
         ]);
 
         $fresh = $log->fresh();
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $fresh->read_at);
+        $this->assertInstanceOf(Carbon::class, $fresh->read_at);
     }
 
     // ─── markAsRead / markAsUnread ─────────────────────────────

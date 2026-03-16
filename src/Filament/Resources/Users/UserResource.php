@@ -14,6 +14,15 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use UnitEnum;
 
+/**
+ * Filament resource for managing User models.
+ *
+ * Uses the UserForm schema for create/edit forms and UsersTable for the
+ * index listing. Registered under the "People" navigation group.
+ *
+ * @see UserForm  Form schema
+ * @see UsersTable  Table configuration
+ */
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;

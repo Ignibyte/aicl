@@ -36,13 +36,18 @@ class AiAssistantController extends Controller
             }
         }
 
-        // Enforce concurrent stream limit
+        // Enforce concurrent stream limit (atomic to prevent TOCTOU race under Swoole)
         $userId = $request->user()->id;
         $maxConcurrent = (int) config('aicl.ai.streaming.max_concurrent_per_user', 2);
         $countKey = "ai-stream:user:{$userId}:count";
-        $currentCount = (int) Cache::get($countKey, 0);
 
-        if ($currentCount >= $maxConcurrent) {
+        // Initialize counter atomically (add returns false if key exists)
+        Cache::add($countKey, 0, 300);
+        $newCount = Cache::increment($countKey);
+
+        if ($newCount > $maxConcurrent) {
+            Cache::decrement($countKey);
+
             return response()->json([
                 'error' => 'Too many concurrent AI streams. Please wait for a current stream to finish.',
             ], 429);
@@ -52,9 +57,6 @@ class AiAssistantController extends Controller
 
         // Store user for channel authorization (auto-expires in 5 minutes)
         Cache::put("ai-stream:{$streamId}:user", $userId, 300);
-
-        // Increment concurrent count
-        Cache::put($countKey, $currentCount + 1, 300);
 
         AiStreamJob::dispatch(
             streamId: $streamId,

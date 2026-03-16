@@ -2,8 +2,8 @@
 
 namespace Aicl\Filament\Pages;
 
+use Aicl\Mcp\AiclMcpServer;
 use Aicl\Services\EntityRegistry;
-use Aicl\Settings\McpSettings;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
@@ -11,8 +11,22 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Facades\Mcp;
 use UnitEnum;
 
+/**
+ * API tokens and integrations management page.
+ *
+ * Provides a Filament admin page for creating, viewing, and revoking
+ * Laravel Passport personal access tokens. Also displays MCP server
+ * connection details when MCP is enabled. Restricted to super_admin
+ * and admin roles.
+ *
+ * Supports scope-based access control with presets (Full Access,
+ * Read Only, MCP Client, MCP Read Only) and individual scope selection.
+ *
+ * @see AiclMcpServer  MCP server whose URL is displayed on this page
+ */
 class ApiTokens extends Page
 {
+    /** @var string Blade view for this page */
     protected string $view = 'aicl::filament.pages.api-tokens';
 
     protected static ?string $slug = 'api-tokens';
@@ -23,30 +37,39 @@ class ApiTokens extends Page
 
     protected static ?int $navigationSort = 2;
 
+    /** @var string|null Name for the token being created */
     public ?string $newTokenName = '';
 
+    /** @var string|null The newly created token value, shown once then cleared */
     public ?string $createdToken = null;
 
+    /** @var string Currently active tab ('tokens' or 'mcp') */
     public string $activeTab = 'tokens';
 
-    /** @var array<string> */
+    /** @var array<string> Selected OAuth scopes for the new token */
     public array $selectedScopes = ['*'];
 
-    // MCP settings
-    public bool $mcpEnabled = false;
-
-    public ?string $mcpServerDescription = null;
-
+    /**
+     * Get the page title.
+     */
     public function getTitle(): string|Htmlable
     {
         return __('API & Integrations');
     }
 
+    /**
+     * Get the sidebar navigation label.
+     */
     public static function getNavigationLabel(): string
     {
         return __('API & Integrations');
     }
 
+    /**
+     * Determine if the current user can access this page.
+     *
+     * Only super_admin and admin roles may manage API tokens.
+     */
     public static function canAccess(): bool
     {
         $user = auth()->user();
@@ -58,17 +81,19 @@ class ApiTokens extends Page
         return $user->hasRole(['super_admin', 'admin']);
     }
 
+    /**
+     * Mount the page, aborting with 404 if the API feature is disabled.
+     */
     public function mount(): void
     {
         abort_unless(config('aicl.features.api', true), 404);
-
-        if ($this->isMcpAvailable()) {
-            $settings = app(McpSettings::class);
-            $this->mcpEnabled = $settings->is_enabled;
-            $this->mcpServerDescription = $settings->server_description;
-        }
     }
 
+    /**
+     * Get the current user's non-revoked Passport tokens.
+     *
+     * @return array<int, array{id: string, name: string, scopes: array<string>, created_at: string, expires_at: string}>
+     */
     public function getTokens(): array
     {
         $user = Auth::user();
@@ -91,6 +116,12 @@ class ApiTokens extends Page
             ->toArray();
     }
 
+    /**
+     * Create a new Passport personal access token with the selected scopes.
+     *
+     * Sets $createdToken to the plaintext token value for one-time display,
+     * then resets the form fields.
+     */
     public function createToken(): void
     {
         $this->validate([
@@ -108,7 +139,13 @@ class ApiTokens extends Page
             return;
         }
 
-        $scopes = $this->selectedScopes;
+        // Validate scopes against allowed list to prevent arbitrary scope injection
+        $allowedScopes = array_keys($this->getAvailableScopes());
+        $scopes = array_values(array_intersect($this->selectedScopes, $allowedScopes));
+
+        if (empty($scopes)) {
+            $scopes = ['*'];
+        }
 
         $token = $user->createToken($this->newTokenName, $scopes);
 
@@ -123,6 +160,11 @@ class ApiTokens extends Page
             ->send();
     }
 
+    /**
+     * Revoke an existing Passport token by ID.
+     *
+     * @param  string  $tokenId  The Passport token UUID
+     */
     public function revokeToken(string $tokenId): void
     {
         $user = Auth::user();
@@ -143,63 +185,37 @@ class ApiTokens extends Page
         }
     }
 
+    /**
+     * Clear the displayed token value after the user has copied it.
+     */
     public function clearCreatedToken(): void
     {
         $this->createdToken = null;
     }
 
-    public function toggleMcp(): void
-    {
-        if (! $this->isMcpAvailable()) {
-            return;
-        }
-
-        $settings = app(McpSettings::class);
-        $settings->is_enabled = ! $settings->is_enabled;
-        $settings->save();
-
-        $this->mcpEnabled = $settings->is_enabled;
-
-        Notification::make()
-            ->title($this->mcpEnabled ? 'MCP Server enabled' : 'MCP Server disabled')
-            ->success()
-            ->send();
-    }
-
-    public function updateMcpDescription(): void
-    {
-        if (! $this->isMcpAvailable()) {
-            return;
-        }
-
-        $this->validate([
-            'mcpServerDescription' => 'nullable|string|max:255',
-        ]);
-
-        $settings = app(McpSettings::class);
-        $settings->server_description = $this->mcpServerDescription ?: null;
-        $settings->save();
-
-        Notification::make()
-            ->title('Server description updated')
-            ->success()
-            ->send();
-    }
-
+    /**
+     * Check whether the MCP server feature is enabled and the package is installed.
+     */
     public function isMcpAvailable(): bool
     {
         return (bool) config('aicl.features.mcp', false)
             && class_exists(Mcp::class);
     }
 
+    /**
+     * Get the full MCP server endpoint URL.
+     */
     public function getMcpUrl(): string
     {
         return rtrim(config('app.url', ''), '/').config('aicl.mcp.path', '/mcp');
     }
 
+    /**
+     * Get the approximate number of MCP tools available (6 per entity).
+     */
     public function getMcpToolCount(): int
     {
-        if (! $this->isMcpAvailable() || ! $this->mcpEnabled) {
+        if (! $this->isMcpAvailable()) {
             return 0;
         }
 
@@ -212,7 +228,11 @@ class ApiTokens extends Page
         }
     }
 
-    /** @return array<string, string> */
+    /**
+     * Get the available OAuth scopes for token creation.
+     *
+     * @return array<string, string> Map of scope key to human-readable description
+     */
     public function getAvailableScopes(): array
     {
         return [
@@ -225,7 +245,11 @@ class ApiTokens extends Page
         ];
     }
 
-    /** @return array<string, array<string>> */
+    /**
+     * Get predefined scope presets for common use cases.
+     *
+     * @return array<string, array<string>> Map of preset name to scope array
+     */
     public function getScopePresets(): array
     {
         return [
@@ -236,6 +260,11 @@ class ApiTokens extends Page
         ];
     }
 
+    /**
+     * Apply a predefined scope preset to the selected scopes.
+     *
+     * @param  string  $preset  The preset name (e.g. 'Full Access', 'Read Only')
+     */
     public function applyScopePreset(string $preset): void
     {
         $presets = $this->getScopePresets();

@@ -3,11 +3,33 @@
 namespace Aicl\Models;
 
 use Aicl\Database\Factories\SocialAccountFactory;
+use Aicl\Traits\HasSocialAccounts;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * Social login account linked to a user (Google, GitHub, Facebook, etc.).
+ *
+ * Stores OAuth provider credentials and avatar URLs. Token and refresh
+ * token fields are encrypted at rest. Used by the HasSocialAccounts trait
+ * and SocialAuthController for OAuth login flows.
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $provider
+ * @property string $provider_id
+ * @property string|null $avatar_url
+ * @property string|null $token
+ * @property string|null $refresh_token
+ * @property Carbon|null $token_expires_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ *
+ * @see HasSocialAccounts  Trait for user-side social account management
+ */
 class SocialAccount extends Model
 {
     /** @use HasFactory<SocialAccountFactory> */
@@ -32,11 +54,21 @@ class SocialAccount extends Model
         ];
     }
 
+    /**
+     * Get the user that owns this social account.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Check if the OAuth token has expired.
+     *
+     * @return bool False if no expiry is set (never expires)
+     */
     public function isExpired(): bool
     {
         if (! $this->token_expires_at) {

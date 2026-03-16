@@ -24,7 +24,6 @@ class TrackPresenceMiddlewareTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
 
         Event::fake([
             EntityCreated::class,

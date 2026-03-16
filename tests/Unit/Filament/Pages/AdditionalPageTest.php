@@ -5,7 +5,6 @@ namespace Aicl\Tests\Unit\Filament\Pages;
 use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\Backups;
-use Aicl\Filament\Pages\ManageSettings;
 use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\Search;
@@ -150,84 +149,6 @@ class AdditionalPageTest extends TestCase
     public function test_search_has_results_computed_method(): void
     {
         $this->assertTrue(method_exists(Search::class, 'searchResults'));
-    }
-
-    // ─── ManageSettings (gap coverage) ──────────────────────────
-
-    public function test_manage_settings_implements_has_forms(): void
-    {
-        $this->assertTrue(is_subclass_of(ManageSettings::class, HasForms::class));
-    }
-
-    public function test_manage_settings_navigation_icon(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertNull($defaults['navigationIcon']);
-    }
-
-    public function test_manage_settings_navigation_group(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('System', $defaults['navigationGroup']);
-    }
-
-    public function test_manage_settings_navigation_sort(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals(1, $defaults['navigationSort']);
-    }
-
-    public function test_manage_settings_navigation_label(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('Settings', $defaults['navigationLabel']);
-    }
-
-    public function test_manage_settings_title(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('Application Settings', $defaults['title']);
-    }
-
-    public function test_manage_settings_view(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $property = $reflection->getProperty('view');
-
-        $this->assertEquals('aicl::filament.pages.manage-settings', $property->getDefaultValue());
-    }
-
-    public function test_manage_settings_default_data_property(): void
-    {
-        $reflection = new \ReflectionClass(ManageSettings::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals([], $defaults['data']);
-    }
-
-    public function test_manage_settings_has_save_method(): void
-    {
-        $this->assertTrue(method_exists(ManageSettings::class, 'save'));
-    }
-
-    public function test_manage_settings_has_form_method(): void
-    {
-        $this->assertTrue(method_exists(ManageSettings::class, 'form'));
-    }
-
-    public function test_manage_settings_has_mount_method(): void
-    {
-        $this->assertTrue(method_exists(ManageSettings::class, 'mount'));
     }
 
     // ─── NotificationCenter (gap coverage) ──────────────────────
@@ -546,40 +467,6 @@ class AdditionalPageTest extends TestCase
         $this->assertIsArray($tokens);
         // User model may not have tokens() method (Passport not installed),
         // in which case it returns an empty array.
-    }
-
-    // ─── ManageSettings access control (gap coverage) ────────────
-
-    public function test_manage_settings_accessible_by_super_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('super_admin');
-        $this->actingAs($user);
-
-        $this->assertTrue(ManageSettings::canAccess());
-    }
-
-    public function test_manage_settings_not_accessible_by_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-        $this->actingAs($user);
-
-        $this->assertFalse(ManageSettings::canAccess());
-    }
-
-    public function test_manage_settings_not_accessible_by_viewer(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('viewer');
-        $this->actingAs($user);
-
-        $this->assertFalse(ManageSettings::canAccess());
-    }
-
-    public function test_manage_settings_not_accessible_without_auth(): void
-    {
-        $this->assertFalse(ManageSettings::canAccess());
     }
 
     // ─── ActivityLog access control (gap coverage) ──────────────

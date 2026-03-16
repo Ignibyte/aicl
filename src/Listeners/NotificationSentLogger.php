@@ -4,9 +4,19 @@ namespace Aicl\Listeners;
 
 use Aicl\Models\NotificationLog;
 use Aicl\Notifications\BaseNotification;
+use Aicl\Services\NotificationDispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Events\NotificationSent;
 
+/**
+ * Listener that logs third-party notification dispatches to NotificationLog.
+ *
+ * Listens to Laravel's NotificationSent event and records each delivery
+ * for audit visibility. Skips AICL BaseNotification instances since those
+ * are already logged by the NotificationDispatcher service.
+ *
+ * @see NotificationDispatcher  Handles logging for AICL notifications
+ */
 class NotificationSentLogger
 {
     /**

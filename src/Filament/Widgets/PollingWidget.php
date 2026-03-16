@@ -4,6 +4,13 @@ namespace Aicl\Filament\Widgets;
 
 use Filament\Widgets\Widget;
 
+/**
+ * Abstract base class for widgets that auto-refresh via Livewire polling.
+ *
+ * Provides configurable polling interval and visibility-aware pausing to
+ * reduce unnecessary server requests when the browser tab is not active.
+ * Subclasses override poll() to refresh their data on each tick.
+ */
 abstract class PollingWidget extends Widget
 {
     protected string $view = 'aicl::widgets.polling-widget';

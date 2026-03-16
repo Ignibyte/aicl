@@ -79,18 +79,23 @@ class UpdateEntityTool extends Tool
         }
 
         $fillable = $model->getFillable();
-        $data = array_intersect_key($request->all(), array_flip($fillable));
 
-        // Use Form Request validation if available
+        // Validate via Form Request BEFORE updating (authorize + rules)
         $formRequestClass = $this->resolveFormRequest('Update');
 
         if ($formRequestClass) {
             $formRequest = new $formRequestClass;
 
+            if (method_exists($formRequest, 'authorize') && ! $formRequest->authorize()) {
+                return Response::error("Form request authorization denied for {$this->entityLabel}.");
+            }
+
             if (method_exists($formRequest, 'rules')) {
                 $request->validate($formRequest->rules());
             }
         }
+
+        $data = array_intersect_key($request->only($fillable), array_flip($fillable));
 
         $model->update($data);
 

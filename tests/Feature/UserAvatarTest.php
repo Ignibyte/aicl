@@ -18,7 +18,6 @@ class UserAvatarTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
     public function test_user_implements_has_avatar_contract(): void

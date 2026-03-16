@@ -3,12 +3,30 @@
 namespace Aicl\Services;
 
 use Aicl\Events\SessionTerminated;
+use Aicl\Filament\Widgets\ToolbarPresence;
+use Aicl\Http\Middleware\TrackPresenceMiddleware;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 
+/**
+ * Cache-backed registry of active user sessions for presence tracking.
+ *
+ * Stores per-session metadata (user ID, last seen timestamp, user agent, IP,
+ * etc.) in the cache with TTL based on the session lifetime. Provides methods
+ * to touch (update), enumerate, filter, forget, and terminate sessions.
+ * Session termination dispatches a SessionTerminated domain event for audit.
+ *
+ * Uses a cache-based index set to enable enumeration of all active sessions
+ * without requiring a dedicated data store.
+ *
+ * @see TrackPresenceMiddleware  Middleware that calls touch()
+ * @see ToolbarPresence  Widget that displays online users
+ * @see SessionTerminated  Event dispatched on session termination
+ */
 class PresenceRegistry
 {
+    /** @var string Cache key prefix for individual session entries */
     protected const KEY_PREFIX = 'presence:sessions:';
 
     /**

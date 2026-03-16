@@ -48,8 +48,6 @@ class McpEndpointTest extends TestCase
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
-
         $this->superAdmin = User::factory()->create();
         // Assign super_admin on both web and api guards
         $this->superAdmin->assignRole(Role::findByName('super_admin', 'web'));

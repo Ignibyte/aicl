@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -26,7 +27,6 @@ class TrackPresenceMiddlewareTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
 
         Event::fake([
             EntityCreated::class,
@@ -131,7 +131,7 @@ class TrackPresenceMiddlewareTest extends TestCase
 
     public function test_track_presence_middleware_alias_is_registered(): void
     {
-        /** @var \Illuminate\Routing\Router $router */
+        /** @var Router $router */
         $router = app('router');
 
         $middlewareMap = $router->getMiddleware();

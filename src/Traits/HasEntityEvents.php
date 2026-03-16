@@ -8,6 +8,7 @@ use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityDeleting;
 use Aicl\Events\EntityUpdated;
 use Aicl\Events\EntityUpdating;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Dispatches typed entity lifecycle events.
@@ -17,10 +18,16 @@ use Aicl\Events\EntityUpdating;
  * events. This enables cross-cutting listeners that work on any entity
  * implementing HasEntityLifecycle.
  *
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
  */
 trait HasEntityEvents
 {
+    /**
+     * Boot the trait by registering Eloquent model event listeners.
+     *
+     * Listens for creating, created, updating, updated, deleting, and deleted
+     * events and dispatches the corresponding typed AICL entity events.
+     */
     public static function bootHasEntityEvents(): void
     {
         static::creating(function ($model): void {

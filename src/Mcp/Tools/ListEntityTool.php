@@ -78,6 +78,17 @@ class ListEntityTool extends Tool
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDir = $validated['sort_dir'] ?? 'desc';
 
+        // Whitelist sort_by against model columns to prevent SQL injection
+        $instance = new $this->modelClass;
+        $allowedSortColumns = array_merge(
+            $instance->getFillable(),
+            ['id', 'created_at', 'updated_at'],
+        );
+
+        if (! in_array($sortBy, $allowedSortColumns, true)) {
+            $sortBy = 'created_at';
+        }
+
         $query = $this->modelClass::query();
 
         if ($search && in_array(HasStandardScopes::class, class_uses_recursive($this->modelClass), true)) {

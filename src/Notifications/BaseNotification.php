@@ -2,12 +2,26 @@
 
 namespace Aicl\Notifications;
 
+use Aicl\Services\NotificationDispatcher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Abstract base class for all AICL notifications.
+ *
+ * Provides a standard structure for notifications that are sent through Laravel's
+ * built-in channels (database, mail, broadcast) and logged by the NotificationDispatcher.
+ * Supports per-channel dispatch via the onlyVia() method. Subclasses must implement
+ * toDatabase() to define the notification payload.
+ *
+ * Queued by default (implements ShouldQueue). Broadcast messages trigger
+ * Filament's built-in Echo listener for instant notification bell updates.
+ *
+ * @see NotificationDispatcher  Orchestrates sending and logging
+ */
 abstract class BaseNotification extends Notification implements ShouldQueue
 {
     use Queueable;

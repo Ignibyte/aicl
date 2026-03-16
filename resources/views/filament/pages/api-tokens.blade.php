@@ -226,7 +226,7 @@
                         <div class="flex items-center justify-between">
                             <span>{{ __('MCP Server') }}</span>
                             <div class="flex items-center gap-2">
-                                @if($mcpEnabled)
+                                @if(config('aicl.features.mcp'))
                                     <span class="inline-flex items-center gap-1.5 rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700 dark:bg-success-400/10 dark:text-success-400">
                                         <span class="h-1.5 w-1.5 rounded-full bg-success-500"></span>
                                         {{ __('Enabled') }}
@@ -237,13 +237,7 @@
                                         {{ __('Disabled') }}
                                     </span>
                                 @endif
-                                <x-filament::button
-                                    wire:click="toggleMcp"
-                                    :color="$mcpEnabled ? 'danger' : 'success'"
-                                    size="sm"
-                                >
-                                    {{ $mcpEnabled ? __('Disable') : __('Enable') }}
-                                </x-filament::button>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ __('Controlled via config') }}</span>
                             </div>
                         </div>
                     </x-slot>
@@ -251,7 +245,7 @@
                         {{ __('The MCP (Model Context Protocol) server allows AI agents like Claude Desktop, Cursor, and custom clients to interact with your application\'s entities.') }}
                     </x-slot>
 
-                    @if($mcpEnabled)
+                    @if(config('aicl.features.mcp'))
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Server URL') }}</dt>
@@ -272,34 +266,17 @@
                             </div>
                         </div>
 
-                        {{-- Server Description --}}
-                        <div class="mt-4 space-y-2">
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {{ __('Server Description') }}
-                            </label>
-                            <div class="flex gap-2">
-                                <div class="flex-1">
-                                    <x-filament::input.wrapper>
-                                        <x-filament::input
-                                            wire:model="mcpServerDescription"
-                                            type="text"
-                                            placeholder="{{ config('app.name', 'AICL') }} MCP Server"
-                                        />
-                                    </x-filament::input.wrapper>
-                                </div>
-                                <x-filament::button
-                                    wire:click="updateMcpDescription"
-                                    color="gray"
-                                    size="sm"
-                                >
-                                    {{ __('Save') }}
-                                </x-filament::button>
+                        {{-- Server Description (read-only from config) --}}
+                        @if(config('aicl.mcp.server_info.description'))
+                            <div class="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Server Description') }}</dt>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ config('aicl.mcp.server_info.description') }}</dd>
                             </div>
-                        </div>
+                        @endif
                     @endif
                 </x-filament::section>
 
-                @if($mcpEnabled)
+                @if(config('aicl.features.mcp'))
                     {{-- Client Configuration --}}
                     <x-filament::section>
                         <x-slot name="heading">

@@ -5,6 +5,12 @@ namespace Aicl\AI\Contracts;
 use Aicl\AI\Enums\ToolRenderType;
 use NeuronAI\Tools\ToolInterface;
 
+/**
+ * Contract for AICL AI tools that extend NeuronAI's ToolInterface.
+ *
+ * Adds AICL-specific metadata: category grouping, authentication requirements,
+ * frontend rendering hints, and structured result formatting.
+ */
 interface AiTool extends ToolInterface
 {
     /**

@@ -9,6 +9,16 @@ use NeuronAI\Providers\Anthropic\Anthropic;
 use NeuronAI\Providers\Ollama\Ollama;
 use NeuronAI\Providers\OpenAI\OpenAI;
 
+/**
+ * Factory for creating AI provider instances (OpenAI, Anthropic, Ollama).
+ *
+ * Resolves the configured AI provider and creates NeuronAI provider instances
+ * from either global config (aicl.ai.*) or per-agent settings. Supports
+ * OpenAI, Anthropic, and Ollama drivers with credential validation.
+ *
+ * @see AiAgent  Agent model with per-agent provider configuration
+ * @see AiProvider  Enum of supported AI providers
+ */
 final class AiProviderFactory
 {
     /**

@@ -22,8 +22,30 @@ use Illuminate\Support\Collection;
 use ReflectionClass;
 use Throwable;
 
+/**
+ * Central notification dispatch service with logging and external channel support.
+ *
+ * Orchestrates sending notifications through Laravel's built-in channels (mail,
+ * database, broadcast) as well as external channels (Slack, Teams, PagerDuty,
+ * SMS, webhooks) via the DriverRegistry. Each dispatch is logged to NotificationLog,
+ * and external deliveries are tracked in NotificationDeliveryLog with rate limiting
+ * and retry support.
+ *
+ * Fires NotificationSending (cancellable) and NotificationDispatched events.
+ * Supports optional channel and recipient resolvers for dynamic routing.
+ *
+ * @see DriverRegistry  Registry of external channel drivers
+ * @see ChannelRateLimiter  Per-channel rate limiting
+ * @see BaseNotification  Base class for AICL notifications
+ */
 class NotificationDispatcher
 {
+    /**
+     * @param  DriverRegistry  $driverRegistry  Registry of external channel drivers
+     * @param  ChannelRateLimiter  $rateLimiter  Per-channel rate limiter
+     * @param  NotificationChannelResolver|null  $channelResolver  Optional resolver for dynamic channel selection
+     * @param  NotificationRecipientResolver|null  $recipientResolver  Optional resolver for dynamic recipients
+     */
     public function __construct(
         protected DriverRegistry $driverRegistry,
         protected ChannelRateLimiter $rateLimiter,

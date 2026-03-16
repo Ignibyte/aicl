@@ -5,10 +5,11 @@ namespace Aicl\Tests\Feature;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
-use Aicl\Http\Controllers\SocialAuthController;
 use Aicl\Models\SocialAccount;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
@@ -25,7 +26,6 @@ class SocialAuthControllerTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
 
         Event::fake([
             EntityCreated::class,
@@ -45,8 +45,8 @@ class SocialAuthControllerTest extends TestCase
         );
 
         // Disable throttle middleware for these tests (we're testing auth, not rate limiting)
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class);
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $this->withoutMiddleware(ThrottleRequestsWithRedis::class);
     }
 
     protected function mockSocialiteUser(array $overrides = []): SocialiteUser

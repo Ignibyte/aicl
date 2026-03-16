@@ -5,9 +5,11 @@ namespace Aicl\Tests\Feature\Auth;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
+use Aicl\Filament\Pages\Auth\Login;
 use Aicl\Http\Controllers\SocialAuthController;
 use Aicl\Models\SocialAccount;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -25,7 +27,6 @@ class SamlAuthTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
 
         Event::fake([
             EntityCreated::class,
@@ -43,7 +44,7 @@ class SamlAuthTest extends TestCase
             Route::get('/auth/saml2/redirect', [SocialAuthController::class, 'samlRedirect'])
                 ->name('saml.redirect');
             Route::post('/auth/saml2/callback', [SocialAuthController::class, 'samlCallback'])
-                ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+                ->withoutMiddleware([VerifyCsrfToken::class])
                 ->name('saml.callback');
         });
 
@@ -415,13 +416,9 @@ class SamlAuthTest extends TestCase
 
     public function test_login_page_has_saml_login_method(): void
     {
-        config(['aicl.features.saml' => true]);
+        config()->set('aicl.features.saml', true);
 
-        $settings = app(\Aicl\Settings\FeatureSettings::class);
-        $settings->enable_saml = true;
-        $settings->save();
-
-        $login = new \Aicl\Filament\Pages\Auth\Login;
+        $login = new Login;
 
         $this->assertTrue($login->hasSamlLogin());
     }
@@ -430,7 +427,7 @@ class SamlAuthTest extends TestCase
     {
         config(['aicl.features.saml' => false]);
 
-        $login = new \Aicl\Filament\Pages\Auth\Login;
+        $login = new Login;
 
         $this->assertFalse($login->hasSamlLogin());
     }
@@ -439,14 +436,14 @@ class SamlAuthTest extends TestCase
     {
         config(['aicl.saml.idp_name' => 'Okta']);
 
-        $login = new \Aicl\Filament\Pages\Auth\Login;
+        $login = new Login;
 
         $this->assertEquals('Okta', $login->getSamlIdpName());
     }
 
     public function test_login_page_returns_saml_redirect_url(): void
     {
-        $login = new \Aicl\Filament\Pages\Auth\Login;
+        $login = new Login;
 
         $url = $login->getSamlRedirectUrl();
 

@@ -4,8 +4,22 @@ namespace Aicl\Console\Commands;
 
 use Aicl\Support\RlmBridge;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Role;
 
+/**
+ * Artisan command to install the AICL package.
+ *
+ * Performs a full installation sequence: publishes config and brand assets,
+ * runs migrations, generates Shield permissions, seeds default roles and
+ * the admin user, optionally seeds RLM data, seeds notification channels,
+ * publishes Filament assets, clears version cache, and syncs project-level
+ * files. Idempotent by default (skips if already installed), use --force
+ * to re-run all steps.
+ *
+ * @see UpgradeCommand  Syncs project-level files on update
+ */
 class InstallCommand extends Command
 {
     /**
@@ -19,12 +33,23 @@ class InstallCommand extends Command
      */
     protected $description = 'Install the AICL package — publish config, run migrations, seed roles.';
 
+    /**
+     * Execute the install command.
+     *
+     * If already installed and --force is not set, only runs pending migrations
+     * and ensures config/local.php exists. Otherwise runs the full installation
+     * sequence: config publish, asset publish, migrations, Shield permissions,
+     * role seeding, admin user seeding, RLM seeding (if installed), notification
+     * channel seeding, Filament assets, version cache clear, and project file sync.
+     *
+     * @return int Exit code (SUCCESS)
+     */
     public function handle(): int
     {
         if (! $this->option('force') && $this->isAlreadyInstalled()) {
             $this->components->info('AICL is already installed. Use --force to re-run.');
             $this->ensureMigrated();
-            $this->ensureSettingsSeeded();
+            $this->ensureLocalConfig();
 
             return self::SUCCESS;
         }
@@ -80,13 +105,8 @@ class InstallCommand extends Command
             ]);
         });
 
-        // Seed default settings
-        $this->components->task('Seeding default settings', function (): void {
-            $this->callSilently('db:seed', [
-                '--class' => 'Aicl\Database\Seeders\SettingsSeeder',
-                '--force' => true,
-            ]);
-        });
+        // Generate local config if not present
+        $this->ensureLocalConfig();
 
         // Seed admin user (required before RLM seeding — RLM uses owner_id => 1)
         $this->components->task('Seeding admin user', function (): void {
@@ -117,8 +137,8 @@ class InstallCommand extends Command
 
         // Clear cached version strings so they reflect the newly installed version
         $this->components->task('Clearing version cache', function (): void {
-            \Illuminate\Support\Facades\Cache::forget('aicl.version.framework');
-            \Illuminate\Support\Facades\Cache::forget('aicl.version.project');
+            Cache::forget('aicl.version.framework');
+            Cache::forget('aicl.version.project');
         });
 
         // Sync project-level files (agents, config stubs, planning docs)
@@ -144,26 +164,35 @@ class InstallCommand extends Command
     }
 
     /**
-     * Ensure settings are seeded even on subsequent runs (idempotent).
+     * Copy config/local.example.php to config/local.php if it doesn't exist.
      */
-    protected function ensureSettingsSeeded(): void
+    protected function ensureLocalConfig(): void
     {
-        if (Schema::hasTable('settings') && \Illuminate\Support\Facades\DB::table('settings')->count() === 0) {
-            $this->components->task('Seeding missing settings', function (): void {
-                $this->callSilently('db:seed', [
-                    '--class' => 'Aicl\Database\Seeders\SettingsSeeder',
-                    '--force' => true,
-                ]);
-            });
+        $localPath = config_path('local.php');
+        $examplePath = config_path('local.example.php');
+
+        if (file_exists($localPath)) {
+            return;
         }
+
+        if (! file_exists($examplePath)) {
+            return;
+        }
+
+        $this->components->task('Creating config/local.php from template', function () use ($localPath, $examplePath): void {
+            copy($examplePath, $localPath);
+        });
     }
 
+    /**
+     * Check if AICL has already been installed by verifying the super_admin role exists.
+     */
     protected function isAlreadyInstalled(): bool
     {
         if (! Schema::hasTable('roles')) {
             return false;
         }
 
-        return \Spatie\Permission\Models\Role::where('name', 'super_admin')->exists();
+        return Role::where('name', 'super_admin')->exists();
     }
 }

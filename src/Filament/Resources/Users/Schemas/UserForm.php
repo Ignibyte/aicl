@@ -2,7 +2,7 @@
 
 namespace Aicl\Filament\Resources\Users\Schemas;
 
-use Aicl\Settings\FeatureSettings;
+use Aicl\Filament\Resources\Users\UserResource;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -13,8 +13,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
 
+/**
+ * Reusable user form schema for Filament create/edit pages.
+ *
+ * Provides the shared form layout for the User resource with three sections:
+ * Personal Information (avatar, name, email, password), Roles & Permissions
+ * (multi-select role assignment), and Security (MFA status and force-MFA toggle).
+ * The Security section is hidden on the create operation since MFA only applies
+ * to existing users.
+ *
+ * @see UserResource  Resource that uses this form
+ */
 class UserForm
 {
+    /**
+     * Configure the user form schema with personal info, roles, and security sections.
+     *
+     * @param  Schema  $schema  The Filament schema instance to configure
+     * @return Schema The configured schema with all form components
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -101,23 +118,13 @@ class UserForm
                         Toggle::make('force_mfa')
                             ->label('Require MFA')
                             ->helperText(function (): string {
-                                $globalRequired = rescue(
-                                    fn () => app(FeatureSettings::class)->require_mfa,
-                                    false
-                                );
-
-                                if ($globalRequired) {
+                                if (config('aicl.features.require_mfa', true)) {
                                     return 'All users are required to use MFA (global setting is enabled).';
                                 }
 
                                 return 'When enabled, this user must set up two-factor authentication on their next login.';
                             })
-                            ->disabled(function (): bool {
-                                return rescue(
-                                    fn () => app(FeatureSettings::class)->require_mfa,
-                                    false
-                                );
-                            })
+                            ->disabled(fn (): bool => (bool) config('aicl.features.require_mfa', true))
                             ->dehydrated()
                             ->hidden(fn (string $operation): bool => $operation === 'create'),
                     ])

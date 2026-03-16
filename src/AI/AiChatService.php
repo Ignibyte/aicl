@@ -4,6 +4,7 @@ namespace Aicl\AI;
 
 use Aicl\AI\Jobs\AiConversationStreamJob;
 use Aicl\Enums\AiMessageRole;
+use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
 use Aicl\Models\AiMessage;
 use Illuminate\Foundation\Auth\User;
@@ -12,6 +13,18 @@ use Illuminate\Support\Str;
 use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
 
+/**
+ * Service for managing AI assistant chat conversations.
+ *
+ * Handles message sending (with concurrent stream limiting), authorization
+ * checks against agent role restrictions, and building the message history
+ * context window for AI providers. Conversations are streamed via WebSocket
+ * through Reverb using AiConversationStreamJob.
+ *
+ * @see AiConversation  Conversation model
+ * @see AiAgent  AI agent configuration model
+ * @see AiConversationStreamJob  Job that streams AI responses
+ */
 class AiChatService
 {
     /**

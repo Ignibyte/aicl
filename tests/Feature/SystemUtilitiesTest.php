@@ -19,7 +19,6 @@ class SystemUtilitiesTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
     public function test_operations_manager_is_accessible_to_admin(): void
@@ -58,26 +57,6 @@ class SystemUtilitiesTest extends TestCase
         $user->assignRole('viewer');
 
         $response = $this->actingAs($user)->get('/admin/activity-log');
-
-        $this->assertFilamentAccessDenied($response);
-    }
-
-    public function test_settings_page_is_accessible_to_super_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('super_admin');
-
-        $response = $this->actingAs($user)->get('/admin/settings');
-
-        $response->assertStatus(200);
-    }
-
-    public function test_settings_page_is_not_accessible_to_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-
-        $response = $this->actingAs($user)->get('/admin/settings');
 
         $this->assertFilamentAccessDenied($response);
     }

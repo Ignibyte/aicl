@@ -5,7 +5,8 @@ namespace Aicl\Tests\Unit\Misc;
 use Aicl\AiclPlugin;
 use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
-use Aicl\Filament\Pages\ManageSettings;
+use Aicl\Filament\Pages\Changelog;
+use Aicl\Filament\Pages\DocumentBrowser;
 use Aicl\Filament\Pages\NotificationCenter;
 use Aicl\Filament\Pages\OperationsManager;
 use Aicl\Filament\Pages\OpsPanel;
@@ -86,7 +87,8 @@ class AiclPluginTest extends TestCase
             ActivityLog::class,
             OpsPanel::class,
             OperationsManager::class,
-            ManageSettings::class,
+            Changelog::class,
+            DocumentBrowser::class,
             Tools::class,
             NotificationCenter::class,
             Search::class,
@@ -219,27 +221,12 @@ class AiclPluginTest extends TestCase
         $this->assertStringContainsString("config('aicl.features.allow_registration'", $source);
     }
 
-    public function test_is_registration_enabled_source_checks_database_setting(): void
+    public function test_is_registration_enabled_uses_config_only(): void
     {
         $source = file_get_contents((new \ReflectionClass(AiclPlugin::class))->getFileName());
 
-        $this->assertStringContainsString('FeatureSettings', $source);
-        $this->assertStringContainsString('enable_registration', $source);
-    }
-
-    public function test_is_registration_enabled_source_has_try_catch(): void
-    {
-        $reflection = new \ReflectionMethod(AiclPlugin::class, 'isRegistrationEnabled');
-        $startLine = $reflection->getStartLine();
-        $endLine = $reflection->getEndLine();
-        $source = implode("\n", array_slice(
-            file($reflection->getFileName()),
-            $startLine - 1,
-            $endLine - $startLine + 1
-        ));
-
-        // Must have try/catch for database unavailability (fresh install, pre-migration)
-        $this->assertStringContainsString('try {', $source);
-        $this->assertStringContainsString('catch (\Throwable)', $source);
+        // Must NOT reference database Settings classes (consolidated to config)
+        $this->assertStringNotContainsString('FeatureSettings', $source);
+        $this->assertStringContainsString("config('aicl.features.allow_registration'", $source);
     }
 }

@@ -10,7 +10,6 @@ use Aicl\Mcp\Tools\ShowEntityTool;
 use Aicl\Mcp\Tools\TransitionEntityTool;
 use Aicl\Mcp\Tools\UpdateEntityTool;
 use Aicl\Services\EntityRegistry;
-use Aicl\Settings\McpSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Mcp\Server\Transport\FakeTransporter;
 use Tests\TestCase;
@@ -25,7 +24,6 @@ class AiclMcpServerTest extends TestCase
 
         config(['aicl.features.mcp' => true]);
 
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
     protected function createServer(): AiclMcpServer
@@ -112,9 +110,7 @@ class AiclMcpServerTest extends TestCase
     {
         // Verify the boot() method sets $this->name dynamically based on settings
         // Even though createContext() uses the attribute instead, boot() still runs
-        $settings = app(McpSettings::class);
-        $settings->server_description = 'My Custom App';
-        $settings->save();
+        config()->set('aicl.mcp.server_info.description', 'My Custom App');
 
         $server = $this->createServer();
 
@@ -127,10 +123,7 @@ class AiclMcpServerTest extends TestCase
 
     public function test_boot_name_falls_back_to_config(): void
     {
-        $settings = app(McpSettings::class);
-        $settings->server_description = null;
-        $settings->save();
-
+        config()->set('aicl.mcp.server_info.description', null);
         config(['aicl.mcp.server_info.name' => 'Config App']);
 
         $server = $this->createServer();
@@ -143,10 +136,7 @@ class AiclMcpServerTest extends TestCase
 
     public function test_boot_name_falls_back_to_app_name(): void
     {
-        $settings = app(McpSettings::class);
-        $settings->server_description = null;
-        $settings->save();
-
+        config()->set('aicl.mcp.server_info.description', null);
         config(['aicl.mcp.server_info.name' => null]);
         config(['app.name' => 'TestApp']);
 
@@ -160,9 +150,7 @@ class AiclMcpServerTest extends TestCase
 
     public function test_exposed_entities_wildcard_registers_all_entities(): void
     {
-        $settings = app(McpSettings::class);
-        $settings->exposed_entities = ['*'];
-        $settings->save();
+        config()->set('aicl.mcp.exposed_entities', ['*']);
 
         $server = $this->createServer();
         $context = $server->createContext();
@@ -176,9 +164,7 @@ class AiclMcpServerTest extends TestCase
 
     public function test_empty_exposed_entities_registers_no_tools(): void
     {
-        $settings = app(McpSettings::class);
-        $settings->exposed_entities = [];
-        $settings->save();
+        config()->set('aicl.mcp.exposed_entities', []);
 
         $server = $this->createServer();
         $context = $server->createContext();
@@ -197,9 +183,7 @@ class AiclMcpServerTest extends TestCase
 
     public function test_custom_tools_disabled_skips_directory_scan(): void
     {
-        $settings = app(McpSettings::class);
-        $settings->custom_tools_enabled = false;
-        $settings->save();
+        config()->set('aicl.mcp.custom_tools_enabled', false);
 
         $server = $this->createServer();
         $context = $server->createContext();

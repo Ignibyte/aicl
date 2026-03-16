@@ -4,6 +4,7 @@ namespace Aicl\Tests\Feature;
 
 use Aicl\Models\FailedJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class FailedJobModelTest extends TestCase
@@ -14,7 +15,6 @@ class FailedJobModelTest extends TestCase
     {
         parent::setUp();
 
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
     }
 
     // ─── getJobNameAttribute ──────────────────────────────────
@@ -138,7 +138,7 @@ class FailedJobModelTest extends TestCase
         ]);
 
         $fresh = $job->fresh();
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $fresh->failed_at);
+        $this->assertInstanceOf(Carbon::class, $fresh->failed_at);
     }
 
     public function test_payload_is_cast_to_array(): void

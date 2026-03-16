@@ -16,6 +16,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 use Tests\TestCase;
 
 class MiddlewareTest extends TestCase
@@ -27,7 +28,6 @@ class MiddlewareTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-        $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\SettingsSeeder']);
 
         Event::fake([
             EntityCreated::class,
@@ -136,7 +136,7 @@ class MiddlewareTest extends TestCase
 
     public function test_api_request_is_logged(): void
     {
-        $channelMock = \Mockery::mock(\Psr\Log\LoggerInterface::class);
+        $channelMock = \Mockery::mock(LoggerInterface::class);
         $channelMock->shouldReceive('info')
             ->once()
             ->with('API Request', \Mockery::on(function (array $context) {
@@ -160,7 +160,7 @@ class MiddlewareTest extends TestCase
 
     public function test_api_request_log_middleware_returns_response(): void
     {
-        $channelMock = \Mockery::mock(\Psr\Log\LoggerInterface::class);
+        $channelMock = \Mockery::mock(LoggerInterface::class);
         $channelMock->shouldReceive('info')->once();
 
         Log::shouldReceive('channel')

@@ -32,6 +32,48 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Site
+    |--------------------------------------------------------------------------
+    |
+    | Site-level metadata. The site name and timezone are read from Laravel's
+    | own app.name and app.timezone config keys — no duplication here.
+    |
+    */
+
+    'site' => [
+        'description' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Display
+    |--------------------------------------------------------------------------
+    |
+    | Default display preferences for the admin panel.
+    |
+    */
+
+    'display' => [
+        'date_format' => 'Y-m-d',
+        'items_per_page' => 25,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mail
+    |--------------------------------------------------------------------------
+    |
+    | AICL-specific mail settings. The from address and name are read from
+    | Laravel's mail.from config — no duplication here.
+    |
+    */
+
+    'mail' => [
+        'reply_to' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Feature Flags
     |--------------------------------------------------------------------------
     |
@@ -41,6 +83,8 @@ return [
 
     'features' => [
         'mfa' => true,
+        'require_mfa' => false,
+        'require_email_verification' => true,
         'social_login' => env('AICL_SOCIAL_LOGIN', false),
         'saml' => env('AICL_SAML', false),
         'allow_registration' => env('AICL_ALLOW_REGISTRATION', false),
@@ -278,16 +322,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | AI Assistant
-    |--------------------------------------------------------------------------
-    |
-    | Configuration for the AI assistant chat feature. Supports OpenAI,
-    | Anthropic, and Ollama providers via NeuronAI.
-    |
-    */
-
-    /*
-    |--------------------------------------------------------------------------
     | MCP Server
     |--------------------------------------------------------------------------
     |
@@ -300,9 +334,14 @@ return [
     'mcp' => [
         'path' => env('AICL_MCP_PATH', '/mcp'),
         'middleware' => ['api', 'auth:api', 'throttle:api'],
+        'exposed_entities' => ['*'],
+        'custom_tools_enabled' => true,
+        'rate_limit_per_minute' => 60,
+        'max_sessions' => 10,
         'server_info' => [
             'name' => env('AICL_MCP_SERVER_NAME'),
             'version' => '1.0.0',
+            'description' => null,
         ],
     ],
 

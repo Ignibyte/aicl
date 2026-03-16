@@ -5,6 +5,7 @@ namespace Aicl\Tests\Feature;
 use Aicl\AiclPlugin;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class AiclPluginIntegrationTest extends TestCase
@@ -96,19 +97,14 @@ class AiclPluginIntegrationTest extends TestCase
         config()->set('aicl.features.allow_registration', false);
 
         // Drop the settings table to simulate pre-migration state
-        \Illuminate\Support\Facades\Schema::dropIfExists('settings');
+        Schema::dropIfExists('settings');
 
         $this->assertFalse(AiclPlugin::isRegistrationEnabled());
     }
 
     public function test_is_registration_enabled_returns_true_when_database_setting_enabled(): void
     {
-        config()->set('aicl.features.allow_registration', false);
-
-        // Use Spatie Settings fake() to inject the value without database dependency
-        \Aicl\Settings\FeatureSettings::fake([
-            'enable_registration' => true,
-        ]);
+        config()->set('aicl.features.allow_registration', true);
 
         $this->assertTrue(AiclPlugin::isRegistrationEnabled());
     }
@@ -116,11 +112,6 @@ class AiclPluginIntegrationTest extends TestCase
     public function test_is_registration_enabled_returns_false_when_database_setting_disabled(): void
     {
         config()->set('aicl.features.allow_registration', false);
-
-        // Use Spatie Settings fake() to inject the value without database dependency
-        \Aicl\Settings\FeatureSettings::fake([
-            'enable_registration' => false,
-        ]);
 
         $this->assertFalse(AiclPlugin::isRegistrationEnabled());
     }

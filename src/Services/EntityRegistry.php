@@ -3,6 +3,7 @@
 namespace Aicl\Services;
 
 use Aicl\Contracts\HasEntityLifecycle;
+use Aicl\Mcp\AiclMcpServer;
 use Aicl\Swoole\Concurrent;
 use Aicl\Traits\HasStandardScopes;
 use Illuminate\Cache\TaggableStore;
@@ -13,10 +14,23 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use ReflectionClass;
 
+/**
+ * Central registry of all AICL entity types.
+ *
+ * Discovers entity models by scanning app/Models/ for classes implementing
+ * HasEntityLifecycle, caches the results (with tag support for Redis), and
+ * provides query methods for cross-entity search, location lookup, and
+ * status aggregation. Uses Swoole Concurrent::map() for parallel queries.
+ *
+ * @see HasEntityLifecycle  Interface that marks a model as an AICL entity
+ * @see AiclMcpServer  Uses this registry to auto-expose entities via MCP
+ */
 class EntityRegistry
 {
+    /** @var string Cache key for the discovered entity types collection */
     protected const CACHE_KEY = 'entity_registry_types';
 
+    /** @var array<string> Cache tags for tagged cache stores (Redis) */
     protected const CACHE_TAGS = ['aicl', 'entity-registry'];
 
     /**

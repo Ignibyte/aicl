@@ -24,6 +24,13 @@ class TrackPresenceMiddleware
 
     public function __construct(protected PresenceRegistry $registry) {}
 
+    /**
+     * Process the request and update presence tracking for authenticated users.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
+     * @return mixed
+     */
     public function handle(Request $request, Closure $next)
     {
         $response = $next($request);

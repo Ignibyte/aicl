@@ -2,9 +2,27 @@
 
 namespace Aicl\Swoole;
 
+use Aicl\Swoole\Listeners\RestoreSwooleTimers;
 use Closure;
+use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Facades\Redis;
+use Laravel\Octane\Facades\Octane;
+use Swoole\Coroutine;
+use Swoole\Timer;
 
+/**
+ * Redis-persisted timer management for Swoole workers.
+ *
+ * Provides recurring and one-shot timers that survive worker restarts by
+ * persisting timer definitions to Redis. On Swoole worker boot, restore()
+ * re-registers all active timers from their persisted state. Supports
+ * both class-based jobs and object instances as timer callbacks.
+ *
+ * Falls back gracefully when Swoole is unavailable (definitions are still
+ * persisted to Redis for later restoration).
+ *
+ * @see RestoreSwooleTimers  Restores timers on worker boot
+ */
 final class SwooleTimer
 {
     private const REDIS_PREFIX = 'aicl:timers:';
@@ -19,7 +37,7 @@ final class SwooleTimer
     /**
      * Custom Redis connector for testing.
      *
-     * @var (Closure(): \Illuminate\Redis\Connections\Connection)|null
+     * @var (Closure(): Connection)|null
      */
     private static ?Closure $redisResolver = null;
 
@@ -54,7 +72,7 @@ final class SwooleTimer
 
         $callback = self::buildCallback($job, $data);
 
-        $timerId = \Swoole\Timer::tick($seconds * 1000, $callback);
+        $timerId = Timer::tick($seconds * 1000, $callback);
         self::$timerIds[$key] = $timerId;
 
         return true;
@@ -86,7 +104,7 @@ final class SwooleTimer
             static::removeTimerFromRedis($key);
         };
 
-        $timerId = \Swoole\Timer::after($seconds * 1000, $callback);
+        $timerId = Timer::after($seconds * 1000, $callback);
         self::$timerIds[$key] = $timerId;
 
         return true;
@@ -102,7 +120,7 @@ final class SwooleTimer
         // Clear in-memory Swoole timer if active
         if (isset(self::$timerIds[$key])) {
             if (self::isAvailable()) {
-                \Swoole\Timer::clear(self::$timerIds[$key]);
+                Timer::clear(self::$timerIds[$key]);
             }
 
             unset(self::$timerIds[$key]);
@@ -162,8 +180,8 @@ final class SwooleTimer
         }
 
         return extension_loaded('swoole')
-            && \Swoole\Coroutine::getCid() >= 0
-            && class_exists(\Laravel\Octane\Facades\Octane::class);
+            && Coroutine::getCid() >= 0
+            && class_exists(Octane::class);
     }
 
     /**
@@ -201,7 +219,7 @@ final class SwooleTimer
 
             if ($definition['type'] === 'recurring') {
                 $callback = self::buildCallback($jobClass, $jobData);
-                $timerId = \Swoole\Timer::tick($seconds * 1000, $callback);
+                $timerId = Timer::tick($seconds * 1000, $callback);
                 self::$timerIds[$timerKey] = $timerId;
             } else {
                 $callback = function () use ($timerKey, $jobClass, $jobData): void {
@@ -212,7 +230,7 @@ final class SwooleTimer
                     static::removeTimerFromRedis($timerKey);
                 };
 
-                $timerId = \Swoole\Timer::after($seconds * 1000, $callback);
+                $timerId = Timer::after($seconds * 1000, $callback);
                 self::$timerIds[$timerKey] = $timerId;
             }
         }
@@ -226,7 +244,7 @@ final class SwooleTimer
         // Clear any active Swoole timers
         if (self::isAvailable()) {
             foreach (self::$timerIds as $timerId) {
-                \Swoole\Timer::clear($timerId);
+                Timer::clear($timerId);
             }
         }
 
@@ -239,7 +257,7 @@ final class SwooleTimer
     /**
      * Inject a custom Redis resolver for testing.
      *
-     * @param  (Closure(): \Illuminate\Redis\Connections\Connection)|null  $resolver
+     * @param  (Closure(): Connection)|null  $resolver
      */
     public static function useRedis(?Closure $resolver): void
     {
@@ -338,7 +356,7 @@ final class SwooleTimer
     /**
      * Get the Redis connection instance.
      *
-     * @return \Illuminate\Redis\Connections\Connection|object
+     * @return Connection|object
      */
     private static function redis(): mixed
     {

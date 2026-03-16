@@ -7,6 +7,17 @@ use Aicl\AI\Tools\BaseTool;
 use Aicl\Models\AiAgent;
 use Illuminate\Contracts\Container\Container;
 
+/**
+ * Registry of AI tools available to AI agents.
+ *
+ * Manages the pool of AiTool implementations that can be used by AI agents
+ * during conversations. Tools are registered at boot time and resolved from
+ * the container on demand. Supports agent-scoped tool filtering via the
+ * agent's allowed_tools configuration.
+ *
+ * @see AiTool  Tool interface
+ * @see BaseTool  Abstract base tool implementation
+ */
 class AiToolRegistry
 {
     /** @var array<string, class-string<AiTool>> */

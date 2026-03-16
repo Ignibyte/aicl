@@ -110,10 +110,39 @@ use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Saml2\Provider;
 use Spatie\Permission\Models\Role;
 
+/**
+ * AICL framework service provider.
+ *
+ * Bootstraps the entire AICL package: configuration merging (package defaults,
+ * project overrides, local overrides), singleton registrations for core services
+ * (notifications, health checks, entity registry, presence, MCP, AI tools,
+ * template engine), Filament asset publishing, Livewire component wiring,
+ * route loading, middleware registration, and Artisan command registration.
+ *
+ * Configuration precedence (highest wins):
+ *   1. config/local.php (Drupal-style, gitignored)
+ *   2. config/aicl-project.php (project-level overrides)
+ *   3. packages/aicl/config/aicl.php (package defaults)
+ *
+ * @see AiclPlugin  Filament panel plugin that registers pages, resources, and widgets
+ * @see EntityRegistry  Central registry of all entity types
+ */
 class AiclServiceProvider extends ServiceProvider
 {
-    public const VERSION = '1.6.1';
+    /**
+     * Current package version, used by VersionService and the admin version badge.
+     */
+    public const VERSION = '1.7.0';
 
+    /**
+     * Register package services, singletons, and configuration.
+     *
+     * Merges package config with project and local overrides, then binds
+     * all core singletons into the container: DriverRegistry, NotificationDispatcher,
+     * HealthCheckRegistry, EntityRegistry, PresenceRegistry, McpRegistry,
+     * ComponentDiscoveryService, ComponentRegistry, AiToolRegistry,
+     * SamlAttributeMapper, and the template rendering engine.
+     */
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/aicl.php', 'aicl');
@@ -123,6 +152,8 @@ class AiclServiceProvider extends ServiceProvider
         if (! empty($projectConfig)) {
             config(['aicl' => array_replace_recursive(config('aicl', []), $projectConfig)]);
         }
+
+        $this->loadLocalConfig();
 
         $this->app->singleton(DriverRegistry::class, function ($app): DriverRegistry {
             $registry = new DriverRegistry($app);
@@ -214,6 +245,14 @@ class AiclServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Boot package services: routes, views, assets, middleware, listeners, and commands.
+     *
+     * Registers policies, observers, event listeners, Swoole cache managers,
+     * SwooleTimer jobs, rate limiters, publishable assets, Blade/Livewire
+     * components, routes (web, API, social, MCP, SAML), security and presence
+     * middleware, and Artisan console commands.
+     */
     public function boot(): void
     {
         // Force HTTPS URL generation when APP_URL uses https.
@@ -516,6 +555,11 @@ class AiclServiceProvider extends ServiceProvider
         };
     }
 
+    /**
+     * Set Scout config values for Meilisearch driver.
+     *
+     * Reads host and key from aicl.search.meilisearch config namespace.
+     */
     protected function configureMeilisearch(): void
     {
         config([
@@ -538,6 +582,14 @@ class AiclServiceProvider extends ServiceProvider
         $router->aliasMiddleware('track-presence', Http\Middleware\TrackPresenceMiddleware::class);
     }
 
+    /**
+     * Set Scout config values for the Elasticsearch driver.
+     *
+     * Configures host, port, scheme, and optional authentication (API key
+     * or basic auth) for the matchish/laravel-scout-elasticsearch package.
+     * Explicitly registers the deferred ElasticSearchServiceProvider to ensure
+     * the Client binding is available before Scout observers fire.
+     */
     protected function configureElasticsearch(): void
     {
         if (! class_exists(ElasticSearchServiceProvider::class)) {
@@ -570,6 +622,34 @@ class AiclServiceProvider extends ServiceProvider
         // so Client::class binding is available before Scout observers fire
         if (! $this->app->providerIsLoaded(ElasticSearchServiceProvider::class)) {
             $this->app->register(ElasticSearchServiceProvider::class);
+        }
+    }
+
+    /**
+     * Load local config overrides from config/local.php (Drupal-style).
+     *
+     * This file is gitignored and contains instance-specific overrides
+     * such as database credentials, API keys, and feature toggles.
+     * It uses dot-notation keys to override any config value at any depth.
+     *
+     * Precedence: package defaults < project config < local.php (final authority).
+     */
+    protected function loadLocalConfig(): void
+    {
+        $path = $this->app->configPath('local.php');
+
+        if (! file_exists($path)) {
+            return;
+        }
+
+        $overrides = require $path;
+
+        if (! is_array($overrides)) {
+            return;
+        }
+
+        foreach ($overrides as $key => $value) {
+            config()->set($key, $value);
         }
     }
 }

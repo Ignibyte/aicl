@@ -2,6 +2,7 @@
 
 namespace Aicl\Tests\Feature\Notifications;
 
+use Aicl\Database\Seeders\RoleSeeder;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
@@ -10,6 +11,7 @@ use Aicl\Notifications\BaseNotification;
 use Aicl\Notifications\Events\NotificationDispatched;
 use Aicl\Notifications\Events\NotificationSending;
 use App\Models\User;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -23,8 +25,7 @@ class NotificationEventsTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Aicl\Database\Seeders\RoleSeeder::class);
-        $this->seed(\Aicl\Database\Seeders\SettingsSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         Event::fake([
             EntityCreated::class,
@@ -167,14 +168,14 @@ class NotificationEventsTest extends TestCase
         $reflection = new \ReflectionClass(NotificationSending::class);
 
         // It should not implement ShouldBroadcast or ShouldQueue
-        $this->assertFalse($reflection->implementsInterface(\Illuminate\Contracts\Broadcasting\ShouldBroadcast::class));
+        $this->assertFalse($reflection->implementsInterface(ShouldBroadcast::class));
     }
 
     public function test_notification_dispatched_is_a_plain_event_class(): void
     {
         $reflection = new \ReflectionClass(NotificationDispatched::class);
 
-        $this->assertFalse($reflection->implementsInterface(\Illuminate\Contracts\Broadcasting\ShouldBroadcast::class));
+        $this->assertFalse($reflection->implementsInterface(ShouldBroadcast::class));
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Aicl\Tests\Feature;
 
+use Aicl\Database\Seeders\RoleSeeder;
 use Aicl\Events\EntityCreated;
 use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
@@ -29,8 +30,7 @@ class NotificationDispatcherTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Aicl\Database\Seeders\RoleSeeder::class);
-        $this->seed(\Aicl\Database\Seeders\SettingsSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         Event::fake([
             EntityCreated::class,

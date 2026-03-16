@@ -5,6 +5,13 @@ namespace Aicl\Swoole\Exceptions;
 use RuntimeException;
 use Throwable;
 
+/**
+ * Exception thrown when one or more concurrent callables fail.
+ *
+ * Contains both the successful results and the failed exceptions, keyed by
+ * their original input keys, allowing callers to handle partial failures
+ * and retrieve any results that did complete successfully.
+ */
 class ConcurrentException extends RuntimeException
 {
     /**
