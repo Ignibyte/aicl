@@ -79,18 +79,18 @@ Every external auth method has two independent gates:
 
 | Layer | Where | Controls | Who changes it |
 |-------|-------|----------|----------------|
-| **Config flag** (`.env`) | `config('aicl.features.saml')` | Whether SAML code is loaded (routes, bindings) | DevOps / deployment |
+| **Config flag** (`config/local.php`) | `config('aicl.features.saml')` | Whether SAML code is loaded (routes, bindings) | DevOps / deployment |
 | **Settings toggle** (DB) | `FeatureSettings::enable_saml` | Whether the SSO button is visible to users | Admin via Settings UI |
 
 Both must be `true` for the feature to be active.
 
 ```
-AICL_SAML=true  +  Settings enable_saml=true   →  SSO button visible
-AICL_SAML=true  +  Settings enable_saml=false  →  Routes loaded, button hidden
-AICL_SAML=false +  Settings (any)              →  Routes not loaded, button hidden
+aicl.features.saml=true  +  Settings enable_saml=true   →  SSO button visible
+aicl.features.saml=true  +  Settings enable_saml=false  →  Routes loaded, button hidden
+aicl.features.saml=false +  Settings (any)              →  Routes not loaded, button hidden
 ```
 
-The same pattern applies to social login (`AICL_SOCIAL_LOGIN` + `enable_social_login`).
+The same pattern applies to social login (`aicl.features.social_login` + `enable_social_login`).
 
 ---
 
@@ -132,27 +132,32 @@ The same pattern applies to social login (`AICL_SOCIAL_LOGIN` + `enable_social_l
 
 #### Step 1: Enable the feature flag
 
-```env
-# .env
-AICL_SAML=true
+```php
+// config/local.php
+'aicl.features.saml' => true,
 ```
 
 #### Step 2: Configure the IdP connection
 
-```env
-# .env
-SAML_IDP_NAME="Okta"
-SAML_IDP_METADATA_URL=https://your-org.okta.com/app/exk123/sso/saml/metadata
+```php
+// config/local.php
+'aicl.features.saml' => true,
 
-# Optional — for IdPs that don't publish metadata at a URL
-# SAML_IDP_ENTITY_ID=http://www.okta.com/exk123
-# SAML_IDP_CERTIFICATE="MIIC..."
+// IdP display name on the login button
+'services.saml2.idp_name' => 'Okta',
 
-# SP callback URL — override if your app uses a non-standard port
-# SAML_SP_ACS_URL=https://yourapp.com/auth/saml2/callback
+// IdP metadata URL (required)
+'services.saml2.metadata' => 'https://your-org.okta.com/app/exk123/sso/saml/metadata',
 
-# Disable SSL verification for self-signed IdP certs (dev only!)
-# SAML_VERIFY_SSL=false
+// Optional — for IdPs that don't publish metadata at a URL
+// 'services.saml2.entityid'    => 'http://www.okta.com/exk123',
+// 'services.saml2.certificate' => 'MIIC...',
+
+// SP callback URL — override if your app uses a non-standard port
+// 'services.saml2.sp_acs' => 'https://yourapp.com/auth/saml2/callback',
+
+// Disable SSL verification for self-signed IdP certs (dev only!)
+// 'services.saml2.verify_ssl' => false,
 ```
 
 #### Step 3: Register AICL as a Service Provider in your IdP
@@ -282,23 +287,25 @@ Map IdP group/role attributes to AICL's Spatie Permission roles.
 4. Matched roles are synced to the user via Spatie's `syncRoles()` or `assignRole()`
 5. If no groups match, the `default_role` is assigned
 
-### Environment Variables Reference
+### Configuration Reference
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `AICL_SAML` | Yes | `false` | Enable SAML code loading |
-| `SAML_IDP_NAME` | No | `SSO` | Button label on login page |
-| `SAML_IDP_METADATA_URL` | Yes* | — | IdP metadata XML endpoint |
-| `SAML_IDP_ENTITY_ID` | No | — | IdP entity ID (alt to metadata URL) |
-| `SAML_IDP_CERTIFICATE` | No | — | IdP signing cert (alt to metadata URL) |
-| `SAML_SP_ENTITY_ID` | No | `{APP_URL}/auth/saml2/metadata` | SP entity ID |
-| `SAML_SP_ACS_URL` | No | `auth/saml2/callback` | SP ACS callback URL |
-| `SAML_SP_CERTIFICATE` | No | — | SP signing certificate |
-| `SAML_SP_PRIVATE_KEY` | No | — | SP private key |
-| `SAML_VERIFY_SSL` | No | `true` | SSL verification for metadata fetch |
-| `SAML_AUTO_CREATE_USERS` | No | `true` | Create users on first SAML login |
-| `SAML_DEFAULT_ROLE` | No | `viewer` | Role for unmapped users |
-| `SAML_ROLE_SYNC_MODE` | No | `sync` | Role sync mode (`sync`/`additive`) |
+All SAML settings are overridden via `config/local.php` using dot-notation keys. The underlying config lives in `config/services.php` (saml2 block) and `config/aicl.php` (saml section).
+
+| Config Key (`config/local.php`) | Required | Default | Description |
+|--------------------------------|----------|---------|-------------|
+| `aicl.features.saml` | Yes | `false` | Enable SAML code loading |
+| `services.saml2.idp_name` | No | `SSO` | Button label on login page |
+| `services.saml2.metadata` | Yes* | — | IdP metadata XML endpoint |
+| `services.saml2.entityid` | No | — | IdP entity ID (alt to metadata URL) |
+| `services.saml2.certificate` | No | — | IdP signing cert (alt to metadata URL) |
+| `services.saml2.sp_entity_id` | No | `{APP_URL}/auth/saml2/metadata` | SP entity ID |
+| `services.saml2.sp_acs` | No | `auth/saml2/callback` | SP ACS callback URL |
+| `services.saml2.sp_certificate` | No | — | SP signing certificate |
+| `services.saml2.sp_private_key` | No | — | SP private key |
+| `services.saml2.verify_ssl` | No | `true` | SSL verification for metadata fetch |
+| `aicl.saml.auto_create_users` | No | `true` | Create users on first SAML login |
+| `aicl.saml.default_role` | No | `viewer` | Role for unmapped users |
+| `aicl.saml.role_sync_mode` | No | `sync` | Role sync mode (`sync`/`additive`) |
 
 *Required when connecting to an IdP. Not needed while button is disabled.
 
@@ -325,9 +332,9 @@ Map IdP group/role attributes to AICL's Spatie Permission roles.
 
 #### Step 1: Enable the feature flag
 
-```env
-# .env
-AICL_SOCIAL_LOGIN=true
+```php
+// config/local.php
+'aicl.features.social_login' => true,
 ```
 
 #### Step 2: Create OAuth credentials at the provider
@@ -342,37 +349,22 @@ AICL_SOCIAL_LOGIN=true
 2. Create a new OAuth App
 3. Set authorization callback URL: `https://yourapp.com/auth/github/callback`
 
-#### Step 3: Add credentials to `.env`
-
-```env
-# Google
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_REDIRECT_URL=https://yourapp.com/auth/google/callback
-
-# GitHub
-GITHUB_CLIENT_ID=your-client-id
-GITHUB_CLIENT_SECRET=your-client-secret
-GITHUB_REDIRECT_URL=https://yourapp.com/auth/github/callback
-```
-
-#### Step 4: Configure `config/services.php`
+#### Step 3: Add credentials to `config/local.php`
 
 ```php
-'google' => [
-    'client_id' => env('GOOGLE_CLIENT_ID'),
-    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect' => env('GOOGLE_REDIRECT_URL'),
-],
+// config/local.php
+'services.google.client_id'     => 'your-client-id',
+'services.google.client_secret' => 'your-client-secret',
+'services.google.redirect'      => 'https://yourapp.com/auth/google/callback',
 
-'github' => [
-    'client_id' => env('GITHUB_CLIENT_ID'),
-    'client_secret' => env('GITHUB_CLIENT_SECRET'),
-    'redirect' => env('GITHUB_REDIRECT_URL'),
-],
+'services.github.client_id'     => 'your-client-id',
+'services.github.client_secret' => 'your-client-secret',
+'services.github.redirect'      => 'https://yourapp.com/auth/github/callback',
 ```
 
-#### Step 5: Configure enabled providers
+> **Note:** `config/services.php` uses `env()` calls by default (e.g., `env('GOOGLE_CLIENT_ID')`). The `config/local.php` overrides take precedence, so you don't need to modify `config/services.php`.
+
+#### Step 4: Configure enabled providers
 
 In `config/aicl.php`:
 
@@ -380,7 +372,7 @@ In `config/aicl.php`:
 'social_providers' => ['google', 'github'],
 ```
 
-#### Step 6: Enable in Settings
+#### Step 5: Enable in Settings
 
 Go to **Settings > Features** and toggle **Social Login** on.
 
@@ -480,17 +472,17 @@ ddev exec php artisan test --compact
 
 ### SSO button not visible
 
-1. Check `AICL_SAML=true` in `.env`
+1. Check `config('aicl.features.saml')` is `true` (set in `config/local.php`)
 2. Check Settings > Features > SAML SSO is toggled on
 3. Reload Octane: `ddev octane-reload`
 
 ### "Either the metadata or acs config keys must be set"
 
-`SAML_IDP_METADATA_URL` is not set in `.env`. Add the IdP's metadata URL.
+The `services.saml2.metadata` config value is not set. Add the IdP's metadata URL in `config/local.php`.
 
 ### SSL certificate error when fetching metadata
 
-Set `SAML_VERIFY_SSL=false` in `.env` (dev only). In production, ensure the IdP certificate is trusted by the server's CA bundle.
+Set `'services.saml2.verify_ssl' => false` in `config/local.php` (dev only). In production, ensure the IdP certificate is trusted by the server's CA bundle.
 
 ### User created but no roles assigned
 
@@ -498,10 +490,10 @@ Check that `aicl.saml.role_map.map` is configured and the IdP sends the `groups`
 
 ### Social login buttons not showing
 
-1. Check `AICL_SOCIAL_LOGIN=true` in `.env`
+1. Check `config('aicl.features.social_login')` is `true` (set in `config/local.php`)
 2. Check Settings > Features > Social Login is toggled on
 3. Verify providers are listed in `config('aicl.social_providers')`
-4. Verify OAuth credentials are configured in `config/services.php`
+4. Verify OAuth credentials are configured in `config/local.php` (or `config/services.php`)
 
 ---
 

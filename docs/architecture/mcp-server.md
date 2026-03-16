@@ -18,8 +18,9 @@ Built on `laravel/mcp` (official first-party package by Taylor Otwell).
 
 ### 1. Enable the feature flag
 
-```env
-AICL_MCP_ENABLED=true
+```php
+// config/local.php
+'aicl.features.mcp' => true,
 ```
 
 ### 2. Create a Passport personal access client (if not already done)
@@ -372,7 +373,7 @@ class OnboardClientPrompt extends Prompt
 | Auth | Token scopes + entity policies | Defense in depth |
 | Config | Spatie Settings (McpSettings) | Dynamic toggles from admin UI, no new migration |
 | Endpoint | Single `/mcp` | Simple client config |
-| Default | Off (`AICL_MCP_ENABLED=false`) | Zero overhead unless opted in |
+| Default | Off (`aicl.features.mcp = false`) | Zero overhead unless opted in |
 | Extensibility | Auto-discovery + McpRegistry | Projects drop files, packages register via DI |
 
 ## File Map

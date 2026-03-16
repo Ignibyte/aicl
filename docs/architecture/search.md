@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Cross-entity full-text search powered by Elasticsearch. Provides a unified search index, permission-filtered results, search analytics, and admin UI components. Disabled by default (`AICL_SEARCH_ENABLED=false`); when disabled, all search components gracefully degrade to no-ops.
+Cross-entity full-text search powered by Elasticsearch. Provides a unified search index, permission-filtered results, search analytics, and admin UI components. Disabled by default (`aicl.search.enabled = false`); when disabled, all search components gracefully degrade to no-ops.
 
 ## Dependencies
 
@@ -228,10 +228,12 @@ In `config/aicl.php` (or `config/aicl-project.php` for project overlay):
 
 ### 3. Enable search and reindex
 
-```bash
-# .env
-AICL_SEARCH_ENABLED=true
+```php
+// config/local.php
+'aicl.search.enabled' => true,
+```
 
+```bash
 # Build the initial index
 ddev exec php artisan search:reindex --fresh
 ```
@@ -283,10 +285,11 @@ The unified index (`aicl_global_search`) uses a versioned alias pattern (`_v1`, 
 
 ### 2. Enable Search
 
-Add to your `.env`:
+Add to `config/local.php`:
 
-```env
-AICL_SEARCH_ENABLED=true
+```php
+// config/local.php
+'aicl.search.enabled' => true,
 ```
 
 ### 3. Update Project Config
@@ -353,8 +356,8 @@ ddev octane-reload
 
 ### Topbar Behavior
 
-- **Search disabled** (`AICL_SEARCH_ENABLED=false`): No search bar in the topbar. Filament's built-in global search is also disabled.
-- **Search enabled** (`AICL_SEARCH_ENABLED=true`): The custom AICL nav search bar appears with `Ctrl+K` / `Cmd+K` keyboard shortcut. It links to the full-page Search page.
+- **Search disabled** (`aicl.search.enabled = false`): No search bar in the topbar. Filament's built-in global search is also disabled.
+- **Search enabled** (`aicl.search.enabled = true`): The custom AICL nav search bar appears with `Ctrl+K` / `Cmd+K` keyboard shortcut. It links to the full-page Search page.
 
 ### Gotcha: Project Config Override
 
@@ -367,7 +370,7 @@ Always copy the full `search` section from the package config when publishing.
 1. **Unified ES index** — All entity types share one index (`aicl_global_search`) rather than per-model indices. Simplifies cross-entity search and faceting.
 2. **Permission filtering at query level** — `PermissionFilterBuilder` adds ES filter clauses so unauthorized results never leave Elasticsearch. Policy-based visibility adds a safety-net check on loaded models.
 3. **Observer-based indexing** — `SearchObserver` dispatches queued jobs on model events. No manual indexing calls needed.
-4. **Disabled by default** — `AICL_SEARCH_ENABLED=false` ensures search infrastructure doesn't load unless explicitly enabled. All UI components check this flag. Filament's built-in global search is always disabled in favor of the AICL custom search bar.
+4. **Disabled by default** — `aicl.search.enabled` defaults to `false`, ensuring search infrastructure doesn't load unless explicitly enabled. All UI components check this flag. Filament's built-in global search is always disabled in favor of the AICL custom search bar.
 5. **Alias-based zero-downtime reindexing** — `search:reindex --fresh` creates a new versioned index, swaps the alias, then deletes the old index.
 6. **Graceful degradation** — If ES is unreachable or the index doesn't exist, search queries return empty results (logged as warnings). No 500 errors.
 

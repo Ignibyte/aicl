@@ -181,6 +181,16 @@ class AiAgentTest extends TestCase
         $this->assertCount(2, $results); // null + admin
     }
 
+    public function test_visible_to_roles_scope_treats_empty_array_as_visible_to_all(): void
+    {
+        AiAgent::factory()->create(['visible_to_roles' => []]); // empty = visible to all
+        AiAgent::factory()->create(['visible_to_roles' => ['editor']]);
+
+        $results = AiAgent::query()->visibleToRoles(['admin'])->get();
+
+        $this->assertCount(1, $results); // empty array agent only
+    }
+
     // ─── Accessors ──────────────────────────────────────────────
 
     public function test_display_name_accessor(): void
@@ -195,6 +205,14 @@ class AiAgentTest extends TestCase
     public function test_is_visible_to_returns_true_when_roles_null(): void
     {
         $agent = AiAgent::factory()->create(['visible_to_roles' => null]);
+
+        $this->assertTrue($agent->isVisibleTo(['admin']));
+        $this->assertTrue($agent->isVisibleTo([]));
+    }
+
+    public function test_is_visible_to_returns_true_when_roles_empty_array(): void
+    {
+        $agent = AiAgent::factory()->create(['visible_to_roles' => []]);
 
         $this->assertTrue($agent->isVisibleTo(['admin']));
         $this->assertTrue($agent->isVisibleTo([]));

@@ -260,10 +260,11 @@ Social authentication uses Laravel Socialite with configurable providers.
 
 ### Feature Flag
 
-Social login is controlled by environment variable:
+Social login is controlled by a feature flag. Enable it in `config/local.php`:
 
-```env
-AICL_SOCIAL_LOGIN=true
+```php
+// config/local.php
+'aicl.features.social_login' => true,
 ```
 
 When enabled, the package loads social auth routes.
@@ -704,30 +705,26 @@ class ApiAuthTest extends TestCase
 
 ## Configuration Reference
 
-### Environment Variables
+All auth-related overrides go in `config/local.php` (gitignored, never committed). See CLAUDE.md for the full config paradigm.
 
-```env
-# Social Login
-AICL_SOCIAL_LOGIN=false
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URL=
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-GITHUB_REDIRECT_URL=
+### Feature Flags & Credentials
 
-# SAML SSO (see sso-external-auth.md for full setup)
-AICL_SAML=false
-SAML_IDP_METADATA_URL=
-SAML_IDP_ENTITY_ID=
-SAML_IDP_CERTIFICATE=
-SAML_SP_ENTITY_ID=
-SAML_SP_ACS_URL=
-SAML_VERIFY_SSL=true
+```php
+// config/local.php
+'aicl.features.social_login' => true,
+'aicl.features.saml'         => true,
 
-# Session
-SESSION_DRIVER=redis
-SESSION_LIFETIME=120
+// Social login credentials (secrets — keep in local.php only)
+'services.google.client_id'     => 'your-client-id',
+'services.google.client_secret' => 'your-client-secret',
+'services.google.redirect'      => 'https://yourapp.com/auth/google/callback',
+
+'services.github.client_id'     => 'your-client-id',
+'services.github.client_secret' => 'your-client-secret',
+'services.github.redirect'      => 'https://yourapp.com/auth/github/callback',
+
+// SAML SSO (see sso-external-auth.md for full setup)
+'services.saml2.metadata' => 'https://your-org.okta.com/app/exk123/sso/saml/metadata',
 ```
 
 ### Auth Config (`config/auth.php`)

@@ -10,7 +10,17 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.8.0`
+Current version: `1.8.1`
+
+---
+
+## [1.8.1] - 2026-03-16
+
+### Fixed
+
+- **AiAgent `visible_to_roles` empty array treated as "no access"** — `isVisibleTo()`, `isAccessibleByUser()`, and `scopeVisibleToRoles()` now treat an empty array `[]` the same as `null` (visible to all roles). Previously, saving an agent with no roles selected in the form produced `[]`, making the agent inaccessible to everyone.
+- **500 error on `/admin/ai-agents` under Octane** — Added `NormalizeResponseMiddleware` to convert Livewire `Redirector` objects into proper `RedirectResponse` instances before `VerifyCsrfToken` attempts to access `$response->headers`. Only manifests under Swoole/Octane due to singleton container state.
+- **SSO architecture doc** — Updated SAML configuration reference table from `.env` variables to `config/local.php` dot-notation keys (missed in v1.8.0 config consolidation).
 
 ---
 

@@ -147,7 +147,8 @@ class AiAgent extends Model
     public function scopeVisibleToRoles(Builder $query, array $userRoles): Builder
     {
         return $query->where(function (Builder $q) use ($userRoles): void {
-            $q->whereNull('visible_to_roles');
+            $q->whereNull('visible_to_roles')
+                ->orWhereJsonLength('visible_to_roles', 0);
 
             foreach ($userRoles as $role) {
                 $q->orWhereJsonContains('visible_to_roles', $role);
@@ -192,7 +193,7 @@ class AiAgent extends Model
      */
     public function isVisibleTo(array $userRoles): bool
     {
-        if ($this->visible_to_roles === null) {
+        if ($this->visible_to_roles === null || $this->visible_to_roles === []) {
             return true;
         }
 
@@ -209,7 +210,7 @@ class AiAgent extends Model
             return false;
         }
 
-        if ($this->visible_to_roles === null) {
+        if ($this->visible_to_roles === null || $this->visible_to_roles === []) {
             return true;
         }
 

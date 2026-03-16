@@ -17,7 +17,7 @@ class AiAssistantController extends Controller
     {
         if (! AiProviderFactory::isConfigured()) {
             return response()->json([
-                'error' => 'AI provider not configured. Set the appropriate API key (e.g. OPENAI_API_KEY, ANTHROPIC_API_KEY) in your environment.',
+                'error' => 'AI provider not configured. Set the appropriate API key in config/local.php (e.g., aicl.ai.openai.api_key or aicl.ai.anthropic.api_key).',
             ], 422);
         }
 

@@ -104,6 +104,6 @@ This creates a `WORK-{Title}.md` pipeline document with phases: Plan, Design, Im
 - PHPUnit tests (not Pest) — `php artisan make:test --phpunit {name}`
 - Form Request classes for all validation
 - Eloquent over raw queries — `Model::query()`, never `DB::`
-- `config()` over `env()` — env vars only in config files
+- `config()` over `env()` — no `.env` file, all config via `config/local.php`
 - Explicit return types and type hints
 - Run `vendor/bin/pint --dirty --format agent` before finalizing

@@ -49,7 +49,7 @@ class AiAssistantControllerTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonStructure(['error'])
-            ->assertJsonFragment(['error' => 'AI provider not configured. Set the appropriate API key (e.g. OPENAI_API_KEY, ANTHROPIC_API_KEY) in your environment.']);
+            ->assertJsonFragment(['error' => 'AI provider not configured. Set the appropriate API key in config/local.php (e.g., aicl.ai.openai.api_key or aicl.ai.anthropic.api_key).']);
     }
 
     public function test_ask_returns_403_for_non_admin(): void
