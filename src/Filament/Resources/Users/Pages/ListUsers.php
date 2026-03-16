@@ -5,6 +5,7 @@ namespace Aicl\Filament\Resources\Users\Pages;
 use Aicl\Filament\Resources\Users\UserResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListUsers extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListUsers extends ListRecords
         return [
             CreateAction::make(),
         ];
+    }
+
+    /**
+     * Eager load roles relationship to prevent N+1 queries
+     * on the roles.name table column.
+     */
+    protected function modifyQueryUsing(Builder $query): Builder
+    {
+        return $query->with('roles');
     }
 }

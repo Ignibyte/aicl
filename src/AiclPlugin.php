@@ -5,6 +5,7 @@ namespace Aicl;
 use Aicl\Filament\Pages\ActivityLog;
 use Aicl\Filament\Pages\ApiTokens;
 use Aicl\Filament\Pages\Auth\Register;
+use Aicl\Filament\Pages\Backups;
 use Aicl\Filament\Pages\Changelog;
 use Aicl\Filament\Pages\DocumentBrowser;
 use Aicl\Filament\Pages\Errors\Forbidden;
@@ -184,17 +185,18 @@ class AiclPlugin implements Plugin
         }
 
         // Inject Reverb WebSocket config for echo.js (replaces VITE_REVERB_* env vars)
+        // Config is resolved once and cached in the closure scope for Swoole workers.
         if (config('aicl.features.websockets', true)) {
+            $reverbConfig = json_encode([
+                'key' => config('broadcasting.connections.reverb.key', ''),
+                'host' => config('aicl.ai.streaming.reverb.host', 'localhost'),
+                'port' => (int) config('aicl.ai.streaming.reverb.port', 8080),
+                'scheme' => config('aicl.ai.streaming.reverb.scheme', 'http'),
+            ]);
+
             FilamentView::registerRenderHook(
                 PanelsRenderHook::HEAD_END,
-                fn (): string => Blade::render('<script>window.__reverb=@json($c);</script>', [
-                    'c' => [
-                        'key' => config('broadcasting.connections.reverb.key', ''),
-                        'host' => config('aicl.ai.streaming.reverb.host', 'localhost'),
-                        'port' => (int) config('aicl.ai.streaming.reverb.port', 8080),
-                        'scheme' => config('aicl.ai.streaming.reverb.scheme', 'http'),
-                    ],
-                ]),
+                fn (): string => "<script>window.__reverb={$reverbConfig};</script>",
             );
         }
 
@@ -218,10 +220,12 @@ class AiclPlugin implements Plugin
         );
 
         // Version badge — rendered before user menu (inside .fi-topbar-end)
+        // Resolve version once at boot time (constant for the worker's lifetime).
+        $version = app(VersionService::class)->current();
         FilamentView::registerRenderHook(
             PanelsRenderHook::USER_MENU_BEFORE,
             fn (): string => view('aicl::components.version-badge', [
-                'version' => app(VersionService::class)->current(),
+                'version' => $version,
             ])->render(),
         );
 
@@ -231,7 +235,8 @@ class AiclPlugin implements Plugin
                 PanelsRenderHook::BODY_END,
                 function (): string {
                     $user = auth()->user();
-                    if (! $user || ! $user->hasRole(['super_admin', 'admin'])) {
+                    $allowedRoles = config('aicl.ai.assistant.allowed_roles', ['super_admin', 'admin']);
+                    if (! $user || ! $user->hasRole($allowedRoles)) {
                         return '';
                     }
 
@@ -258,8 +263,8 @@ class AiclPlugin implements Plugin
     /**
      * Get the Filament page classes provided by AICL.
      *
-     * Includes ops panel, activity log, changelog, document browser, tools,
-     * notification center, search, API tokens, and custom error pages.
+     * Includes ops panel, activity log, backups, changelog, document browser,
+     * tools, notification center, search, API tokens, and custom error pages.
      *
      * @return array<class-string>
      */
@@ -267,6 +272,7 @@ class AiclPlugin implements Plugin
     {
         return [
             ActivityLog::class,
+            Backups::class,
             OpsPanel::class,
             OperationsManager::class,
             Changelog::class,

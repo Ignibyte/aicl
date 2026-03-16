@@ -63,16 +63,27 @@ class PresenceRegistry
             return collect();
         }
 
-        $sessions = collect();
+        // Batch-fetch all session keys in a single Redis MGET
+        $sessionIds = array_keys($index);
+        $cacheKeys = array_map(fn (string $id) => self::KEY_PREFIX.$id, $sessionIds);
+        $results = Cache::many($cacheKeys);
 
-        foreach (array_keys($index) as $sessionId) {
-            $data = Cache::get(self::KEY_PREFIX.$sessionId);
+        $sessions = collect();
+        $staleIds = [];
+
+        foreach ($sessionIds as $i => $sessionId) {
+            $data = $results[$cacheKeys[$i]] ?? null;
 
             if ($data !== null) {
                 $sessions->push($data);
             } else {
-                $this->removeFromIndex($sessionId);
+                $staleIds[] = $sessionId;
             }
+        }
+
+        // Clean up stale entries
+        foreach ($staleIds as $staleId) {
+            $this->removeFromIndex($staleId);
         }
 
         return $sessions->sortByDesc('last_seen_at')->values();

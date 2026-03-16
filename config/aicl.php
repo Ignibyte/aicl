@@ -78,6 +78,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Toggle package features on/off. Disabled features are not loaded.
+    | Override in your project's config/aicl.php or config/local.php.
     |
     */
 
@@ -85,14 +86,14 @@ return [
         'mfa' => true,
         'require_mfa' => false,
         'require_email_verification' => true,
-        'social_login' => env('AICL_SOCIAL_LOGIN', false),
-        'saml' => env('AICL_SAML', false),
-        'allow_registration' => env('AICL_ALLOW_REGISTRATION', false),
+        'social_login' => false,
+        'saml' => false,
+        'allow_registration' => false,
         'api' => true,
-        'websockets' => env('AICL_WEBSOCKETS', true),
-        'scout_driver' => env('AICL_SCOUT_DRIVER', false),
-        'horizon' => env('AICL_HORIZON', true),
-        'mcp' => env('AICL_MCP_ENABLED', false),
+        'websockets' => true,
+        'scout_driver' => false,
+        'horizon' => true,
+        'mcp' => false,
     ],
 
     /*
@@ -100,26 +101,26 @@ return [
     | Search Engine Configuration
     |--------------------------------------------------------------------------
     |
-    | When AICL_SCOUT_DRIVER is set to 'elasticsearch', Scout will use
-    | Elasticsearch instead of the default database driver. The engine
-    | package must be installed separately (see suggest in composer.json).
+    | When scout_driver is 'elasticsearch', Scout uses Elasticsearch instead
+    | of the default database driver. The engine package must be installed
+    | separately (see suggest in composer.json).
     |
     | Supported: false (database driver), 'elasticsearch'
     |
     */
 
     'search' => [
-        'enabled' => env('AICL_SEARCH_ENABLED', false),
-        'index' => env('AICL_SEARCH_INDEX', 'aicl_global_search'),
+        'enabled' => false,
+        'index' => 'aicl_global_search',
         'min_query_length' => 2,
 
         'elasticsearch' => [
-            'host' => env('ELASTICSEARCH_HOST', 'elasticsearch'),
-            'port' => (int) env('ELASTICSEARCH_PORT', 9200),
-            'scheme' => env('ELASTICSEARCH_SCHEME', 'http'),
-            'api_key' => env('ELASTICSEARCH_API_KEY'),
-            'username' => env('ELASTICSEARCH_USERNAME'),
-            'password' => env('ELASTICSEARCH_PASSWORD'),
+            'host' => 'elasticsearch',
+            'port' => 9200,
+            'scheme' => 'http',
+            'api_key' => null,
+            'username' => null,
+            'password' => null,
         ],
 
         // Entity types registered for global search indexing.
@@ -127,8 +128,8 @@ return [
         'entities' => [],
 
         'analytics' => [
-            'enabled' => env('AICL_SEARCH_ANALYTICS', true),
-            'retention_days' => (int) env('AICL_SEARCH_RETENTION_DAYS', 90),
+            'enabled' => true,
+            'retention_days' => 90,
         ],
     ],
 
@@ -161,10 +162,10 @@ return [
     */
 
     'saml' => [
-        'idp_name' => env('SAML_IDP_NAME', 'SSO'),
-        'auto_create_users' => env('SAML_AUTO_CREATE_USERS', true),
-        'default_role' => env('SAML_DEFAULT_ROLE', 'viewer'),
-        'role_sync_mode' => env('SAML_ROLE_SYNC_MODE', 'sync'), // 'sync' or 'additive'
+        'idp_name' => 'SSO',
+        'auto_create_users' => true,
+        'default_role' => 'viewer',
+        'role_sync_mode' => 'sync', // 'sync' or 'additive'
         'mapper_class' => null, // Override with App\Auth\CustomSamlMapper::class
 
         // Attribute mapping overrides — client sets in their config/aicl.php
@@ -189,21 +190,21 @@ return [
 
     'security' => [
         'headers' => [
-            'enabled' => env('AICL_SECURITY_HEADERS', true),
+            'enabled' => true,
             'hsts' => true,
             'hsts_max_age' => 31536000,
         ],
 
         'csp' => [
-            'enabled' => env('AICL_CSP_ENABLED', true),
-            'report_only' => env('AICL_CSP_REPORT_ONLY', true),
+            'enabled' => true,
+            'report_only' => true,
 
             // Filament/admin panel CSP — permissive for Livewire/Alpine
             'filament_directives' => [
                 'default-src' => ["'self'"],
                 'script-src' => ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                 'style-src' => ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-                'img-src' => ["'self'", 'data:', 'blob:', env('APP_URL', '')],
+                'img-src' => ["'self'", 'data:', 'blob:'],
                 'font-src' => ["'self'", 'data:', 'https://fonts.gstatic.com'],
                 'connect-src' => ["'self'", 'ws:', 'wss:'],
                 'frame-ancestors' => ["'none'"],
@@ -216,9 +217,7 @@ return [
             ],
         ],
 
-        'api_logging' => env('AICL_API_LOGGING', true),
-
-        'trusted_proxies' => env('TRUSTED_PROXIES', '*'),
+        'api_logging' => true,
     ],
 
     /*
@@ -232,9 +231,9 @@ return [
     */
 
     'theme' => [
-        'brand_name' => env('AICL_BRAND_NAME', 'IGNIBYTE'),
-        'logo' => env('AICL_LOGO_PATH', 'vendor/aicl/images/logo.png'),
-        'favicon' => env('AICL_FAVICON_PATH', 'vendor/aicl/images/favicon.png'),
+        'brand_name' => 'IGNIBYTE',
+        'logo' => 'vendor/aicl/images/logo.png',
+        'favicon' => 'vendor/aicl/images/favicon.png',
     ],
 
     /*
@@ -300,8 +299,8 @@ return [
     */
 
     'scheduler' => [
-        'history_retention_days' => (int) env('AICL_SCHEDULER_RETENTION_DAYS', 30),
-        'output_max_bytes' => (int) env('AICL_SCHEDULER_OUTPUT_MAX_BYTES', 10240),
+        'history_retention_days' => 30,
+        'output_max_bytes' => 10240,
         'health_degraded_minutes' => 5,
         'health_down_minutes' => 15,
     ],
@@ -332,14 +331,14 @@ return [
     */
 
     'mcp' => [
-        'path' => env('AICL_MCP_PATH', '/mcp'),
+        'path' => '/mcp',
         'middleware' => ['api', 'auth:api', 'throttle:api'],
         'exposed_entities' => ['*'],
         'custom_tools_enabled' => true,
         'rate_limit_per_minute' => 60,
         'max_sessions' => 10,
         'server_info' => [
-            'name' => env('AICL_MCP_SERVER_NAME'),
+            'name' => null,
             'version' => '1.0.0',
             'description' => null,
         ],
@@ -351,14 +350,15 @@ return [
     |--------------------------------------------------------------------------
     |
     | Configuration for the AI assistant chat feature. Supports OpenAI,
-    | Anthropic, and Ollama providers via NeuronAI.
+    | Anthropic, and Ollama providers via NeuronAI. API keys must be
+    | set in config/local.php.
     |
     */
 
     'ai' => [
-        'provider' => env('AICL_AI_PROVIDER', 'openai'),
+        'provider' => 'openai',
 
-        'tools_enabled' => env('AICL_AI_TOOLS_ENABLED', true),
+        'tools_enabled' => true,
 
         'tools' => [
             // Additional tools registered by client projects:
@@ -366,18 +366,18 @@ return [
         ],
 
         'openai' => [
-            'api_key' => env('OPENAI_API_KEY'),
-            'model' => env('AICL_AI_MODEL', 'gpt-4o-mini'),
+            'api_key' => null, // Set in config/local.php
+            'model' => 'gpt-4o-mini',
         ],
 
         'anthropic' => [
-            'api_key' => env('ANTHROPIC_API_KEY'),
-            'model' => env('AICL_AI_MODEL', 'claude-haiku-4-5-20251001'),
+            'api_key' => null, // Set in config/local.php
+            'model' => 'claude-haiku-4-5-20251001',
         ],
 
         'ollama' => [
-            'host' => env('OLLAMA_HOST', 'http://localhost:11434'),
-            'model' => env('AICL_AI_MODEL', 'llama3.2'),
+            'host' => 'http://localhost:11434',
+            'model' => 'llama3.2',
         ],
 
         'system_prompt' => 'You are a helpful assistant for this application. Answer questions clearly and concisely.',
@@ -389,20 +389,21 @@ return [
         ],
 
         'streaming' => [
-            'queue' => env('AICL_AI_QUEUE', 'default'),
-            'timeout' => (int) env('AICL_AI_TIMEOUT', 120),
+            'queue' => 'default',
+            'timeout' => 120,
             'max_concurrent_per_user' => 2,
             'reverb' => [
-                'host' => env('VITE_REVERB_HOST', env('REVERB_HOST', 'localhost')),
-                'port' => (int) env('VITE_REVERB_PORT', env('REVERB_PORT', 8080)),
-                'scheme' => env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'http')),
+                'host' => 'localhost',
+                'port' => 8080,
+                'scheme' => 'http',
             ],
         ],
 
         'assistant' => [
-            'enabled' => env('AICL_AI_ASSISTANT_ENABLED', false),
+            'enabled' => false,
             'keyboard_shortcut' => 'cmd+j',
-            'default_agent' => env('AICL_AI_DEFAULT_AGENT'),
+            'default_agent' => null,
+            'allowed_roles' => ['super_admin', 'admin'],
             'compaction_threshold' => 50,
             'compaction_delete_old_messages' => false,
             'token_budget_daily' => null,

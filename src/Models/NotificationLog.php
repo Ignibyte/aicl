@@ -118,11 +118,22 @@ class NotificationLog extends Model
     /**
      * Scope to notifications with at least one failed channel.
      *
+     * Uses PostgreSQL jsonb_each_text() for efficient JSONB value matching
+     * instead of LIKE which forces full text pattern matching on the column.
+     *
      * @param  Builder<NotificationLog>  $query
      * @return Builder<NotificationLog>
      */
     public function scopeFailed(Builder $query): Builder
     {
+        $driver = $query->getConnection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            return $query->whereRaw(
+                "EXISTS (SELECT 1 FROM jsonb_each_text(channel_status::jsonb) AS x WHERE x.value = 'failed')"
+            );
+        }
+
         return $query->where('channel_status', 'LIKE', '%"failed"%');
     }
 

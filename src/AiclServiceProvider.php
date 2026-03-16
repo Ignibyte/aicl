@@ -132,7 +132,7 @@ class AiclServiceProvider extends ServiceProvider
     /**
      * Current package version, used by VersionService and the admin version badge.
      */
-    public const VERSION = '1.7.0';
+    public const VERSION = '1.8.0';
 
     /**
      * Register package services, singletons, and configuration.
@@ -626,18 +626,29 @@ class AiclServiceProvider extends ServiceProvider
     }
 
     /**
-     * Load local config overrides from config/local.php (Drupal-style).
+     * Load local config overrides (Drupal-style settings.php pattern).
      *
-     * This file is gitignored and contains instance-specific overrides
-     * such as database credentials, API keys, and feature toggles.
-     * It uses dot-notation keys to override any config value at any depth.
+     * Loads config/local.php first (instance-specific: secrets, credentials).
+     * When APP_ENV=testing, also loads config/local.testing.php on top
+     * (lightweight drivers for test runs). Both are gitignored.
      *
-     * Precedence: package defaults < project config < local.php (final authority).
+     * Precedence: package defaults < project config < local.php < local.testing.php.
      */
     protected function loadLocalConfig(): void
     {
-        $path = $this->app->configPath('local.php');
+        $this->applyLocalOverrides($this->app->configPath('local.php'));
 
+        // When running tests, layer testing overrides on top
+        if ($this->app->environment('testing')) {
+            $this->applyLocalOverrides($this->app->configPath('local.testing.php'));
+        }
+    }
+
+    /**
+     * Apply dot-notation overrides from a PHP config file.
+     */
+    protected function applyLocalOverrides(string $path): void
+    {
         if (! file_exists($path)) {
             return;
         }

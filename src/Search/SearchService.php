@@ -177,29 +177,52 @@ class SearchService
     /**
      * Apply policy safety-net filtering on loaded models.
      *
+     * Batch-loads models per entity type to avoid N+1 queries (one query per
+     * entity type instead of one per search result).
+     *
      * @param  Collection<int, SearchResult>  $results
      * @return Collection<int, SearchResult>
      */
     public function applyPolicyFilter(Collection $results, Authenticatable $user): Collection
     {
-        return $results->filter(function (SearchResult $result) use ($user): bool {
-            $entityConfig = $this->getEntityConfigs()[$result->entityType] ?? null;
+        $entityConfigs = $this->getEntityConfigs();
 
-            if ($entityConfig === null) {
+        // Group results that need policy checks by entity type for batch loading
+        $policyResults = $results->filter(function (SearchResult $result) use ($entityConfigs): bool {
+            $config = $entityConfigs[$result->entityType] ?? null;
+
+            return $config !== null && ($config['visibility'] ?? 'authenticated') === 'policy';
+        });
+
+        // Batch-load all models per entity type (1 query per type instead of N)
+        $loadedModels = [];
+        foreach ($policyResults->groupBy('entityType') as $entityType => $group) {
+            try {
+                $ids = $group->pluck('entityId')->all();
+                $models = $entityType::whereIn('id', $ids)->get()->keyBy('id');
+                $loadedModels[$entityType] = $models;
+            } catch (\Throwable) {
+                $loadedModels[$entityType] = collect();
+            }
+        }
+
+        return $results->filter(function (SearchResult $result) use ($entityConfigs, $user, $loadedModels): bool {
+            $config = $entityConfigs[$result->entityType] ?? null;
+
+            if ($config === null) {
                 return false;
             }
 
-            $visibility = $entityConfig['visibility'] ?? 'authenticated';
+            $visibility = $config['visibility'] ?? 'authenticated';
 
-            // Only run policy check for 'policy' visibility or as safety net
             if ($visibility === 'policy') {
+                $model = ($loadedModels[$result->entityType] ?? collect())->get($result->entityId);
+
+                if ($model === null) {
+                    return false;
+                }
+
                 try {
-                    $model = $result->entityType::find($result->entityId);
-
-                    if ($model === null) {
-                        return false;
-                    }
-
                     return $user->can('view', $model);
                 } catch (\Throwable) {
                     return false;

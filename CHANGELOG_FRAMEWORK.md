@@ -10,9 +10,27 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.7.0`
+Current version: `1.8.0`
 
 ---
+
+## [1.8.0] - 2026-03-16
+
+### Changed
+
+- **Eliminate `.env` file — Drupal-style `config/local.php` paradigm** — `.env` is now an empty placeholder (prevents PHP dotenv warnings). All per-environment configuration lives in `config/local.php`. AICL and CMS config files (`config/aicl.php`, `config/aicl-cms.php`, package configs) contain zero `env()` calls — pure PHP values. Stock Laravel configs retain `env()` with DDEV-correct defaults so `.env` is unnecessary.
+- **`config/local.testing.php` for test overrides** — `loadLocalConfig()` now layers `config/local.testing.php` on top when `APP_ENV=testing`, replacing `.env.dusk.local`. Overrides sync queues, array cache, log mail for test runs.
+- **Stock Laravel config defaults updated to DDEV** — `database.php` defaults to pgsql/db/db/db, `cache.php` defaults to redis, `session.php` defaults to redis, `queue.php` defaults to redis, `broadcasting.php` defaults to reverb with DDEV keys, `mail.php` defaults to smtp:1025, `octane.php` defaults to swoole.
+- **CMS AI driver error messages** — Now reference `config/local.php` instead of `.env` for API key configuration.
+- **Backup config** — Backs up `config/local.php` instead of `.env`.
+- **Octane watch list** — Watches `config/local.php` instead of `.env`.
+
+### Removed
+
+- **`.env.example`** — No longer needed; `config/local.example.php` is the template.
+- **`.env.dusk.local`** — Replaced by `config/local.testing.php`.
+- **`packages/aicl/stubs/env.dusk.local`** — Stub removed.
+- **All `env()` calls from AICL/CMS configs** — Package and project-level `aicl.php` and `aicl-cms.php` are now pure PHP.
 
 ## [1.7.0] - 2026-03-15
 

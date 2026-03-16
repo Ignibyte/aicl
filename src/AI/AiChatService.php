@@ -131,13 +131,18 @@ class AiChatService
             );
         }
 
-        // Load recent messages up to the agent's context_messages limit
-        $recentMessages = $conversation->messages()
-            ->orderByDesc('created_at')
-            ->limit($limit)
-            ->get()
-            ->reverse()
-            ->values();
+        // Load recent messages in chronological order using a subquery to avoid
+        // the inefficient orderByDesc→reverse pattern that loads all rows into PHP
+        $recentMessages = AiMessage::query()
+            ->whereIn('id', function ($query) use ($conversation, $limit): void {
+                $query->select('id')
+                    ->from('ai_messages')
+                    ->where('ai_conversation_id', $conversation->id)
+                    ->orderByDesc('created_at')
+                    ->limit($limit);
+            })
+            ->orderBy('created_at')
+            ->get();
 
         foreach ($recentMessages as $msg) {
             /** @var AiMessage $msg */

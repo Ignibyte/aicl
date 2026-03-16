@@ -2,6 +2,7 @@
 
 namespace Aicl\Tests\Feature;
 
+use Aicl\Http\Middleware\SecurityHeadersMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,6 +13,9 @@ class SecurityHeadersTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Reset static cache between tests to prevent state leaking
+        SecurityHeadersMiddleware::resetCache();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
     }

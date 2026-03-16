@@ -79,9 +79,12 @@ class CompactionService
         $conversation->update(['summary' => $summary]);
         $conversation->state->transitionTo(Summarized::class);
 
-        // Optionally delete old messages
+        // Optionally delete old messages — uses bulk delete to avoid N observer calls
         if (config('aicl.ai.assistant.compaction_delete_old_messages', false)) {
-            $oldMessages->each->delete();
+            $oldMessageIds = $oldMessages->pluck('id');
+            $conversation->messages()
+                ->whereIn('id', $oldMessageIds)
+                ->delete();
         }
 
         Log::info('Conversation compacted', [

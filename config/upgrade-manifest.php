@@ -142,8 +142,8 @@ return [
             'entries' => [
                 [
                     'strategy' => 'ensure_present',
-                    'target' => '.env.dusk.local',
-                    'source' => 'stubs/env.dusk.local',
+                    'target' => 'config/local.example.php',
+                    'source' => 'stubs/local.example.php',
                 ],
                 // config/aicl-project.php — project-owned overlay, never overwritten.
                 // Copied once if missing so new projects know it exists.

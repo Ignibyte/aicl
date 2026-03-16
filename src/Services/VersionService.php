@@ -11,10 +11,15 @@ use Aicl\AiclServiceProvider;
  * and the project version by parsing the first semver heading from CHANGELOG.md.
  * Used by the version badge widget in the admin panel topbar.
  *
+ * Memoizes results per-worker to avoid repeated file reads in Swoole/Octane.
+ *
  * @see AiclServiceProvider::VERSION  Framework version constant
  */
 class VersionService
 {
+    /** Memoized project version — survives across requests in Octane workers. */
+    private static ?string $cachedProjectVersion = null;
+
     /**
      * Get the current AICL framework version (alias for frameworkVersion).
      *
@@ -38,11 +43,21 @@ class VersionService
     /**
      * Get the project version by parsing the root CHANGELOG.md.
      *
+     * Memoized per-worker — the file is only read once per Octane worker lifecycle.
+     *
      * @return string Semantic version string, or 'unknown' if not found
      */
     public function projectVersion(): string
     {
-        return $this->parseVersionFrom(base_path('CHANGELOG.md'));
+        return self::$cachedProjectVersion ??= $this->parseVersionFrom(base_path('CHANGELOG.md'));
+    }
+
+    /**
+     * Reset cached version. Called after deploys or in tests.
+     */
+    public static function resetCache(): void
+    {
+        self::$cachedProjectVersion = null;
     }
 
     /**

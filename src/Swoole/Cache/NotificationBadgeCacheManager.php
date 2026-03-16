@@ -3,6 +3,7 @@
 namespace Aicl\Swoole\Cache;
 
 use Aicl\Swoole\SwooleCache;
+use App\Models\User;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Event;
 
@@ -64,13 +65,18 @@ class NotificationBadgeCacheManager
         return $count > 0 ? (string) $count : null;
     }
 
+    /** Memoized User morph class — avoids instantiating a new User per call. */
+    private static ?string $userMorphClass = null;
+
     /**
      * Compute the unread notification count for a user from the database.
      */
     public static function computeUnreadCount(int $userId): int
     {
+        self::$userMorphClass ??= (new User)->getMorphClass();
+
         return DatabaseNotification::query()
-            ->where('notifiable_type', 'App\\Models\\User')
+            ->where('notifiable_type', self::$userMorphClass)
             ->where('notifiable_id', $userId)
             ->whereNull('read_at')
             ->count();

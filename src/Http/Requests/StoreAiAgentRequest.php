@@ -3,6 +3,7 @@
 namespace Aicl\Http\Requests;
 
 use Aicl\Enums\AiProvider;
+use Aicl\Models\AiAgent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,7 +11,7 @@ class StoreAiAgentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('create', AiAgent::class) ?? false;
     }
 
     /**

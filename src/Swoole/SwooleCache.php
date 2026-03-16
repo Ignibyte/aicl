@@ -75,6 +75,11 @@ final class SwooleCache
         int $ttl = 60,
         int $valueSize = 10000,
     ): void {
+        // Idempotent — skip if already registered with same name
+        if (isset(self::$registrations[$name])) {
+            return;
+        }
+
         self::$registrations[$name] = [
             'rows' => $rows,
             'ttl' => $ttl,

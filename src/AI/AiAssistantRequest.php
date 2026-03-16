@@ -8,7 +8,9 @@ class AiAssistantRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole(['super_admin', 'admin']) ?? false;
+        $allowedRoles = config('aicl.ai.assistant.allowed_roles', ['super_admin', 'admin']);
+
+        return $this->user()?->hasRole($allowedRoles) ?? false;
     }
 
     /**

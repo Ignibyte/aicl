@@ -8,6 +8,7 @@ use Aicl\Traits\HasAiContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class AiAssistantController extends Controller
@@ -94,6 +95,11 @@ class AiAssistantController extends Controller
         $model = $resolvedClass::find($entityId);
 
         if (! $model) {
+            return null;
+        }
+
+        // Verify the requesting user can view this specific record
+        if (Gate::denies('view', $model)) {
             return null;
         }
 

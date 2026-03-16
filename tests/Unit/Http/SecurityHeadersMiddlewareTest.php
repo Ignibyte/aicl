@@ -15,6 +15,9 @@ class SecurityHeadersMiddlewareTest extends TestCase
     {
         parent::setUp();
 
+        // Reset static cache between tests to prevent state leaking
+        SecurityHeadersMiddleware::resetCache();
+
         $this->middleware = new SecurityHeadersMiddleware;
     }
 
