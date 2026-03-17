@@ -10,7 +10,20 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.8.1`
+Current version: `1.9.0`
+
+---
+
+## [1.9.0] - 2026-03-17
+
+### Added
+
+- **SearchArchitectureDocsTool for Boost MCP** — New MCP tool auto-registered into Laravel Boost via `AiclServiceProvider::registerBoostTools()`. Searches project architecture docs in `docs/architecture/` with three modes: list all, keyword search with relevance ranking, and fetch by slug with optional section filtering. Injectable `$docsPath` constructor for testability. 18 tests, 34 assertions.
+- **7 new architecture docs** — ai-assistant, horizon-queues, redis, reverb-websockets, scheduler, service-orchestration, swoole-octane. Documents the full infrastructure and operations layer.
+
+### Fixed
+
+- **AI stream counter orphan on job crash/timeout** — `AiConversationStreamJob` and `AiStreamJob` now use atomic `Cache::decrement()` instead of non-atomic `get()`+`put()` to prevent TOCTOU race conditions under Swoole concurrency. Added `userId` to job constructor so the counter is always decremented — even on early return when conversation is not found. Added `failed()` safety net method for worker crashes (SIGKILL, OOM) where the `finally` block never runs.
 
 ---
 

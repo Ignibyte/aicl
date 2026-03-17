@@ -99,6 +99,7 @@ class AiChatService
         AiConversationStreamJob::dispatch(
             streamId: $streamId,
             conversationId: $conversation->id,
+            userId: $userId,
         );
 
         return [

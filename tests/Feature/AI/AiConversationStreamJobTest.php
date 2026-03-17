@@ -49,10 +49,12 @@ class AiConversationStreamJobTest extends TestCase
         $job = new AiConversationStreamJob(
             streamId: 'test-stream-id',
             conversationId: $this->conversation->id,
+            userId: $this->user->id,
         );
 
         $this->assertEquals('test-stream-id', $job->streamId);
         $this->assertEquals($this->conversation->id, $job->conversationId);
+        $this->assertEquals($this->user->id, $job->userId);
         $this->assertEquals(1, $job->tries);
     }
 
@@ -63,6 +65,7 @@ class AiConversationStreamJobTest extends TestCase
         $job = new AiConversationStreamJob(
             streamId: 'test-stream-id',
             conversationId: $this->conversation->id,
+            userId: $this->user->id,
         );
 
         $this->assertEquals('ai-streams', $job->queue);
@@ -75,6 +78,7 @@ class AiConversationStreamJobTest extends TestCase
         $job = new AiConversationStreamJob(
             streamId: 'test-stream-id',
             conversationId: $this->conversation->id,
+            userId: $this->user->id,
         );
 
         $this->assertEquals(60, $job->timeout);
@@ -87,13 +91,20 @@ class AiConversationStreamJobTest extends TestCase
         $job = new AiConversationStreamJob(
             streamId: 'test-stream-id',
             conversationId: '00000000-0000-0000-0000-000000000000',
+            userId: $this->user->id,
         );
+
+        // Set counter to 1 to verify decrement still happens on early return
+        Cache::put("ai-stream:user:{$this->user->id}:count", 1, 300);
 
         // Should not throw — just returns early
         $job->handle(app(AiChatService::class));
 
         // No events broadcast for missing conversation
         Event::assertNotDispatched(AiStreamStarted::class);
+
+        // Counter should be decremented even on early return
+        $this->assertEquals(0, (int) Cache::get("ai-stream:user:{$this->user->id}:count"));
     }
 
     public function test_job_broadcasts_failure_when_provider_not_configured(): void
@@ -104,6 +115,7 @@ class AiConversationStreamJobTest extends TestCase
         $job = new AiConversationStreamJob(
             streamId: 'test-stream-id',
             conversationId: $this->conversation->id,
+            userId: $this->user->id,
         );
 
         $job->handle(app(AiChatService::class));
@@ -125,6 +137,7 @@ class AiConversationStreamJobTest extends TestCase
         $job = new AiConversationStreamJob(
             streamId: 'test-stream-id',
             conversationId: $this->conversation->id,
+            userId: $this->user->id,
         );
 
         $job->handle(app(AiChatService::class));

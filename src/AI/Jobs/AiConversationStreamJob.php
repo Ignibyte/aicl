@@ -35,9 +35,12 @@ class AiConversationStreamJob implements ShouldQueue
 
     public int $timeout = 120;
 
+    private bool $decremented = false;
+
     public function __construct(
         public string $streamId,
         public string $conversationId,
+        public int $userId,
     ) {
         $this->timeout = (int) config('aicl.ai.streaming.timeout', 120);
         $this->onQueue(config('aicl.ai.streaming.queue', 'default'));
@@ -45,23 +48,23 @@ class AiConversationStreamJob implements ShouldQueue
 
     public function handle(AiChatService $chatService): void
     {
-        $conversation = AiConversation::with('agent')->find($this->conversationId);
-
-        if (! $conversation || ! $conversation->agent) {
-            Log::error('AI conversation stream: conversation or agent not found', [
-                'stream_id' => $this->streamId,
-                'conversation_id' => $this->conversationId,
-            ]);
-
-            return;
-        }
-
-        $agent = $conversation->agent;
-        $userId = $conversation->user_id;
-
-        broadcast(new AiStreamStarted($this->streamId, $userId));
+        $userId = $this->userId;
 
         try {
+            $conversation = AiConversation::with('agent')->find($this->conversationId);
+
+            if (! $conversation || ! $conversation->agent) {
+                Log::error('AI conversation stream: conversation or agent not found', [
+                    'stream_id' => $this->streamId,
+                    'conversation_id' => $this->conversationId,
+                ]);
+
+                return;
+            }
+
+            $agent = $conversation->agent;
+
+            broadcast(new AiStreamStarted($this->streamId, $userId));
             $provider = AiProviderFactory::makeFromAgent($agent);
 
             if (! $provider) {
@@ -316,15 +319,43 @@ class AiConversationStreamJob implements ShouldQueue
     }
 
     /**
+     * Handle permanent job failure (safety net for worker crashes).
+     *
+     * If the worker is killed (SIGKILL, OOM) before finally runs,
+     * Laravel calls this on a fresh instance after retry_after expires.
+     * The $decremented flag prevents double-decrement in the normal
+     * exception path where finally already ran.
+     */
+    public function failed(\Throwable $exception): void
+    {
+        $this->decrementConcurrentCount($this->userId);
+
+        Log::error('AI conversation stream job failed permanently', [
+            'stream_id' => $this->streamId,
+            'conversation_id' => $this->conversationId,
+            'error' => $exception->getMessage(),
+        ]);
+    }
+
+    /**
      * Decrement the concurrent stream count for this user.
+     *
+     * Uses atomic Cache::decrement() to prevent TOCTOU race conditions
+     * under Swoole concurrency. Floors at zero to prevent negative drift.
      */
     private function decrementConcurrentCount(int $userId): void
     {
-        $key = "ai-stream:user:{$userId}:count";
-        $current = (int) Cache::get($key, 0);
+        if ($this->decremented) {
+            return;
+        }
 
-        if ($current > 0) {
-            Cache::put($key, $current - 1, 300);
+        $this->decremented = true;
+
+        $key = "ai-stream:user:{$userId}:count";
+        $newValue = (int) Cache::decrement($key);
+
+        if ($newValue < 0) {
+            Cache::put($key, 0, 300);
         }
     }
 }

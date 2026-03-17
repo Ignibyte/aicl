@@ -1,7 +1,7 @@
 # AICL Architecture Documentation
 
-**Version:** 2.6
-**Last Updated:** 2026-02-15
+**Version:** 3.0
+**Last Updated:** 2026-03-16
 **Owner:** `/docs` agent
 
 ---
@@ -50,11 +50,30 @@ Each major system has its own document explaining how it works in the AICL conte
 | [AI Generation Pipeline](ai-generation-pipeline.md) | Scaffolding command, 40 structural patterns, validation rules, quality checklist | `/architect` |
 | [Testing & Quality](testing-quality.md) | PHPUnit, Dusk, Pint, PHPStan, test strategy, security scanning | `/tester` |
 
-### Infrastructure & Release
+### Infrastructure & Operations (v3.0 — March 2026)
+
+**Start here when debugging service issues:** [Service Orchestration](service-orchestration.md)
 
 | Document | What It Covers | Primary Audience |
 |----------|---------------|-----------------|
+| [Service Orchestration](service-orchestration.md) | **Master reference** — service map, request flows, dependency matrix, port map, startup sequence, health checks, troubleshooting multi-service failures | All agents |
+| [AI Assistant](ai-assistant.md) | Complete AI assistant lifecycle — architecture flow, 5 service dependencies, NeuronAI providers, tool system, streaming, compaction, troubleshooting decision tree | All agents |
+| [Swoole/Octane (Operations)](swoole-octane.md) | DDEV/supervisor config, nginx proxy, ports, state management, worker lifecycle, troubleshooting, production considerations | `/architect`, `/solutions` |
+| [Horizon & Queues](horizon-queues.md) | Custom Horizon process manager, supervisor hierarchy, queue names, scaling, AI streaming relationship, feature flag, troubleshooting | `/architect` |
+| [Reverb & WebSockets](reverb-websockets.md) | Reverb server config, broadcasting, channel auth, Pusher protocol, AI streaming events, native WS vs Echo, troubleshooting | `/architect` |
+| [Redis](redis.md) | Connection architecture (DB 0/1), cache/session/queue/broadcasting roles, prefix stacking, Horizon connection, troubleshooting | `/architect` |
+| [Scheduler](scheduler.md) | schedule:work daemon, registered tasks, monitoring (ScheduleHistory), health check, Swoole timer boundary | `/architect` |
 | [Repositories](repositories.md) | 3-repo structure (dev/framework/project), code flow, versioning, release workflow | `/release`, all agents |
+
+### Legacy Docs (Superseded)
+
+These older docs contain some useful detail but are partially outdated. The v3.0 Infrastructure docs above are authoritative:
+
+| Document | Superseded By | Notes |
+|----------|--------------|-------|
+| [Cache, Sessions & Redis](cache-sessions-redis.md) | [Redis](redis.md) | Old doc references `.env` vars and removed Spatie Settings |
+| [Queue, Jobs & Scheduler](queue-jobs-scheduler.md) | [Horizon & Queues](horizon-queues.md) + [Scheduler](scheduler.md) | Old doc doesn't mention Horizon or `aicl:horizon` |
+| [Search & Real-time](search-realtime.md) | [Reverb & WebSockets](reverb-websockets.md) + [Search](search.md) | Old doc references `.env` vars |
 
 ---
 
@@ -66,7 +85,8 @@ Each major system has its own document explaining how it works in the AICL conte
 3. Follow [Filament UI](filament-ui.md) for admin panel integration
 4. Use [Component Library](component-library.md) for dashboard composition
 5. Use [Swoole Foundations](swoole-foundations.md) for Concurrent, SwooleCache, SwooleTimer, and RequiresApproval
-6. Reference infrastructure docs (queue, cache, notifications) as needed
+6. **For service issues:** Start with [Service Orchestration](service-orchestration.md), then drill into specific service docs
+7. **For AI assistant issues:** Read [AI Assistant](ai-assistant.md) — includes troubleshooting decision tree
 
 ### `/rlm` — Validating Generated Code
 1. Use [AI Generation Pipeline](ai-generation-pipeline.md) for structural pattern details and scaffolding rules

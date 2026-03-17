@@ -31,6 +31,8 @@ class AiStreamJob implements ShouldQueue
 
     public int $timeout = 120;
 
+    private bool $decremented = false;
+
     /**
      * @param  array<string, mixed>  $context
      */
@@ -183,15 +185,38 @@ class AiStreamJob implements ShouldQueue
     }
 
     /**
+     * Handle permanent job failure (safety net for worker crashes).
+     */
+    public function failed(\Throwable $exception): void
+    {
+        $this->decrementConcurrentCount();
+
+        Log::error('AI stream job failed permanently', [
+            'stream_id' => $this->streamId,
+            'user_id' => $this->userId,
+            'error' => $exception->getMessage(),
+        ]);
+    }
+
+    /**
      * Decrement the concurrent stream count for this user.
+     *
+     * Uses atomic Cache::decrement() to prevent TOCTOU race conditions
+     * under Swoole concurrency. Floors at zero to prevent negative drift.
      */
     private function decrementConcurrentCount(): void
     {
-        $key = "ai-stream:user:{$this->userId}:count";
-        $current = (int) Cache::get($key, 0);
+        if ($this->decremented) {
+            return;
+        }
 
-        if ($current > 0) {
-            Cache::put($key, $current - 1, 300);
+        $this->decremented = true;
+
+        $key = "ai-stream:user:{$this->userId}:count";
+        $newValue = (int) Cache::decrement($key);
+
+        if ($newValue < 0) {
+            Cache::put($key, 0, 300);
         }
     }
 }

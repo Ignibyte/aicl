@@ -30,6 +30,7 @@ use Aicl\Livewire\FailedDeliveriesTable;
 use Aicl\Livewire\NotificationLogTable;
 use Aicl\Livewire\ScheduleHistoryTable;
 use Aicl\Mcp\McpRegistry;
+use Aicl\Mcp\Tools\SearchArchitectureDocsTool;
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
 use Aicl\Models\AiMessage;
@@ -132,7 +133,7 @@ class AiclServiceProvider extends ServiceProvider
     /**
      * Current package version, used by VersionService and the admin version badge.
      */
-    public const VERSION = '1.8.1';
+    public const VERSION = '1.9.0';
 
     /**
      * Register package services, singletons, and configuration.
@@ -154,6 +155,7 @@ class AiclServiceProvider extends ServiceProvider
         }
 
         $this->loadLocalConfig();
+        $this->registerBoostTools();
 
         $this->app->singleton(DriverRegistry::class, function ($app): DriverRegistry {
             $registry = new DriverRegistry($app);
@@ -662,5 +664,21 @@ class AiclServiceProvider extends ServiceProvider
         foreach ($overrides as $key => $value) {
             config()->set($key, $value);
         }
+    }
+
+    /**
+     * Register AICL tools into Laravel Boost's MCP server.
+     *
+     * Pushes the architecture docs search tool into Boost's include list
+     * so it's automatically available when Boost MCP is running.
+     */
+    protected function registerBoostTools(): void
+    {
+        $existing = config('boost.mcp.tools.include', []);
+        $aiclTools = [
+            SearchArchitectureDocsTool::class,
+        ];
+
+        config()->set('boost.mcp.tools.include', array_merge($existing, $aiclTools));
     }
 }
