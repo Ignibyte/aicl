@@ -10,7 +10,23 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.9.0`
+Current version: `1.10.0`
+
+---
+
+## [1.10.0] - 2026-03-20
+
+### Added
+
+- **Persistent Queue Metrics** — Operations Manager Metrics tab now persists Horizon snapshots to PostgreSQL for durable historical data. New `QueueMetricSnapshot` model, `queue_metric_snapshots` migration, and time range selector (Live, 1h, 6h, 24h, 7d, 30d). Redis continues serving real-time stats; PG provides queryable history.
+- **Dual-write snapshot architecture** — `RedisMetricsRepository::snapshot()` writes to both Redis (existing) and PostgreSQL (new) with fault isolation — PG failures cannot break the Redis write path.
+- **Purge metrics command** — `aicl:horizon:purge-metrics` with configurable retention (default 30 days, `--days` option). Scheduled daily.
+- **Metrics config** — `aicl-horizon.metrics.persist_to_database` feature flag (default true) and `retention_days` setting.
+- **39 new tests** — QueueMetricSnapshot model, PurgeMetricsCommand, MetricsCharts history, dual-write persistence.
+
+### Fixed
+
+- **Bar chart height collapse** — Metrics bar charts rendered at 0px height due to missing `h-full` on flex column items. Fixed in both throughput and runtime chart containers.
 
 ---
 
@@ -20,6 +36,10 @@ Current version: `1.9.0`
 
 - **SearchArchitectureDocsTool for Boost MCP** — New MCP tool auto-registered into Laravel Boost via `AiclServiceProvider::registerBoostTools()`. Searches project architecture docs in `docs/architecture/` with three modes: list all, keyword search with relevance ranking, and fetch by slug with optional section filtering. Injectable `$docsPath` constructor for testability. 18 tests, 34 assertions.
 - **7 new architecture docs** — ai-assistant, horizon-queues, redis, reverb-websockets, scheduler, service-orchestration, swoole-octane. Documents the full infrastructure and operations layer.
+
+### Changed (Dev Infrastructure)
+
+- **Framework Pipeline Consolidation** — Adopted project pipeline process for framework development. Created `CONSTITUTION.md` (immutable rules adapted for framework context). Converted 8 pipeline agents + 5 utility agents from slash commands to sub-agents (`.claude/agents/{name}/SKILL.md` format). Adopted 3 new agents from Forge (optimize, troubleshoot, verifier). Moved architecture docs from `.claude/architecture/` to `docs/architecture/`. Updated release process to remove agent variant sync. Deleted 13 obsolete slash commands including replit agents.
 
 ### Fixed
 

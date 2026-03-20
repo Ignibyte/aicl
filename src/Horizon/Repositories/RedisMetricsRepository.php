@@ -5,11 +5,13 @@ namespace Aicl\Horizon\Repositories;
 use Aicl\Horizon\Contracts\MetricsRepository;
 use Aicl\Horizon\Lock;
 use Aicl\Horizon\LuaScripts;
+use Aicl\Horizon\Models\QueueMetricSnapshot;
 use Aicl\Horizon\WaitTimeCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class RedisMetricsRepository implements MetricsRepository
@@ -253,22 +255,73 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function snapshot()
     {
-        collect($this->measuredJobs())->each(function ($job) {
-            $this->storeSnapshotForJob($job);
+        $dbRows = [];
+
+        collect($this->measuredJobs())->each(function ($job) use (&$dbRows) {
+            $data = $this->storeSnapshotForJob($job);
+
+            if ($data !== null) {
+                $dbRows[] = [
+                    'type' => 'job',
+                    'name' => $job,
+                    'throughput' => $data['throughput'] ?? 0,
+                    'runtime' => $data['runtime'] ?? 0,
+                    'wait' => null,
+                    'recorded_at' => now(),
+                ];
+            }
         });
 
-        collect($this->measuredQueues())->each(function ($queue) {
-            $this->storeSnapshotForQueue($queue);
+        collect($this->measuredQueues())->each(function ($queue) use (&$dbRows) {
+            $data = $this->storeSnapshotForQueue($queue);
+
+            if ($data !== null) {
+                $dbRows[] = [
+                    'type' => 'queue',
+                    'name' => $queue,
+                    'throughput' => $data['throughput'] ?? 0,
+                    'runtime' => $data['runtime'] ?? 0,
+                    'wait' => $data['wait'] ?? null,
+                    'recorded_at' => now(),
+                ];
+            }
         });
 
         $this->storeSnapshotTimestamp();
+
+        $this->persistToDatabase($dbRows);
+    }
+
+    /**
+     * Persist collected snapshot rows to the database.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    private function persistToDatabase(array $rows): void
+    {
+        if (empty($rows)) {
+            return;
+        }
+
+        if (! config('aicl-horizon.metrics.persist_to_database', true)) {
+            return;
+        }
+
+        try {
+            QueueMetricSnapshot::insert($rows);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to persist queue metric snapshots to database.', [
+                'error' => $e->getMessage(),
+                'row_count' => count($rows),
+            ]);
+        }
     }
 
     /**
      * Store a snapshot for the given job.
      *
      * @param  string  $job
-     * @return void
+     * @return array{throughput: mixed, runtime: mixed}|null
      */
     protected function storeSnapshotForJob($job)
     {
@@ -285,23 +338,27 @@ class RedisMetricsRepository implements MetricsRepository
         $this->connection()->zremrangebyrank(
             'snapshot:'.$key, 0, -abs(1 + config('aicl-horizon.metrics.trim_snapshots.job', 24))
         );
+
+        return $data;
     }
 
     /**
      * Store a snapshot for the given queue.
      *
      * @param  string  $queue
-     * @return void
+     * @return array{throughput: mixed, runtime: mixed, wait: float}|null
      */
     protected function storeSnapshotForQueue($queue)
     {
         $data = $this->baseSnapshotData($key = 'queue:'.$queue);
 
+        $wait = app(WaitTimeCalculator::class)->calculateFor($queue);
+
         $this->connection()->zadd(
             'snapshot:'.$key, $time = CarbonImmutable::now()->getTimestamp(), json_encode([
                 'throughput' => $data['throughput'],
                 'runtime' => $data['runtime'],
-                'wait' => app(WaitTimeCalculator::class)->calculateFor($queue),
+                'wait' => $wait,
                 'time' => $time,
             ])
         );
@@ -309,6 +366,10 @@ class RedisMetricsRepository implements MetricsRepository
         $this->connection()->zremrangebyrank(
             'snapshot:'.$key, 0, -abs(1 + config('aicl-horizon.metrics.trim_snapshots.queue', 24))
         );
+
+        $data['wait'] = $wait;
+
+        return $data;
     }
 
     /**

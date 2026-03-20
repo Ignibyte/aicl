@@ -103,6 +103,8 @@ return [
             'job' => 24,
             'queue' => 24,
         ],
+        'persist_to_database' => true,
+        'retention_days' => 30,
     ],
 
     /*

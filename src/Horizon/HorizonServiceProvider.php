@@ -69,6 +69,7 @@ class HorizonServiceProvider extends ServiceProvider
         }
 
         $this->commands([
+            Console\PurgeMetricsCommand::class,
             Console\SnapshotCommand::class,
             Console\StatusCommand::class,
             Console\SupervisorsCommand::class,
