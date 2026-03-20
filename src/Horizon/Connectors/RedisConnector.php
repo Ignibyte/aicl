@@ -11,6 +11,7 @@ class RedisConnector extends BaseConnector
     /**
      * Establish a queue connection.
      *
+     * @param  array<string, mixed>  $config
      * @return RedisQueue
      */
     public function connect(array $config)

@@ -35,7 +35,7 @@ class SupervisorProcess extends WorkerProcess
     /**
      * The exit codes on which supervisor should be marked as dead.
      *
-     * @var array
+     * @var array<int, int>
      */
     public $dontRestartOn = [
         0,

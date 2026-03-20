@@ -131,6 +131,7 @@ final class Concurrent
      * Execute callables as Swoole coroutines using WaitGroup for synchronization.
      *
      * @param  array<string|int, callable(): mixed>  $callables
+     * @return array<string|int, mixed>
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
      */
@@ -181,6 +182,7 @@ final class Concurrent
      *
      * @param  array<TKey, TValue>  $items
      * @param  Closure(TValue, TKey): TResult  $fn
+     * @return array<TKey, TResult>
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
      */
@@ -280,6 +282,7 @@ final class Concurrent
      * Sequential fallback for run() when Swoole is unavailable.
      *
      * @param  array<string|int, callable(): mixed>  $callables
+     * @return array<string|int, mixed>
      *
      * @throws ConcurrentException
      */
@@ -315,6 +318,7 @@ final class Concurrent
      *
      * @param  array<TKey, TValue>  $items
      * @param  Closure(TValue, TKey): TResult  $fn
+     * @return array<TKey, TResult>
      *
      * @throws ConcurrentException
      */

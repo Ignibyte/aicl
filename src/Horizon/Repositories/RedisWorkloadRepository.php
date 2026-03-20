@@ -101,7 +101,7 @@ class RedisWorkloadRepository implements WorkloadRepository
     /**
      * Get the number of processes of each queue.
      *
-     * @return array
+     * @return array<string, int>
      */
     private function processes()
     {

@@ -10,7 +10,24 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.10.0`
+Current version: `1.11.0`
+
+---
+
+## [1.11.0] - 2026-03-20
+
+### Changed
+
+- **PHPStan level 5 → 6** — Bumped static analysis strictness to level 6, requiring explicit type annotations on all method parameters, return types, and properties. 291 errors resolved across ~90 files.
+- **PHPDoc type annotations** — Added generic types to Collection, Builder, BelongsTo, MorphTo, HasFactory, State, ArrayAccess, and LengthAwarePaginator usages throughout the codebase.
+- **Typed arrays** — All untyped `array` parameters and return types annotated with value types (`array<string, mixed>`, `array<int, string>`, etc.) across Horizon, Components, Models, Swoole, Search, and Notifications namespaces.
+- **Livewire render() return types** — All Livewire component `render()` methods now declare `\Illuminate\Contracts\View\View` return type.
+- **Baseline cleanup** — Removed 3 stale baseline entries for errors already fixed in prior releases.
+
+### Fixed
+
+- **Unnecessary nullsafe operator** — `RestoreSwooleTimers` used `?->workerId` on left side of `??` where nullsafe was unnecessary. Changed to `->workerId`.
+- **Unnecessary null coalesce** — `RedisMetricsRepository` used `$data['wait'] ?? null` where the offset always exists. Removed the `??`.
 
 ---
 

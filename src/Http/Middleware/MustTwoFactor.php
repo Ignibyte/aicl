@@ -16,6 +16,9 @@ use Jeffgreco13\FilamentBreezy\BreezyCore;
  */
 class MustTwoFactor
 {
+    /**
+     * @return mixed
+     */
     public function handle(Request $request, Closure $next)
     {
         if (

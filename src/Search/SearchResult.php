@@ -4,6 +4,9 @@ namespace Aicl\Search;
 
 class SearchResult
 {
+    /**
+     * @param  array<string, mixed>  $meta
+     */
     public function __construct(
         public readonly string $entityType,
         public readonly string $entityId,

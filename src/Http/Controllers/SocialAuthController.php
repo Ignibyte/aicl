@@ -9,11 +9,13 @@ use GuzzleHttp\Client;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 class SocialAuthController
 {
+    /** @var array<int, string> */
     protected array $enabledProviders = ['google', 'github'];
 
     public function __construct(
@@ -100,7 +102,7 @@ class SocialAuthController
 
         if (config('services.saml2.guzzle.verify') === false) {
             if (app()->isProduction()) {
-                \Illuminate\Support\Facades\Log::warning('SAML SSL verification is disabled in production. Set services.saml2.guzzle.verify to true.');
+                Log::warning('SAML SSL verification is disabled in production. Set services.saml2.guzzle.verify to true.');
             }
             $driver->setHttpClient(new Client(['verify' => false]));
         }

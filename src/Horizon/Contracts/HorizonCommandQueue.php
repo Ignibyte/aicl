@@ -9,6 +9,7 @@ interface HorizonCommandQueue
      *
      * @param  string  $name
      * @param  string  $command
+     * @param  array<string, mixed>  $options
      * @return void
      */
     public function push($name, $command, array $options = []);
@@ -17,7 +18,7 @@ interface HorizonCommandQueue
      * Get the pending commands for a given queue name.
      *
      * @param  string  $name
-     * @return array
+     * @return array<int, object>
      */
     public function pending($name);
 

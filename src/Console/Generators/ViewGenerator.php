@@ -3,6 +3,7 @@
 namespace Aicl\Console\Generators;
 
 use Aicl\Components\ComponentRegistry;
+use Aicl\Console\Support\FieldDefinition;
 use Illuminate\Support\Str;
 
 /**
@@ -405,6 +406,9 @@ PHP;
         return $columns;
     }
 
+    /**
+     * @param  array<int, array<string, mixed>>  $columns
+     */
     private function buildColumnsPhpArray(array $columns): string
     {
         $lines = ["[\n"];
@@ -484,7 +488,7 @@ BLADE;
     }
 
     /**
-     * @return array<int, \Aicl\Console\Support\FieldDefinition>
+     * @return array<int, FieldDefinition>
      */
     private function getFilterableFields(): array
     {

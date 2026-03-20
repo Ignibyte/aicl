@@ -10,6 +10,9 @@ namespace Aicl\Components;
  */
 class ComponentRecommendation
 {
+    /**
+     * @param  array<string, mixed>  $suggestedProps
+     */
     public function __construct(
         public readonly string $tag,
         public readonly string $reason,
@@ -20,6 +23,8 @@ class ComponentRecommendation
 
     /**
      * Convert to array for serialization.
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

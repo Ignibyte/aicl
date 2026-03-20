@@ -21,14 +21,14 @@ class ProvisioningPlan
     /**
      * The raw provisioning plan.
      *
-     * @var array
+     * @var array<string, array<string, mixed>>
      */
     public $plan;
 
     /**
      * The parsed provisioning plan.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     public $parsed;
 
@@ -36,6 +36,8 @@ class ProvisioningPlan
      * Create a new provisioning plan instance.
      *
      * @param  string  $master
+     * @param  array<string, array<string, mixed>>  $plan
+     * @param  array<string, mixed>  $defaults
      * @return void
      */
     public function __construct($master, array $plan, array $defaults = [])
@@ -60,7 +62,9 @@ class ProvisioningPlan
     /**
      * Apply the default supervisor options to each environment.
      *
-     * @return array
+     * @param  array<string, array<string, mixed>>  $plan
+     * @param  array<string, mixed>  $defaults
+     * @return array<string, array<string, mixed>>
      */
     protected function applyDefaultOptions(array $plan, array $defaults = [])
     {
@@ -72,7 +76,7 @@ class ProvisioningPlan
     /**
      * Get all of the defined environments for the provisioning plan.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function environments()
     {
@@ -146,7 +150,7 @@ class ProvisioningPlan
     /**
      * Convert the provisioning plan into an array of SupervisorOptions.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function toSupervisorOptions()
     {
@@ -163,7 +167,7 @@ class ProvisioningPlan
      * Convert the given array of options into a SupervisorOptions instance.
      *
      * @param  string  $supervisor
-     * @param  array  $options
+     * @param  array<string, mixed>  $options
      * @return SupervisorOptions
      */
     protected function convert($supervisor, $options)

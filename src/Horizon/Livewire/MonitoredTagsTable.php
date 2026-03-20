@@ -6,6 +6,7 @@ use Aicl\Horizon\Contracts\TagRepository;
 use Aicl\Horizon\Jobs\MonitorTag;
 use Aicl\Horizon\Jobs\StopMonitoringTag;
 use Filament\Notifications\Notification;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class MonitoredTagsTable extends Component
@@ -40,7 +41,7 @@ class MonitoredTagsTable extends Component
             ->send();
     }
 
-    public function render()
+    public function render(): View
     {
         $tags = app(TagRepository::class)->monitoring();
 

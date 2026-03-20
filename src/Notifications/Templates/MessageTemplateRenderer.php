@@ -97,6 +97,8 @@ class MessageTemplateRenderer
 
     /**
      * Resolve a single {{ expression }} -- variable + filter chain.
+     *
+     * @param  array<string, mixed>  $context
      */
     protected function resolveExpression(string $expression, array $context): string
     {
@@ -130,6 +132,8 @@ class MessageTemplateRenderer
 
     /**
      * Resolve a variable reference (e.g., 'model.title', 'user.name', 'app.name').
+     *
+     * @param  array<string, mixed>  $context
      */
     protected function resolveVariable(string $reference, array $context): string
     {
@@ -154,6 +158,8 @@ class MessageTemplateRenderer
 
     /**
      * Apply a single filter expression (e.g., 'truncate:50', 'upper').
+     *
+     * @param  array<string, mixed>  $context
      */
     protected function applyFilter(string $filterExpr, string $value, array $context): string
     {

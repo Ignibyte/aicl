@@ -5,6 +5,7 @@ namespace Aicl\Horizon\Livewire;
 use Aicl\Horizon\Contracts\JobRepository;
 use Aicl\Horizon\Jobs\RetryFailedJob;
 use Filament\Notifications\Notification;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class FailedJobsTable extends Component
@@ -33,7 +34,7 @@ class FailedJobsTable extends Component
             ->send();
     }
 
-    public function render()
+    public function render(): View
     {
         $jobs = app(JobRepository::class)->getFailed($this->afterIndex);
 

@@ -29,6 +29,8 @@ class ComponentRegistry
     /**
      * Boot the registry by scanning component directories.
      * Called by the service provider during boot.
+     *
+     * @param  array<int, array<string, string>>  $scanPaths
      */
     public function boot(array $scanPaths): void
     {
@@ -137,6 +139,8 @@ class ComponentRegistry
 
     /**
      * AI recommendation: given a field type, what component should be used?
+     *
+     * @param  array<string, string>  $allFields
      */
     public function recommend(string $fieldType, string $context = 'blade', string $fieldName = '', array $allFields = []): ?ComponentRecommendation
     {
@@ -146,7 +150,7 @@ class ComponentRegistry
     /**
      * AI recommendation: given an entity's fields, what components for a view?
      *
-     * @param  array  $fields  Array of 'name:type' strings or ['name' => 'type'] pairs
+     * @param  array<string|int, mixed>  $fields  Array of 'name:type' strings or ['name' => 'type'] pairs
      * @param  string  $context  Rendering context
      * @param  string  $viewType  View type: index, show, card
      * @return array<ComponentRecommendation>
@@ -169,6 +173,8 @@ class ComponentRegistry
 
     /**
      * Get the full prop schema for a component.
+     *
+     * @return array<string, mixed>|null
      */
     public function schema(string $tag): ?array
     {
@@ -180,6 +186,7 @@ class ComponentRegistry
     /**
      * Validate props against a component's schema (dev-only).
      *
+     * @param  array<string, mixed>  $props
      * @return array{valid: bool, errors: array<string>}
      */
     public function validateProps(string $tag, array $props): array

@@ -49,8 +49,11 @@ class ClearCommand extends Command
             return 1;
         }
 
+        /** @var array<string, array<string, mixed>> $defaults */
+        $defaults = (array) $this->laravel['config']->get('horizon.defaults');
+
         $connection = $this->argument('connection')
-            ?: Arr::first($this->laravel['config']->get('horizon.defaults'))['connection'] ?? 'redis';
+            ?: Arr::first($defaults)['connection'] ?? 'redis';
 
         if (method_exists($jobRepository, 'purge')) {
             $jobRepository->purge($queue = $this->getQueue($connection));

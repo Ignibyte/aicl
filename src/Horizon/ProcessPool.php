@@ -13,21 +13,21 @@ class ProcessPool implements Countable
     /**
      * All of the active processes.
      *
-     * @var array
+     * @var array<int, WorkerProcess>
      */
     public $processes = [];
 
     /**
      * The processes that are terminating.
      *
-     * @var array
+     * @var array<int, array{process: WorkerProcess, terminatedAt: CarbonImmutable}>
      */
     public $terminatingProcesses = [];
 
     /**
      * Indicates if the process pool is currently running.
      *
-     * @var array
+     * @var bool
      */
     public $working = true;
 
@@ -235,7 +235,7 @@ class ProcessPool implements Countable
     /**
      * Get the processes that are still terminating.
      *
-     * @return Collection
+     * @return Collection<int, array{process: WorkerProcess, terminatedAt: CarbonImmutable}>
      */
     public function terminatingProcesses()
     {
@@ -277,7 +277,7 @@ class ProcessPool implements Countable
     /**
      * Get all of the current processes as a collection.
      *
-     * @return Collection
+     * @return Collection<int, WorkerProcess>
      */
     public function processes()
     {
@@ -287,7 +287,7 @@ class ProcessPool implements Countable
     /**
      * Get all of the current running processes as a collection.
      *
-     * @return Collection
+     * @return Collection<int, WorkerProcess>
      */
     public function runningProcesses()
     {

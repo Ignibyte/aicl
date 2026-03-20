@@ -51,7 +51,7 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
      * Get the notification's delivery channels.
      *
      * @param  mixed  $notifiable
-     * @return array
+     * @return array<int, string>
      */
     public function via($notifiable)
     {

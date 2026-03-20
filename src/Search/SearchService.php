@@ -4,6 +4,7 @@ namespace Aicl\Search;
 
 use Elastic\Elasticsearch\Client;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -157,6 +158,7 @@ class SearchService
         $hits = $response['hits']['hits'] ?? [];
         $total = $response['hits']['total']['value'] ?? 0;
 
+        /** @var array<int, array<string, mixed>> $hits */
         $results = collect($hits)->map(fn (array $hit): SearchResult => SearchResult::fromEsHit($hit));
 
         $facets = [];
@@ -198,6 +200,7 @@ class SearchService
         $loadedModels = [];
         foreach ($policyResults->groupBy('entityType') as $entityType => $group) {
             try {
+                /** @var class-string<Model> $entityType */
                 $ids = $group->pluck('entityId')->all();
                 $models = $entityType::whereIn('id', $ids)->get()->keyBy('id');
                 $loadedModels[$entityType] = $models;

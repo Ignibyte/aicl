@@ -24,10 +24,13 @@ use Aicl\Console\Support\ReportSectionSpec;
 use Aicl\Console\Support\SpecFileParser;
 use Aicl\Console\Support\WidgetQueryParser;
 use Aicl\Console\Support\WidgetSpec;
+use Aicl\Services\EntityRegistry;
 use Aicl\Support\RlmBridge;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Rlm\EntitySignature;
+use Symfony\Component\Process\Process;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
@@ -92,7 +95,7 @@ class MakeEntityCommand extends Command
 
     protected ?EntitySpec $entitySpec = null;
 
-    /** @var \Rlm\EntitySignature|null */
+    /** @var EntitySignature|null */
     protected ?object $entitySignature = null;
 
     /**
@@ -198,7 +201,7 @@ class MakeEntityCommand extends Command
             ]);
         }
 
-        \Aicl\Services\EntityRegistry::flush();
+        EntityRegistry::flush();
 
         return self::SUCCESS;
     }
@@ -368,7 +371,7 @@ class MakeEntityCommand extends Command
             'Run: php artisan aicl:validate '.$name,
         ]);
 
-        \Aicl\Services\EntityRegistry::flush();
+        EntityRegistry::flush();
 
         return self::SUCCESS;
     }
@@ -579,7 +582,7 @@ class MakeEntityCommand extends Command
                 return;
             }
 
-            $process = new \Symfony\Component\Process\Process(
+            $process = new Process(
                 array_merge([$pintBin, '--quiet'], $phpFiles),
                 base_path()
             );
@@ -691,7 +694,7 @@ class MakeEntityCommand extends Command
     /**
      * Build an EntitySignature from the current parsed command state.
      *
-     * @return \Rlm\EntitySignature
+     * @return EntitySignature
      */
     protected function buildEntitySignature(string $name): object
     {
@@ -728,7 +731,7 @@ class MakeEntityCommand extends Command
             $features[] = 'views';
         }
 
-        return new \Rlm\EntitySignature(
+        return new EntitySignature(
             entityName: $name,
             fields: $fields,
             states: $states,
@@ -740,7 +743,7 @@ class MakeEntityCommand extends Command
     /**
      * Get the entity signature built during scaffolding.
      *
-     * @return \Rlm\EntitySignature|null
+     * @return EntitySignature|null
      */
     public function getEntitySignature(): ?object
     {
@@ -831,6 +834,9 @@ class MakeEntityCommand extends Command
         );
     }
 
+    /**
+     * @param  array<int, string>  $traits
+     */
     protected function generateModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
         if ($this->smartMode) {
@@ -840,6 +846,9 @@ class MakeEntityCommand extends Command
         return $this->generateLegacyModel($name, $tableName, $traits, $aiContext);
     }
 
+    /**
+     * @param  array<int, string>  $traits
+     */
     protected function generateLegacyModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
         ['traitImports' => $traitImports, 'traitUses' => $traitUses, 'interfaces' => $interfaces, 'interfaceImports' => $interfaceImports] =
@@ -942,6 +951,9 @@ PHP;
         return "app/Models/{$name}.php";
     }
 
+    /**
+     * @param  array<int, string>  $traits
+     */
     protected function generateSmartModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
         ['traitImports' => $traitImports, 'traitUses' => $traitUses, 'interfaces' => $interfaces, 'interfaceImports' => $interfaceImports] =

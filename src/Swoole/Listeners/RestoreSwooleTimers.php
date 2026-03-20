@@ -17,7 +17,7 @@ class RestoreSwooleTimers
     {
         // Use worker ID from Octane event state (always available),
         // with Swoole server fallback for edge cases.
-        $workerId = $event->workerState?->workerId
+        $workerId = $event->workerState->workerId
             ?? (app()->bound('Swoole\Http\Server') ? app()->make('Swoole\Http\Server')->worker_id : 0);
 
         if ($workerId !== 0) {

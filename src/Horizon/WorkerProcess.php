@@ -196,11 +196,9 @@ class WorkerProcess
     /**
      * Pass on method calls to the underlying process.
      *
-     * @param  string  $method
-     * @param  array  $parameters
-     * @return mixed
+     * @param  array<int, mixed>  $parameters
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters): mixed
     {
         return $this->process->{$method}(...$parameters);
     }

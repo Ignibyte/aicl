@@ -23,6 +23,8 @@ class ApprovalLog extends Model
 
     /**
      * The model that was approved/rejected.
+     *
+     * @return MorphTo<Model, $this>
      */
     public function approvable(): MorphTo
     {
@@ -31,6 +33,8 @@ class ApprovalLog extends Model
 
     /**
      * The user who performed the action.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function actor(): BelongsTo
     {

@@ -30,7 +30,7 @@ class FieldSignalEngine
      * @param  string  $fieldName  Field name (e.g., 'starts_at')
      * @param  string  $fieldType  Field type (e.g., 'datetime')
      * @param  string  $context  Rendering context (e.g., 'blade')
-     * @param  array  $allFields  All entity fields for multi-field pattern detection
+     * @param  array<string, string>  $allFields  All entity fields for multi-field pattern detection
      */
     public function match(string $fieldName, string $fieldType, string $context = 'blade', array $allFields = []): ?ComponentRecommendation
     {
@@ -58,6 +58,8 @@ class FieldSignalEngine
 
     /**
      * Match fields that require multi-field context.
+     *
+     * @param  array<string, string>  $allFields
      */
     private function matchMultiField(string $fieldName, string $fieldType, array $allFields, string $context): ?ComponentRecommendation
     {
@@ -167,7 +169,7 @@ class FieldSignalEngine
     /**
      * Recommend components for an entity's full field set.
      *
-     * @param  array  $fields  Array of ['name' => 'type'] pairs
+     * @param  array<string, string>  $fields  Array of ['name' => 'type'] pairs
      * @param  string  $context  Rendering context
      * @param  string  $viewType  View type: index, show, card
      * @return array<ComponentRecommendation>
@@ -200,6 +202,9 @@ class FieldSignalEngine
             || str_ends_with($name, '_date');
     }
 
+    /**
+     * @param  array<string, string>  $allFields
+     */
     private function findTemporalPair(string $name, array $allFields): ?string
     {
         $startPatterns = ['start', 'starts', 'begin', 'begins', 'from'];
@@ -237,6 +242,9 @@ class FieldSignalEngine
         return in_array($name, ['target', 'goal', 'budget', 'quota', 'planned']);
     }
 
+    /**
+     * @param  array<string, string>  $allFields
+     */
     private function findActualPair(string $name, array $allFields): ?string
     {
         $pairMappings = [

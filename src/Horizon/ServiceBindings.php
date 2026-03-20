@@ -7,7 +7,7 @@ trait ServiceBindings
     /**
      * All of the service bindings for Horizon.
      *
-     * @var array
+     * @var array<int|class-string, class-string>
      */
     public $serviceBindings = [
         // General services...

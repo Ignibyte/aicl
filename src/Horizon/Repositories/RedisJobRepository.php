@@ -24,7 +24,7 @@ class RedisJobRepository implements JobRepository
     /**
      * The keys stored on the job hashes.
      *
-     * @var array
+     * @var array<int, string>
      */
     public $keys = [
         'id', 'connection', 'queue', 'name', 'status', 'payload',
@@ -124,7 +124,7 @@ class RedisJobRepository implements JobRepository
      * Get a chunk of recent jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getRecent($afterIndex = null)
     {
@@ -135,7 +135,7 @@ class RedisJobRepository implements JobRepository
      * Get a chunk of failed jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getFailed($afterIndex = null)
     {
@@ -146,7 +146,7 @@ class RedisJobRepository implements JobRepository
      * Get a chunk of pending jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getPending($afterIndex = null)
     {
@@ -157,7 +157,7 @@ class RedisJobRepository implements JobRepository
      * Get a chunk of completed jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getCompleted($afterIndex = null)
     {
@@ -168,7 +168,7 @@ class RedisJobRepository implements JobRepository
      * Get a chunk of silenced jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getSilenced($afterIndex = null)
     {
@@ -239,8 +239,8 @@ class RedisJobRepository implements JobRepository
      * Get a chunk of jobs from the given type set.
      *
      * @param  string  $type
-     * @param  string  $afterIndex
-     * @return Collection
+     * @param  string|null  $afterIndex
+     * @return Collection<int, \stdClass>
      */
     protected function getJobsByType($type, $afterIndex)
     {
@@ -287,8 +287,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Retrieve the jobs with the given IDs.
      *
+     * @param  array<int, string>  $ids
      * @param  mixed  $indexFrom
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getJobs(array $ids, $indexFrom = 0)
     {
@@ -298,6 +299,7 @@ class RedisJobRepository implements JobRepository
             }
         });
 
+        /** @var array<int, mixed> $jobs */
         return $this->indexJobs(collect($jobs)->filter(function ($job) {
             $job = is_array($job) ? array_values($job) : null;
 
@@ -308,9 +310,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Index the given jobs from the given index.
      *
-     * @param  Collection  $jobs
+     * @param  Collection<int, mixed>  $jobs
      * @param  int  $indexFrom
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     protected function indexJobs($jobs, $indexFrom)
     {
@@ -433,6 +435,7 @@ class RedisJobRepository implements JobRepository
      *
      * @param  string  $connection
      * @param  string  $queue
+     * @param  Collection<int, JobPayload>  $payloads
      * @return void
      */
     public function migrated($connection, $queue, Collection $payloads)
@@ -501,9 +504,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Update the retry status of a job in a retry array.
      *
-     * @param  array  $retries
+     * @param  array<int, array<string, mixed>>  $retries
      * @param  bool  $failed
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     protected function updateRetryStatus(JobPayload $payload, $retries, $failed)
     {
@@ -519,6 +522,7 @@ class RedisJobRepository implements JobRepository
     /**
      * Delete the given monitored jobs by IDs.
      *
+     * @param  array<int, string>  $ids
      * @return void
      */
     public function deleteMonitored(array $ids)

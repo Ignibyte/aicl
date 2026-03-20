@@ -96,7 +96,7 @@ class QueueMetricSnapshot extends Model
     /**
      * Get historical data for a specific type and name within a time range.
      *
-     * @return Collection<int, QueueMetricSnapshot>
+     * @return Collection<int, static>
      */
     public static function getHistoricalData(string $type, string $name, int $minutesBack): Collection
     {

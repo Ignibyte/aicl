@@ -8,7 +8,7 @@ class Exec
      * Run the given command.
      *
      * @param  string  $command
-     * @return array
+     * @return array<int, string>
      */
     public function run($command)
     {

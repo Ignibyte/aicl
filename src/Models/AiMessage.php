@@ -22,14 +22,17 @@ use Illuminate\Support\Carbon;
  * @property AiMessageRole $role
  * @property string $content
  * @property int|null $token_count
- * @property array|null $metadata
+ * @property array<string, mixed>|null $metadata
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
 class AiMessage extends Model
 {
     use HasEntityEvents;
+
+    /** @use HasFactory<AiMessageFactory> */
     use HasFactory;
+
     use HasUuids;
 
     protected $table = 'ai_messages';

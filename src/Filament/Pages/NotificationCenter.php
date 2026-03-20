@@ -191,6 +191,9 @@ class NotificationCenter extends Page implements HasForms, HasTable
             ->paginated([10, 25, 50]);
     }
 
+    /**
+     * @return Builder<DatabaseNotification>
+     */
     protected function getTableQuery(): Builder
     {
         return DatabaseNotification::query()

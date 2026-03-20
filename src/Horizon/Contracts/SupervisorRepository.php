@@ -9,14 +9,14 @@ interface SupervisorRepository
     /**
      * Get the names of all the supervisors currently running.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function names();
 
     /**
      * Get information on all of the supervisors.
      *
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function all();
 
@@ -24,14 +24,15 @@ interface SupervisorRepository
      * Get information on a supervisor by name.
      *
      * @param  string  $name
-     * @return array
+     * @return \stdClass|null
      */
     public function find($name);
 
     /**
      * Get information on the given supervisors.
      *
-     * @return array
+     * @param  array<int, string>  $names
+     * @return array<int, \stdClass>
      */
     public function get(array $names);
 
@@ -52,7 +53,7 @@ interface SupervisorRepository
     /**
      * Remove the supervisor information from storage.
      *
-     * @param  array|string  $names
+     * @param  array<int, string>|string  $names
      * @return void
      */
     public function forget($names);

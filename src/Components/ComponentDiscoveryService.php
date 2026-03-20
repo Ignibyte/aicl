@@ -118,6 +118,7 @@ class ComponentDiscoveryService
     /**
      * Validate a manifest against the v1 schema.
      *
+     * @param  array<string, mixed>  $manifest
      * @return array<string> List of validation errors
      */
     public function validateManifest(array $manifest, string $componentName = 'unknown'): array

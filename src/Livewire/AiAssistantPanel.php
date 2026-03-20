@@ -7,6 +7,7 @@ use Aicl\Enums\AiMessageRole;
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -247,6 +248,7 @@ class AiAssistantPanel extends Component
 
                 if (! empty($toolResults)) {
                     // Enrich tool entries with render data from metadata
+                    /** @var array<int, array<string, mixed>> $toolResults */
                     $renderByName = collect($toolResults)->keyBy('name');
 
                     $tools = collect($tools)->map(function (array $tool) use ($renderByName): array {
@@ -432,7 +434,7 @@ class AiAssistantPanel extends Component
             ->get();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('aicl::livewire.ai-assistant-panel');
     }

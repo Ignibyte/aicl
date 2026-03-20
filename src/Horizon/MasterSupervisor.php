@@ -39,7 +39,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     /**
      * All of the supervisors managed.
      *
-     * @var Collection
+     * @var Collection<int, SupervisorProcess>
      */
     public $supervisors;
 

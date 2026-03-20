@@ -7,14 +7,15 @@ interface TagRepository
     /**
      * Get the currently monitored tags.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function monitoring();
 
     /**
      * Return the tags which are being monitored.
      *
-     * @return array
+     * @param  array<int, string>  $tags
+     * @return array<int, string>
      */
     public function monitored(array $tags);
 
@@ -38,6 +39,7 @@ interface TagRepository
      * Store the tags for the given job.
      *
      * @param  string  $id
+     * @param  array<int, string>  $tags
      * @return void
      */
     public function add($id, array $tags);
@@ -47,6 +49,7 @@ interface TagRepository
      *
      * @param  int  $minutes
      * @param  string  $id
+     * @param  array<int, string>  $tags
      * @return void
      */
     public function addTemporary($minutes, $id, array $tags);
@@ -63,7 +66,7 @@ interface TagRepository
      * Get all of the job IDs for a given tag.
      *
      * @param  string  $tag
-     * @return array
+     * @return array<int, string>
      */
     public function jobs($tag);
 
@@ -73,7 +76,7 @@ interface TagRepository
      * @param  string  $tag
      * @param  int  $startingAt
      * @param  int  $limit
-     * @return array
+     * @return array<int, string>
      */
     public function paginate($tag, $startingAt = 0, $limit = 25);
 

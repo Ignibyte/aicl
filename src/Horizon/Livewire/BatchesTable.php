@@ -2,12 +2,13 @@
 
 namespace Aicl\Horizon\Livewire;
 
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class BatchesTable extends Component
 {
-    public function render()
+    public function render(): View
     {
         $batches = collect();
 

@@ -42,9 +42,9 @@ use Spatie\ModelStates\HasStates;
  * @property string|null $icon
  * @property string|null $color
  * @property int $sort_order
- * @property array|null $suggested_prompts
- * @property array|null $capabilities
- * @property array|null $visible_to_roles
+ * @property array<int, string>|null $suggested_prompts
+ * @property array<string, mixed>|null $capabilities
+ * @property array<int, string>|null $visible_to_roles
  * @property int|null $max_requests_per_minute
  * @property AiAgentState $state
  * @property Carbon $created_at
@@ -55,7 +55,10 @@ class AiAgent extends Model
 {
     use HasAuditTrail;
     use HasEntityEvents;
+
+    /** @use HasFactory<AiAgentFactory> */
     use HasFactory;
+
     use HasStandardScopes;
     use HasStates;
     use HasUuids;

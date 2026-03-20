@@ -28,7 +28,7 @@ class ProcessInspector
     /**
      * Get the IDs of all Horizon processes running on the system.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function current()
     {
@@ -41,7 +41,7 @@ class ProcessInspector
     /**
      * Get an array of running Horizon processes that can't be accounted for.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function orphaned()
     {
@@ -51,7 +51,7 @@ class ProcessInspector
     /**
      * Get all of the process IDs Horizon is actively monitoring.
      *
-     * @return array
+     * @return array<int, mixed>
      */
     public function monitoring()
     {

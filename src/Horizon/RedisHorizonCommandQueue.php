@@ -31,6 +31,7 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
      *
      * @param  string  $name
      * @param  string  $command
+     * @param  array<string, mixed>  $options
      * @return void
      */
     public function push($name, $command, array $options = [])
@@ -45,7 +46,7 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
      * Get the pending commands for a given queue name.
      *
      * @param  string  $name
-     * @return array
+     * @return array<int, object>
      */
     public function pending($name)
     {
@@ -61,7 +62,10 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
             $pipe->ltrim('commands:'.$name, $length, -1);
         });
 
-        return collect($results[0])
+        /** @var array<int, string> $commands */
+        $commands = $results[0];
+
+        return collect($commands)
             ->map(fn ($result) => (object) json_decode($result, true))
             ->all();
     }

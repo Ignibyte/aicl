@@ -42,7 +42,10 @@ class TimeoutCommand extends Command
 
         $environment = $this->argument('environment');
 
-        $timeout = collect($plan[$this->argument('environment')] ?? [])->max('timeout') ?? 60;
+        /** @var array<string, mixed> $environmentPlan */
+        $environmentPlan = $plan[$this->argument('environment')] ?? [];
+
+        $timeout = collect($environmentPlan)->max('timeout') ?? 60;
 
         $this->components->info('Maximum timeout for '.$environment.' environment: '.$timeout.' seconds.');
     }

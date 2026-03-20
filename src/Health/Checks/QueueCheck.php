@@ -67,6 +67,8 @@ class QueueCheck implements ServiceHealthCheck
 
     /**
      * Get queue details from Horizon repositories.
+     *
+     * @return array<string, string>
      */
     protected function getHorizonDetails(): array
     {
@@ -93,6 +95,8 @@ class QueueCheck implements ServiceHealthCheck
 
     /**
      * Get queue details directly from Redis (fallback when Horizon is disabled).
+     *
+     * @return array<string, string>
      */
     protected function getDirectRedisDetails(): array
     {

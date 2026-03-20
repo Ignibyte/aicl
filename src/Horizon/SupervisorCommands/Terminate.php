@@ -9,6 +9,7 @@ class Terminate
     /**
      * Process the command.
      *
+     * @param  array<string, mixed>  $options
      * @return void
      */
     public function process(Terminable $terminable, array $options)

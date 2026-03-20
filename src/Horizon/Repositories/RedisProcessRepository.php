@@ -31,7 +31,7 @@ class RedisProcessRepository implements ProcessRepository
      * Get all of the orphan process IDs and the times they were observed.
      *
      * @param  string  $master
-     * @return array
+     * @return array<string, string>
      */
     public function allOrphans($master)
     {
@@ -44,6 +44,7 @@ class RedisProcessRepository implements ProcessRepository
      * Record the given process IDs as orphaned.
      *
      * @param  string  $master
+     * @param  array<int, string>  $processIds
      * @return void
      */
     public function orphaned($master, array $processIds)
@@ -70,7 +71,7 @@ class RedisProcessRepository implements ProcessRepository
      *
      * @param  string  $master
      * @param  int  $seconds
-     * @return array
+     * @return array<int, string>
      */
     public function orphanedFor($master, $seconds)
     {
@@ -86,6 +87,7 @@ class RedisProcessRepository implements ProcessRepository
      * Remove the given process IDs from the orphan list.
      *
      * @param  string  $master
+     * @param  array<int, string>  $processIds
      * @return void
      */
     public function forgetOrphans($master, array $processIds)

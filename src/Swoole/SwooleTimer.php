@@ -320,6 +320,8 @@ final class SwooleTimer
 
     /**
      * Store a timer definition in Redis.
+     *
+     * @param  array<string, mixed>  $data
      */
     private static function persistTimer(
         string $key,

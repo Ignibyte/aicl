@@ -44,7 +44,10 @@ class AiConversation extends Model
 {
     use HasAuditTrail;
     use HasEntityEvents;
+
+    /** @use HasFactory<AiConversationFactory> */
     use HasFactory;
+
     use HasStandardScopes;
     use HasStates;
     use HasUuids;

@@ -62,7 +62,7 @@ class WaitTimeCalculator
      * Calculate the time to clear per queue in seconds.
      *
      * @param  string|null  $queue
-     * @return array
+     * @return array<string, float>
      */
     public function calculate($queue = null)
     {
@@ -85,9 +85,9 @@ class WaitTimeCalculator
     /**
      * Get all of the queue names.
      *
-     * @param  Collection  $supervisors
+     * @param  Collection<int, \stdClass>  $supervisors
      * @param  string|null  $queue
-     * @return Collection
+     * @return Collection<int, mixed>
      */
     protected function queueNames($supervisors, $queue = null)
     {
@@ -102,7 +102,7 @@ class WaitTimeCalculator
     /**
      * Get the total process count for a given queue.
      *
-     * @param  Collection  $allSupervisors
+     * @param  Collection<int, \stdClass>  $allSupervisors
      * @param  string  $queue
      * @return int
      */

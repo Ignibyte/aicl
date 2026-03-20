@@ -113,7 +113,10 @@ class TransitionEntityTool extends Tool
             return [];
         }
 
-        return collect($stateConfig->allowedStates())
+        /** @var array<int, string> $allowedStates */
+        $allowedStates = $stateConfig->allowedStates();
+
+        return collect($allowedStates)
             ->map(fn (string $stateClass): string => $this->resolveStateName($stateClass))
             ->values()
             ->toArray();

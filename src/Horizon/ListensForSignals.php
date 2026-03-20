@@ -9,7 +9,7 @@ trait ListensForSignals
     /**
      * The pending signals that need to be processed.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $pendingSignals = [];
 

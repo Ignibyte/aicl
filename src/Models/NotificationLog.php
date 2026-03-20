@@ -3,6 +3,7 @@
 namespace Aicl\Models;
 
 use Aicl\Database\Factories\NotificationLogFactory;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -66,6 +67,8 @@ class NotificationLog extends Model
 
     /**
      * The notifiable entity (typically a User).
+     *
+     * @return MorphTo<Model, $this>
      */
     public function notifiable(): MorphTo
     {
@@ -74,6 +77,8 @@ class NotificationLog extends Model
 
     /**
      * The entity that triggered the notification (nullable for system notifications).
+     *
+     * @return MorphTo<Model, $this>
      */
     public function sender(): MorphTo
     {
@@ -126,7 +131,9 @@ class NotificationLog extends Model
      */
     public function scopeFailed(Builder $query): Builder
     {
-        $driver = $query->getConnection()->getDriverName();
+        /** @var Connection $connection */
+        $connection = $query->getConnection();
+        $driver = $connection->getDriverName();
 
         if ($driver === 'pgsql') {
             return $query->whereRaw(

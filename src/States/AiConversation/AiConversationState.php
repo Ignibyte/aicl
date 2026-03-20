@@ -2,9 +2,13 @@
 
 namespace Aicl\States\AiConversation;
 
+use Aicl\Models\AiConversation;
 use Spatie\ModelStates\State;
 use Spatie\ModelStates\StateConfig;
 
+/**
+ * @extends State<AiConversation>
+ */
 abstract class AiConversationState extends State
 {
     abstract public function label(): string;

@@ -4,6 +4,7 @@ namespace Aicl\Horizon\Livewire;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
 use Aicl\Horizon\Models\QueueMetricSnapshot;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class MetricsCharts extends Component
@@ -29,7 +30,7 @@ class MetricsCharts extends Component
         '30d' => 43200,
     ];
 
-    public function render()
+    public function render(): View
     {
         $metrics = app(MetricsRepository::class);
 
@@ -118,6 +119,7 @@ class MetricsCharts extends Component
     /**
      * Format Redis snapshot data for display.
      *
+     * @param  array<int, \stdClass>  $snapshots
      * @return array<int, array{time: string, throughput: float, runtime: float}>
      */
     protected function formatRedisSnapshots(array $snapshots): array

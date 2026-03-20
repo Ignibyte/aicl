@@ -7,14 +7,14 @@ interface MetricsRepository
     /**
      * Get all of the class names that have metrics measurements.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function measuredJobs();
 
     /**
      * Get all of the queues that have metrics measurements.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function measuredQueues();
 
@@ -100,7 +100,7 @@ interface MetricsRepository
      * Get all of the snapshots for the given job.
      *
      * @param  string  $job
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function snapshotsForJob($job);
 
@@ -108,7 +108,7 @@ interface MetricsRepository
      * Get all of the snapshots for the given queue.
      *
      * @param  string  $queue
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function snapshotsForQueue($queue);
 

@@ -103,7 +103,7 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
     }
 
     /**
-     * @return array{pending: int, pending_high: int, pending_low: int, failed: int, last_failed: ?FailedJob, jobs_per_minute: float, total_processes: int, workload: array}
+     * @return array{pending: int, pending_high: int, pending_low: int, failed: int, last_failed: ?FailedJob, jobs_per_minute: float, total_processes: int, workload: array<int, mixed>}
      */
     public function getQueueStats(): array
     {
@@ -146,6 +146,9 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
         return $stats;
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public function getSupervisors(): array
     {
         if (! config('aicl.features.horizon', true) || ! app()->bound(SupervisorRepository::class)) {

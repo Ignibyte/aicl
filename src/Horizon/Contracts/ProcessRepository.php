@@ -8,7 +8,7 @@ interface ProcessRepository
      * Get all of the orphan process IDs and the times they were observed.
      *
      * @param  string  $master
-     * @return array
+     * @return array<string, string>
      */
     public function allOrphans($master);
 
@@ -16,7 +16,8 @@ interface ProcessRepository
      * Record the given process IDs as orphaned.
      *
      * @param  string  $master
-     * @return array
+     * @param  array<int, string>  $processIds
+     * @return void
      */
     public function orphaned($master, array $processIds);
 
@@ -25,7 +26,7 @@ interface ProcessRepository
      *
      * @param  string  $master
      * @param  int  $seconds
-     * @return array
+     * @return array<int, string>
      */
     public function orphanedFor($master, $seconds);
 
@@ -33,6 +34,7 @@ interface ProcessRepository
      * Remove the given process IDs from the orphan list.
      *
      * @param  string  $master
+     * @param  array<int, string>  $processIds
      * @return void
      */
     public function forgetOrphans($master, array $processIds);

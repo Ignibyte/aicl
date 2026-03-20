@@ -32,7 +32,7 @@ interface JobRepository
      * Get a chunk of recent jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getRecent($afterIndex = null);
 
@@ -40,7 +40,7 @@ interface JobRepository
      * Get a chunk of failed jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getFailed($afterIndex = null);
 
@@ -48,7 +48,7 @@ interface JobRepository
      * Get a chunk of pending jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getPending($afterIndex = null);
 
@@ -56,7 +56,7 @@ interface JobRepository
      * Get a chunk of completed jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getCompleted($afterIndex = null);
 
@@ -64,7 +64,7 @@ interface JobRepository
      * Get a chunk of silenced jobs.
      *
      * @param  string|null  $afterIndex
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getSilenced($afterIndex = null);
 
@@ -113,8 +113,9 @@ interface JobRepository
     /**
      * Retrieve the jobs with the given IDs.
      *
+     * @param  array<int, string>  $ids
      * @param  mixed  $indexFrom
-     * @return Collection
+     * @return Collection<int, \stdClass>
      */
     public function getJobs(array $ids, $indexFrom = 0);
 
@@ -160,6 +161,7 @@ interface JobRepository
      *
      * @param  string  $connection
      * @param  string  $queue
+     * @param  Collection<int, JobPayload>  $payloads
      * @return void
      */
     public function migrated($connection, $queue, Collection $payloads);
@@ -176,6 +178,7 @@ interface JobRepository
     /**
      * Delete the given monitored jobs by IDs.
      *
+     * @param  array<int, string>  $ids
      * @return void
      */
     public function deleteMonitored(array $ids);

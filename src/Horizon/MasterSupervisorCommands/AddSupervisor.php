@@ -12,6 +12,7 @@ class AddSupervisor
     /**
      * Process the command.
      *
+     * @param  array<string, mixed>  $options
      * @return void
      */
     public function process(MasterSupervisor $master, array $options)

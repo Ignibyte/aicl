@@ -26,7 +26,7 @@ class Tags
      * Determine the tags for the given job.
      *
      * @param  mixed  $job
-     * @return array
+     * @return array<int, string>
      */
     public static function for($job)
     {
@@ -43,7 +43,7 @@ class Tags
      * Extract tags from job object.
      *
      * @param  mixed  $job
-     * @return array
+     * @return array<int, string>
      */
     public static function extractExplicitTags($job)
     {
@@ -56,7 +56,7 @@ class Tags
      * Determine tags for the given queued listener.
      *
      * @param  mixed  $job
-     * @return array
+     * @return array<int, string>
      */
     protected static function tagsForListener($job)
     {
@@ -77,7 +77,8 @@ class Tags
     /**
      * Determine tags for the given job.
      *
-     * @return array
+     * @param  array<int, object>  $jobs
+     * @return array<int, string>
      */
     protected static function explicitTags(array $jobs)
     {
@@ -92,7 +93,7 @@ class Tags
      * Get the actual target for the given job.
      *
      * @param  mixed  $job
-     * @return array
+     * @return array<int, object>
      */
     public static function targetsFor($job)
     {
@@ -108,7 +109,8 @@ class Tags
     /**
      * Get the models from the given object.
      *
-     * @return Collection
+     * @param  array<int, object>  $targets
+     * @return Collection<int, Model>
      */
     public static function modelsFor(array $targets)
     {
@@ -141,6 +143,7 @@ class Tags
      * Get the value of the given ReflectionProperty.
      *
      * @param  mixed  $target
+     * @return mixed
      */
     protected static function getValue(ReflectionProperty $property, $target)
     {

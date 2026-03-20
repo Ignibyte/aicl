@@ -2,6 +2,12 @@
 
 namespace Aicl\Support;
 
+use Illuminate\Support\Collection;
+use Rlm\EntityValidator;
+use Rlm\PatternRegistry;
+use Rlm\RlmServiceProvider;
+use Rlm\Services\RecallService;
+
 /**
  * Thin bridge between AICL and the optional RLM package.
  *
@@ -17,13 +23,13 @@ class RlmBridge
      */
     public static function installed(): bool
     {
-        return class_exists(\Rlm\RlmServiceProvider::class);
+        return class_exists(RlmServiceProvider::class);
     }
 
     /**
      * Validate an entity against RLM patterns.
      *
-     * @return array{score: float, total: int, passed: int, failed: int, results: array}|null
+     * @return array{score: float, total: int, passed: int, failed: int, results: array<int, mixed>}|null
      */
     public static function validate(string $entityName): ?array
     {
@@ -31,7 +37,7 @@ class RlmBridge
             return null;
         }
 
-        $validator = new \Rlm\EntityValidator($entityName);
+        $validator = new EntityValidator($entityName);
         $results = $validator->validate();
 
         $passed = count(array_filter($results, fn ($r) => $r->passed));
@@ -49,7 +55,7 @@ class RlmBridge
     /**
      * Recall knowledge for an agent/phase context.
      *
-     * @return array{failures: \Illuminate\Support\Collection, lessons: \Illuminate\Support\Collection, scores: \Illuminate\Support\Collection, prevention_rules: \Illuminate\Support\Collection, golden_annotations: \Illuminate\Support\Collection, risk_briefing: array, component_recommendations: array}|null
+     * @return array{failures: Collection<int, mixed>, lessons: Collection<int, mixed>, scores: Collection<int, mixed>, prevention_rules: Collection<int, mixed>, golden_annotations: Collection<int, mixed>, risk_briefing: array<string, mixed>, component_recommendations: array<string, mixed>}|null
      */
     public static function recall(?string $agent = null, ?string $phase = null): ?array
     {
@@ -57,8 +63,8 @@ class RlmBridge
             return null;
         }
 
-        /** @var \Rlm\Services\RecallService $recallService */
-        $recallService = app(\Rlm\Services\RecallService::class);
+        /** @var RecallService $recallService */
+        $recallService = app(RecallService::class);
 
         return $recallService->recall($agent, (int) ($phase ?? 0));
     }
@@ -66,7 +72,7 @@ class RlmBridge
     /**
      * Get the PatternRegistry instance, if available.
      *
-     * @return \Rlm\PatternRegistry|null
+     * @return PatternRegistry|null
      */
     public static function patternRegistry(): ?object
     {
@@ -74,6 +80,6 @@ class RlmBridge
             return null;
         }
 
-        return app(\Rlm\PatternRegistry::class);
+        return app(PatternRegistry::class);
     }
 }

@@ -9,14 +9,14 @@ interface MasterSupervisorRepository
     /**
      * Get the names of all the master supervisors currently running.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function names();
 
     /**
      * Get information on all of the master supervisors.
      *
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function all();
 
@@ -24,14 +24,15 @@ interface MasterSupervisorRepository
      * Get information on a master supervisor by name.
      *
      * @param  string  $name
-     * @return array
+     * @return \stdClass|null
      */
     public function find($name);
 
     /**
      * Get information on the given master supervisors.
      *
-     * @return array
+     * @param  array<int, string>  $names
+     * @return array<int, \stdClass>
      */
     public function get(array $names);
 

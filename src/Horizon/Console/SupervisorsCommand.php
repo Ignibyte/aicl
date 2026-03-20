@@ -38,14 +38,18 @@ class SupervisorsCommand extends Command
 
         $this->output->writeln('');
 
+        /** @var array<int, \stdClass> $supervisors */
         $this->table([
             'Name', 'PID', 'Status', 'Workers', 'Balancing',
-        ], collect($supervisors)->map(function ($supervisor) {
+        ], collect($supervisors)->map(function (\stdClass $supervisor) {
+            /** @var array<string, int> $processes */
+            $processes = $supervisor->processes;
+
             return [
                 $supervisor->name,
                 $supervisor->pid,
                 $supervisor->status,
-                collect($supervisor->processes)->map(function ($count, $queue) {
+                collect($processes)->map(function (int $count, string $queue) {
                     return $queue.' ('.$count.')';
                 })->implode(', '),
                 $supervisor->options['balance'],

@@ -7,7 +7,7 @@ class Stopwatch
     /**
      * All of the current timers.
      *
-     * @var array
+     * @var array<string, float>
      */
     public $timers = [];
 

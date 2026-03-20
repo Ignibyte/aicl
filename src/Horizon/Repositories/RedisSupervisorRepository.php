@@ -32,7 +32,7 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Get the names of all the supervisors currently running.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function names()
     {
@@ -44,7 +44,7 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Get information on all of the supervisors.
      *
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function all()
     {
@@ -65,7 +65,8 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Get information on the given supervisors.
      *
-     * @return array
+     * @param  array<int, string>  $names
+     * @return array<int, \stdClass>
      */
     public function get(array $names)
     {
@@ -75,6 +76,7 @@ class RedisSupervisorRepository implements SupervisorRepository
             }
         });
 
+        /** @var array<int, mixed> $records */
         return collect($records)
             ->filter()
             ->map(function ($record) {
@@ -138,7 +140,7 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Remove the supervisor information from storage.
      *
-     * @param  array|string  $names
+     * @param  array<int, string>|string  $names
      * @return void
      */
     public function forget($names)

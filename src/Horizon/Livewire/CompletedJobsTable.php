@@ -3,13 +3,14 @@
 namespace Aicl\Horizon\Livewire;
 
 use Aicl\Horizon\Contracts\JobRepository;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class CompletedJobsTable extends Component
 {
     public ?string $afterIndex = null;
 
-    public function render()
+    public function render(): View
     {
         $jobs = app(JobRepository::class)->getCompleted($this->afterIndex);
 

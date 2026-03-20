@@ -36,7 +36,7 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get all of the class names that have metrics measurements.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function measuredJobs()
     {
@@ -52,7 +52,7 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get all of the queues that have metrics measurements.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function measuredQueues()
     {
@@ -216,7 +216,7 @@ class RedisMetricsRepository implements MetricsRepository
      * Get all of the snapshots for the given job.
      *
      * @param  string  $job
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function snapshotsForJob($job)
     {
@@ -227,7 +227,7 @@ class RedisMetricsRepository implements MetricsRepository
      * Get all of the snapshots for the given queue.
      *
      * @param  string  $queue
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function snapshotsForQueue($queue)
     {
@@ -238,7 +238,7 @@ class RedisMetricsRepository implements MetricsRepository
      * Get all of the snapshots for the given key.
      *
      * @param  string  $key
-     * @return array
+     * @return array<int, \stdClass>
      */
     protected function snapshotsFor($key)
     {
@@ -281,7 +281,7 @@ class RedisMetricsRepository implements MetricsRepository
                     'name' => $queue,
                     'throughput' => $data['throughput'] ?? 0,
                     'runtime' => $data['runtime'] ?? 0,
-                    'wait' => $data['wait'] ?? null,
+                    'wait' => $data['wait'],
                     'recorded_at' => now(),
                 ];
             }
@@ -376,7 +376,7 @@ class RedisMetricsRepository implements MetricsRepository
      * Get the base snapshot data for a given key.
      *
      * @param  string  $key
-     * @return array
+     * @return array{throughput: mixed, runtime: mixed}
      */
     protected function baseSnapshotData($key)
     {

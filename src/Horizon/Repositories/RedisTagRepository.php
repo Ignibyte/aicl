@@ -29,7 +29,7 @@ class RedisTagRepository implements TagRepository
     /**
      * Get the currently monitored tags.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function monitoring()
     {
@@ -39,7 +39,8 @@ class RedisTagRepository implements TagRepository
     /**
      * Return the tags which are being monitored.
      *
-     * @return array
+     * @param  array<int, string>  $tags
+     * @return array<int, string>
      */
     public function monitored(array $tags)
     {
@@ -72,6 +73,7 @@ class RedisTagRepository implements TagRepository
      * Store the tags for the given job.
      *
      * @param  string  $id
+     * @param  array<int, string>  $tags
      * @return void
      */
     public function add($id, array $tags)
@@ -88,6 +90,7 @@ class RedisTagRepository implements TagRepository
      *
      * @param  int  $minutes
      * @param  string  $id
+     * @param  array<int, string>  $tags
      * @return void
      */
     public function addTemporary($minutes, $id, array $tags)
@@ -116,7 +119,7 @@ class RedisTagRepository implements TagRepository
      * Get all of the job IDs for a given tag.
      *
      * @param  string  $tag
-     * @return array
+     * @return array<int, string>
      */
     public function jobs($tag)
     {
@@ -129,7 +132,7 @@ class RedisTagRepository implements TagRepository
      * @param  string  $tag
      * @param  int  $startingAt
      * @param  int  $limit
-     * @return array
+     * @return array<int, string>
      */
     public function paginate($tag, $startingAt = 0, $limit = 25)
     {
@@ -146,8 +149,8 @@ class RedisTagRepository implements TagRepository
     /**
      * Remove the given job IDs from the given tag.
      *
-     * @param  array|string  $tags
-     * @param  array|string  $ids
+     * @param  array<int, string>|string  $tags
+     * @param  array<int, string>|string  $ids
      * @return void
      */
     public function forgetJobs($tags, $ids)

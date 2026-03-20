@@ -10,7 +10,7 @@ trait EventMap
     /**
      * All of the Horizon event / listener mappings.
      *
-     * @var array
+     * @var array<class-string, array<int, class-string>>
      */
     protected $events = [
         Events\JobPending::class => [

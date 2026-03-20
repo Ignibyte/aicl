@@ -18,7 +18,7 @@ class Horizon
     /**
      * The database configuration methods.
      *
-     * @var array
+     * @var array<int, string>
      */
     public static $databases = [
         'Jobs', 'Supervisors', 'CommandQueue', 'Tags',

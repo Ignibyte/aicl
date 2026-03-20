@@ -319,7 +319,7 @@ class SupervisorOptions
     /**
      * Convert the options to a raw array.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function toArray()
     {
@@ -351,6 +351,7 @@ class SupervisorOptions
     /**
      * Create a new options instance from the given array.
      *
+     * @param  array<string, mixed>  $array
      * @return static
      */
     public static function fromArray(array $array)

@@ -24,14 +24,14 @@ class JobsMigrated
     /**
      * The job payloads that were migrated.
      *
-     * @var Collection
+     * @var Collection<int, JobPayload>
      */
     public $payloads;
 
     /**
      * Create a new event instance.
      *
-     * @param  array  $payloads
+     * @param  array<int, string>  $payloads
      * @return void
      */
     public function __construct($payloads)

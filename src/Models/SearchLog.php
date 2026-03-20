@@ -23,6 +23,9 @@ class SearchLog extends Model
         'searched_at',
     ];
 
+    /**
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -31,13 +34,21 @@ class SearchLog extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Model, $this>
+     */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(config('auth.providers.users.model', 'App\\Models\\User'));
+        /** @var class-string<Model> $userModel */
+        $userModel = config('auth.providers.users.model', 'App\\Models\\User');
+
+        return $this->belongsTo($userModel);
     }
 
     /**
      * Get the prunable model query.
+     *
+     * @return Builder<static>
      */
     public function prunable(): Builder
     {

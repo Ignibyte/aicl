@@ -10,6 +10,9 @@ use Illuminate\Mail\SendQueuedMailable;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Arr;
 
+/**
+ * @implements ArrayAccess<string, mixed>
+ */
 class JobPayload implements ArrayAccess
 {
     /**
@@ -22,7 +25,7 @@ class JobPayload implements ArrayAccess
     /**
      * The decoded payload array.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     public $decoded;
 
@@ -52,7 +55,7 @@ class JobPayload implements ArrayAccess
     /**
      * Get the job tags from the payload.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function tags()
     {
@@ -126,7 +129,7 @@ class JobPayload implements ArrayAccess
      * Get the appropriate tags for the job.
      *
      * @param  mixed  $job
-     * @return array
+     * @return array<int, string>
      */
     protected function determineTags($job)
     {
@@ -140,6 +143,7 @@ class JobPayload implements ArrayAccess
      * Determine if the underlying job class should be silenced.
      *
      * @param  mixed  $job
+     * @param  array<int, string>  $tags
      * @return bool
      */
     protected function shouldBeSilenced($job, array $tags = [])
@@ -177,6 +181,7 @@ class JobPayload implements ArrayAccess
     /**
      * Set the given key / value pairs on the payload.
      *
+     * @param  array<string, mixed>  $values
      * @return $this
      */
     public function set(array $values)

@@ -37,7 +37,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * All of the process pools being managed.
      *
-     * @var Collection
+     * @var Collection<int, ProcessPool>
      */
     public $processPools;
 
@@ -83,7 +83,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Create the supervisor's process pools.
      *
-     * @return Collection
+     * @return Collection<int, ProcessPool>
      */
     public function createProcessPools()
     {
@@ -95,7 +95,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Create a process pool for each queue.
      *
-     * @return Collection
+     * @return Collection<int, ProcessPool>
      */
     protected function createProcessPoolPerQueue()
     {
@@ -106,7 +106,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Create a single process pool.
      *
-     * @return Collection
+     * @return Collection<int, ProcessPool>
      */
     protected function createSingleProcessPool()
     {
@@ -145,6 +145,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Balance the process pool at the given scales.
      *
+     * @param  array<string, int|float>  $balance
      * @return void
      */
     public function balance(array $balance)
@@ -154,7 +155,13 @@ class Supervisor implements Pausable, Restartable, Terminable
                 return $pool->queue() === $queue;
             }, new class
             {
-                public function __call($method, $arguments) {}
+                /**
+                 * @param  array<int, mixed>  $arguments
+                 */
+                public function __call(string $method, array $arguments): mixed
+                {
+                    return null;
+                }
             })->scale($scale);
         }
     }
@@ -380,7 +387,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Get all of the current processes as a collection.
      *
-     * @return Collection
+     * @return Collection<int, WorkerProcess>
      */
     public function processes()
     {
@@ -390,7 +397,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Get the processes that are still terminating.
      *
-     * @return Collection
+     * @return Collection<int, mixed>
      */
     public function terminatingProcesses()
     {

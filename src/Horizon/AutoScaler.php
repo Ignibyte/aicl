@@ -55,7 +55,7 @@ class AutoScaler
     /**
      * Get the process pools keyed by their queue name.
      *
-     * @return Collection
+     * @return Collection<string, ProcessPool>
      */
     protected function poolsByQueue(Supervisor $supervisor)
     {
@@ -67,7 +67,8 @@ class AutoScaler
     /**
      * Get the times in milliseconds needed to clear the queues.
      *
-     * @return Collection
+     * @param  Collection<string, ProcessPool>  $pools
+     * @return Collection<string, array{size: mixed, time: int}>
      */
     protected function timeToClearPerQueue(Supervisor $supervisor, Collection $pools)
     {
@@ -91,7 +92,8 @@ class AutoScaler
     /**
      * Get the number of workers needed per queue for proper balance.
      *
-     * @return Collection
+     * @param  Collection<string, array{size: mixed, time: int}>  $queues
+     * @return Collection<string, float|int>
      */
     protected function numberOfWorkersPerQueue(Supervisor $supervisor, Collection $queues)
     {

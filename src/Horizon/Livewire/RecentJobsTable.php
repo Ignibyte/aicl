@@ -3,6 +3,7 @@
 namespace Aicl\Horizon\Livewire;
 
 use Aicl\Horizon\Contracts\JobRepository;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class RecentJobsTable extends Component
@@ -14,7 +15,7 @@ class RecentJobsTable extends Component
         // Pagination is handled by afterIndex cursor
     }
 
-    public function render()
+    public function render(): View
     {
         $jobs = app(JobRepository::class)->getRecent($this->afterIndex);
 

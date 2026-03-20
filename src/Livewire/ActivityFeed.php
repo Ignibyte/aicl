@@ -3,6 +3,7 @@
 namespace Aicl\Livewire;
 
 use Illuminate\Contracts\View\View;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -49,8 +50,11 @@ class ActivityFeed extends Component
         unset($this->activities);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, Activity>
+     */
     #[Computed]
-    public function activities(): \Illuminate\Pagination\LengthAwarePaginator
+    public function activities(): LengthAwarePaginator
     {
         $query = Activity::query()->latest();
 

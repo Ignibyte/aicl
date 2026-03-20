@@ -33,7 +33,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     /**
      * Get the names of all the master supervisors currently running.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function names()
     {
@@ -45,7 +45,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     /**
      * Get information on all of the supervisors.
      *
-     * @return array
+     * @return array<int, \stdClass>
      */
     public function all()
     {
@@ -66,7 +66,8 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     /**
      * Get information on the given master supervisors.
      *
-     * @return array
+     * @param  array<int, string>  $names
+     * @return array<int, \stdClass>
      */
     public function get(array $names)
     {
@@ -76,6 +77,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
             }
         });
 
+        /** @var array<int, mixed> $records */
         return collect($records)
             ->map(function ($record) {
                 if (! is_array($record)) {

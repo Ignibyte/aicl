@@ -39,11 +39,14 @@ class WhosOnlineTool extends BaseTool
             return ['type' => ToolRenderType::Text->value, 'data' => $result];
         }
 
+        /** @var array<int, array<string, mixed>> $resultArray */
+        $resultArray = $result;
+
         return [
             'type' => ToolRenderType::Table->value,
             'data' => [
                 'columns' => ['User', 'Role', 'Last Seen', 'IP'],
-                'rows' => collect($result)->map(fn (array $s): array => [
+                'rows' => collect($resultArray)->map(fn (array $s): array => [
                     'User' => $s['user'] ?? 'Unknown',
                     'Role' => $s['role'] ?? '-',
                     'Last Seen' => $s['last_seen'] ?? '-',

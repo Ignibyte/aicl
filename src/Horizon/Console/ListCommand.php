@@ -38,13 +38,17 @@ class ListCommand extends Command
 
         $this->output->writeln('');
 
+        /** @var array<int, \stdClass> $masters */
         $this->table([
             'Name', 'PID', 'Supervisors', 'Status',
-        ], collect($masters)->map(function ($master) {
+        ], collect($masters)->map(function (\stdClass $master) {
+            /** @var array<int, string>|null $supervisors */
+            $supervisors = $master->supervisors;
+
             return [
                 $master->name,
                 $master->pid,
-                $master->supervisors ? collect($master->supervisors)->map(function ($supervisor) {
+                $supervisors ? collect($supervisors)->map(function (string $supervisor) {
                     return explode(':', $supervisor, 2)[1];
                 })->implode(', ') : 'None',
                 $master->status,

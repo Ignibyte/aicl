@@ -63,6 +63,7 @@ class RedisQueue extends BaseQueue
      *
      * @param  string  $payload
      * @param  string|null  $queue
+     * @param  array<string, mixed>  $options
      * @return mixed
      */
     #[\Override]
@@ -85,7 +86,7 @@ class RedisQueue extends BaseQueue
      * @param  string  $job
      * @param  string  $queue
      * @param  mixed  $data
-     * @return array
+     * @return array<string, mixed>
      */
     #[\Override]
     protected function createPayloadArray($job, $queue, $data = '')

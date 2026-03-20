@@ -25,7 +25,7 @@ use UnitEnum;
  * - Notifications (NotificationLog)
  *
  * @property Schema $form
- * @property Collection $logEntries
+ * @property-read Collection<int, mixed> $logEntries
  */
 class ActivityLog extends Page implements HasForms
 {
@@ -114,6 +114,9 @@ class ActivityLog extends Page implements HasForms
             ->columns(7);
     }
 
+    /**
+     * @return Collection<int, mixed>
+     */
     #[Computed]
     public function logEntries(): Collection
     {
@@ -131,6 +134,9 @@ class ActivityLog extends Page implements HasForms
         );
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     #[Computed]
     public function logFiles(): array
     {
