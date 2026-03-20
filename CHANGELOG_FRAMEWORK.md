@@ -10,7 +10,26 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.12.0`
+Current version: `1.13.0`
+
+---
+
+## [1.13.0] - 2026-03-20
+
+### Changed
+
+- **PHPStan level 7 → 8 (ceiling)** — Bumped to maximum practical level for Laravel/Filament. Level 8 enforces nullable type checking — every method call, property access, and function argument on potentially-null values must be explicitly guarded. 138 errors resolved across ~45 files.
+- **`declare(strict_types=1)` added** to 27 additional files touched during level 8 fixes.
+- **Class-level docblocks added** to 20 additional files.
+- **Baseline regenerated** — Cleaned 11 stale entries from prior levels, fresh baseline with 188 pre-existing errors.
+
+### Fixed
+
+- **Nullable type safety** — All `foreach` on nullable arrays now use `?? []`, nullable model/user/panel access guarded with null checks or `?->` chaining, nullable Carbon dates use `?->format()`, nullable closures checked before `call_user_func`.
+- **MakeEntityCommand** (52 errors) — Nullable `$fields`, `$notificationSpecs`, `$observerRules`, `$widgetSpecs`, and `$reportLayout` properties now properly guarded across all generator methods.
+- **strict_types runtime bug** — Fixed `str_replace()` with `microtime(true)` float argument in `JobPayload.php` that would throw a TypeError with `declare(strict_types=1)`.
+- **Unnecessary method_exists checks** — Removed `method_exists($user, 'tokens')` guards in `ApiTokens.php` that PHPStan proved always evaluate to true.
+- **Horizon nullable collections** — `whenEmpty()`/`each()` chains on nullable supervisor collections now properly handled.
 
 ---
 

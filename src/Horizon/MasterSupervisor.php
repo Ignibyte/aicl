@@ -360,7 +360,9 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
      */
     public function output($type, $line)
     {
-        call_user_func($this->output, $type, $line);
+        if ($this->output !== null) {
+            call_user_func($this->output, $type, $line);
+        }
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Generators;
 
 use Aicl\Console\Support\FieldDefinition;
@@ -77,7 +79,7 @@ PHP;
         $hasExplicitOwnerId = false;
 
         // Child fields only (base fields are in the base migration)
-        foreach ($this->ctx->fields as $field) {
+        foreach ($this->ctx->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }

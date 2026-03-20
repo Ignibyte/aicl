@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiAgents\Schemas;
 
 use Aicl\AI\AiToolRegistry;
@@ -18,6 +20,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Spatie\Permission\Models\Role;
 
+/** Filament form schema definition for the AiAgent resource. */
 class AiAgentForm
 {
     public static function configure(Schema $schema): Schema
@@ -188,8 +191,8 @@ class AiAgentForm
                 // Use the short class name as label
                 $shortName = class_basename($fqcn);
                 // Convert CamelCase to readable: "QueryEntityTool" -> "Query Entity"
-                $label = preg_replace('/Tool$/', '', $shortName);
-                $label = preg_replace('/(?<!^)([A-Z])/', ' $1', $label);
+                $label = preg_replace('/Tool$/', '', $shortName) ?? $shortName;
+                $label = preg_replace('/(?<!^)([A-Z])/', ' $1', $label) ?? $label;
                 $options[$fqcn] = trim($label);
             }
 

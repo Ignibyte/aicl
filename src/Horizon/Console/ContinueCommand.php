@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
@@ -9,6 +11,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/** Instructs the Horizon master supervisor to resume processing jobs. */
 #[AsCommand(name: 'aicl:horizon:continue')]
 class ContinueCommand extends Command
 {
@@ -38,8 +41,16 @@ class ContinueCommand extends Command
             ->all();
 
         collect(Arr::pluck($masters, 'pid'))
-            ->whenNotEmpty(fn () => $this->components->info('Sending CONT signal to processes.'))
-            ->whenEmpty(fn () => $this->components->info('No processes to continue.'))
+            ->whenNotEmpty(function ($collection) {
+                $this->components->info('Sending CONT signal to processes.');
+
+                return $collection;
+            })
+            ->whenEmpty(function ($collection) {
+                $this->components->info('No processes to continue.');
+
+                return $collection;
+            })
             ->each(function ($processId) {
                 $result = true;
 

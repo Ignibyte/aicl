@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Generators;
 
 use Aicl\Console\Support\FieldDefinition;
@@ -34,7 +36,7 @@ class EnumGenerator extends BaseGenerator
 
     protected function generateEnum(FieldDefinition $field): string
     {
-        $enumName = $field->typeArgument;
+        $enumName = $field->typeArgument ?? '';
 
         // Check for rich enum data from spec file
         if (! empty($this->ctx->specEnums[$enumName])) {

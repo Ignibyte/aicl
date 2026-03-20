@@ -51,7 +51,13 @@ class AutoScaler
         );
 
         $workers->each(function ($workers, $queue) use ($supervisor, $pools) {
-            $this->scalePool($supervisor, $pools[$queue], $workers);
+            $pool = $pools[$queue] ?? null;
+
+            if ($pool === null) {
+                return;
+            }
+
+            $this->scalePool($supervisor, $pool, $workers);
         });
     }
 

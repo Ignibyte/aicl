@@ -180,7 +180,7 @@ class NotificationCenter extends Page implements HasForms, HasTable
                     ->label('Mark All Read')
                     ->icon('heroicon-o-check')
                     ->action(function (): void {
-                        auth()->user()->unreadNotifications->markAsRead();
+                        auth()->user()?->unreadNotifications->markAsRead();
 
                         Notification::make()
                             ->success()
@@ -199,8 +199,10 @@ class NotificationCenter extends Page implements HasForms, HasTable
      */
     protected function getTableQuery(): Builder
     {
+        $user = auth()->user();
+
         return DatabaseNotification::query()
-            ->where('notifiable_type', get_class(auth()->user()))
+            ->where('notifiable_type', $user ? get_class($user) : '')
             ->where('notifiable_id', auth()->id());
     }
 

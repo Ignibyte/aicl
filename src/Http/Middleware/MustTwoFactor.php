@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Middleware;
 
 use Closure;
@@ -21,30 +23,37 @@ class MustTwoFactor
      */
     public function handle(Request $request, Closure $next)
     {
+        $route = $request->route();
+
         if (
             filament()->auth()->check() &&
-            ! str($request->route()->getName())->contains('logout')
+            $route &&
+            ! str($route->getName())->contains('logout')
         ) {
             /** @var BreezyCore $breezy */
             $breezy = filament('filament-breezy');
 
-            $myProfileRouteName = 'filament.'.filament()->getCurrentOrDefaultPanel()->getId().'.pages.'.$breezy->slug();
+            $panel = filament()->getCurrentOrDefaultPanel();
+            $panelId = $panel?->getId() ?? 'admin';
+            $myProfileRouteName = 'filament.'.$panelId.'.pages.'.$breezy->slug();
 
             $myProfileRouteParameters = [];
 
             if (filament()->hasTenancy()) {
-                if (! $tenantId = request()->route()->parameter('tenant')) {
+                if (! $tenantId = request()->route()?->parameter('tenant')) {
                     return $next($request);
                 }
                 $myProfileRouteParameters = ['tenant' => $tenantId];
-                $twoFactorRoute = route('filament.'.filament()->getCurrentOrDefaultPanel()->getId().'.auth.two-factor', ['tenant' => $tenantId, 'next' => request()->getRequestUri()]);
+                $twoFactorRoute = route('filament.'.$panelId.'.auth.two-factor', ['tenant' => $tenantId, 'next' => request()->getRequestUri()]);
             } else {
-                $twoFactorRoute = route('filament.'.filament()->getCurrentOrDefaultPanel()->getId().'.auth.two-factor', ['next' => request()->getRequestUri()]);
+                $twoFactorRoute = route('filament.'.$panelId.'.auth.two-factor', ['next' => request()->getRequestUri()]);
             }
+
+            $user = filament()->auth()->user();
 
             if ($breezy->shouldForceTwoFactor() && ! $request->routeIs($myProfileRouteName)) {
                 return redirect()->route($myProfileRouteName, $myProfileRouteParameters);
-            } elseif (filament()->auth()->user()->hasConfirmedTwoFactor() && ! filament()->auth()->user()->hasValidTwoFactorSession()) {
+            } elseif ($user && $user->hasConfirmedTwoFactor() && ! $user->hasValidTwoFactorSession()) {
                 return redirect($twoFactorRoute);
             }
         }

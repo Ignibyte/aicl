@@ -34,6 +34,10 @@ class EntityEventNotificationListener implements ShouldQueue
      */
     public function handleCreated(EntityCreated $event): void
     {
+        if (! $event->entity) {
+            return;
+        }
+
         $this->createNotifications(
             entity: $event->entity,
             entityType: class_basename($event->entity),
@@ -48,6 +52,10 @@ class EntityEventNotificationListener implements ShouldQueue
      */
     public function handleUpdated(EntityUpdated $event): void
     {
+        if (! $event->entity) {
+            return;
+        }
+
         $this->createNotifications(
             entity: $event->entity,
             entityType: class_basename($event->entity),

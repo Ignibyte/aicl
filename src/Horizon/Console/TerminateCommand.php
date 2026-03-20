@@ -54,11 +54,17 @@ class TerminateCommand extends Command
         $exitCode = null;
 
         $result = collect(Arr::pluck($masters, 'pid'))
-            ->whenNotEmpty(fn () => $this->components->info('Sending TERM signal to processes.'))
-            ->whenEmpty(function () use (&$exitCode) {
+            ->whenNotEmpty(function ($collection) {
+                $this->components->info('Sending TERM signal to processes.');
+
+                return $collection;
+            })
+            ->whenEmpty(function ($collection) use (&$exitCode) {
                 $this->components->info('No processes to terminate.');
 
                 $exitCode = Command::FAILURE;
+
+                return $collection;
             })
             ->each(function ($processId) use (&$exitCode) {
                 $result = true;

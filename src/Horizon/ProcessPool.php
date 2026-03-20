@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Carbon\CarbonImmutable;
@@ -8,6 +10,7 @@ use Countable;
 use Illuminate\Support\Collection;
 use Symfony\Component\Process\Process;
 
+/** Manages a pool of worker processes for a Horizon supervisor. */
 class ProcessPool implements Countable
 {
     /**
@@ -162,7 +165,9 @@ class ProcessPool implements Countable
     protected function start()
     {
         $this->processes[] = $this->createProcess()->handleOutputUsing(function ($type, $line) {
-            call_user_func($this->output, $type, $line);
+            if ($this->output !== null) {
+                call_user_func($this->output, $type, $line);
+            }
         });
 
         return $this;

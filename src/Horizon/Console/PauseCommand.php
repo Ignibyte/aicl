@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
@@ -9,6 +11,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/** Pauses the Horizon master supervisor to stop processing jobs. */
 #[AsCommand(name: 'aicl:horizon:pause')]
 class PauseCommand extends Command
 {
@@ -38,8 +41,16 @@ class PauseCommand extends Command
             ->all();
 
         collect(Arr::pluck($masters, 'pid'))
-            ->whenNotEmpty(fn () => $this->components->info('Sending USR2 signal to processes.'))
-            ->whenEmpty(fn () => $this->components->info('No processes to pause.'))
+            ->whenNotEmpty(function ($collection) {
+                $this->components->info('Sending USR2 signal to processes.');
+
+                return $collection;
+            })
+            ->whenEmpty(function ($collection) {
+                $this->components->info('No processes to pause.');
+
+                return $collection;
+            })
             ->each(function ($processId) {
                 $result = true;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Events\UnableToLaunchProcess;
@@ -9,6 +11,7 @@ use Closure;
 use Symfony\Component\Process\Exception\ExceptionInterface;
 use Symfony\Component\Process\Process;
 
+/** Wraps a Symfony Process for a Horizon queue worker with restart and cooldown logic. */
 class WorkerProcess
 {
     /**
@@ -28,7 +31,7 @@ class WorkerProcess
     /**
      * The time at which the cooldown period will be over.
      *
-     * @var CarbonImmutable
+     * @var CarbonImmutable|null
      */
     public $restartAgainAt;
 

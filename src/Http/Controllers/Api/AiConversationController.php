@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Controllers\Api;
 
 use Aicl\Http\Requests\StoreAiConversationRequest;
@@ -11,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
 
+/** API controller for AI conversation CRUD and message sending. */
 class AiConversationController extends Controller
 {
     use AuthorizesRequests;
@@ -19,9 +22,15 @@ class AiConversationController extends Controller
     {
         $this->authorize('viewAny', AiConversation::class);
 
+        $user = auth()->user();
+
+        if (! $user) {
+            abort(401);
+        }
+
         $conversations = AiConversation::query()
             ->with(['user', 'agent'])
-            ->forUser(auth()->user())
+            ->forUser($user)
             ->recent()
             ->paginate();
 

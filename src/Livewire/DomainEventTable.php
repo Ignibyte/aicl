@@ -37,7 +37,7 @@ class DomainEventTable extends TableWidget
                     ->label('Who')
                     ->badge()
                     ->formatStateUsing(function (?string $state, DomainEventRecord $record): string {
-                        $label = ActorType::tryFrom($state)?->label() ?? $state ?? 'Unknown';
+                        $label = ($state !== null ? ActorType::tryFrom($state)?->label() : null) ?? $state ?? 'Unknown';
 
                         if ($record->actor_id && $state === 'user') {
                             $user = User::find($record->actor_id);

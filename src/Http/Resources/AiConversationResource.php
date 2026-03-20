@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Resources;
 
 use Aicl\Models\AiConversation;
@@ -22,15 +24,15 @@ class AiConversationResource extends JsonResource
             'display_title' => $this->display_title,
             'user_id' => $this->user_id,
             'user' => $this->whenLoaded('user', fn () => [
-                'id' => $this->user->id,
-                'name' => $this->user->name,
+                'id' => $this->user?->id,
+                'name' => $this->user?->name,
             ]),
             'ai_agent_id' => $this->ai_agent_id,
             'agent' => $this->whenLoaded('agent', fn () => [
-                'id' => $this->agent->id,
-                'name' => $this->agent->name,
-                'icon' => $this->agent->icon,
-                'color' => $this->agent->color,
+                'id' => $this->agent?->id,
+                'name' => $this->agent?->name,
+                'icon' => $this->agent?->icon,
+                'color' => $this->agent?->color,
             ]),
             'message_count' => $this->message_count,
             'token_count' => $this->token_count,

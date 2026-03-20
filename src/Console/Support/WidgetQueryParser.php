@@ -108,7 +108,7 @@ class WidgetQueryParser
             // "where field op value" or just "field op value"
             $condition = $clause;
             if (preg_match('/^where\s+/i', $condition)) {
-                $condition = preg_replace('/^where\s+/i', '', $condition);
+                $condition = preg_replace('/^where\s+/i', '', $condition) ?? $condition;
             }
 
             $query .= $this->parseSingleCondition($condition);

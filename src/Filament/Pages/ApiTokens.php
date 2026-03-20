@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages;
 
 use Aicl\Mcp\AiclMcpServer;
@@ -98,7 +100,7 @@ class ApiTokens extends Page
     {
         $user = Auth::user();
 
-        if (! method_exists($user, 'tokens')) {
+        if (! $user) {
             return [];
         }
 
@@ -110,7 +112,7 @@ class ApiTokens extends Page
                 'id' => $token->id,
                 'name' => $token->name,
                 'scopes' => $token->scopes ?? [],
-                'created_at' => $token->created_at->diffForHumans(),
+                'created_at' => $token->created_at?->diffForHumans() ?? '',
                 'expires_at' => $token->expires_at?->format('M j, Y') ?? 'Never',
             ])
             ->toArray();
@@ -130,7 +132,7 @@ class ApiTokens extends Page
 
         $user = Auth::user();
 
-        if (! method_exists($user, 'createToken')) {
+        if (! $user) {
             Notification::make()
                 ->title('Token creation not available')
                 ->danger()
@@ -147,7 +149,7 @@ class ApiTokens extends Page
             $scopes = ['*'];
         }
 
-        $token = $user->createToken($this->newTokenName, $scopes);
+        $token = $user->createToken((string) $this->newTokenName, $scopes);
 
         $this->createdToken = $token->accessToken;
         $this->newTokenName = '';
@@ -169,7 +171,7 @@ class ApiTokens extends Page
     {
         $user = Auth::user();
 
-        if (! method_exists($user, 'tokens')) {
+        if (! $user) {
             return;
         }
 

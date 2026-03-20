@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Events\JobDeleted;
@@ -14,6 +16,7 @@ use Illuminate\Queue\Jobs\RedisJob;
 use Illuminate\Queue\RedisQueue as BaseQueue;
 use Illuminate\Support\Str;
 
+/** Redis queue driver with Horizon job lifecycle event dispatching. */
 class RedisQueue extends BaseQueue
 {
     /**
@@ -110,7 +113,7 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function later($delay, $job, $data = '', $queue = null)
     {
-        $payload = (new JobPayload($this->createPayload($job, $queue, $data)))->prepare($job)->value;
+        $payload = (new JobPayload($this->createPayload($job, $this->getQueue($queue), $data)))->prepare($job)->value;
 
         if (method_exists($this, 'enqueueUsing')) {
             return $this->enqueueUsing(

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 /**
@@ -54,7 +56,7 @@ class ObserverRuleSpec
         // Extract condition: "(if owner_id set)" or "(if condition)"
         if (preg_match('/\(if\s+(.+?)\)\s*$/', $details, $m)) {
             $condition = trim($m[1]);
-            $details = trim(preg_replace('/\(if\s+.+?\)\s*$/', '', $details));
+            $details = trim(preg_replace('/\(if\s+.+?\)\s*$/', '', $details) ?? '');
         }
 
         // Split "recipient: ClassName"
@@ -63,7 +65,7 @@ class ObserverRuleSpec
         $class = $parts[1] ?? '';
 
         // Handle "new owner" → "owner" with "new" prefix for context
-        $recipient = preg_replace('/^new\s+/', '', $recipient);
+        $recipient = preg_replace('/^new\s+/', '', $recipient) ?? $recipient;
 
         return [
             'recipient' => $recipient,

@@ -232,7 +232,7 @@ class ComponentsCommand extends Command
             }
         }
 
-        $viewType = $this->option('view-type');
+        $viewType = (string) ($this->option('view-type') ?? 'index');
         $recommendations = $registry->recommendForEntity($fields, 'blade', $viewType);
 
         if (count($recommendations) === 0) {

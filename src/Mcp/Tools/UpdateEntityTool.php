@@ -103,9 +103,11 @@ class UpdateEntityTool extends Tool
 
         $model->update($data);
 
+        $freshModel = $model->fresh();
+
         return Response::json([
             'message' => "{$this->entityLabel} updated successfully.",
-            'data' => $model->fresh()->toArray(),
+            'data' => $freshModel ? $freshModel->toArray() : $model->toArray(),
         ]);
     }
 

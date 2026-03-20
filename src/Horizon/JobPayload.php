@@ -106,7 +106,7 @@ class JobPayload implements ArrayAccess
             'type' => $this->determineType($job),
             'tags' => $tags = $this->determineTags($job),
             'silenced' => $this->shouldBeSilenced($job, $tags),
-            'pushedAt' => str_replace(',', '.', microtime(true)),
+            'pushedAt' => str_replace(',', '.', (string) microtime(true)),
         ]);
     }
 

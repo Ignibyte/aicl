@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Services;
 
 use Aicl\Auth\SamlAttributeMapper;
@@ -9,6 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\User as SocialiteUserContract;
 
+/** Handles OAuth and SAML social authentication flows with account linking. */
 class SocialAuthService
 {
     /**
@@ -32,10 +35,16 @@ class SocialAuthService
         }
 
         // Find or create user by email
+        $email = $socialUser->getEmail();
+
+        if (! $email) {
+            throw SocialAuthException::missingEmail();
+        }
+
         $emailVerified = $socialUser->user['email_verified'] ?? false;
         $user = $this->findOrCreateUser([
             'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? 'User',
-            'email' => $socialUser->getEmail(),
+            'email' => $email,
             'email_verified' => (bool) $emailVerified,
         ]);
 

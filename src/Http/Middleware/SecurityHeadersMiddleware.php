@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Middleware;
 
 use Closure;
@@ -152,7 +154,7 @@ class SecurityHeadersMiddleware
             self::$panelPath = 'admin';
 
             try {
-                self::$panelPath = filament()->getPanel()->getPath();
+                self::$panelPath = filament()->getPanel()?->getPath() ?? 'admin';
             } catch (\Throwable) {
                 // Filament not booted yet — fall back to default
             }

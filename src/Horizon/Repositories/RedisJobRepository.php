@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Repositories;
 
 use Aicl\Horizon\Contracts\JobRepository;
@@ -12,6 +14,7 @@ use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
+/** Redis-backed repository for storing and querying Horizon job records. */
 class RedisJobRepository implements JobRepository
 {
     /**
@@ -490,13 +493,19 @@ class RedisJobRepository implements JobRepository
      */
     protected function updateRetryInformationOnParent(JobPayload $payload, $failed)
     {
-        if ($retries = $this->connection()->hget($payload->retryOf(), 'retried_by')) {
+        $retryOf = $payload->retryOf();
+
+        if ($retryOf === null) {
+            return;
+        }
+
+        if ($retries = $this->connection()->hget($retryOf, 'retried_by')) {
             $retries = $this->updateRetryStatus(
                 $payload, json_decode($retries, true), $failed
             );
 
             $this->connection()->hset(
-                $payload->retryOf(), 'retried_by', json_encode($retries)
+                $retryOf, 'retried_by', json_encode($retries)
             );
         }
     }

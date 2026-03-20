@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI;
 
 use Aicl\AI\Jobs\AiStreamJob;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
+/** Handles AI assistant ask/stream endpoints with entity context resolution. */
 class AiAssistantController extends Controller
 {
     public function ask(AiAssistantRequest $request): JsonResponse
@@ -38,7 +41,13 @@ class AiAssistantController extends Controller
         }
 
         // Enforce concurrent stream limit (atomic to prevent TOCTOU race under Swoole)
-        $userId = $request->user()->id;
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
+        $userId = $user->id;
         $maxConcurrent = (int) config('aicl.ai.streaming.max_concurrent_per_user', 2);
         $countKey = "ai-stream:user:{$userId}:count";
 

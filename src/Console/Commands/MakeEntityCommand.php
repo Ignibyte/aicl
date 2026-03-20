@@ -703,7 +703,7 @@ class MakeEntityCommand extends Command
     {
         $fields = [];
         if ($this->fields) {
-            foreach ($this->fields as $field) {
+            foreach ($this->fields ?? [] as $field) {
                 $fields[$field->name] = $field->type;
             }
         }
@@ -765,7 +765,7 @@ class MakeEntityCommand extends Command
         $filtered = [];
 
         foreach ($fields as $field) {
-            if (! $this->baseInspector->hasColumn($field->name)) {
+            if (! $this->baseInspector?->hasColumn($field->name)) {
                 $filtered[] = $field;
 
                 continue;
@@ -988,14 +988,14 @@ PHP;
 
         // Build fillable array (child fields only — base fillable is on the base class)
         $fillableFields = [];
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             $fillableFields[] = "        '{$field->name}',";
         }
 
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -1018,7 +1018,7 @@ PHP;
 
         // Build casts (child casts only)
         $casts = [];
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             $cast = $this->getCastForField($field, $name);
             if ($cast !== null) {
                 $casts[] = "            '{$field->name}' => {$cast},";
@@ -1038,7 +1038,7 @@ PHP;
         $relationshipMethods = '';
 
         // BelongsTo from foreignId fields
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->isForeignKey()) {
                 $methodName = $field->relationshipMethodName();
                 $modelName = $field->relatedModelName();
@@ -1092,7 +1092,7 @@ PHP;
         $hasStandardScopes = in_array('HasStandardScopes', $traits);
         $searchableColumnsMethod = '';
         if ($hasStandardScopes) {
-            $stringFields = array_filter($this->fields, fn (FieldDefinition $f): bool => $f->type === 'string');
+            $stringFields = array_filter($this->fields ?? [], fn (FieldDefinition $f): bool => $f->type === 'string');
             $searchCols = array_map(fn (FieldDefinition $f): string => "'{$f->name}'", $stringFields);
             $searchColsStr = ! empty($searchCols) ? implode(', ', $searchCols) : '';
             $searchableColumnsMethod = <<<PHP
@@ -1111,7 +1111,7 @@ PHP;
         // AI context fields method
         $aiContextMethod = '';
         if ($aiContext) {
-            $contextFields = array_map(fn (FieldDefinition $f): string => "'{$f->name}'", $this->fields);
+            $contextFields = array_map(fn (FieldDefinition $f): string => "'{$f->name}'", $this->fields ?? []);
             $contextFieldsStr = implode(', ', $contextFields);
             $aiContextMethod = <<<PHP
 
@@ -1128,7 +1128,7 @@ PHP;
 
         // Enum imports
         $enumImports = [];
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->isEnum()) {
                 $enumImports[] = "use App\\Enums\\{$field->typeArgument};";
             }
@@ -1139,7 +1139,7 @@ PHP;
         if (! $baseHasOwnerId) {
             $modelImports[] = 'use App\\Models\\User;';
         }
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->isForeignKey()) {
                 $modelName = $field->relatedModelName();
                 if ($modelName !== 'User' || $baseHasOwnerId) {
@@ -1299,7 +1299,7 @@ PHP;
         $hasExplicitOwnerId = false;
 
         // Child fields only (base fields are in the base migration)
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -1446,7 +1446,7 @@ PHP;
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -1739,7 +1739,7 @@ PHP;
         $fieldChangeNotifs = [];
         $deletedNotifs = [];
 
-        foreach ($spec->notificationSpecs as $notifSpec) {
+        foreach ($spec->notificationSpecs ?? [] as $notifSpec) {
             $type = $notifSpec->triggerType();
             if ($type === 'created') {
                 $createdNotifs[] = $notifSpec;
@@ -1757,7 +1757,7 @@ PHP;
             'use Illuminate\\Database\\Eloquent\\Model;',
         ];
 
-        foreach ($spec->notificationSpecs as $notifSpec) {
+        foreach ($spec->notificationSpecs ?? [] as $notifSpec) {
             $className = $name.$notifSpec->name.'Notification';
             $imports[] = "use App\\Notifications\\{$className};";
         }
@@ -1902,7 +1902,7 @@ PHP;
         // Group rules by event
         $rulesByEvent = ['created' => [], 'updated' => [], 'deleted' => []];
 
-        foreach ($spec->observerRules as $rule) {
+        foreach ($spec->observerRules ?? [] as $rule) {
             if (isset($rulesByEvent[$rule->event])) {
                 $rulesByEvent[$rule->event][] = $rule;
             }
@@ -1915,7 +1915,7 @@ PHP;
             'use Illuminate\\Database\\Eloquent\\Model;',
         ];
 
-        foreach ($spec->observerRules as $rule) {
+        foreach ($spec->observerRules ?? [] as $rule) {
             if ($rule->isNotify()) {
                 $parsed = $rule->parseNotifyDetails();
 
@@ -2199,7 +2199,7 @@ PHP;
         $updatedMethod = '';
         $assignableFkFields = [];
         if ($this->fields !== null) {
-            foreach ($this->fields as $field) {
+            foreach ($this->fields ?? [] as $field) {
                 if ($field->isForeignKey() && (str_contains($field->name, 'assigned') || str_contains($field->name, 'owner'))) {
                     $assignableFkFields[] = $field;
                 }
@@ -2274,7 +2274,7 @@ PHP;
     protected function getDisplayField(): string
     {
         if ($this->fields !== null) {
-            foreach ($this->fields as $field) {
+            foreach ($this->fields ?? [] as $field) {
                 if ($field->type === 'string') {
                     return $field->name;
                 }
@@ -2951,7 +2951,7 @@ PHP;
 
             // Check if we need Rule import
             $needsRule = false;
-            foreach ($this->fields as $field) {
+            foreach ($this->fields ?? [] as $field) {
                 if ($field->isEnum()) {
                     $needsRule = true;
 
@@ -2960,7 +2960,7 @@ PHP;
             }
             $ruleImport = $needsRule ? "\nuse Illuminate\\Validation\\Rule;" : '';
             $enumImports = '';
-            foreach ($this->fields as $field) {
+            foreach ($this->fields ?? [] as $field) {
                 if ($field->isEnum()) {
                     $enumImports .= "\nuse App\\Enums\\{$field->typeArgument};";
                 }
@@ -3290,7 +3290,7 @@ PHP;
         $extraTests = '';
 
         // ForeignId relationship tests
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->isForeignKey() && $field->name !== 'owner_id') {
                 $relationMethod = $field->relationshipMethodName() ?? Str::camel(str_replace('_id', '', $field->name));
                 $relatedModel = $field->relatedModelName() ?? 'User';
@@ -3353,7 +3353,7 @@ PHP;
         }
 
         // Enum value tests
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->isEnum()) {
                 $enumClass = $field->typeArgument;
                 $extraImports[] = "use App\\Enums\\{$enumClass};";
@@ -3378,7 +3378,7 @@ PHP;
         // SearchableColumns test (uses actual string fields from --fields)
         if ($hasStandardScopes) {
             $stringFields = [];
-            foreach ($this->fields as $field) {
+            foreach ($this->fields ?? [] as $field) {
                 if ($field->type === 'string') {
                     $stringFields[] = $field->name;
                 }
@@ -3686,7 +3686,7 @@ PHP;
         $detailFields = [];
         $settingsFields = [];
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->type === 'boolean' || $field->isForeignKey()) {
                 $settingsFields[] = $this->getFormComponentForField($field, $name);
             } else {
@@ -3718,7 +3718,7 @@ PHP;
         // Always add is_active + owner_id to settings if not in explicit fields and not from base
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -3833,7 +3833,7 @@ PHP;
         $detailEntries = [];
         $settingsEntries = [];
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->type === 'boolean' || $field->isForeignKey()) {
                 $settingsEntries[] = $this->getInfolistEntryForField($field);
             } else {
@@ -3852,7 +3852,7 @@ PHP;
 
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -3928,7 +3928,7 @@ PHP;
             'use Filament\\Schemas\\Schema;',
         ];
 
-        $allFields = $this->fields;
+        $allFields = $this->fields ?? [];
         if ($this->baseInspector !== null) {
             $allFields = array_merge($this->baseInspector->columns(), $allFields);
         }
@@ -3968,7 +3968,7 @@ PHP;
         $filters = [];
         $isFirstString = true;
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             $col = $this->getTableColumnForField($field, $name, $isFirstString);
             if ($col !== null) {
                 $columns[] = $col;
@@ -3998,7 +3998,7 @@ PHP;
 
         // Always add is_active if not in explicit fields
         $hasExplicitIsActive = false;
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -4034,7 +4034,7 @@ PHP;
             'datetime' => "                TextColumn::make('{$field->name}')\n                    ->dateTime()\n                    ->sortable()",
             'enum' => "                TextColumn::make('{$field->name}')\n                    ->badge()\n                    ->color(fn (\$state) => \$state?->color())",
             'json' => null,
-            'foreignId' => "                TextColumn::make('{$field->relationshipMethodName()}.name')\n                    ->label('".Str::title(str_replace('_', ' ', $field->relationshipMethodName()))."')\n                    ->sortable()",
+            'foreignId' => "                TextColumn::make('{$field->relationshipMethodName()}.name')\n                    ->label('".Str::title(str_replace('_', ' ', $field->relationshipMethodName() ?? ''))."')\n                    ->sortable()",
             default => "                TextColumn::make('{$field->name}')",
         };
     }
@@ -4060,7 +4060,7 @@ PHP;
     {
         $rules = [];
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             $rules[$field->name] = $this->getValidationRuleForField($field, $tableName, false);
         }
 
@@ -4069,7 +4069,7 @@ PHP;
         }
 
         $hasExplicitIsActive = false;
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -4088,7 +4088,7 @@ PHP;
     {
         $rules = [];
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             $rule = $this->getValidationRuleForField($field, $tableName, true);
             $rules[$field->name] = $rule;
         }
@@ -4098,7 +4098,7 @@ PHP;
         }
 
         $hasExplicitIsActive = false;
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -4151,7 +4151,7 @@ PHP;
     {
         $lines = ["            'id' => \$this->id,"];
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             $lines[] = '            '.$this->getResourceFieldForField($field);
         }
 
@@ -4162,7 +4162,7 @@ PHP;
         // Always add is_active + owner
         $hasExplicitIsActive = false;
         $hasExplicitOwnerId = false;
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->name === 'is_active') {
                 $hasExplicitIsActive = true;
             }
@@ -4205,7 +4205,7 @@ PHP;
     {
         $lines = ["            ExportColumn::make('id')->label('ID'),"];
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             $col = $this->getExportColumnForField($field);
             if ($col !== null) {
                 $lines[] = '            '.$col;
@@ -4227,7 +4227,7 @@ PHP;
         return match ($field->type) {
             'json' => null,
             'enum' => "ExportColumn::make('{$field->name}')->formatStateUsing(fn (\$state) => \$state instanceof \\BackedEnum ? \$state->value : \$state),",
-            'foreignId' => "ExportColumn::make('{$field->relationshipMethodName()}.name')->label('".Str::title(str_replace('_', ' ', $field->relationshipMethodName()))."'),",
+            'foreignId' => "ExportColumn::make('{$field->relationshipMethodName()}.name')->label('".Str::title(str_replace('_', ' ', $field->relationshipMethodName() ?? ''))."'),",
             default => "ExportColumn::make('{$field->name}'),",
         };
     }
@@ -4238,7 +4238,7 @@ PHP;
 
     protected function generateEnum(string $entityName, FieldDefinition $field): string
     {
-        $enumName = $field->typeArgument;
+        $enumName = $field->typeArgument ?? '';
 
         // Check for rich enum data from spec file
         if (! empty($this->specEnums[$enumName])) {
@@ -4498,7 +4498,7 @@ PHP;
 
         $sort = 1;
 
-        foreach ($spec->widgetSpecs as $widget) {
+        foreach ($spec->widgetSpecs ?? [] as $widget) {
             $files = match ($widget->type) {
                 'stats' => array_merge($files, $this->generateStructuredStatsWidget($name, $widget, $queryParser, $dir, $sort++)),
                 'chart' => array_merge($files, $this->generateStructuredChartWidget($name, $widget, $spec, $dir, $sort++)),
@@ -4856,7 +4856,7 @@ PHP;
         // Chart Widget (only if enum or states)
         $hasEnumOrStates = ! empty($this->states);
         if (! $hasEnumOrStates) {
-            foreach ($this->fields as $field) {
+            foreach ($this->fields ?? [] as $field) {
                 if ($field->isEnum()) {
                     $hasEnumOrStates = true;
 
@@ -4916,7 +4916,7 @@ PHP;
 
         // Table Widget
         $hasDateField = false;
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->type === 'date' || $field->type === 'datetime') {
                 $hasDateField = true;
 
@@ -5007,7 +5007,7 @@ PHP;
 
         $resolver = new NotificationTemplateResolver($name);
 
-        foreach ($spec->notificationSpecs as $notifSpec) {
+        foreach ($spec->notificationSpecs ?? [] as $notifSpec) {
             $className = $name.$notifSpec->name.'Notification';
             $files = array_merge(
                 $files,
@@ -5382,6 +5382,10 @@ BLADE;
 
         $layout = $spec->reportLayout;
 
+        if ($layout === null) {
+            return $files;
+        }
+
         // Generate single report
         if ($layout->hasSingleReport()) {
             $sectionsHtml = '';
@@ -5552,7 +5556,7 @@ BLADE;
         $limit = 10;
         if ($field !== null && preg_match('/\(limit\s+(\d+)\)/', $field->field, $m)) {
             $limit = (int) $m[1];
-            $source = trim(preg_replace('/\s*\(limit\s+\d+\)/', '', $field->field));
+            $source = trim(preg_replace('/\s*\(limit\s+\d+\)/', '', $field->field) ?? '');
         }
 
         return <<<BLADE
@@ -5653,7 +5657,7 @@ BLADE;
         ];
 
         // Collect all fields (child + base) for import resolution
-        $allFormFields = $this->fields;
+        $allFormFields = $this->fields ?? [];
         if ($this->baseInspector !== null) {
             $allFormFields = array_merge($this->baseInspector->columns(), $allFormFields);
         }
@@ -5689,7 +5693,7 @@ BLADE;
         $hasSelectFilter = false;
         $hasTernaryFilter = false;
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields ?? [] as $field) {
             if ($field->type === 'boolean') {
                 $hasBooleanColumn = true;
                 $hasTernaryFilter = true;

@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use InvalidArgumentException;
 
+/** Parses field definition strings into structured FieldDefinition objects. */
 class FieldParser
 {
     use ParsesCommaSeparatedDefinitions;
@@ -78,7 +81,7 @@ class FieldParser
                 );
             }
 
-            $typeArgument = array_shift($modifiers);
+            $typeArgument = (string) array_shift($modifiers);
             $this->validateTypeArgument($type, $name, $typeArgument);
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Livewire;
 
 use Aicl\Models\NotificationLog;
@@ -10,6 +12,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 
+/** Livewire table widget displaying the notification dispatch log. */
 class NotificationLogTable extends TableWidget
 {
     protected static bool $isDiscovered = false;
@@ -25,7 +28,7 @@ class NotificationLogTable extends TableWidget
                     ->label('Sent')
                     ->since()
                     ->sortable()
-                    ->tooltip(fn (NotificationLog $record) => $record->created_at->format('Y-m-d H:i:s')),
+                    ->tooltip(fn (NotificationLog $record) => $record->created_at?->format('Y-m-d H:i:s') ?? ''),
                 TextColumn::make('notifiable.name')
                     ->label('Recipient')
                     ->searchable(query: function (Builder $query, string $search): Builder {

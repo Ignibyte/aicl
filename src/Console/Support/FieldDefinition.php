@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use Illuminate\Support\Str;
 
+/** Value object representing a parsed entity field definition for code generation. */
 class FieldDefinition
 {
     public function __construct(
@@ -104,7 +107,7 @@ class FieldDefinition
             return null;
         }
 
-        $cleaned = preg_replace('/_id$/', '', $this->name);
+        $cleaned = preg_replace('/_id$/', '', $this->name) ?? $this->name;
 
         return Str::camel($cleaned);
     }

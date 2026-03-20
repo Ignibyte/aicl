@@ -61,9 +61,11 @@ class ForgetFailedCommand extends Command
             $this->components->error('No failed job ID provided.');
         }
 
-        $repository->deleteFailed($this->argument('id'));
+        $id = (string) $this->argument('id');
 
-        if (app('queue.failer')->forget($this->argument('id'))) {
+        $repository->deleteFailed($id);
+
+        if (app('queue.failer')->forget($id)) {
             $this->components->info('Failed job deleted successfully!');
         } else {
             $this->components->error('No failed job matches the given ID.');

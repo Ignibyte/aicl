@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
@@ -11,6 +13,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/** Terminates any rogue Horizon processes not tracked by a master supervisor. */
 #[AsCommand(name: 'aicl:horizon:purge')]
 class PurgeCommand extends Command
 {
@@ -70,7 +73,7 @@ class PurgeCommand extends Command
     {
         $signal = is_numeric($signal = $this->option('signal'))
             ? $signal
-            : constant($signal);
+            : constant((string) $signal);
 
         foreach ($masters->names() as $master) {
             if (Str::startsWith($master, MasterSupervisor::basename())) {
@@ -95,7 +98,11 @@ class PurgeCommand extends Command
         );
 
         collect($expired)
-            ->whenNotEmpty(fn () => $this->components->info('Sending TERM signal to expired processes of ['.$master.']'))
+            ->whenNotEmpty(function ($collection) use ($master) {
+                $this->components->info('Sending TERM signal to expired processes of ['.$master.']');
+
+                return $collection;
+            })
             ->each(function ($processId) use ($master, $signal) {
                 $this->components->task("Process: $processId", function () use ($processId, $signal) {
                     exec("kill -s {$signal} {$processId}");
@@ -119,7 +126,11 @@ class PurgeCommand extends Command
         );
 
         collect($orphans)
-            ->whenNotEmpty(fn () => $this->components->info('Sending TERM signal to orphaned processes of ['.$master.']'))
+            ->whenNotEmpty(function ($collection) use ($master) {
+                $this->components->info('Sending TERM signal to orphaned processes of ['.$master.']');
+
+                return $collection;
+            })
             ->each(function ($processId) use ($signal) {
                 $result = true;
 

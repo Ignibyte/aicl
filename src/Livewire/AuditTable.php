@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Livewire;
 
 use App\Models\User;
@@ -10,6 +12,7 @@ use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Models\Activity;
 
+/** Livewire table widget displaying the activity log audit trail. */
 class AuditTable extends TableWidget
 {
     protected static bool $isDiscovered = false;
@@ -25,7 +28,7 @@ class AuditTable extends TableWidget
                     ->label('When')
                     ->since()
                     ->sortable()
-                    ->tooltip(fn (Activity $record) => $record->created_at->format('Y-m-d H:i:s')),
+                    ->tooltip(fn (Activity $record) => $record->created_at?->format('Y-m-d H:i:s') ?? ''),
                 TextColumn::make('causer.name')
                     ->label('User')
                     ->default('System')

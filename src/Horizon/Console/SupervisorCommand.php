@@ -123,11 +123,11 @@ class SupervisorCommand extends Command
         $autoScalingStrategy = $balance === 'auto' ? $this->option('auto-scaling-strategy') : null;
 
         return new SupervisorOptions(
-            $this->argument('name'),
-            $this->argument('connection'),
-            $this->getQueue($this->argument('connection')),
-            $this->option('workers-name'),
-            $balance,
+            (string) $this->argument('name'),
+            (string) $this->argument('connection'),
+            $this->getQueue((string) $this->argument('connection')),
+            (string) $this->option('workers-name'),
+            (string) $balance,
             $backoff,
             $this->option('max-time'),
             $this->option('max-jobs'),

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI;
 
 use Aicl\AI\Jobs\AiConversationStreamJob;
@@ -120,7 +122,7 @@ class AiChatService
     public function buildMessageHistory(AiConversation $conversation): array
     {
         $agent = $conversation->agent;
-        $limit = $agent->context_messages;
+        $limit = $agent->context_messages ?? 20;
 
         $messages = [];
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use Illuminate\Support\Str;
@@ -38,7 +40,7 @@ class NotificationTemplateResolver
             '/\{model\.(\w+)\}/',
             fn ($m) => "{\$this->{$snakeName}->{$m[1]}}",
             $result
-        );
+        ) ?? $result;
 
         // {actor.name} → {$this->changedBy->name}
         $result = str_replace('{actor.name}', '{\$this->changedBy->name}', $result);
@@ -54,14 +56,14 @@ class NotificationTemplateResolver
             '/\{old\.(\w+)\.label\}/',
             fn ($m) => '{\$this->previous'.Str::studly($m[1]).'->label()}',
             $result
-        );
+        ) ?? $result;
 
         // {new.field.label} → {$this->newField->label()} (generic)
         $result = preg_replace_callback(
             '/\{new\.(\w+)\.label\}/',
             fn ($m) => '{\$this->new'.Str::studly($m[1]).'->label()}',
             $result
-        );
+        ) ?? $result;
 
         return $result;
     }
