@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Tools;
 
 use Aicl\Mcp\Concerns\ChecksTokenScope;
@@ -10,6 +12,7 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 
+/** MCP tool that deletes a single entity record by ID with scope-based authorization. */
 class DeleteEntityTool extends Tool
 {
     use ChecksTokenScope;
@@ -55,6 +58,7 @@ class DeleteEntityTool extends Tool
             'id' => 'required|string',
         ]);
 
+        /** @var Model|null $model */
         $model = $this->modelClass::find($validated['id']);
 
         if (! $model) {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Listeners;
 
 use Aicl\Models\ScheduleHistory;
@@ -10,6 +12,7 @@ use Illuminate\Console\Scheduling\Event;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Log;
 
+/** Event subscriber that records scheduled task execution history to the schedule_histories table. */
 class ScheduleEventSubscriber
 {
     public function handleStarting(ScheduledTaskStarting $event): void
@@ -39,6 +42,7 @@ class ScheduleEventSubscriber
             return;
         }
 
+        /** @var ScheduleHistory|null $history */
         $history = ScheduleHistory::query()->find($historyId);
 
         if (! $history) {
@@ -68,6 +72,7 @@ class ScheduleEventSubscriber
             return;
         }
 
+        /** @var ScheduleHistory|null $history */
         $history = ScheduleHistory::query()->find($historyId);
 
         if (! $history) {
@@ -123,7 +128,7 @@ class ScheduleEventSubscriber
             return null;
         }
 
-        $maxBytes = (int) config('aicl.scheduler.output_max_bytes', 10240);
+        $maxBytes = max(0, (int) config('aicl.scheduler.output_max_bytes', 10240));
         $fileSize = filesize($outputPath);
 
         if ($fileSize === 0 || $fileSize === false) {

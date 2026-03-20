@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\Silenced;
@@ -154,6 +156,7 @@ class JobPayload implements ArrayAccess
 
         $underlyingJob = $this->underlyingJob($job);
 
+        /** @var string $jobClass */
         $jobClass = is_string($underlyingJob) ? $underlyingJob : get_class($underlyingJob);
 
         return in_array($jobClass, config('aicl-horizon.silenced', [])) ||
@@ -188,7 +191,7 @@ class JobPayload implements ArrayAccess
     {
         $this->decoded = array_merge($this->decoded, $values);
 
-        $this->value = json_encode($this->decoded);
+        $this->value = json_encode($this->decoded) ?: '{}';
 
         return $this;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\HorizonCommandQueue;
@@ -18,6 +20,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Throwable;
 
+/** Top-level Horizon process that manages supervisor child processes and handles lifecycle signals. */
 class MasterSupervisor implements Pausable, Restartable, Terminable
 {
     use ListensForSignals;
@@ -108,7 +111,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     {
         return static::$nameResolver
             ? call_user_func(static::$nameResolver)
-            : Str::slug(gethostname());
+            : Str::slug(gethostname() ?: 'unknown');
     }
 
     /**
@@ -268,6 +271,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     protected function processPendingCommands()
     {
         foreach (app(HorizonCommandQueue::class)->pending($this->commandQueue()) as $command) {
+            /** @var object{command: string, options: array<string, mixed>} $command */
             app($command->command)->process($this, $command->options);
         }
     }
@@ -301,7 +305,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
      */
     public function pid()
     {
-        return getmypid();
+        return getmypid() ?: 0;
     }
 
     /**

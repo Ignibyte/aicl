@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Repositories;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
@@ -14,6 +16,7 @@ use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
+/** Redis-backed repository for storing and querying Horizon job and queue performance metrics. */
 class RedisMetricsRepository implements MetricsRepository
 {
     /**
@@ -82,7 +85,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function throughput()
     {
-        return collect($this->measuredQueues())
+        return (int) collect($this->measuredQueues())
             ->reduce(fn ($carry, $queue) => $carry + $this->connection()->hget('queue:'.$queue, 'throughput'), 0);
     }
 

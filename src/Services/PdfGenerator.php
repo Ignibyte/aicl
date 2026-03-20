@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Services;
 
 use Aicl\Filament\Actions\PdfAction;
@@ -126,10 +128,10 @@ class PdfGenerator
         $content = $this->generate($view, $data);
 
         if ($disk) {
-            return Storage::disk($disk)->put($path, $content);
+            return (bool) Storage::disk($disk)->put($path, $content);
         }
 
-        return Storage::put($path, $content);
+        return (bool) Storage::put($path, $content);
     }
 
     /**

@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\JobRepository;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/** Deletes one or all failed jobs from the Horizon failed job repository. */
 #[AsCommand(name: 'aicl:horizon:forget')]
 class ForgetFailedCommand extends Command
 {
@@ -39,7 +42,7 @@ class ForgetFailedCommand extends Command
                 $failedJobs->pluck('id')->each(function ($failedId) use ($repository): void {
                     $repository->deleteFailed($failedId);
 
-                    if ($this->laravel['queue.failer']->forget($failedId)) {
+                    if (app('queue.failer')->forget($failedId)) {
                         $this->components->info('Failed job (id): '.$failedId.' deleted successfully!');
                     }
                 });
@@ -60,7 +63,7 @@ class ForgetFailedCommand extends Command
 
         $repository->deleteFailed($this->argument('id'));
 
-        if ($this->laravel['queue.failer']->forget($this->argument('id'))) {
+        if (app('queue.failer')->forget($this->argument('id'))) {
             $this->components->info('Failed job deleted successfully!');
         } else {
             $this->components->error('No failed job matches the given ID.');

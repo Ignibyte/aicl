@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole\Cache;
 
 use Aicl\Swoole\SwooleCache;
+use App\Models\User;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -62,8 +65,10 @@ class PermissionCacheManager
             ];
         }
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
+        /** @var list<string> $roles */
         $roles = $user->roles->pluck('name')->toArray();
+        /** @var list<string> $permissions */
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
 
         return [

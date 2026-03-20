@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Livewire;
 
 use Aicl\Events\Enums\ActorType;
@@ -14,6 +16,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 
+/** Livewire table widget displaying domain events with actor, type, and date filtering. */
 class DomainEventTable extends TableWidget
 {
     protected static bool $isDiscovered = false;
@@ -73,7 +76,7 @@ class DomainEventTable extends TableWidget
                 TextColumn::make('payload')
                     ->label('Details')
                     ->formatStateUsing(fn ($state): string => is_array($state) && ! empty($state)
-                        ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                        ? (string) json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
                         : '{}')
                     ->limit(60)
                     ->wrap()

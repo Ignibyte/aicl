@@ -117,8 +117,8 @@ class SearchArchitectureDocsTool extends Tool
                 continue;
             }
 
-            $relativePath = str_replace($docsPath.'/', '', $file->getPathname());
-            $slug = str_replace('.md', '', $relativePath);
+            $relativePath = (string) str_replace($docsPath.'/', '', $file->getPathname());
+            $slug = (string) str_replace('.md', '', $relativePath);
 
             // Skip the README
             if (Str::lower($slug) === 'readme') {

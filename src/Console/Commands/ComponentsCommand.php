@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Components\ComponentDefinition;
@@ -55,7 +57,7 @@ class ComponentsCommand extends Command
         }
 
         if ($this->option('format') === 'json') {
-            $this->line(json_encode($components->map->toArray()->values(), JSON_PRETTY_PRINT));
+            $this->line((string) json_encode($components->map->toArray()->values(), JSON_PRETTY_PRINT));
 
             return self::SUCCESS;
         }
@@ -100,7 +102,7 @@ class ComponentsCommand extends Command
         }
 
         if ($this->option('format') === 'json') {
-            $this->line(json_encode($component->toArray(), JSON_PRETTY_PRINT));
+            $this->line((string) json_encode($component->toArray(), JSON_PRETTY_PRINT));
 
             return self::SUCCESS;
         }

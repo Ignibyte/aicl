@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Jobs;
 
 use Aicl\AI\AiProviderFactory;
@@ -21,6 +23,7 @@ use NeuronAI\Chat\Messages\Message;
 use NeuronAI\Chat\Messages\ToolCallMessage;
 use NeuronAI\Providers\AIProviderInterface;
 
+/** Queued job that streams standalone AI agent responses via WebSocket broadcast events. */
 class AiStreamJob implements ShouldQueue
 {
     use Dispatchable;
@@ -172,12 +175,15 @@ class AiStreamJob implements ShouldQueue
      */
     private function extractUsage(\Generator $generator): array
     {
+        /** @var object|null $response */
         $response = $generator->getReturn();
 
-        if ($response && method_exists($response, 'getUsage') && $response->getUsage()) {
+        if (is_object($response) && method_exists($response, 'getUsage') && $response->getUsage()) {
+            $usage = $response->getUsage();
+
             return [
-                'input_tokens' => $response->getUsage()->inputTokens,
-                'output_tokens' => $response->getUsage()->outputTokens,
+                'input_tokens' => $usage->inputTokens,
+                'output_tokens' => $usage->outputTokens,
             ];
         }
 

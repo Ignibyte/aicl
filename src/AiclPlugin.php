@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl;
 
 use Aicl\Filament\Pages\ActivityLog;
@@ -32,6 +34,7 @@ use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
+use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Blade;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 
@@ -294,7 +297,7 @@ class AiclPlugin implements Plugin
      * Includes AI agent stats, global search, presence indicator,
      * queue stats, and recent failed jobs.
      *
-     * @return array<class-string>
+     * @return array<class-string<Widget>>
      */
     protected function getWidgets(): array
     {

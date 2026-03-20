@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\HorizonCommandQueue;
@@ -7,6 +9,7 @@ use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 
+/** Redis-backed command queue for dispatching control messages to Horizon supervisors. */
 class RedisHorizonCommandQueue implements HorizonCommandQueue
 {
     /**
@@ -56,6 +59,7 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
             return [];
         }
 
+        /** @var array<int, array<int, string>> $results */
         $results = $this->connection()->pipeline(function ($pipe) use ($name, $length) {
             $pipe->lrange('commands:'.$name, 0, $length - 1);
 

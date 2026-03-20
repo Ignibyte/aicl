@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Prompts;
 
 use Aicl\Services\EntityRegistry;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Prompts\Argument;
 
+/** MCP prompt that guides AI agents through CRUD operations on registered entities. */
 class CrudWorkflowPrompt extends Prompt
 {
     protected string $name = 'crud_workflow';
@@ -52,6 +56,7 @@ class CrudWorkflowPrompt extends Prompt
                 .implode(', ', $entities->map(fn (array $e): string => Str::snake(class_basename($e['class'])))->all()));
         }
 
+        /** @var Model $instance */
         $instance = new $entry['class'];
         $fillable = $instance->getFillable();
         $casts = $instance->getCasts();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Tools;
 
 use Aicl\Mcp\Concerns\ChecksTokenScope;
@@ -13,6 +15,7 @@ use Spatie\ModelStates\Exceptions\TransitionNotFound;
 use Spatie\ModelStates\HasStates;
 use Spatie\ModelStates\State;
 
+/** MCP tool that transitions an entity's state machine to a new state. */
 class TransitionEntityTool extends Tool
 {
     use ChecksTokenScope;
@@ -65,6 +68,7 @@ class TransitionEntityTool extends Tool
             'to' => 'required|string',
         ]);
 
+        /** @var Model|null $model */
         $model = $this->modelClass::find($validated['id']);
 
         if (! $model) {

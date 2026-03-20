@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Providers;
 
 use Aicl\Observers\SearchObserver;
@@ -9,6 +11,7 @@ use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Support\ServiceProvider;
 
+/** Registers Elasticsearch client, search services, and entity model search observers. */
 class SearchServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -55,6 +58,7 @@ class SearchServiceProvider extends ServiceProvider
         $entities = config('aicl.search.entities', []);
 
         foreach (array_keys($entities) as $modelClass) {
+            $modelClass = (string) $modelClass;
             if (class_exists($modelClass)) {
                 $modelClass::observe(SearchObserver::class);
             }

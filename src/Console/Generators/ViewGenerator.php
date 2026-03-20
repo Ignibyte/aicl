@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Generators;
 
 use Aicl\Components\ComponentRegistry;
@@ -363,7 +365,7 @@ Route::controller(\\App\\Http\\Controllers\\{$name}ViewController::class)
 PHP;
 
         // Check if routes already exist
-        $existing = file_exists($routesFile) ? file_get_contents($routesFile) : '';
+        $existing = file_exists($routesFile) ? (file_get_contents($routesFile) ?: '') : '';
         if (! str_contains($existing, "{$name}ViewController")) {
             file_put_contents($routesFile, $existing.$routeEntry);
         }

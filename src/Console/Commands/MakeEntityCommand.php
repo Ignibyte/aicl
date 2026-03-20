@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Console\Generators\BroadcastEventGenerator;
@@ -36,6 +38,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\text;
 
+/** Scaffolds the full entity stack from a name and optional field/state/relationship specifications. */
 class MakeEntityCommand extends Command
 {
     /**
@@ -807,7 +810,8 @@ class MakeEntityCommand extends Command
             );
         }
 
-        return $traits;
+        /** @var array<int, string> */
+        return array_values(array_filter($traits, 'is_string'));
     }
 
     protected function shouldGenerateFilament(): bool

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Supervisor;
@@ -9,6 +11,7 @@ use Exception;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/** Starts a Horizon supervisor process with the given balancing and worker options. */
 #[AsCommand(name: 'aicl:horizon:supervisor')]
 class SupervisorCommand extends Command
 {
@@ -96,8 +99,8 @@ class SupervisorCommand extends Command
 
         $supervisor->working = ! $this->option('paused');
 
-        $balancedWorkerCount = floor(($this->option('min-processes') + $this->option('max-processes')) / 2);
-        $supervisor->scale(max(
+        $balancedWorkerCount = (int) floor(((int) $this->option('min-processes') + (int) $this->option('max-processes')) / 2);
+        $supervisor->scale((int) max(
             0, $balancedWorkerCount - $supervisor->totalSystemProcessCount()
         ));
 
@@ -152,7 +155,7 @@ class SupervisorCommand extends Command
      */
     protected function getQueue($connection)
     {
-        return $this->option('queue') ?: $this->laravel['config']->get(
+        return $this->option('queue') ?: app('config')->get(
             "queue.connections.{$connection}.queue", 'default'
         );
     }

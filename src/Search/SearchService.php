@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Search;
 
 use Elastic\Elasticsearch\Client;
+use Elastic\Elasticsearch\Response\Elasticsearch;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
+/** Executes permission-filtered search queries against the unified Elasticsearch index. */
 class SearchService
 {
     protected PermissionFilterBuilder $permissionBuilder;
@@ -56,6 +60,7 @@ class SearchService
         $body = $this->buildSearchBody($query, $user, $entityConfigs, $page, $perPage);
 
         try {
+            /** @var Elasticsearch $response */
             $response = $this->client->search([
                 'index' => config('aicl.search.index', 'aicl_global_search'),
                 'body' => $body,

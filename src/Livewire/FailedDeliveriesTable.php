@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Livewire;
 
 use Aicl\Notifications\Enums\DeliveryStatus;
@@ -10,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 
+/** Livewire table widget displaying failed notification deliveries with retry actions. */
 class FailedDeliveriesTable extends TableWidget
 {
     protected static bool $isDiscovered = false;
@@ -40,7 +43,7 @@ class FailedDeliveriesTable extends TableWidget
                 TextColumn::make('channel.type')
                     ->label('Type')
                     ->badge()
-                    ->formatStateUsing(fn ($state): string => $state instanceof \BackedEnum ? $state->value : (string) $state)
+                    ->formatStateUsing(fn ($state): string => $state instanceof \BackedEnum ? (string) $state->value : (string) $state)
                     ->color('gray'),
                 TextColumn::make('error_message')
                     ->label('Error')

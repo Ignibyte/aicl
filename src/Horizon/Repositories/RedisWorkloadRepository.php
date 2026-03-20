@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Repositories;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
@@ -10,6 +12,7 @@ use Illuminate\Contracts\Queue\Factory;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Support\Str;
 
+/** Redis-backed repository for calculating current queue workload across supervisors. */
 class RedisWorkloadRepository implements WorkloadRepository
 {
     /**
@@ -105,7 +108,8 @@ class RedisWorkloadRepository implements WorkloadRepository
      */
     private function processes()
     {
-        return collect($this->supervisors->all())
+        /** @var array<string, int> $result */
+        $result = collect($this->supervisors->all())
             ->pluck('processes')
             ->reduce(function ($final, $queues) {
                 foreach ($queues as $queue => $processes) {
@@ -114,5 +118,7 @@ class RedisWorkloadRepository implements WorkloadRepository
 
                 return $final;
             }, []);
+
+        return $result;
     }
 }

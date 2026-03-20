@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages;
 
 use Aicl\Swoole\Cache\NotificationBadgeCacheManager;
@@ -24,6 +26,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\DatabaseNotification;
 use UnitEnum;
 
+/** Filament page providing a unified notification inbox with read/unread filtering and bulk actions. */
 class NotificationCenter extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;
@@ -203,7 +206,7 @@ class NotificationCenter extends Page implements HasForms, HasTable
 
     public static function getNavigationBadge(): ?string
     {
-        return NotificationBadgeCacheManager::getBadge(auth()->id());
+        return NotificationBadgeCacheManager::getBadge((int) auth()->id());
     }
 
     public static function getNavigationBadgeColor(): string|array|null

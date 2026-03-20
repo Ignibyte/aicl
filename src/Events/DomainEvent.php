@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Events;
 
 use Aicl\Events\Enums\ActorType;
@@ -9,6 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
+/** Base class for structured domain events with actor tracking, timestamps, and payload serialization. */
 abstract class DomainEvent
 {
     use Dispatchable;
@@ -153,7 +156,7 @@ abstract class DomainEvent
     {
         if (auth()->check()) {
             $this->actorType = ActorType::User;
-            $this->actorId = auth()->id();
+            $this->actorId = (int) auth()->id();
         } elseif (app()->runningInConsole()) {
             $this->actorType = ActorType::System;
             $this->actorId = null;

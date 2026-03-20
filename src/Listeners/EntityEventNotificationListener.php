@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Listeners;
 
 use Aicl\Events\EntityCreated;
@@ -79,7 +81,8 @@ class EntityEventNotificationListener implements ShouldQueue
         string $entityName,
         string $action,
     ): void {
-        $actorId = auth()->id();
+        /** @var int|null $actorId */
+        $actorId = auth()->check() ? (int) auth()->id() : null;
         $user = auth()->user();
         $actorName = $user ? $user->name : 'System';
 

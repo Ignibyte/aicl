@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole;
 
 use Aicl\Swoole\Cache\PermissionCacheManager;
@@ -392,7 +394,7 @@ final class SwooleCache
      * Returns null if the table is not available (Swoole not running,
      * table not registered, or table not created by Octane).
      *
-     * @return Table|object|null Returns a Swoole Table, a mock object (testing), or null
+     * @phpstan-return Table|null
      */
     private static function resolveTable(string $table): mixed
     {

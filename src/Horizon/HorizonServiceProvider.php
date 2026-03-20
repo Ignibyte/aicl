@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Connectors\RedisConnector;
@@ -9,6 +11,7 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
+/** Registers Horizon queue monitoring services, events, commands, and Livewire components. */
 class HorizonServiceProvider extends ServiceProvider
 {
     use EventMap, ServiceBindings;
@@ -129,7 +132,7 @@ class HorizonServiceProvider extends ServiceProvider
     {
         $this->callAfterResolving(QueueManager::class, function ($manager) {
             $manager->addConnector('redis', function () {
-                return new RedisConnector($this->app['redis']);
+                return new RedisConnector($this->app->make('redis'));
             });
         });
     }

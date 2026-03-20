@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
+use Aicl\Services\EntityRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
+/** Removes all generated files for an AICL entity, inverse of aicl:make-entity. */
 class RemoveEntityCommand extends Command
 {
     /**
@@ -85,7 +89,7 @@ class RemoveEntityCommand extends Command
         $this->newLine();
         $this->components->info("Removed {$deleted} file(s)/director(ies). Cleaned {$cleaned} shared file(s).{$dbCleaned}");
 
-        \Aicl\Services\EntityRegistry::flush();
+        EntityRegistry::flush();
 
         return self::SUCCESS;
     }
@@ -195,6 +199,9 @@ class RemoveEntityCommand extends Command
         }
 
         $content = file_get_contents($file);
+        if ($content === false) {
+            return;
+        }
         $patterns = [
             "use App\\Models\\{$name};",
             "use App\\Observers\\{$name}Observer;",
@@ -226,6 +233,9 @@ class RemoveEntityCommand extends Command
         }
 
         $content = file_get_contents($file);
+        if ($content === false) {
+            return;
+        }
         $patterns = [
             "use App\\Http\\Controllers\\Api\\{$name}Controller;",
             "'{$snakePlural}'",
@@ -255,6 +265,9 @@ class RemoveEntityCommand extends Command
         }
 
         $content = file_get_contents($file);
+        if ($content === false) {
+            return;
+        }
         $patterns = [
             "use App\\Models\\{$name};",
             "'{$snakePlural}.",
@@ -283,6 +296,9 @@ class RemoveEntityCommand extends Command
         }
 
         $content = file_get_contents($file);
+        if ($content === false) {
+            return;
+        }
         $pattern = "{$name}Seeder::class";
 
         if (str_contains($content, $pattern)) {
@@ -425,6 +441,9 @@ class RemoveEntityCommand extends Command
             }
 
             $content = file_get_contents($file);
+            if ($content === false) {
+                continue;
+            }
             $originalContent = $content;
 
             foreach ($patterns as $pattern) {
@@ -432,7 +451,7 @@ class RemoveEntityCommand extends Command
             }
 
             // Clean up consecutive blank lines left behind
-            $content = preg_replace("/\n{3,}/", "\n\n", $content);
+            $content = preg_replace("/\n{3,}/", "\n\n", $content) ?? $content;
 
             if ($content !== $originalContent) {
                 file_put_contents($file, $content);

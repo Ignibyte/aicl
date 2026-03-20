@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Middleware;
 
 use Closure;
@@ -37,7 +39,7 @@ class NormalizeResponseMiddleware
         }
 
         // Livewire Redirector — extract the target URL and return a proper RedirectResponse
-        if (method_exists($response, 'getTargetUrl')) {
+        if (is_object($response) && method_exists($response, 'getTargetUrl')) {
             return new RedirectResponse($response->getTargetUrl());
         }
 

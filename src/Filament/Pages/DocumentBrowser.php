@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages;
 
 use BackedEnum;
@@ -8,6 +10,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
+/** Filament page that provides an in-panel browser for architecture documentation files. */
 class DocumentBrowser extends Page
 {
     protected static bool $shouldRegisterNavigation = false;
@@ -46,7 +49,7 @@ class DocumentBrowser extends Page
         $packageDocsDir = dirname(__DIR__, 3).'/docs';
 
         if (is_dir($packageDocsDir)) {
-            $realPackageDocs = realpath($packageDocsDir);
+            $realPackageDocs = (string) realpath($packageDocsDir);
             $basePath = base_path();
             $relativePath = ltrim(str_replace($basePath, '', $realPackageDocs), DIRECTORY_SEPARATOR);
 
@@ -118,7 +121,7 @@ class DocumentBrowser extends Page
             return '<p class="text-gray-500">File not found or not readable.</p>';
         }
 
-        return Str::markdown(file_get_contents($fullPath), ['html_input' => 'strip']);
+        return Str::markdown((string) file_get_contents($fullPath), ['html_input' => 'strip']);
     }
 
     /**

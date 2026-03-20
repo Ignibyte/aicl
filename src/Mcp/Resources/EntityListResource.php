@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Resources;
 
 use Aicl\Services\EntityRegistry;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -10,6 +13,7 @@ use Laravel\Mcp\Server\Contracts\HasUriTemplate;
 use Laravel\Mcp\Server\Resource;
 use Laravel\Mcp\Support\UriTemplate;
 
+/** MCP resource that lists available entity types with record counts and field information. */
 class EntityListResource extends Resource implements HasUriTemplate
 {
     protected string $mimeType = 'application/json';
@@ -67,6 +71,7 @@ class EntityListResource extends Resource implements HasUriTemplate
      */
     protected function formatEntry(array $entry): array
     {
+        /** @var Model $instance */
         $instance = new $entry['class'];
 
         return [

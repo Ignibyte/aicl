@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
@@ -11,6 +13,7 @@ use Illuminate\Support\InteractsWithTime;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/** Gracefully terminates all Horizon master supervisors and optionally waits for completion. */
 #[AsCommand(name: 'aicl:horizon:terminate')]
 class TerminateCommand extends Command
 {
@@ -73,7 +76,7 @@ class TerminateCommand extends Command
                 }
             })->whenNotEmpty(fn () => $this->output->writeln(''));
 
-        $this->laravel['cache']->forever('illuminate:queue:restart', $this->currentTime());
+        app('cache')->forever('illuminate:queue:restart', $this->currentTime());
 
         return $exitCode ?? Command::SUCCESS;
     }

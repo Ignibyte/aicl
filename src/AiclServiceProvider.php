@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl;
 
 use Aicl\Auth\SamlAttributeMapper;
@@ -133,7 +135,7 @@ class AiclServiceProvider extends ServiceProvider
     /**
      * Current package version, used by VersionService and the admin version badge.
      */
-    public const VERSION = '1.11.0';
+    public const VERSION = '1.12.0';
 
     /**
      * Register package services, singletons, and configuration.
@@ -228,6 +230,7 @@ class AiclServiceProvider extends ServiceProvider
         $this->app->singleton(SamlAttributeMapper::class, function ($app): SamlAttributeMapper {
             $customClass = config('aicl.saml.mapper_class');
             if ($customClass && class_exists($customClass)) {
+                /** @var SamlAttributeMapper */
                 return new $customClass;
             }
 
@@ -532,7 +535,7 @@ class AiclServiceProvider extends ServiceProvider
 
         if (config('aicl.security.api_logging', true)) {
             /** @var Router $router */
-            $router = $this->app['router'];
+            $router = app('router');
             $router->pushMiddlewareToGroup('api', Http\Middleware\ApiRequestLogMiddleware::class);
         }
     }
@@ -580,7 +583,7 @@ class AiclServiceProvider extends ServiceProvider
     protected function registerPresenceMiddleware(): void
     {
         /** @var Router $router */
-        $router = $this->app['router'];
+        $router = app('router');
         $router->aliasMiddleware('track-presence', Http\Middleware\TrackPresenceMiddleware::class);
     }
 

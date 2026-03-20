@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
+/** Value object holding configuration options for a Horizon supervisor instance. */
 class SupervisorOptions
 {
     /**
@@ -313,7 +316,7 @@ class SupervisorOptions
      */
     public function toJson()
     {
-        return json_encode($this->toArray());
+        return json_encode($this->toArray()) ?: '{}';
     }
 
     /**

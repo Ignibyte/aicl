@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Cache;
 
+/** Synchronizes project-level files with the installed AICL package version. */
 class UpgradeCommand extends Command
 {
     /**
@@ -99,8 +103,8 @@ class UpgradeCommand extends Command
             $this->writeState();
 
             // Clear cached version strings so they reflect the upgraded version
-            \Illuminate\Support\Facades\Cache::forget('aicl.version.framework');
-            \Illuminate\Support\Facades\Cache::forget('aicl.version.project');
+            Cache::forget('aicl.version.framework');
+            Cache::forget('aicl.version.project');
         }
 
         // Summary
@@ -144,6 +148,7 @@ class UpgradeCommand extends Command
         $this->newLine();
 
         foreach ($section['entries'] as $entry) {
+            /** @var array{strategy: string, target: string, source?: string, reason?: string} $entry */
             $strategy = $entry['strategy'];
             match ($strategy) {
                 'overwrite' => $this->handleOverwrite($key, $entry, $isForce, $isFresh),
@@ -159,7 +164,7 @@ class UpgradeCommand extends Command
     /**
      * Handle 'overwrite' strategy: replace target with source from package stubs.
      *
-     * @param  array{strategy: string, target: string, source: string}  $entry
+     * @param  array<string, string>  $entry
      */
     protected function handleOverwrite(string $sectionKey, array $entry, bool $isForce, bool $isFresh): void
     {
@@ -232,7 +237,7 @@ class UpgradeCommand extends Command
     /**
      * Handle 'ensure_absent' strategy: delete target if it exists.
      *
-     * @param  array{strategy: string, target: string, reason: string}  $entry
+     * @param  array<string, string>  $entry
      */
     protected function handleEnsureAbsent(string $sectionKey, array $entry, bool $isForce): void
     {
@@ -279,7 +284,7 @@ class UpgradeCommand extends Command
     /**
      * Handle 'ensure_present' strategy: copy source if target is missing.
      *
-     * @param  array{strategy: string, target: string, source: string}  $entry
+     * @param  array<string, string>  $entry
      */
     protected function handleEnsurePresent(string $sectionKey, array $entry, bool $isForce): void
     {

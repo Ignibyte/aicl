@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Components\ComponentRegistry;
 use Illuminate\Console\Command;
 
+/** Extracts targeted context from pipeline documents for a specific agent and phase. */
 class PipelineContextCommand extends Command
 {
     /**
@@ -39,6 +42,12 @@ class PipelineContextCommand extends Command
         }
 
         $content = file_get_contents($pipelinePath);
+
+        if ($content === false) {
+            $this->components->error("Could not read pipeline document: {$pipelinePath}");
+
+            return self::FAILURE;
+        }
 
         // Extract header if requested
         if ($this->option('header')) {
@@ -108,7 +117,7 @@ class PipelineContextCommand extends Command
 
         // Try case-insensitive glob
         $pattern = "{$activeDir}/PIPELINE-*.md";
-        foreach (glob($pattern) as $file) {
+        foreach (glob($pattern) ?: [] as $file) {
             if (stripos(basename($file), $entity) !== false) {
                 return $file;
             }

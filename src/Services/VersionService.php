@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Services;
 
 use Aicl\AiclServiceProvider;
@@ -71,6 +73,10 @@ class VersionService
         }
 
         $content = file_get_contents($path);
+
+        if ($content === false) {
+            return 'unknown';
+        }
 
         if (preg_match('/^## \[(\d+\.\d+\.\d+)\]/m', $content, $matches)) {
             return $matches[1];

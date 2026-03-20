@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Tools;
 
 use Aicl\Mcp\Concerns\ChecksTokenScope;
@@ -10,6 +12,7 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 
+/** MCP tool that updates an existing entity record with provided field values. */
 class UpdateEntityTool extends Tool
 {
     use ChecksTokenScope;
@@ -66,6 +69,7 @@ class UpdateEntityTool extends Tool
             'id' => 'required|string',
         ]);
 
+        /** @var Model|null $model */
         $model = $this->modelClass::find($validated['id']);
 
         if (! $model) {

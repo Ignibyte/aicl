@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Jobs;
 
 use Aicl\Horizon\Contracts\JobRepository;
@@ -7,6 +9,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\Factory as Queue;
 use Illuminate\Support\Str;
 
+/** Retries a failed Horizon job by re-pushing it onto its original queue. */
 class RetryFailedJob
 {
     /**
@@ -31,7 +34,7 @@ class RetryFailedJob
         }
 
         $queue->connection($job->connection)->pushRaw(
-            $this->preparePayload($id = Str::uuid(), $job->payload), $job->queue
+            $this->preparePayload($id = (string) Str::uuid(), $job->payload), $job->queue
         );
 
         $jobs->storeRetryReference($this->id, $id);
@@ -54,7 +57,7 @@ class RetryFailedJob
             'attempts' => 0,
             'retry_of' => $this->id,
             'retryUntil' => $this->prepareNewTimeout($payload),
-        ]));
+        ])) ?: '{}';
     }
 
     /**

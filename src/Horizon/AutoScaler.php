@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
@@ -7,6 +9,7 @@ use Illuminate\Contracts\Queue\Factory;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Support\Collection;
 
+/** Dynamically adjusts worker process counts based on queue workload metrics. */
 class AutoScaler
 {
     /**
@@ -151,26 +154,22 @@ class AutoScaler
                 $supervisor->options->balanceMaxShift
             );
 
-            $pool->scale(
-                min(
-                    $totalProcessCount + $maxUpShift,
-                    max($supervisor->options->minProcesses, $supervisor->options->maxProcesses - (($supervisor->processPools->count() - 1) * $supervisor->options->minProcesses)),
-                    $desiredProcessCount
-                )
-            );
+            $pool->scale((int) min(
+                $totalProcessCount + $maxUpShift,
+                max($supervisor->options->minProcesses, $supervisor->options->maxProcesses - (($supervisor->processPools->count() - 1) * $supervisor->options->minProcesses)),
+                $desiredProcessCount
+            ));
         } elseif ($desiredProcessCount < $totalProcessCount) {
             $maxDownShift = min(
                 $supervisor->totalProcessCount() - $supervisor->options->minProcesses,
                 $supervisor->options->balanceMaxShift
             );
 
-            $pool->scale(
-                max(
-                    $totalProcessCount - $maxDownShift,
-                    $supervisor->options->minProcesses,
-                    $desiredProcessCount
-                )
-            );
+            $pool->scale((int) max(
+                $totalProcessCount - $maxDownShift,
+                $supervisor->options->minProcesses,
+                $desiredProcessCount
+            ));
         }
     }
 }

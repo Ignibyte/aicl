@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use InvalidArgumentException;
@@ -26,7 +28,7 @@ class ToolSpecParser
             throw new InvalidArgumentException("Tool spec file not found: {$filePath}");
         }
 
-        return $this->parseContent(file_get_contents($filePath));
+        return $this->parseContent((string) file_get_contents($filePath));
     }
 
     /**

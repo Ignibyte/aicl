@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole;
 
 use Aicl\Swoole\Listeners\RestoreSwooleTimers;
@@ -358,9 +360,13 @@ final class SwooleTimer
     /**
      * Get the Redis connection instance.
      *
-     * @return Connection|object
+     * Returns a Connection (with __call support for Redis commands)
+     * or a mock object in tests. The Connection class forwards
+     * Redis commands (keys, get, set, del, exists) via __call.
+     *
+     * @phpstan-return Connection
      */
-    private static function redis(): mixed
+    private static function redis(): object
     {
         if (self::$redisResolver !== null) {
             return (self::$redisResolver)();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\JobRepository;
@@ -10,6 +12,7 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Arr;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/** Clears all jobs from a specified Horizon queue connection. */
 #[AsCommand(name: 'aicl:horizon:clear')]
 class ClearCommand extends Command
 {
@@ -50,7 +53,7 @@ class ClearCommand extends Command
         }
 
         /** @var array<string, array<string, mixed>> $defaults */
-        $defaults = (array) $this->laravel['config']->get('horizon.defaults');
+        $defaults = (array) app('config')->get('horizon.defaults');
 
         $connection = $this->argument('connection')
             ?: Arr::first($defaults)['connection'] ?? 'redis';
@@ -74,7 +77,7 @@ class ClearCommand extends Command
      */
     protected function getQueue($connection)
     {
-        return $this->option('queue') ?: $this->laravel['config']->get(
+        return $this->option('queue') ?: app('config')->get(
             "queue.connections.{$connection}.queue",
             'default'
         );

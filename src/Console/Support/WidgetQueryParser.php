@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use Illuminate\Support\Str;
@@ -121,7 +123,7 @@ class WidgetQueryParser
     protected function parseWhereConditions(string $whereClause): string
     {
         $result = '';
-        $conditions = array_map('trim', preg_split('/\s+and\s+/i', $whereClause));
+        $conditions = array_map('trim', preg_split('/\s+and\s+/i', $whereClause) ?: []);
 
         foreach ($conditions as $condition) {
             if ($condition !== '') {

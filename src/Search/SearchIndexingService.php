@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Search;
 
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Response\Elasticsearch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
+/** Manages Elasticsearch index lifecycle including document indexing, removal, and bulk reindexing. */
 class SearchIndexingService
 {
     protected SearchDocumentBuilder $documentBuilder;
@@ -132,7 +136,10 @@ class SearchIndexingService
     public function indexExists(string $indexName): bool
     {
         try {
-            return $this->client->indices()->exists(['index' => $indexName])->asBool();
+            /** @var Elasticsearch $response */
+            $response = $this->client->indices()->exists(['index' => $indexName]);
+
+            return $response->asBool();
         } catch (\Throwable) {
             return false;
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\HorizonCommandQueue;
@@ -16,6 +18,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Collection;
 use Throwable;
 
+/** Manages a pool of queue worker processes with auto-scaling, pause, and restart capabilities. */
 class Supervisor implements Pausable, Restartable, Terminable
 {
     use ListensForSignals;
@@ -151,18 +154,13 @@ class Supervisor implements Pausable, Restartable, Terminable
     public function balance(array $balance)
     {
         foreach ($balance as $queue => $scale) {
-            $this->processPools->first(function ($pool) use ($queue) {
+            $pool = $this->processPools->first(function ($pool) use ($queue) {
                 return $pool->queue() === $queue;
-            }, new class
-            {
-                /**
-                 * @param  array<int, mixed>  $arguments
-                 */
-                public function __call(string $method, array $arguments): mixed
-                {
-                    return null;
-                }
-            })->scale($scale);
+            });
+
+            if ($pool instanceof ProcessPool) {
+                $pool->scale((int) $scale);
+            }
         }
     }
 
@@ -331,6 +329,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     protected function processPendingCommands()
     {
         foreach (app(HorizonCommandQueue::class)->pending($this->name) as $command) {
+            /** @var object{command: string, options: array<string, mixed>} $command */
             app($command->command)->process($this, $command->options);
         }
     }
@@ -431,7 +430,7 @@ class Supervisor implements Pausable, Restartable, Terminable
      */
     public function pid()
     {
-        return getmypid();
+        return getmypid() ?: 0;
     }
 
     /**

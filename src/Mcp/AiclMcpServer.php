@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp;
 
 use Aicl\Mcp\Prompts\CrudWorkflowPrompt;
@@ -13,6 +15,7 @@ use Aicl\Mcp\Tools\ShowEntityTool;
 use Aicl\Mcp\Tools\TransitionEntityTool;
 use Aicl\Mcp\Tools\UpdateEntityTool;
 use Aicl\Services\EntityRegistry;
+use Illuminate\Database\Eloquent\Model;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -81,6 +84,7 @@ class AiclMcpServer extends Server
         $exposeAll = $exposedConfig === ['*'];
 
         foreach ($entities as $entry) {
+            /** @var class-string<Model> $class */
             $class = $entry['class'];
             $operations = $this->resolveOperations($class, $exposedConfig, $exposeAll);
 
@@ -130,6 +134,7 @@ class AiclMcpServer extends Server
         $exposeAll = $exposedConfig === ['*'];
 
         foreach ($entities as $entry) {
+            /** @var class-string<Model> $class */
             $class = $entry['class'];
             $operations = $this->resolveOperations($class, $exposedConfig, $exposeAll);
 
@@ -251,7 +256,7 @@ class AiclMcpServer extends Server
             }
 
             $relativePath = str_replace($path.'/', '', $file->getPathname());
-            $className = $namespace.'\\'.str_replace(['/', '.php'], ['\\', ''], $relativePath);
+            $className = $namespace.'\\'.str_replace(['/', '.php'], ['\\', ''], (string) $relativePath);
 
             if (class_exists($className) && is_subclass_of($className, $baseClass)) {
                 $target[] = $className;
@@ -274,6 +279,7 @@ class AiclMcpServer extends Server
             return $allOps;
         }
 
+        /** @var array<string> */
         return $exposedConfig[$class] ?? [];
     }
 }

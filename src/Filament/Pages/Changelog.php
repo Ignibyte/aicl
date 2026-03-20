@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages;
 
 use Aicl\Services\VersionService;
@@ -8,6 +10,7 @@ use Filament\Pages\Page;
 use Illuminate\Support\Str;
 use UnitEnum;
 
+/** Filament page that displays framework and project changelogs with tabbed navigation. */
 class Changelog extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = null;
@@ -111,6 +114,6 @@ class Changelog extends Page
             return '<p class="text-gray-500">No changelog found.</p>';
         }
 
-        return Str::markdown(file_get_contents($path), ['html_input' => 'strip']);
+        return Str::markdown((string) file_get_contents($path), ['html_input' => 'strip']);
     }
 }

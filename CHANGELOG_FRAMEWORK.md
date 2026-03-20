@@ -10,7 +10,26 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.11.0`
+Current version: `1.12.0`
+
+---
+
+## [1.12.0] - 2026-03-20
+
+### Changed
+
+- **PHPStan level 6 → 7** — Bumped static analysis to level 7, enforcing union type narrowing. 127 errors resolved across ~58 files with targeted code changes (type casts, null/false guards, `@var` annotations).
+- **`declare(strict_types=1)` added** to 57 modified PHP files, enforcing strict type coercion at runtime per Constitution Section 14.
+- **Class-level docblocks added** to 40 files that were missing them, improving code documentation and IDE support.
+- **Forge sync integration** — Updated agent SKILL.md files, added `migrate` agent, `/work` command, `enforce-quality.sh` and `enforce-completion.sh` hooks, `.claude/settings.json` with Stop hook registration.
+- **CONSTITUTION.md Section 14** — New Code Quality Standards section requiring strict_types, docblocks, typed properties, return types, PHPStan compliance, and Pint compliance on all new code.
+- **CLAUDE.md enhanced** — Merged Forge workflow improvements: error logging during work, `search-architecture-docs` step, test commenting policy, full MCP tool reference.
+
+### Fixed
+
+- **Union type safety** — `file_get_contents` false returns now guarded before use, `json_encode` false returns handled, `auth()->id()` cast to `int` where needed, Swoole Table properties properly typed, Elasticsearch response types narrowed, Eloquent `find()` result unions narrowed.
+- **Container access** — Replaced `$this->laravel['key']` array-access pattern with `app('key')` helper across Horizon commands for PHPStan compatibility.
+- **Float-to-int casts** — Horizon AutoScaler and Supervisor `scale()` calls now properly cast float results to int.
 
 ---
 

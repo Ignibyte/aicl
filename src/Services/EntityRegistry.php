@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Services;
 
 use Aicl\Contracts\HasEntityLifecycle;
@@ -228,7 +230,7 @@ class EntityRegistry
             }
 
             $relativePath = str_replace($modelsPath.'/', '', $file->getPathname());
-            $className = 'App\\Models\\'.str_replace(['/', '.php'], ['\\', ''], $relativePath);
+            $className = 'App\\Models\\'.str_replace(['/', '.php'], ['\\', ''], (string) $relativePath);
 
             if (! class_exists($className)) {
                 continue;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use InvalidArgumentException;
@@ -315,7 +317,7 @@ class SpecFileParser
         $content = $sections['Enums'];
 
         // Split by ### subsections
-        $subsections = preg_split('/^### /m', $content, -1, PREG_SPLIT_NO_EMPTY);
+        $subsections = preg_split('/^### /m', $content, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         foreach ($subsections as $subsection) {
             $lines = explode("\n", $subsection, 2);

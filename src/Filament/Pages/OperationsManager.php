@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages;
 
 use Aicl\Horizon\Contracts\JobRepository;
@@ -37,6 +39,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
 use UnitEnum;
 
+/** Filament page providing a unified operations dashboard for queues, schedules, notifications, and sessions. */
 class OperationsManager extends Page implements HasActions, HasForms, HasTable
 {
     use InteractsWithActions;
@@ -492,12 +495,12 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
                                     ->columnSpanFull()
                                     ->formatStateUsing(function ($state): string {
                                         if (is_array($state)) {
-                                            return json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                            return (string) json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
                                         }
 
                                         $decoded = json_decode($state, true);
 
-                                        return json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                        return (string) json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
                                     }),
                             ])
                             ->collapsible()
