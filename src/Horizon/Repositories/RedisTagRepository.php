@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Repositories;
 
 use Aicl\Horizon\Contracts\TagRepository;
@@ -7,6 +9,9 @@ use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 
+/**
+ * Redis-backed tag repository for Horizon job tagging.
+ */
 class RedisTagRepository implements TagRepository
 {
     /**
@@ -80,7 +85,7 @@ class RedisTagRepository implements TagRepository
     {
         $this->connection()->pipeline(function ($pipe) use ($id, $tags) {
             foreach ($tags as $tag) {
-                $pipe->zadd($tag, str_replace(',', '.', microtime(true)), $id);
+                $pipe->zadd($tag, str_replace(',', '.', (string) microtime(true)), $id);
             }
         });
     }
@@ -97,7 +102,7 @@ class RedisTagRepository implements TagRepository
     {
         $this->connection()->pipeline(function ($pipe) use ($minutes, $id, $tags) {
             foreach ($tags as $tag) {
-                $pipe->zadd($tag, str_replace(',', '.', microtime(true)), $id);
+                $pipe->zadd($tag, str_replace(',', '.', (string) microtime(true)), $id);
 
                 $pipe->expire($tag, $minutes * 60);
             }

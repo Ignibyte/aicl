@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\Users\Pages;
 
 use Aicl\Filament\Resources\Users\UserResource;
@@ -8,6 +10,12 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * List Users page for the admin panel.
+ *
+ * Eager-loads roles and breezySessions to prevent N+1 queries
+ * and lazy-load violations under Model::shouldBeStrict().
+ */
 class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
@@ -28,6 +36,6 @@ class ListUsers extends ListRecords
      */
     protected function modifyQueryUsing(Builder $query): Builder
     {
-        return $query->with('roles');
+        return $query->with(['roles', 'breezySessions']);
     }
 }

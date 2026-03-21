@@ -10,7 +10,16 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.15.0`
+Current version: `1.15.1`
+
+---
+
+## [1.15.1] - 2026-03-21
+
+### Fixed
+
+- **BF-018: Users list 500** — Added `breezySessions` to eager-load in `ListUsers::modifyQueryUsing()` to prevent lazy-load violation under `Model::shouldBeStrict()` when `hasConfirmedTwoFactor()` accesses the Breezy MorphOne relationship.
+- **BF-021: Horizon strict_types TypeError** — Cast `microtime(true)` float to `(string)` before `str_replace()` in 10 instances across `RedisJobRepository` and `RedisTagRepository`. The `JobPayload` instance was fixed in v1.15.0 but these were missed.
 
 ---
 
