@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -94,6 +96,7 @@ return [
         'scout_driver' => false,
         'horizon' => true,
         'mcp' => false,
+        'scheduler' => true,
     ],
 
     /*

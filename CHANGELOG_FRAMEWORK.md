@@ -10,7 +10,20 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.15.1`
+Current version: `1.16.0`
+
+---
+
+## [1.16.0] - 2026-03-21
+
+### Added
+
+- **Scheduler feature flag** — New `config('aicl.features.scheduler')` toggle (default: `true`) to disable all framework scheduled jobs (backup, horizon snapshot, prune) without affecting project-level jobs.
+
+### Changed
+
+- **AI assistant light mode** — Replaced hardcoded dark-mode colors with CSS custom properties so the AI assistant panel renders correctly in both light and dark modes.
+- **Sidebar default collapsed** — Navigation groups now default to collapsed on fresh installs. User preferences persist via localStorage once set.
 
 ---
 

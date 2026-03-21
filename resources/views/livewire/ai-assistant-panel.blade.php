@@ -18,29 +18,56 @@
 
     {{-- Prose styles for chat markdown --}}
     <style>
+        /* AI Assistant panel color tokens — adapt to light/dark mode */
+        .ai-assistant-widget {
+            --ai-panel-bg: 0 0% 100%;
+            --ai-panel-bg-secondary: 220 14% 96%;
+            --ai-panel-bg-tertiary: 220 14% 96%;
+            --ai-panel-fg: 224 71% 4%;
+            --ai-panel-fg-secondary: 220 9% 46%;
+            --ai-panel-fg-tertiary: 220 9% 56%;
+            --ai-panel-border: 220 13% 91%;
+            --ai-panel-code-bg: 220 14% 93%;
+            --ai-panel-pre-bg: 220 20% 95%;
+            --ai-panel-hover-bg: 220 14% 96%;
+        }
+
+        .dark .ai-assistant-widget {
+            --ai-panel-bg: 220 20% 10%;
+            --ai-panel-bg-secondary: 220 20% 6%;
+            --ai-panel-bg-tertiary: 220 20% 14%;
+            --ai-panel-fg: 0 0% 100%;
+            --ai-panel-fg-secondary: 220 9% 46%;
+            --ai-panel-fg-tertiary: 220 9% 40%;
+            --ai-panel-border: 0 0% 100% / 0.05;
+            --ai-panel-code-bg: 0 0% 100% / 0.08;
+            --ai-panel-pre-bg: 0 0% 0% / 0.3;
+            --ai-panel-hover-bg: 0 0% 100% / 0.05;
+        }
+
         .prose-chat { line-height: 1.6; }
         .prose-chat p { margin: 0.25em 0; }
         .prose-chat p:first-child { margin-top: 0; }
         .prose-chat p:last-child { margin-bottom: 0; }
-        .prose-chat strong { font-weight: 600; color: hsl(var(--aicl-foreground, 0 0% 100%)); }
+        .prose-chat strong { font-weight: 600; color: hsl(var(--aicl-foreground, 224 71% 4%)); }
         .prose-chat em { font-style: italic; }
         .prose-chat ul, .prose-chat ol { margin: 0.5em 0; padding-left: 1.5em; }
         .prose-chat li { margin: 0.15em 0; }
         .prose-chat li::marker { color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); }
-        .prose-chat code { font-size: 0.85em; padding: 0.15em 0.35em; border-radius: 0.25rem; background: rgba(255,255,255,0.08); color: hsl(var(--aicl-primary, 32 95% 55%)); font-family: ui-monospace, 'JetBrains Mono', monospace; }
-        .prose-chat pre { margin: 0.5em 0; padding: 0.75em 1em; border-radius: 0.5rem; background: rgba(0,0,0,0.3); overflow-x: auto; border: 1px solid rgba(255,255,255,0.05); }
-        .prose-chat pre code { padding: 0; background: none; color: hsl(var(--aicl-foreground, 0 0% 83%)); font-size: 0.8em; }
+        .prose-chat code { font-size: 0.85em; padding: 0.15em 0.35em; border-radius: 0.25rem; background: hsl(var(--ai-panel-code-bg)); color: hsl(var(--aicl-primary, 32 95% 55%)); font-family: ui-monospace, 'JetBrains Mono', monospace; }
+        .prose-chat pre { margin: 0.5em 0; padding: 0.75em 1em; border-radius: 0.5rem; background: hsl(var(--ai-panel-pre-bg)); overflow-x: auto; border: 1px solid hsl(var(--ai-panel-border)); }
+        .prose-chat pre code { padding: 0; background: none; color: hsl(var(--aicl-foreground, 224 71% 4%)); font-size: 0.8em; }
         .prose-chat a { color: hsl(var(--aicl-primary, 32 95% 55%)); text-decoration: underline; }
         .prose-chat a:hover { opacity: 0.8; }
-        .prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 600; color: hsl(var(--aicl-foreground, 0 0% 100%)); margin: 0.75em 0 0.25em; }
+        .prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 600; color: hsl(var(--aicl-foreground, 224 71% 4%)); margin: 0.75em 0 0.25em; }
         .prose-chat h1 { font-size: 1.15em; }
         .prose-chat h2 { font-size: 1.05em; }
         .prose-chat h3 { font-size: 0.95em; }
         .prose-chat table { width: 100%; border-collapse: collapse; margin: 0.5em 0; font-size: 0.85em; }
-        .prose-chat th { text-align: left; padding: 0.35em 0.5em; border-bottom: 1px solid rgba(255,255,255,0.1); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); font-weight: 500; }
-        .prose-chat td { padding: 0.35em 0.5em; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .prose-chat blockquote { margin: 0.5em 0; padding-left: 0.75em; border-left: 3px solid rgba(255,255,255,0.15); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); }
-        .prose-chat hr { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 0.75em 0; }
+        .prose-chat th { text-align: left; padding: 0.35em 0.5em; border-bottom: 1px solid hsl(var(--ai-panel-border)); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); font-weight: 500; }
+        .prose-chat td { padding: 0.35em 0.5em; border-bottom: 1px solid hsl(var(--ai-panel-border)); }
+        .prose-chat blockquote { margin: 0.5em 0; padding-left: 0.75em; border-left: 3px solid hsl(var(--ai-panel-border)); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); }
+        .prose-chat hr { border: none; border-top: 1px solid hsl(var(--ai-panel-border)); margin: 0.75em 0; }
     </style>
 
     {{-- Floating Toggle Button --}}
@@ -78,7 +105,7 @@
         <div
             x-show="fullScreen"
             x-on:click="toggleFullScreen"
-            class="fixed inset-0 bg-black/60 backdrop-blur-md"
+            class="fixed inset-0 bg-black/40 backdrop-blur-md dark:bg-black/60"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100"
@@ -90,8 +117,8 @@
         {{-- Main Panel Container --}}
         <div
             :class="fullScreen
-                ? 'relative z-10 m-4 flex min-w-0 flex-1 overflow-hidden rounded-2xl border border-white/5 bg-gray-900 shadow-2xl sm:m-6 md:m-8 lg:m-10'
-                : 'flex min-w-0 flex-1 overflow-hidden rounded-xl border border-white/5 bg-gray-900 shadow-2xl'"
+                ? 'relative z-10 m-4 flex min-w-0 flex-1 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/5 dark:bg-gray-900 sm:m-6 md:m-8 lg:m-10'
+                : 'flex min-w-0 flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-white/5 dark:bg-gray-900'"
         >
             {{-- Conversation Sidebar (full-screen only) --}}
             <div
@@ -99,13 +126,13 @@
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="-translate-x-full opacity-0"
                 x-transition:enter-end="translate-x-0 opacity-100"
-                class="flex w-64 shrink-0 flex-col border-r border-white/5 bg-gray-950/80"
+                class="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-gray-50 dark:border-white/5 dark:bg-gray-950/80"
             >
                 {{-- Sidebar Header with New Chat Button --}}
                 <div class="px-4 pb-3 pt-4">
                     <button
                         x-on:click="newConversation"
-                        class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-400"
+                        class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-primary-600 dark:hover:bg-primary-400"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -116,7 +143,7 @@
 
                 {{-- Conversation List --}}
                 <div class="flex-1 overflow-y-auto px-3 pb-3">
-                    <div class="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Recent</div>
+                    <div class="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Recent</div>
                     @foreach ($this->conversations as $convo)
                         <div
                             wire:key="convo-{{ $convo->id }}"
@@ -125,11 +152,11 @@
                             x-on:mouseleave="hovered = false"
                             x-on:click="if (!editing) switchConversation('{{ $convo->id }}')"
                             :class="activeConversationId === '{{ $convo->id }}'
-                                ? 'bg-primary-500/15 text-primary-400'
-                                : 'text-gray-300 hover:bg-white/5'"
+                                ? 'bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400'
+                                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5'"
                             class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
                             </svg>
 
@@ -142,7 +169,7 @@
                                 x-on:keydown.escape.prevent="editing = false; editTitle = {{ \Illuminate\Support\Js::from($convo->display_title) }}"
                                 x-on:blur="if (editTitle.trim()) { $wire.renameConversation('{{ $convo->id }}', editTitle); } editing = false"
                                 x-ref="renameInput{{ $loop->index }}"
-                                class="flex-1 truncate border-0 bg-transparent p-0 text-sm text-white focus:ring-0"
+                                class="flex-1 truncate border-0 bg-transparent p-0 text-sm text-gray-900 focus:ring-0 dark:text-white"
                                 maxlength="100"
                             />
 
@@ -159,7 +186,7 @@
                                 {{-- Rename --}}
                                 <button
                                     x-on:click.stop="editing = true; $nextTick(() => $refs['renameInput{{ $loop->index }}'].focus())"
-                                    class="rounded p-1 text-gray-500 transition hover:text-gray-300"
+                                    class="rounded p-1 text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                                     title="Rename"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -169,7 +196,7 @@
                                 {{-- Delete --}}
                                 <button
                                     x-on:click.stop="deleteConversation('{{ $convo->id }}')"
-                                    class="rounded p-1 text-gray-500 transition hover:text-danger-400"
+                                    class="rounded p-1 text-gray-400 transition hover:text-danger-500 dark:text-gray-500 dark:hover:text-danger-400"
                                     title="Delete"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -182,11 +209,11 @@
 
                     @if ($this->conversations->isEmpty())
                         <div class="flex flex-col items-center justify-center px-3 py-8 text-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
                             </svg>
                             <p class="mt-2 text-xs text-gray-500">No conversations yet</p>
-                            <p class="mt-0.5 text-xs text-gray-600">Start chatting to create one</p>
+                            <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-600">Start chatting to create one</p>
                         </div>
                     @endif
                 </div>
@@ -195,14 +222,14 @@
             {{-- Chat Area --}}
             <div class="flex min-w-0 flex-1 flex-col">
                 {{-- Header --}}
-                <div class="flex items-center border-b border-white/5 px-3 py-2">
+                <div class="flex items-center border-b border-gray-200 px-3 py-2 dark:border-white/5">
                     {{-- Left side: Sidebar toggle OR AI Assistant label --}}
                     <div class="flex items-center gap-2">
                         {{-- Sidebar Toggle (full-screen only) --}}
                         <button
                             x-show="fullScreen"
                             x-on:click="sidebarOpen = !sidebarOpen"
-                            class="rounded-lg p-1.5 text-gray-400 transition hover:bg-white/10 hover:text-white"
+                            class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
                             title="Toggle sidebar"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -218,8 +245,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <div class="text-sm font-semibold leading-tight text-white">AI Assistant</div>
-                                <div class="text-[10px] leading-tight text-gray-400">Ready to help</div>
+                                <div class="text-sm font-semibold leading-tight text-gray-900 dark:text-white">AI Assistant</div>
+                                <div class="text-[10px] leading-tight text-gray-500 dark:text-gray-400">Ready to help</div>
                             </div>
                         </div>
                     </div>
@@ -234,14 +261,14 @@
                             <select
                                 x-model="selectedAgentId"
                                 x-on:change="onAgentChange"
-                                class="h-9 w-full cursor-pointer rounded-lg border-0 bg-transparent py-1 pl-3 pr-6 text-xs font-medium text-gray-300 ring-1 ring-inset ring-white/5 transition hover:ring-white/15 focus:ring-2 focus:ring-primary-500"
+                                class="h-9 w-full cursor-pointer rounded-lg border-0 bg-transparent py-1 pl-3 pr-6 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-200 transition hover:ring-gray-300 focus:ring-2 focus:ring-primary-500 dark:text-gray-300 dark:ring-white/5 dark:hover:ring-white/15"
                                 style="-webkit-appearance: none; -moz-appearance: none; appearance: none;"
                             >
                                 @foreach ($this->agents as $agent)
                                     <option value="{{ $agent->id }}">{{ $agent->name }}</option>
                                 @endforeach
                             </select>
-                            <svg class="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z" clip-rule="evenodd" />
                             </svg>
                         </div>
@@ -250,7 +277,7 @@
                         <button
                             x-show="fullScreen"
                             x-on:click="newConversation"
-                            class="rounded-lg p-1.5 text-gray-400 transition hover:bg-white/10 hover:text-white"
+                            class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
                             title="New conversation"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -261,7 +288,7 @@
                         {{-- Expand / Collapse --}}
                         <button
                             x-on:click="toggleFullScreen"
-                            class="rounded-lg p-1.5 text-gray-400 transition hover:bg-white/10 hover:text-white"
+                            class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
                             :title="fullScreen ? 'Collapse' : 'Expand'"
                         >
                             <svg x-show="!fullScreen" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -275,7 +302,7 @@
                         {{-- Close --}}
                         <button
                             x-on:click="closePanel"
-                            class="rounded-lg p-1.5 text-gray-400 transition hover:bg-white/10 hover:text-white"
+                            class="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
                             title="Close (Esc)"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -300,8 +327,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
                                     </svg>
                                 </div>
-                                <h4 class="mt-4 text-base font-semibold text-white">How can I help?</h4>
-                                <p class="mt-1 text-sm text-gray-400">Ask me anything to get started.</p>
+                                <h4 class="mt-4 text-base font-semibold text-gray-900 dark:text-white">How can I help?</h4>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Ask me anything to get started.</p>
                             </div>
                         </div>
                     </template>
@@ -315,12 +342,12 @@
                                     <div>
                                         {{-- Name + time + avatar row (right-aligned) --}}
                                         <div class="mb-1.5 flex items-center justify-end gap-2">
-                                            <span class="text-xs font-semibold text-white">You</span>
-                                            <span class="text-[11px] text-gray-500" x-text="msg.timestamp || ''"></span>
+                                            <span class="text-xs font-semibold text-gray-900 dark:text-white">You</span>
+                                            <span class="text-[11px] text-gray-400 dark:text-gray-500" x-text="msg.timestamp || ''"></span>
                                             @if (filament()->auth()->user()?->getFilamentAvatarUrl())
                                                 <img src="{{ filament()->auth()->user()->getFilamentAvatarUrl() }}" alt="You" class="h-7 w-7 rounded-full object-cover" />
                                             @else
-                                                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-600 text-xs font-semibold text-white">
+                                                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-xs font-semibold text-gray-700 dark:bg-gray-600 dark:text-white">
                                                     {{ strtoupper(substr(filament()->auth()->user()?->name ?? 'U', 0, 1)) }}
                                                 </div>
                                             @endif
@@ -344,13 +371,13 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
                                                 </svg>
                                             </div>
-                                            <span class="text-xs font-semibold text-white" x-text="msg.agent_name || 'Assistant'"></span>
-                                            <span class="text-[11px] text-gray-500" x-text="msg.timestamp || ''"></span>
+                                            <span class="text-xs font-semibold text-gray-900 dark:text-white" x-text="msg.agent_name || 'Assistant'"></span>
+                                            <span class="text-[11px] text-gray-400 dark:text-gray-500" x-text="msg.timestamp || ''"></span>
                                         </div>
 
                                         {{-- Response Bubble (contains tool chips, cards, and text) --}}
                                         <div x-show="(msg.tools && msg.tools.length > 0) || (msg.content && !_isBufferingJson(_currentResponse && messages.indexOf(msg) === messages.length - 1 ? _currentResponse : ''))" class="max-w-full">
-                                            <div class="rounded-2xl rounded-tl-sm border border-white/5 bg-gray-800/50 px-4 py-2.5 text-gray-100">
+                                            <div class="rounded-2xl rounded-tl-sm border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-800 dark:border-white/5 dark:bg-gray-800/50 dark:text-gray-100">
                                                 {{-- Tool Call Chips --}}
                                                 <template x-if="msg.tools && msg.tools.length > 0">
                                                     <div class="mb-2 flex flex-wrap gap-1">
@@ -392,11 +419,11 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
                                 </svg>
                             </div>
-                            <div class="rounded-2xl rounded-tl-sm border border-white/5 bg-gray-800/50 px-4 py-3">
+                            <div class="rounded-2xl rounded-tl-sm border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/5 dark:bg-gray-800/50">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="h-2 w-2 animate-bounce rounded-full bg-gray-500" style="animation-delay: 0ms"></span>
-                                    <span class="h-2 w-2 animate-bounce rounded-full bg-gray-500" style="animation-delay: 150ms"></span>
-                                    <span class="h-2 w-2 animate-bounce rounded-full bg-gray-500" style="animation-delay: 300ms"></span>
+                                    <span class="h-2 w-2 animate-bounce rounded-full bg-gray-400 dark:bg-gray-500" style="animation-delay: 0ms"></span>
+                                    <span class="h-2 w-2 animate-bounce rounded-full bg-gray-400 dark:bg-gray-500" style="animation-delay: 150ms"></span>
+                                    <span class="h-2 w-2 animate-bounce rounded-full bg-gray-400 dark:bg-gray-500" style="animation-delay: 300ms"></span>
                                 </div>
                             </div>
                         </div>
@@ -421,10 +448,10 @@
                 </template>
 
                 {{-- Input Bar --}}
-                <div class="border-t border-white/5" :class="fullScreen ? 'px-6 py-4' : 'px-3 py-3'">
-                    <div class="flex items-end gap-2 rounded-xl border border-white/5 bg-gray-800/50 p-2 transition-colors focus-within:border-primary-500/50 focus-within:ring-1 focus-within:ring-primary-500/50">
+                <div class="border-t border-gray-200 dark:border-white/5" :class="fullScreen ? 'px-6 py-4' : 'px-3 py-3'">
+                    <div class="flex items-end gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2 transition-colors focus-within:border-primary-500/50 focus-within:ring-1 focus-within:ring-primary-500/50 dark:border-white/5 dark:bg-gray-800/50">
                         {{-- Attachment button (Replit-style) --}}
-                        <button class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 transition hover:text-gray-300" title="Attach file">
+                        <button class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" title="Attach file">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                             </svg>
@@ -437,7 +464,7 @@
                             x-ref="promptInput"
                             rows="1"
                             placeholder="Type a message..."
-                            class="block w-full resize-none border-0 bg-transparent px-1 py-1.5 text-sm text-white placeholder:text-gray-500 focus:ring-0 disabled:opacity-50"
+                            class="block w-full resize-none border-0 bg-transparent px-1 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-0 disabled:opacity-50 dark:text-white dark:placeholder:text-gray-500"
                             style="min-height: 2rem; max-height: 8rem; overflow-y: auto;"
                             x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px';"
                         ></textarea>
@@ -445,7 +472,7 @@
                         <button
                             x-on:click="send"
                             :disabled="loading || !prompt.trim()"
-                            :class="prompt.trim() ? 'bg-primary-500 text-white hover:bg-primary-400' : 'text-gray-500'"
+                            :class="prompt.trim() ? 'bg-primary-500 text-white hover:bg-primary-600 dark:hover:bg-primary-400' : 'text-gray-400 dark:text-gray-500'"
                             class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all disabled:opacity-40"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

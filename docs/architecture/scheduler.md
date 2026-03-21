@@ -32,7 +32,11 @@ Rather than requiring each scheduled command to log its own execution, the `Sche
 
 The `SchedulerCheck` queries the most recent `ScheduleHistory` record. If no task has run in 5+ minutes, the health status degrades. If no task has run in 15+ minutes, the health status goes down. This catches silent scheduler failures (crashed process, stale PID, supervisor not started) without requiring external monitoring.
 
-### 4. Scheduler vs. Swoole timers
+### 4. Feature flag for framework scheduled tasks
+
+All framework-provided scheduled tasks (backups, Horizon snapshots, history pruning) are wrapped in a `config('aicl.features.scheduler')` guard in `routes/console.php`. When the flag is `false`, no framework tasks are registered with the scheduler. The flag defaults to `true` (opt-out). Project-level scheduled tasks should be registered outside the feature flag guard block so they remain unaffected. The Horizon-specific tasks have an additional nested guard (`config('aicl.features.horizon')`) for finer-grained control.
+
+### 5. Scheduler vs. Swoole timers
 
 The scheduler and Swoole timers serve different purposes:
 
@@ -179,6 +183,7 @@ The **Operations Manager** page (`/admin/operations-manager`) includes a Schedul
 
 | Key | Type | Default | Purpose |
 |-----|------|---------|---------|
+| `aicl.features.scheduler` | bool | `true` | Master toggle for all framework scheduled tasks |
 | `aicl.scheduler.history_retention_days` | int | `30` | Days of history to keep before pruning |
 | `aicl.scheduler.output_max_bytes` | int | `10240` | Maximum bytes of task output to capture |
 | `aicl.scheduler.health_degraded_minutes` | int | `5` | Minutes without a run before health degrades |
@@ -186,11 +191,14 @@ The **Operations Manager** page (`/admin/operations-manager`) includes a Schedul
 
 ### Adding New Scheduled Tasks
 
-Register tasks in `routes/console.php` using the `Schedule` facade:
+Register tasks in `routes/console.php` using the `Schedule` facade. Add project-level tasks **outside** the `config('aicl.features.scheduler')` guard block so they run regardless of the framework scheduler flag:
 
 ```php
 use Illuminate\Support\Facades\Schedule;
 
+// Framework tasks are inside the if-block above...
+
+// Project-level tasks — always run regardless of scheduler feature flag
 Schedule::command('your:command')->dailyAt('05:00');
 ```
 
