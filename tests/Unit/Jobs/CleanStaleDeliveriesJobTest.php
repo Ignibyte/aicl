@@ -8,6 +8,7 @@ use Aicl\Notifications\Enums\ChannelType;
 use Aicl\Notifications\Enums\DeliveryStatus;
 use Aicl\Notifications\Models\NotificationChannel;
 use Aicl\Notifications\Models\NotificationDeliveryLog;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -43,6 +44,7 @@ class CleanStaleDeliveriesJobTest extends TestCase
         ]);
     }
 
+    /** @phpstan-ignore-next-line */
     private function createDeliveryLog(DeliveryStatus $status, int $hoursAgo, array $extra = []): NotificationDeliveryLog
     {
         $log = NotificationDeliveryLog::create(array_merge([
@@ -68,6 +70,7 @@ class CleanStaleDeliveriesJobTest extends TestCase
 
         $stale->refresh();
         $this->assertSame(DeliveryStatus::Failed, $stale->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('stale delivery', $stale->error_message);
         $this->assertNotNull($stale->failed_at);
     }
@@ -105,6 +108,7 @@ class CleanStaleDeliveriesJobTest extends TestCase
         $job = new CleanStaleDeliveriesJob;
         $job->handle();
 
+        /** @phpstan-ignore-next-line */
         Log::shouldHaveReceived('info')
             ->withArgs(fn ($message, $context) => $message === 'Cleaned stale deliveries' && $context['count'] === 1)
             ->once();
@@ -117,6 +121,7 @@ class CleanStaleDeliveriesJobTest extends TestCase
         $job = new CleanStaleDeliveriesJob;
         $job->handle();
 
+        /** @phpstan-ignore-next-line */
         Log::shouldNotHaveReceived('info');
     }
 
@@ -124,6 +129,6 @@ class CleanStaleDeliveriesJobTest extends TestCase
     {
         $job = new CleanStaleDeliveriesJob;
 
-        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $job);
+        $this->assertInstanceOf(ShouldQueue::class, $job);
     }
 }

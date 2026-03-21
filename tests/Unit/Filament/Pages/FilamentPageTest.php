@@ -16,7 +16,7 @@ class FilamentPageTest extends TestCase
 
     public function test_operations_manager_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(OperationsManager::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(OperationsManager::class))->isSubclassOf(Page::class));
     }
 
     public function test_operations_manager_slug(): void
@@ -39,7 +39,7 @@ class FilamentPageTest extends TestCase
 
     public function test_activity_log_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(ActivityLog::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(ActivityLog::class))->isSubclassOf(Page::class));
     }
 
     public function test_activity_log_slug(): void
@@ -67,7 +67,7 @@ class FilamentPageTest extends TestCase
 
     public function test_search_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(Search::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(Search::class))->isSubclassOf(Page::class));
     }
 
     public function test_search_slug(): void
@@ -99,7 +99,7 @@ class FilamentPageTest extends TestCase
 
     public function test_api_tokens_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(ApiTokens::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(ApiTokens::class))->isSubclassOf(Page::class));
     }
 
     public function test_api_tokens_slug(): void
@@ -123,7 +123,7 @@ class FilamentPageTest extends TestCase
 
     public function test_notification_center_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(NotificationCenter::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(NotificationCenter::class))->isSubclassOf(Page::class));
     }
 
     public function test_notification_center_slug(): void

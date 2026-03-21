@@ -44,6 +44,7 @@ class WebhookJsonAdapterTest extends TestCase
 
     public function test_passes_empty_array_through(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([], []);
 
         $this->assertSame([], $result);
@@ -54,6 +55,7 @@ class WebhookJsonAdapterTest extends TestCase
         $rendered = ['title' => 'Test'];
         $context = ['extra' => 'data'];
 
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format($rendered, $context);
 
         $this->assertSame($rendered, $result);
@@ -67,6 +69,7 @@ class WebhookJsonAdapterTest extends TestCase
             'custom_key' => 'custom_value',
         ];
 
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format($rendered, []);
 
         $this->assertArrayHasKey('custom_key', $result);

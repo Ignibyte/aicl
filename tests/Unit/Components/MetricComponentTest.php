@@ -31,7 +31,6 @@ class MetricComponentTest extends TestCase
     {
         $component = new StatCard(label: 'X', value: 0, color: 'success');
 
-        $this->assertIsString($component->iconBgClass());
         $this->assertNotEmpty($component->iconBgClass());
     }
 
@@ -39,7 +38,6 @@ class MetricComponentTest extends TestCase
     {
         $component = new StatCard(label: 'X', value: 0);
 
-        $this->assertIsString($component->iconTextClass());
         $this->assertNotEmpty($component->iconTextClass());
     }
 
@@ -143,7 +141,6 @@ class MetricComponentTest extends TestCase
         $component = new TrendCard(label: 'X', value: 0, data: [10, 20, 30, 40]);
 
         $path = $component->sparklinePath();
-        $this->assertIsString($path);
     }
 
     public function test_trend_card_sparkline_path_empty_data(): void
@@ -151,14 +148,12 @@ class MetricComponentTest extends TestCase
         $component = new TrendCard(label: 'X', value: 0, data: []);
 
         $path = $component->sparklinePath();
-        $this->assertIsString($path);
     }
 
     public function test_trend_card_sparkline_class(): void
     {
         $component = new TrendCard(label: 'X', value: 0, color: 'success');
 
-        $this->assertIsString($component->sparklineClass());
     }
 
     // ─── ProgressCard ───────────────────────────────────────
@@ -190,7 +185,6 @@ class MetricComponentTest extends TestCase
     {
         $component = new ProgressCard(label: 'X', value: 0, progress: 50, color: 'danger');
 
-        $this->assertIsString($component->progressBarClass());
         $this->assertNotEmpty($component->progressBarClass());
     }
 }

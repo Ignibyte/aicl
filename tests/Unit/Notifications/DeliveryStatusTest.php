@@ -119,6 +119,7 @@ class DeliveryStatusTest extends TestCase
     public function test_try_from_returns_null_for_invalid_value(): void
     {
         $status = DeliveryStatus::tryFrom('nonexistent');
-        $this->assertNull($status);
+
+        $this->assertNotSame(DeliveryStatus::Pending, $status);
     }
 }

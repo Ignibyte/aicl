@@ -9,6 +9,7 @@ class HorizonTest extends TestCase
 {
     protected function tearDown(): void
     {
+        /** @phpstan-ignore-next-line */
         Horizon::$authUsing = null;
         parent::tearDown();
     }
@@ -22,6 +23,7 @@ class HorizonTest extends TestCase
 
     public function test_auth_sets_callback(): void
     {
+        /** @phpstan-ignore-next-line */
         $this->assertNull(Horizon::$authUsing);
 
         Horizon::auth(function () {

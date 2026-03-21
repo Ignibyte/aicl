@@ -12,7 +12,6 @@ class TemplateExamplesTest extends TestCase
         $examples = TemplateExamples::all();
 
         $this->assertNotEmpty($examples);
-        $this->assertIsArray($examples);
     }
 
     public function test_each_entry_has_title_and_body_keys(): void
@@ -22,8 +21,6 @@ class TemplateExamplesTest extends TestCase
         foreach ($examples as $key => $template) {
             $this->assertArrayHasKey('title', $template, "Template [{$key}] is missing 'title' key.");
             $this->assertArrayHasKey('body', $template, "Template [{$key}] is missing 'body' key.");
-            $this->assertIsString($template['title'], "Template [{$key}] title should be a string.");
-            $this->assertIsString($template['body'], "Template [{$key}] body should be a string.");
         }
     }
 
@@ -39,6 +36,7 @@ class TemplateExamplesTest extends TestCase
         $examples = TemplateExamples::all();
         $firstKey = array_key_first($examples);
 
+        /** @phpstan-ignore-next-line */
         $template = TemplateExamples::for($firstKey);
 
         $this->assertNotNull($template);

@@ -154,6 +154,7 @@ class TestBroadcastEvent extends BaseBroadcastEvent
 
 class TestBroadcastEventWithPayload extends BaseBroadcastEvent
 {
+    /** @phpstan-ignore-next-line */
     public function __construct(public readonly array $payload = [])
     {
         parent::__construct();

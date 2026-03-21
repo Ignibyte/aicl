@@ -42,6 +42,7 @@ class PipelineContextCommandTest extends TestCase
             'entity' => 'TestEntity',
             '--phase' => '3',
         ])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Phase 3: Generate');
     }
@@ -52,6 +53,7 @@ class PipelineContextCommandTest extends TestCase
             'entity' => 'TestEntity',
             '--agent' => 'architect',
         ])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Phase 3: Generate');
     }
@@ -63,6 +65,7 @@ class PipelineContextCommandTest extends TestCase
             '--phase' => '1',
             '--header' => true,
         ])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Pipeline: TestEntity');
     }
@@ -72,6 +75,7 @@ class PipelineContextCommandTest extends TestCase
         $this->artisan('aicl:pipeline-context', [
             'entity' => 'Nonexistent',
         ])
+            /** @phpstan-ignore-next-line */
             ->assertFailed()
             ->expectsOutputToContain('No pipeline document found');
     }
@@ -81,6 +85,7 @@ class PipelineContextCommandTest extends TestCase
         $this->artisan('aicl:pipeline-context', [
             'entity' => 'TestEntity',
         ])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Phase 1: Plan');
     }
@@ -94,6 +99,7 @@ class PipelineContextCommandTest extends TestCase
             'entity' => 'TestEntity',
             '--components' => true,
         ])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Component Recommendations for TestEntity');
     }
@@ -105,6 +111,7 @@ class PipelineContextCommandTest extends TestCase
             'entity' => 'TestEntity',
             '--components' => true,
         ])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('No fields found');
     }
@@ -117,6 +124,7 @@ class PipelineContextCommandTest extends TestCase
             'entity' => 'TestEntity',
             '--components' => true,
         ])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Context Rules');
     }

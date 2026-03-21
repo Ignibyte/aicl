@@ -22,7 +22,9 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Queue\InteractsWithQueue;
 use NeuronAI\Tools\Tool;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -35,7 +37,9 @@ class AiToolCoverageTest extends TestCase
 
     public function test_base_tool_extends_neuron_tool(): void
     {
-        $this->assertTrue(is_subclass_of(BaseTool::class, Tool::class));
+        $reflection = new \ReflectionClass(BaseTool::class);
+
+        $this->assertTrue($reflection->isSubclassOf(Tool::class));
     }
 
     public function test_base_tool_implements_ai_tool_interface(): void
@@ -151,33 +155,33 @@ class AiToolCoverageTest extends TestCase
     #[DataProvider('toolClassProvider')]
     public function test_tool_has_non_empty_name(string $toolClass): void
     {
+        /** @var BaseTool $tool */
         $tool = new $toolClass;
 
         $name = $tool->getName();
 
-        $this->assertIsString($name);
         $this->assertNotEmpty($name, "{$toolClass}::getName() should return a non-empty string");
     }
 
     #[DataProvider('toolClassProvider')]
     public function test_tool_has_non_empty_description(string $toolClass): void
     {
+        /** @var BaseTool $tool */
         $tool = new $toolClass;
 
         $description = $tool->getDescription();
 
-        $this->assertIsString($description);
         $this->assertNotEmpty($description, "{$toolClass}::getDescription() should return a non-empty string");
     }
 
     #[DataProvider('toolClassProvider')]
     public function test_tool_has_non_empty_category(string $toolClass): void
     {
+        /** @var BaseTool $tool */
         $tool = new $toolClass;
 
         $category = $tool->category();
 
-        $this->assertIsString($category);
         $this->assertNotEmpty($category, "{$toolClass}::category() should return a non-empty string");
     }
 
@@ -377,9 +381,9 @@ class AiToolCoverageTest extends TestCase
 
     public function test_ai_assistant_request_extends_form_request(): void
     {
-        $this->assertTrue(
-            is_subclass_of(AiAssistantRequest::class, FormRequest::class)
-        );
+        $reflection = new \ReflectionClass(AiAssistantRequest::class);
+
+        $this->assertTrue($reflection->isSubclassOf(FormRequest::class));
     }
 
     public function test_ai_assistant_request_has_rules_method(): void
@@ -452,16 +456,16 @@ class AiToolCoverageTest extends TestCase
 
     public function test_ai_stream_job_implements_should_queue(): void
     {
-        $this->assertTrue(
-            in_array(ShouldQueue::class, class_implements(AiStreamJob::class))
-        );
+        $implements = class_implements(AiStreamJob::class);
+        $this->assertIsArray($implements);
+        $this->assertContains(ShouldQueue::class, $implements);
     }
 
     public function test_ai_stream_job_uses_dispatchable(): void
     {
         $traits = class_uses_recursive(AiStreamJob::class);
 
-        $this->assertContains(\Illuminate\Foundation\Bus\Dispatchable::class, $traits);
+        $this->assertContains(Dispatchable::class, $traits);
     }
 
     public function test_ai_stream_job_uses_queueable(): void
@@ -475,7 +479,7 @@ class AiToolCoverageTest extends TestCase
     {
         $traits = class_uses_recursive(AiStreamJob::class);
 
-        $this->assertContains(\Illuminate\Queue\InteractsWithQueue::class, $traits);
+        $this->assertContains(InteractsWithQueue::class, $traits);
     }
 
     public function test_ai_stream_job_can_be_instantiated(): void
@@ -580,8 +584,11 @@ class AiToolCoverageTest extends TestCase
     #[DataProvider('broadcastEventProvider')]
     public function test_ai_event_implements_should_broadcast_now(string $eventClass): void
     {
-        $this->assertTrue(
-            in_array(ShouldBroadcastNow::class, class_implements($eventClass)),
+        $implements = class_implements($eventClass);
+        $this->assertIsArray($implements);
+        $this->assertContains(
+            ShouldBroadcastNow::class,
+            $implements,
             "{$eventClass} should implement ShouldBroadcastNow"
         );
     }

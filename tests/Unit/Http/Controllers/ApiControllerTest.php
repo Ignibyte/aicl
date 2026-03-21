@@ -4,6 +4,8 @@ namespace Aicl\Tests\Unit\Http\Controllers;
 
 use Aicl\AI\AiAssistantController;
 use Aicl\Filament\Pages\Backups;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controller;
 use PHPUnit\Framework\TestCase;
 
 class ApiControllerTest extends TestCase
@@ -12,14 +14,12 @@ class ApiControllerTest extends TestCase
 
     public function test_ai_assistant_controller_extends_controller(): void
     {
-        $this->assertTrue(
-            is_subclass_of(AiAssistantController::class, \Illuminate\Routing\Controller::class)
-        );
+        $this->assertTrue((new \ReflectionClass(AiAssistantController::class))->isSubclassOf(Controller::class));
     }
 
     public function test_ai_assistant_controller_has_ask_method(): void
     {
-        $this->assertTrue(method_exists(AiAssistantController::class, 'ask'));
+        $this->assertTrue((new \ReflectionClass(AiAssistantController::class))->hasMethod('ask'));
     }
 
     public function test_ai_assistant_controller_ask_returns_json_response(): void
@@ -28,7 +28,8 @@ class ApiControllerTest extends TestCase
         $returnType = $ref->getReturnType();
 
         $this->assertNotNull($returnType);
-        $this->assertEquals(\Illuminate\Http\JsonResponse::class, $returnType->getName());
+        /** @phpstan-ignore-next-line */
+        $this->assertEquals(JsonResponse::class, $returnType->getName());
     }
 
     public function test_ai_assistant_controller_has_resolve_entity_context_method(): void
@@ -41,9 +42,7 @@ class ApiControllerTest extends TestCase
 
     public function test_backups_extends_vendor_backups_page(): void
     {
-        $this->assertTrue(
-            is_subclass_of(Backups::class, \ShuvroRoy\FilamentSpatieLaravelBackup\Pages\Backups::class)
-        );
+        $this->assertTrue((new \ReflectionClass(Backups::class))->isSubclassOf(\ShuvroRoy\FilamentSpatieLaravelBackup\Pages\Backups::class));
     }
 
     public function test_backups_has_navigation_sort(): void

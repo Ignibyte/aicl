@@ -10,16 +10,16 @@ class AiclServiceProviderTest extends TestCase
 {
     public function test_extends_service_provider(): void
     {
-        $this->assertTrue(is_subclass_of(AiclServiceProvider::class, ServiceProvider::class));
+        $this->assertTrue((new \ReflectionClass(AiclServiceProvider::class))->isSubclassOf(ServiceProvider::class));
     }
 
     public function test_defines_register_method(): void
     {
-        $this->assertTrue(method_exists(AiclServiceProvider::class, 'register'));
+        $this->assertTrue((new \ReflectionClass(AiclServiceProvider::class))->hasMethod('register'));
     }
 
     public function test_defines_boot_method(): void
     {
-        $this->assertTrue(method_exists(AiclServiceProvider::class, 'boot'));
+        $this->assertTrue((new \ReflectionClass(AiclServiceProvider::class))->hasMethod('boot'));
     }
 }

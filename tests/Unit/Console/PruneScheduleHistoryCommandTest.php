@@ -20,6 +20,7 @@ class PruneScheduleHistoryCommandTest extends TestCase
         ]);
 
         $this->artisan('schedule:prune-history', ['--days' => 30])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Pruned 1');
 
@@ -38,6 +39,7 @@ class PruneScheduleHistoryCommandTest extends TestCase
         ]);
 
         $this->artisan('schedule:prune-history')
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Pruned 1');
 
@@ -51,6 +53,7 @@ class PruneScheduleHistoryCommandTest extends TestCase
         ]);
 
         $this->artisan('schedule:prune-history', ['--days' => 30])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful()
             ->expectsOutputToContain('Pruned 0');
 

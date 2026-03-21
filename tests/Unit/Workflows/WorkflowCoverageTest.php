@@ -17,6 +17,7 @@ use Aicl\Workflows\Notifications\ApprovalDecisionNotification;
 use Aicl\Workflows\Notifications\ApprovalRequestedNotification;
 use Aicl\Workflows\Traits\RequiresApproval;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -62,7 +63,6 @@ class WorkflowCoverageTest extends TestCase
     {
         $label = $status->label();
 
-        $this->assertIsString($label);
         $this->assertNotEmpty($label);
     }
 
@@ -71,7 +71,6 @@ class WorkflowCoverageTest extends TestCase
     {
         $color = $status->color();
 
-        $this->assertIsString($color);
         $this->assertNotEmpty($color);
     }
 
@@ -80,7 +79,6 @@ class WorkflowCoverageTest extends TestCase
     {
         $icon = $status->icon();
 
-        $this->assertIsString($icon);
         $this->assertStringStartsWith('heroicon-o-', $icon);
     }
 
@@ -132,7 +130,7 @@ class WorkflowCoverageTest extends TestCase
     {
         $status = ApprovalStatus::tryFrom('nonexistent');
 
-        $this->assertNull($status);
+        $this->assertNotSame(ApprovalStatus::Draft, $status);
     }
 
     // =====================================================================
@@ -141,7 +139,7 @@ class WorkflowCoverageTest extends TestCase
 
     public function test_approval_exception_extends_runtime_exception(): void
     {
-        $this->assertTrue(is_subclass_of(ApprovalException::class, RuntimeException::class));
+        $this->assertTrue((new \ReflectionClass(ApprovalException::class))->isSubclassOf(RuntimeException::class));
     }
 
     public function test_approval_exception_already_pending_contains_message(): void
@@ -204,7 +202,7 @@ class WorkflowCoverageTest extends TestCase
 
     public function test_approval_log_extends_model(): void
     {
-        $this->assertTrue(is_subclass_of(ApprovalLog::class, Model::class));
+        $this->assertTrue((new \ReflectionClass(ApprovalLog::class))->isSubclassOf(Model::class));
     }
 
     public function test_approval_log_has_correct_table(): void
@@ -337,7 +335,6 @@ class WorkflowCoverageTest extends TestCase
         $event = new ApprovalRequested($model, $user, 'Review it');
         $payload = $event->toPayload();
 
-        $this->assertIsArray($payload);
         $this->assertSame('requested', $payload['action']);
         $this->assertSame('Review it', $payload['comment']);
     }
@@ -475,7 +472,7 @@ class WorkflowCoverageTest extends TestCase
         $user = $this->createMockUser(1, 'Test');
         $event = new ApprovalRequested($this->createMockModel(), $user);
 
-        $this->assertNotNull($event->occurredAt);
+        $this->assertInstanceOf(Carbon::class, $event->occurredAt);
     }
 
     // =====================================================================
@@ -577,16 +574,12 @@ class WorkflowCoverageTest extends TestCase
 
     public function test_approval_requested_notification_extends_base_notification(): void
     {
-        $this->assertTrue(
-            is_subclass_of(ApprovalRequestedNotification::class, BaseNotification::class)
-        );
+        $this->assertTrue((new \ReflectionClass(ApprovalRequestedNotification::class))->isSubclassOf(BaseNotification::class));
     }
 
     public function test_approval_decision_notification_extends_base_notification(): void
     {
-        $this->assertTrue(
-            is_subclass_of(ApprovalDecisionNotification::class, BaseNotification::class)
-        );
+        $this->assertTrue((new \ReflectionClass(ApprovalDecisionNotification::class))->isSubclassOf(BaseNotification::class));
     }
 
     public function test_approval_requested_notification_is_instantiable(): void

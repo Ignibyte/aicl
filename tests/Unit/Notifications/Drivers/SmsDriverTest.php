@@ -23,6 +23,7 @@ class SmsDriverTest extends TestCase
         $this->driver = new SmsDriver;
     }
 
+    /** @phpstan-ignore-next-line */
     private function createChannel(array $config = []): NotificationChannel
     {
         return NotificationChannel::create([
@@ -133,6 +134,7 @@ class SmsDriverTest extends TestCase
 
         $this->assertFalse($result->success);
         $this->assertFalse($result->retryable);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('Unsupported SMS provider', $result->error);
     }
 

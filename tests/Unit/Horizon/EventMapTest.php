@@ -20,6 +20,7 @@ class EventMapTest extends TestCase
         {
             use EventMap;
 
+            /** @phpstan-ignore-next-line */
             public function getEvents(): array
             {
                 return $this->events;
@@ -29,6 +30,7 @@ class EventMapTest extends TestCase
 
     public function test_event_map_contains_all_horizon_events(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $expectedEvents = [
@@ -53,6 +55,7 @@ class EventMapTest extends TestCase
 
     public function test_event_map_includes_laravel_queue_events(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $this->assertArrayHasKey(JobExceptionOccurred::class, $events);
@@ -61,6 +64,7 @@ class EventMapTest extends TestCase
 
     public function test_job_pending_has_store_job_listener(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $this->assertContains(Listeners\StoreJob::class, $events[Events\JobPending::class]);
@@ -68,6 +72,7 @@ class EventMapTest extends TestCase
 
     public function test_job_reserved_has_expected_listeners(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $this->assertContains(Listeners\MarkJobAsReserved::class, $events[Events\JobReserved::class]);
@@ -76,6 +81,7 @@ class EventMapTest extends TestCase
 
     public function test_job_deleted_has_completion_listeners(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $this->assertContains(Listeners\MarkJobAsComplete::class, $events[Events\JobDeleted::class]);
@@ -84,6 +90,7 @@ class EventMapTest extends TestCase
 
     public function test_job_failed_has_failure_listeners(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $this->assertContains(Listeners\MarkJobAsFailed::class, $events[Events\JobFailed::class]);
@@ -92,6 +99,7 @@ class EventMapTest extends TestCase
 
     public function test_master_supervisor_looped_has_maintenance_listeners(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $listeners = $events[Events\MasterSupervisorLooped::class];
@@ -105,6 +113,7 @@ class EventMapTest extends TestCase
 
     public function test_supervisor_looped_has_process_listeners(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $listeners = $events[Events\SupervisorLooped::class];
@@ -116,6 +125,7 @@ class EventMapTest extends TestCase
 
     public function test_long_wait_detected_fires_send_notification(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $this->assertContains(Listeners\SendNotification::class, $events[Events\LongWaitDetected::class]);
@@ -123,6 +133,7 @@ class EventMapTest extends TestCase
 
     public function test_laravel_job_failed_has_marshal_listener(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $this->assertContains(Listeners\ForgetJobTimer::class, $events[LaravelJobFailed::class]);
@@ -131,6 +142,7 @@ class EventMapTest extends TestCase
 
     public function test_total_listener_count(): void
     {
+        /** @phpstan-ignore-next-line */
         $events = $this->eventMap->getEvents();
 
         $totalListeners = 0;

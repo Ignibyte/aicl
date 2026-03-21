@@ -51,11 +51,11 @@ class LogParserUnitTest extends TestCase
 
     public function test_log_parser_has_get_log_files_method(): void
     {
-        $this->assertTrue(method_exists(LogParser::class, 'getLogFiles'));
+        $this->assertTrue((new \ReflectionClass(LogParser::class))->hasMethod('getLogFiles'));
     }
 
     public function test_log_parser_has_parse_log_file_method(): void
     {
-        $this->assertTrue(method_exists(LogParser::class, 'parseLogFile'));
+        $this->assertTrue((new \ReflectionClass(LogParser::class))->hasMethod('parseLogFile'));
     }
 }

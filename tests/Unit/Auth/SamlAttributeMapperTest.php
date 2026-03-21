@@ -29,22 +29,29 @@ class SamlAttributeMapperTest extends TestCase
         ]);
     }
 
+    /** @phpstan-ignore-next-line */
     protected function mockSamlUser(array $rawAttributes = [], ?string $email = null, ?string $name = null): SocialiteUser
     {
         $lightSamlAttributes = [];
         foreach ($rawAttributes as $key => $value) {
             $attr = Mockery::mock(Attribute::class);
+            /** @phpstan-ignore-next-line */
             $attr->shouldReceive('getName')->andReturn($key);
             $values = is_array($value) ? $value : [$value];
+            /** @phpstan-ignore-next-line */
             $attr->shouldReceive('getAllAttributeValues')->andReturn($values);
             $lightSamlAttributes[] = $attr;
         }
 
         $user = Mockery::mock(SocialiteUser::class);
+        /** @phpstan-ignore-next-line */
         $user->shouldReceive('getRaw')->andReturn($lightSamlAttributes);
+        /** @phpstan-ignore-next-line */
         $user->shouldReceive('getEmail')->andReturn($email);
+        /** @phpstan-ignore-next-line */
         $user->shouldReceive('getName')->andReturn($name);
 
+        /** @phpstan-ignore-next-line */
         return $user;
     }
 
@@ -343,8 +350,10 @@ class SamlAttributeMapperTest extends TestCase
     public function test_get_raw_attributes_returns_empty_array_when_raw_is_not_array(): void
     {
         $user = Mockery::mock(SocialiteUser::class);
+        /** @phpstan-ignore-next-line */
         $user->shouldReceive('getRaw')->andReturn(null);
 
+        /** @phpstan-ignore-next-line */
         $raw = $this->mapper->getRawAttributes($user);
 
         $this->assertEquals([], $raw);

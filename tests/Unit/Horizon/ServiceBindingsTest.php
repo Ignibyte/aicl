@@ -44,6 +44,7 @@ class ServiceBindingsTest extends TestCase
 
     public function test_service_bindings_contains_all_repository_contracts(): void
     {
+        /** @phpstan-ignore-next-line */
         $bindings = $this->provider->serviceBindings;
 
         $this->assertArrayHasKey(JobRepository::class, $bindings);
@@ -57,6 +58,7 @@ class ServiceBindingsTest extends TestCase
 
     public function test_repository_bindings_map_to_redis_implementations(): void
     {
+        /** @phpstan-ignore-next-line */
         $bindings = $this->provider->serviceBindings;
 
         $this->assertSame(RedisJobRepository::class, $bindings[JobRepository::class]);
@@ -70,6 +72,7 @@ class ServiceBindingsTest extends TestCase
 
     public function test_command_queue_binding(): void
     {
+        /** @phpstan-ignore-next-line */
         $bindings = $this->provider->serviceBindings;
 
         $this->assertArrayHasKey(HorizonCommandQueue::class, $bindings);
@@ -78,6 +81,7 @@ class ServiceBindingsTest extends TestCase
 
     public function test_notification_binding(): void
     {
+        /** @phpstan-ignore-next-line */
         $bindings = $this->provider->serviceBindings;
 
         $this->assertArrayHasKey(LongWaitDetectedNotification::class, $bindings);
@@ -86,6 +90,7 @@ class ServiceBindingsTest extends TestCase
 
     public function test_singleton_bindings_for_services(): void
     {
+        /** @phpstan-ignore-next-line */
         $bindings = $this->provider->serviceBindings;
 
         // Numeric-keyed entries are singletons (no contract → implementation mapping)

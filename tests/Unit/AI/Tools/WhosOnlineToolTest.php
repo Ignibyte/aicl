@@ -44,6 +44,7 @@ class WhosOnlineToolTest extends TestCase
     public function test_returns_string_when_no_sessions(): void
     {
         $registry = Mockery::mock(PresenceRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allSessions')->once()->andReturn(collect());
 
         $this->app->instance(PresenceRegistry::class, $registry);
@@ -73,6 +74,7 @@ class WhosOnlineToolTest extends TestCase
         ]);
 
         $registry = Mockery::mock(PresenceRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allSessions')->once()->andReturn($sessions);
 
         $this->app->instance(PresenceRegistry::class, $registry);
@@ -101,6 +103,7 @@ class WhosOnlineToolTest extends TestCase
         ]);
 
         $registry = Mockery::mock(PresenceRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allSessions')->once()->andReturn($sessions);
 
         $this->app->instance(PresenceRegistry::class, $registry);

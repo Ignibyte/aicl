@@ -32,7 +32,6 @@ class DataComponentTest extends TestCase
         $component = new StatusBadge(label: 'Active', color: 'success');
 
         $classes = $component->colorClasses();
-        $this->assertIsString($classes);
         $this->assertNotEmpty($classes);
     }
 

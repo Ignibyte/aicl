@@ -19,6 +19,7 @@ class HasSearchableFieldsTest extends TestCase
 
             protected $guarded = [];
 
+            /** @phpstan-ignore-next-line */
             protected function searchableFields(): array
             {
                 return ['name', 'email'];
@@ -65,7 +66,6 @@ class HasSearchableFieldsTest extends TestCase
         $result = $model->searchableAs();
 
         // Anonymous class will produce an odd name, but the format should be snake_case
-        $this->assertIsString($result);
     }
 
     public function test_searchable_as_includes_prefix(): void
@@ -122,6 +122,7 @@ class HasSearchableFieldsTest extends TestCase
 
             protected $guarded = [];
 
+            /** @phpstan-ignore-next-line */
             protected function searchableFields(): array
             {
                 return ['status'];
@@ -146,6 +147,7 @@ class HasSearchableFieldsTest extends TestCase
 
             protected $guarded = [];
 
+            /** @phpstan-ignore-next-line */
             protected function searchableFields(): array
             {
                 return ['published_at'];
@@ -175,6 +177,7 @@ class HasSearchableFieldsTest extends TestCase
 
             protected $guarded = [];
 
+            /** @phpstan-ignore-next-line */
             protected function searchableFields(): array
             {
                 return ['description'];

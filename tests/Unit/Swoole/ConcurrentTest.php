@@ -233,6 +233,7 @@ class ConcurrentTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Value at key [bad] is not callable.');
 
+        /** @phpstan-ignore-next-line */
         Concurrent::run([
             'good' => fn () => 1,
             'bad' => 'not a callable',
@@ -244,6 +245,7 @@ class ConcurrentTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Value at key [0] is not callable.');
 
+        /** @phpstan-ignore-next-line */
         Concurrent::race([42]);
     }
 

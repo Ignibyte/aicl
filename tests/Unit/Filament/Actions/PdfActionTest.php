@@ -10,7 +10,7 @@ class PdfActionTest extends TestCase
 {
     public function test_pdf_action_extends_filament_action(): void
     {
-        $this->assertTrue(is_subclass_of(PdfAction::class, Action::class));
+        $this->assertTrue((new \ReflectionClass(PdfAction::class))->isSubclassOf(Action::class));
     }
 
     public function test_default_name_is_download_pdf(): void
@@ -20,32 +20,32 @@ class PdfActionTest extends TestCase
 
     public function test_pdf_view_method_exists(): void
     {
-        $this->assertTrue(method_exists(PdfAction::class, 'pdfView'));
+        $this->assertTrue((new \ReflectionClass(PdfAction::class))->hasMethod('pdfView'));
     }
 
     public function test_filename_method_exists(): void
     {
-        $this->assertTrue(method_exists(PdfAction::class, 'filename'));
+        $this->assertTrue((new \ReflectionClass(PdfAction::class))->hasMethod('filename'));
     }
 
     public function test_pdf_data_method_exists(): void
     {
-        $this->assertTrue(method_exists(PdfAction::class, 'pdfData'));
+        $this->assertTrue((new \ReflectionClass(PdfAction::class))->hasMethod('pdfData'));
     }
 
     public function test_paper_method_exists(): void
     {
-        $this->assertTrue(method_exists(PdfAction::class, 'paper'));
+        $this->assertTrue((new \ReflectionClass(PdfAction::class))->hasMethod('paper'));
     }
 
     public function test_orientation_method_exists(): void
     {
-        $this->assertTrue(method_exists(PdfAction::class, 'orientation'));
+        $this->assertTrue((new \ReflectionClass(PdfAction::class))->hasMethod('orientation'));
     }
 
     public function test_landscape_method_exists(): void
     {
-        $this->assertTrue(method_exists(PdfAction::class, 'landscape'));
+        $this->assertTrue((new \ReflectionClass(PdfAction::class))->hasMethod('landscape'));
     }
 
     public function test_pdf_filename_property_accepts_string_or_closure(): void

@@ -29,6 +29,7 @@ class ContractsTest extends TestCase
         $this->assertTrue($reflection->isInterface(), "{$contract} should be an interface");
     }
 
+    /** @phpstan-ignore-next-line */
     public static function contractProvider(): array
     {
         return [

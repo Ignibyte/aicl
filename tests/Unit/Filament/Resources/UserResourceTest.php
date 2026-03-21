@@ -21,7 +21,7 @@ class UserResourceTest extends TestCase
 
     public function test_extends_resource(): void
     {
-        $this->assertTrue(is_subclass_of(UserResource::class, Resource::class));
+        $this->assertTrue((new \ReflectionClass(UserResource::class))->isSubclassOf(Resource::class));
     }
 
     public function test_model_is_user(): void
@@ -52,7 +52,6 @@ class UserResourceTest extends TestCase
     {
         $pages = UserResource::getPages();
 
-        $this->assertIsArray($pages);
         $this->assertArrayHasKey('index', $pages);
         $this->assertArrayHasKey('create', $pages);
         $this->assertArrayHasKey('edit', $pages);
@@ -60,12 +59,12 @@ class UserResourceTest extends TestCase
 
     public function test_defines_form_method(): void
     {
-        $this->assertTrue(method_exists(UserResource::class, 'form'));
+        $this->assertTrue((new \ReflectionClass(UserResource::class))->hasMethod('form'));
     }
 
     public function test_defines_table_method(): void
     {
-        $this->assertTrue(method_exists(UserResource::class, 'table'));
+        $this->assertTrue((new \ReflectionClass(UserResource::class))->hasMethod('table'));
     }
 
     // ─── UserForm Schema ───────────────────────────────────────
@@ -77,7 +76,7 @@ class UserResourceTest extends TestCase
 
     public function test_user_form_has_configure_method(): void
     {
-        $this->assertTrue(method_exists(UserForm::class, 'configure'));
+        $this->assertTrue((new \ReflectionClass(UserForm::class))->hasMethod('configure'));
 
         $reflection = new \ReflectionMethod(UserForm::class, 'configure');
         $this->assertTrue($reflection->isStatic());
@@ -92,7 +91,7 @@ class UserResourceTest extends TestCase
 
     public function test_users_table_has_configure_method(): void
     {
-        $this->assertTrue(method_exists(UsersTable::class, 'configure'));
+        $this->assertTrue((new \ReflectionClass(UsersTable::class))->hasMethod('configure'));
 
         $reflection = new \ReflectionMethod(UsersTable::class, 'configure');
         $this->assertTrue($reflection->isStatic());
@@ -102,7 +101,7 @@ class UserResourceTest extends TestCase
 
     public function test_list_users_extends_list_records(): void
     {
-        $this->assertTrue(is_subclass_of(ListUsers::class, ListRecords::class));
+        $this->assertTrue((new \ReflectionClass(ListUsers::class))->isSubclassOf(ListRecords::class));
     }
 
     public function test_list_users_resource(): void
@@ -115,7 +114,7 @@ class UserResourceTest extends TestCase
 
     public function test_create_user_extends_create_record(): void
     {
-        $this->assertTrue(is_subclass_of(CreateUser::class, CreateRecord::class));
+        $this->assertTrue((new \ReflectionClass(CreateUser::class))->isSubclassOf(CreateRecord::class));
     }
 
     public function test_create_user_resource(): void
@@ -128,7 +127,7 @@ class UserResourceTest extends TestCase
 
     public function test_edit_user_extends_edit_record(): void
     {
-        $this->assertTrue(is_subclass_of(EditUser::class, EditRecord::class));
+        $this->assertTrue((new \ReflectionClass(EditUser::class))->isSubclassOf(EditRecord::class));
     }
 
     public function test_edit_user_resource(): void

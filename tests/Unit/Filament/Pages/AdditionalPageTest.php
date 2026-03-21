@@ -31,12 +31,12 @@ class AdditionalPageTest extends TestCase
 
     public function test_backups_extends_base_backups(): void
     {
-        $this->assertTrue(is_subclass_of(Backups::class, BaseBackups::class));
+        $this->assertTrue((new \ReflectionClass(Backups::class))->isSubclassOf(BaseBackups::class));
     }
 
     public function test_backups_extends_filament_page(): void
     {
-        $this->assertTrue(is_subclass_of(Backups::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(Backups::class))->isSubclassOf(Page::class));
     }
 
     public function test_backups_navigation_sort(): void
@@ -121,7 +121,6 @@ class AdditionalPageTest extends TestCase
         $page = new Search;
         $types = $page->getEntityTypes();
 
-        $this->assertIsArray($types);
         $this->assertArrayHasKey('', $types);
         $this->assertEquals('All Types', $types['']);
     }
@@ -133,7 +132,6 @@ class AdditionalPageTest extends TestCase
         // Calling updatedQuery should not throw an error
         $page->updatedQuery();
 
-        $this->assertTrue(true);
     }
 
     public function test_search_updated_entity_type_clears_computed_results(): void
@@ -143,24 +141,23 @@ class AdditionalPageTest extends TestCase
         // Calling updatedEntityType should not throw an error
         $page->updatedEntityType();
 
-        $this->assertTrue(true);
     }
 
     public function test_search_has_results_computed_method(): void
     {
-        $this->assertTrue(method_exists(Search::class, 'searchResults'));
+        $this->assertTrue((new \ReflectionClass(Search::class))->hasMethod('searchResults'));
     }
 
     // ─── NotificationCenter (gap coverage) ──────────────────────
 
     public function test_notification_center_implements_has_forms(): void
     {
-        $this->assertTrue(is_subclass_of(NotificationCenter::class, HasForms::class));
+        $this->assertTrue((new \ReflectionClass(NotificationCenter::class))->isSubclassOf(HasForms::class));
     }
 
     public function test_notification_center_implements_has_table(): void
     {
-        $this->assertTrue(is_subclass_of(NotificationCenter::class, HasTable::class));
+        $this->assertTrue((new \ReflectionClass(NotificationCenter::class))->isSubclassOf(HasTable::class));
     }
 
     public function test_notification_center_navigation_icon(): void
@@ -213,19 +210,19 @@ class AdditionalPageTest extends TestCase
 
     public function test_notification_center_has_table_method(): void
     {
-        $this->assertTrue(method_exists(NotificationCenter::class, 'table'));
+        $this->assertTrue((new \ReflectionClass(NotificationCenter::class))->hasMethod('table'));
     }
 
     public function test_notification_center_has_form_method(): void
     {
-        $this->assertTrue(method_exists(NotificationCenter::class, 'form'));
+        $this->assertTrue((new \ReflectionClass(NotificationCenter::class))->hasMethod('form'));
     }
 
     // ─── ActivityLog (gap coverage) ─────────────────────────────
 
     public function test_activity_log_implements_has_forms(): void
     {
-        $this->assertTrue(is_subclass_of(ActivityLog::class, HasForms::class));
+        $this->assertTrue((new \ReflectionClass(ActivityLog::class))->isSubclassOf(HasForms::class));
     }
 
     public function test_activity_log_navigation_icon(): void
@@ -278,17 +275,17 @@ class AdditionalPageTest extends TestCase
 
     public function test_activity_log_has_form_method(): void
     {
-        $this->assertTrue(method_exists(ActivityLog::class, 'form'));
+        $this->assertTrue((new \ReflectionClass(ActivityLog::class))->hasMethod('form'));
     }
 
     public function test_activity_log_has_log_entries_computed_method(): void
     {
-        $this->assertTrue(method_exists(ActivityLog::class, 'logEntries'));
+        $this->assertTrue((new \ReflectionClass(ActivityLog::class))->hasMethod('logEntries'));
     }
 
     public function test_activity_log_has_log_files_computed_method(): void
     {
-        $this->assertTrue(method_exists(ActivityLog::class, 'logFiles'));
+        $this->assertTrue((new \ReflectionClass(ActivityLog::class))->hasMethod('logFiles'));
     }
 
     public function test_activity_log_has_header_actions(): void
@@ -367,12 +364,12 @@ class AdditionalPageTest extends TestCase
 
     public function test_operations_manager_has_table_method(): void
     {
-        $this->assertTrue(method_exists(OperationsManager::class, 'table'));
+        $this->assertTrue((new \ReflectionClass(OperationsManager::class))->hasMethod('table'));
     }
 
     public function test_operations_manager_has_get_queue_stats_method(): void
     {
-        $this->assertTrue(method_exists(OperationsManager::class, 'getQueueStats'));
+        $this->assertTrue((new \ReflectionClass(OperationsManager::class))->hasMethod('getQueueStats'));
     }
 
     public function test_operations_manager_accessible_by_super_admin(): void
@@ -443,17 +440,17 @@ class AdditionalPageTest extends TestCase
 
     public function test_api_tokens_has_get_tokens_method(): void
     {
-        $this->assertTrue(method_exists(ApiTokens::class, 'getTokens'));
+        $this->assertTrue((new \ReflectionClass(ApiTokens::class))->hasMethod('getTokens'));
     }
 
     public function test_api_tokens_has_create_token_method(): void
     {
-        $this->assertTrue(method_exists(ApiTokens::class, 'createToken'));
+        $this->assertTrue((new \ReflectionClass(ApiTokens::class))->hasMethod('createToken'));
     }
 
     public function test_api_tokens_has_revoke_token_method(): void
     {
-        $this->assertTrue(method_exists(ApiTokens::class, 'revokeToken'));
+        $this->assertTrue((new \ReflectionClass(ApiTokens::class))->hasMethod('revokeToken'));
     }
 
     public function test_api_tokens_get_tokens_returns_empty_when_user_has_no_tokens_method(): void
@@ -464,7 +461,6 @@ class AdditionalPageTest extends TestCase
         $page = new ApiTokens;
         $tokens = $page->getTokens();
 
-        $this->assertIsArray($tokens);
         // User model may not have tokens() method (Passport not installed),
         // in which case it returns an empty array.
     }

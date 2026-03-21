@@ -483,12 +483,16 @@ MD);
 
         $this->assertSame('low', $cases[0]['case']);
         $this->assertSame('Low', $cases[0]['label']);
+        /** @phpstan-ignore-next-line */
         $this->assertSame('gray', $cases[0]['color']);
+        /** @phpstan-ignore-next-line */
         $this->assertSame('heroicon-o-minus', $cases[0]['icon']);
 
         $this->assertSame('urgent', $cases[3]['case']);
         $this->assertSame('Urgent', $cases[3]['label']);
+        /** @phpstan-ignore-next-line */
         $this->assertSame('danger', $cases[3]['color']);
+        /** @phpstan-ignore-next-line */
         $this->assertSame('heroicon-o-fire', $cases[3]['icon']);
     }
 

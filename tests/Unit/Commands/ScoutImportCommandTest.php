@@ -4,6 +4,8 @@ namespace Aicl\Tests\Unit\Commands;
 
 use Aicl\Console\Commands\ScoutImportCommand;
 use Aicl\Traits\HasSearchableFields;
+use App\Models\User;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class ScoutImportCommandTest extends TestCase
@@ -11,6 +13,7 @@ class ScoutImportCommandTest extends TestCase
     public function test_command_is_registered(): void
     {
         $this->artisan('aicl:scout-import --help')
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful();
     }
 
@@ -31,7 +34,7 @@ class ScoutImportCommandTest extends TestCase
 
         $models = $reflection->invoke($command);
 
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $models);
+        $this->assertInstanceOf(Collection::class, $models);
     }
 
     public function test_command_get_traits_recursive(): void
@@ -42,7 +45,7 @@ class ScoutImportCommandTest extends TestCase
         $reflection->setAccessible(true);
 
         // User model doesn't use HasSearchableFields, so it shouldn't contain it
-        $traits = $reflection->invoke($command, \App\Models\User::class);
+        $traits = $reflection->invoke($command, User::class);
 
         $this->assertIsArray($traits);
         $this->assertNotContains(HasSearchableFields::class, $traits);
@@ -56,6 +59,6 @@ class ScoutImportCommandTest extends TestCase
         $models = $reflection->invoke($command);
 
         // Returns a collection (may be empty if no models use HasSearchableFields)
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $models);
+        $this->assertInstanceOf(Collection::class, $models);
     }
 }

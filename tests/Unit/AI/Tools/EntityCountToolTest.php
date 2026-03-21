@@ -44,6 +44,7 @@ class EntityCountToolTest extends TestCase
     public function test_returns_string_when_no_entity_types_registered(): void
     {
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->once()->andReturn(collect());
 
         $this->app->instance(EntityRegistry::class, $registry);
@@ -58,6 +59,7 @@ class EntityCountToolTest extends TestCase
     public function test_returns_unknown_entity_type_message(): void
     {
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => 'App\\Models\\Task', 'table' => 'tasks', 'label' => 'Task'],
         ]));
@@ -74,9 +76,11 @@ class EntityCountToolTest extends TestCase
     public function test_counts_by_status_returns_string_when_no_status_entities(): void
     {
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => 'App\\Models\\Task', 'table' => 'tasks', 'label' => 'Task'],
         ]));
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('countsByStatus')->once()->andReturn([]);
 
         $this->app->instance(EntityRegistry::class, $registry);
@@ -96,9 +100,11 @@ class EntityCountToolTest extends TestCase
         ];
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => 'App\\Models\\Task', 'table' => 'tasks', 'label' => 'Task'],
         ]));
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('countsByStatus')->once()->andReturn($statusCounts);
 
         $this->app->instance(EntityRegistry::class, $registry);
@@ -114,9 +120,11 @@ class EntityCountToolTest extends TestCase
     public function test_counts_by_status_for_unknown_entity(): void
     {
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => 'App\\Models\\Task', 'table' => 'tasks', 'label' => 'Task'],
         ]));
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('countsByStatus')->once()->andReturn([
             'Task' => ['active' => 5],
         ]);
@@ -138,9 +146,11 @@ class EntityCountToolTest extends TestCase
         ];
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => 'App\\Models\\Task', 'table' => 'tasks', 'label' => 'Task'],
         ]));
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('countsByStatus')->once()->andReturn($statusCounts);
 
         $this->app->instance(EntityRegistry::class, $registry);

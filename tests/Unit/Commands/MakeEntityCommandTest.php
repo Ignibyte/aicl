@@ -10,7 +10,7 @@ class MakeEntityCommandTest extends TestCase
 {
     public function test_extends_command(): void
     {
-        $this->assertTrue(is_subclass_of(MakeEntityCommand::class, Command::class));
+        $this->assertTrue((new \ReflectionClass(MakeEntityCommand::class))->isSubclassOf(Command::class));
     }
 
     public function test_has_signature(): void
@@ -38,7 +38,7 @@ class MakeEntityCommandTest extends TestCase
 
     public function test_defines_select_traits_method(): void
     {
-        $this->assertTrue(method_exists(MakeEntityCommand::class, 'selectTraits'));
+        $this->assertTrue((new \ReflectionClass(MakeEntityCommand::class))->hasMethod('selectTraits'));
     }
 
     public function test_defines_generate_model_method(): void

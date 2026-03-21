@@ -6,6 +6,7 @@ use Aicl\Swoole\Cache\PermissionCacheManager;
 use Aicl\Swoole\SwooleCache;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Events\PermissionAttached;
@@ -31,9 +32,11 @@ class PermissionCacheManagerTest extends TestCase
         SwooleCache::reset();
 
         // Use Carbon as the clock source so setTestNow works
+        /** @phpstan-ignore-next-line */
         SwooleCache::useClock(fn (): int => Carbon::now()->timestamp);
 
         // Inject a mock resolver that uses in-memory arrays
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -76,6 +79,7 @@ class PermissionCacheManagerTest extends TestCase
         // Refresh to load roles relationship
         $user = $user->fresh();
 
+        /** @phpstan-ignore-next-line */
         $cache = PermissionCacheManager::buildCacheForUser($user);
 
         $this->assertArrayHasKey('permissions', $cache);
@@ -92,6 +96,7 @@ class PermissionCacheManagerTest extends TestCase
         $user->assignRole('super_admin');
         $user = $user->fresh();
 
+        /** @phpstan-ignore-next-line */
         $cache = PermissionCacheManager::buildCacheForUser($user);
 
         $this->assertTrue($cache['super_admin']);
@@ -101,8 +106,9 @@ class PermissionCacheManagerTest extends TestCase
     public function test_build_cache_for_user_without_roles_trait_returns_empty(): void
     {
         // Create an Authorizable mock without HasRoles
-        $mock = new class implements \Illuminate\Contracts\Auth\Access\Authorizable
+        $mock = new class implements Authorizable
         {
+            /** @phpstan-ignore-next-line */
             public function can($abilities, $arguments = []): bool
             {
                 return false;
@@ -133,6 +139,7 @@ class PermissionCacheManagerTest extends TestCase
 
         // Now the cache should be populated
         $cached = SwooleCache::get('permissions', "user:{$user->id}");
+        /** @phpstan-ignore-next-line */
         $this->assertNotNull($cached);
         $this->assertContains('ViewAny:User', $cached['permissions']);
     }
@@ -360,6 +367,7 @@ class PermissionCacheManagerTest extends TestCase
         ]);
 
         // Delete a permission
+        /** @phpstan-ignore-next-line */
         Permission::where('name', 'ViewAny:User')->first()->delete();
 
         $this->assertNull(SwooleCache::get('permissions', "user:{$user->id}"));
@@ -376,6 +384,7 @@ class PermissionCacheManagerTest extends TestCase
         ]);
 
         // Delete a role — fires eloquent.deleted event on Role model
+        /** @phpstan-ignore-next-line */
         Role::where('name', 'viewer')->first()->delete();
 
         $this->assertNull(SwooleCache::get('permissions', "user:{$user->id}"));
@@ -404,6 +413,7 @@ class PermissionCacheManagerTest extends TestCase
         $this->assertFalse($user->can('ForceDelete:User'));
 
         // Re-set the resolver for tearDown
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -470,8 +480,10 @@ class PermissionCacheManagerTest extends TestCase
 
         return new class($data) implements \Countable, \IteratorAggregate
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private array &$data) {}
 
+            /** @phpstan-ignore-next-line */
             public function set(string $key, array $value): bool
             {
                 $this->data[$key] = $value;
@@ -516,6 +528,7 @@ class PermissionCacheManagerTest extends TestCase
                 return count($this->data);
             }
 
+            /** @phpstan-ignore-next-line */
             public function getIterator(): \ArrayIterator
             {
                 return new \ArrayIterator($this->data);

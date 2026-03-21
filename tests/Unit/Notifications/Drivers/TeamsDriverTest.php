@@ -24,6 +24,7 @@ class TeamsDriverTest extends TestCase
         $this->driver = new TeamsDriver;
     }
 
+    /** @phpstan-ignore-next-line */
     private function createChannel(array $config = []): NotificationChannel
     {
         return NotificationChannel::create([
@@ -207,6 +208,7 @@ class TeamsDriverTest extends TestCase
 
         $this->assertFalse($result->success);
         $this->assertFalse($result->retryable);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('400', $result->error);
     }
 

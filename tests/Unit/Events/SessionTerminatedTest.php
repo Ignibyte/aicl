@@ -11,7 +11,7 @@ class SessionTerminatedTest extends TestCase
 {
     public function test_extends_domain_event(): void
     {
-        $this->assertTrue(is_subclass_of(SessionTerminated::class, DomainEvent::class));
+        $this->assertTrue((new \ReflectionClass(SessionTerminated::class))->isSubclassOf(DomainEvent::class));
     }
 
     public function test_event_type_is_session_terminated(): void

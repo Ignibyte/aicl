@@ -10,7 +10,7 @@ class InstallCommandTest extends TestCase
 {
     public function test_extends_command(): void
     {
-        $this->assertTrue(is_subclass_of(InstallCommand::class, Command::class));
+        $this->assertTrue((new \ReflectionClass(InstallCommand::class))->isSubclassOf(Command::class));
     }
 
     public function test_has_signature(): void

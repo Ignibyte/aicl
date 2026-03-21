@@ -6,6 +6,7 @@ use Aicl\Health\HealthCheckRegistry;
 use Aicl\Health\ServiceCheckResult;
 use Aicl\Health\ServiceStatus;
 use Aicl\Jobs\RefreshHealthChecksJob;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
@@ -16,6 +17,7 @@ class RefreshHealthChecksJobTest extends TestCase
     {
         $results = [
             ServiceCheckResult::healthy('database', 'heroicon-o-circle-stack'),
+            /** @phpstan-ignore-next-line */
             ServiceCheckResult::down('elasticsearch', 'heroicon-o-magnifying-glass', 'Connection refused'),
         ];
 
@@ -48,6 +50,7 @@ class RefreshHealthChecksJobTest extends TestCase
         $job = new RefreshHealthChecksJob;
         $job->handle($registry);
 
+        /** @phpstan-ignore-next-line */
         Log::shouldHaveReceived('debug')
             ->withArgs(fn ($message, $context) => $message === 'Health checks refreshed' && $context['count'] === 0)
             ->once();
@@ -70,6 +73,6 @@ class RefreshHealthChecksJobTest extends TestCase
     {
         $job = new RefreshHealthChecksJob;
 
-        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $job);
+        $this->assertInstanceOf(ShouldQueue::class, $job);
     }
 }

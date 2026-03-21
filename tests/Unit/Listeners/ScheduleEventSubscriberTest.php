@@ -56,6 +56,7 @@ class ScheduleEventSubscriberTest extends TestCase
 
         $this->subscriber->handleStarting($event);
 
+        /** @phpstan-ignore-next-line */
         $this->assertNotNull($task->_scheduleHistoryId);
     }
 
@@ -70,8 +71,11 @@ class ScheduleEventSubscriberTest extends TestCase
         $this->subscriber->handleFinished($finishEvent);
 
         $history = ScheduleHistory::query()->first();
+        /** @phpstan-ignore-next-line */
         $this->assertSame('success', $history->status);
+        /** @phpstan-ignore-next-line */
         $this->assertSame(0, $history->exit_code);
+        /** @phpstan-ignore-next-line */
         $this->assertNotNull($history->finished_at);
     }
 
@@ -87,8 +91,11 @@ class ScheduleEventSubscriberTest extends TestCase
         $this->subscriber->handleFailed($failEvent);
 
         $history = ScheduleHistory::query()->first();
+        /** @phpstan-ignore-next-line */
         $this->assertSame('failed', $history->status);
+        /** @phpstan-ignore-next-line */
         $this->assertSame(1, $history->exit_code);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('Backup disk full', $history->output);
     }
 
@@ -130,6 +137,7 @@ class ScheduleEventSubscriberTest extends TestCase
     private function createMockTask(?string $command = null, ?string $description = null): Event
     {
         $mutex = Mockery::mock(EventMutex::class);
+        /** @phpstan-ignore-next-line */
         $task = new Event($mutex, $command ?? 'ls');
 
         if ($command) {

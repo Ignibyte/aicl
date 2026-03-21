@@ -12,10 +12,12 @@ use PHPUnit\Framework\TestCase;
 
 class BaseNotificationTest extends TestCase
 {
+    /** @phpstan-ignore-next-line */
     private function createConcreteNotification(array $data = []): BaseNotification
     {
         return new class($data) extends BaseNotification
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private array $testData = []) {}
 
             public function toDatabase(object $notifiable): array

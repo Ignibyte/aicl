@@ -14,36 +14,31 @@ class HasSocialAccountsTest extends TestCase
 
     public function test_trait_defines_social_accounts_method(): void
     {
-        $this->assertTrue(
-            method_exists(HasSocialAccounts::class, 'socialAccounts'),
-        );
+        $ref = new \ReflectionClass(HasSocialAccounts::class);
+        $this->assertTrue($ref->hasMethod('socialAccounts'));
     }
 
     public function test_trait_defines_has_social_account_method(): void
     {
-        $this->assertTrue(
-            method_exists(HasSocialAccounts::class, 'hasSocialAccount'),
-        );
+        $ref = new \ReflectionClass(HasSocialAccounts::class);
+        $this->assertTrue($ref->hasMethod('hasSocialAccount'));
     }
 
     public function test_trait_defines_get_social_account_method(): void
     {
-        $this->assertTrue(
-            method_exists(HasSocialAccounts::class, 'getSocialAccount'),
-        );
+        $ref = new \ReflectionClass(HasSocialAccounts::class);
+        $this->assertTrue($ref->hasMethod('getSocialAccount'));
     }
 
     public function test_trait_defines_link_social_account_method(): void
     {
-        $this->assertTrue(
-            method_exists(HasSocialAccounts::class, 'linkSocialAccount'),
-        );
+        $ref = new \ReflectionClass(HasSocialAccounts::class);
+        $this->assertTrue($ref->hasMethod('linkSocialAccount'));
     }
 
     public function test_trait_defines_unlink_social_account_method(): void
     {
-        $this->assertTrue(
-            method_exists(HasSocialAccounts::class, 'unlinkSocialAccount'),
-        );
+        $ref = new \ReflectionClass(HasSocialAccounts::class);
+        $this->assertTrue($ref->hasMethod('unlinkSocialAccount'));
     }
 }

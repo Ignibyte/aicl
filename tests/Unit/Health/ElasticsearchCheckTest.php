@@ -86,7 +86,9 @@ class ElasticsearchCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Degraded, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('yellow', $result->error);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('replicas', $result->error);
     }
 
@@ -108,6 +110,7 @@ class ElasticsearchCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Down, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('red', $result->error);
     }
 
@@ -139,6 +142,7 @@ class ElasticsearchCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Down, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('500', $result->error);
     }
 
@@ -386,6 +390,7 @@ class ElasticsearchCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Down, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('401', $result->error);
     }
 }

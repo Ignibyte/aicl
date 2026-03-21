@@ -22,7 +22,7 @@ class SocialAccountModelTest extends TestCase
     {
         $account = new SocialAccount;
 
-        $this->assertTrue(method_exists($account, 'user'));
+        $this->assertTrue((new \ReflectionClass($account))->hasMethod('user'));
     }
 
     public function test_is_expired_returns_false_when_no_expiry(): void

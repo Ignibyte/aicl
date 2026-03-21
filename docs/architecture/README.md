@@ -65,6 +65,26 @@ Each major system has its own document explaining how it works in the AICL conte
 | [Scheduler](scheduler.md) | schedule:work daemon, registered tasks, monitoring (ScheduleHistory), health check, Swoole timer boundary | `/architect` |
 | [Repositories](repositories.md) | 3-repo structure (dev/framework/project), code flow, versioning, release workflow | `/release`, all agents |
 
+### Component Deep-Dives
+
+Detailed usage guides for specific subsystems (consolidated from standalone docs):
+
+| Document | What It Covers | Primary Audience |
+|----------|---------------|-----------------|
+| [Swoole Concurrent](swoole-concurrent.md) | Concurrent::map() usage, parallel queries, fallback behavior | `/architect` |
+| [Swoole Cache](swoole-cache.md) | SwooleCache API, cache wiring layer, testing patterns | `/architect` |
+| [Swoole Timer](swoole-timer.md) | SwooleTimer API, Redis persistence, worker coordination | `/architect` |
+| [Approval Workflow](approval-workflow.md) | RequiresApproval trait, approval logs, state transitions | `/architect` |
+| [Domain Event Bus](domain-event-bus.md) | DomainEvent system, event registry, event persistence | `/architect` |
+| [Realtime UI](realtime-ui.md) | Real-time UI patterns, polling, WebSocket integration | `/architect`, `/designer` |
+| [Base Flag](base-flag.md) | `--base=` flag system for entity scaffolding | `/architect` |
+| [Entity Registry](entity-registry.md) | EntityRegistry service, entity discovery, parallel queries | `/architect` |
+| [Notification Drivers](notification-drivers.md) | External drivers (Slack, Email, Teams, PagerDuty, Webhook, SMS) | `/architect` |
+| [Message Templates](message-templates.md) | Notification message templating system | `/architect` |
+| [Ops Panel](ops-panel.md) | Operations panel, health checks, system monitoring | `/architect` |
+| [Horizon (standalone)](horizon.md) | Horizon queue monitoring setup and configuration | `/architect` |
+| [NeuronAI Integration](neuronai-integration.md) | NeuronAI provider integration, AI tool calling | `/architect`, `/solutions` |
+
 ### Legacy Docs (Superseded)
 
 These older docs contain some useful detail but are partially outdated. The v3.0 Infrastructure docs above are authoritative:

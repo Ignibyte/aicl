@@ -30,6 +30,7 @@ class ExternalPipelineActivationTest extends TestCase
         ]);
 
         $channel = NotificationChannel::where('slug', 'system-email')->first();
+        /** @phpstan-ignore-next-line */
         $this->assertSame(ChannelType::Email, $channel->type);
     }
 
@@ -43,6 +44,7 @@ class ExternalPipelineActivationTest extends TestCase
         ]);
 
         $channel = NotificationChannel::where('slug', 'slack-alerts')->first();
+        /** @phpstan-ignore-next-line */
         $this->assertSame(ChannelType::Slack, $channel->type);
     }
 
@@ -56,6 +58,7 @@ class ExternalPipelineActivationTest extends TestCase
         ]);
 
         $channel = NotificationChannel::where('slug', 'generic-webhook')->first();
+        /** @phpstan-ignore-next-line */
         $this->assertSame(ChannelType::Webhook, $channel->type);
     }
 

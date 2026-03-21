@@ -24,6 +24,7 @@ class EmailDriverTest extends TestCase
         $this->driver = new EmailDriver;
     }
 
+    /** @phpstan-ignore-next-line */
     private function createChannel(array $config = []): NotificationChannel
     {
         return NotificationChannel::create([
@@ -51,6 +52,7 @@ class EmailDriverTest extends TestCase
 
         $this->assertTrue($result->success);
         $this->assertInstanceOf(DriverResult::class, $result);
+        /** @phpstan-ignore-next-line */
         $this->assertSame(['admin@example.com'], $result->response['recipients']);
     }
 
@@ -100,6 +102,7 @@ class EmailDriverTest extends TestCase
         $result = $this->driver->send($channel, $payload);
 
         $this->assertTrue($result->success);
+        /** @phpstan-ignore-next-line */
         $this->assertSame(['one@example.com', 'two@example.com'], $result->response['recipients']);
     }
 
@@ -112,6 +115,7 @@ class EmailDriverTest extends TestCase
 
         $result = $this->driver->send($channel, $payload);
 
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('recipients', $result->response);
     }
 

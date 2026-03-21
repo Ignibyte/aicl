@@ -15,9 +15,10 @@ class FailedJobModelTest extends TestCase
     public function test_model_has_job_name_accessor(): void
     {
         $job = new FailedJob;
+        $ref = new \ReflectionClass($job);
 
         $this->assertTrue(
-            method_exists($job, 'getJobNameAttribute') || property_exists($job, 'appends'),
+            $ref->hasMethod('getJobNameAttribute') || $ref->hasProperty('appends'),
             'FailedJob should have a job_name accessor'
         );
     }
@@ -25,9 +26,10 @@ class FailedJobModelTest extends TestCase
     public function test_model_has_exception_summary_accessor(): void
     {
         $job = new FailedJob;
+        $ref = new \ReflectionClass($job);
 
         $this->assertTrue(
-            method_exists($job, 'getExceptionSummaryAttribute') || property_exists($job, 'appends'),
+            $ref->hasMethod('getExceptionSummaryAttribute') || $ref->hasProperty('appends'),
             'FailedJob should have an exception_summary accessor'
         );
     }

@@ -42,6 +42,7 @@ class ComponentRegistryConsistencyTest extends TestCase
                 continue;
             }
 
+            /** @phpstan-ignore-next-line */
             $manifest = json_decode(file_get_contents($jsonPath), true);
             $this->assertIsArray($manifest, "component.json in '{$dir}' is not valid JSON");
 
@@ -79,6 +80,7 @@ class ComponentRegistryConsistencyTest extends TestCase
                 continue;
             }
 
+            /** @phpstan-ignore-next-line */
             $manifest = json_decode(file_get_contents($jsonPath), true);
             $expectedTag = 'x-aicl-'.$dir;
 
@@ -141,6 +143,7 @@ class ComponentRegistryConsistencyTest extends TestCase
                 continue;
             }
 
+            /** @phpstan-ignore-next-line */
             $manifest = json_decode(file_get_contents($jsonPath), true);
             $category = $manifest['category'] ?? 'unknown';
 

@@ -46,6 +46,7 @@ class EntityListResourceTest extends TestCase
         $array = $this->resource->toArray();
 
         $this->assertArrayHasKey('uriTemplate', $array);
+        /** @phpstan-ignore-next-line */
         $this->assertSame('entity://{type}', $array['uriTemplate']);
         $this->assertArrayNotHasKey('uri', $array);
     }

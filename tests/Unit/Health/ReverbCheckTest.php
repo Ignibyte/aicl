@@ -74,6 +74,7 @@ class ReverbCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Degraded, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('500', $result->error);
     }
 
@@ -90,6 +91,7 @@ class ReverbCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Down, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('not reachable', $result->error);
     }
 
@@ -106,6 +108,7 @@ class ReverbCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Down, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('not reachable', $result->error);
     }
 

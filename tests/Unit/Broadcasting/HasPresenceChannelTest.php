@@ -19,8 +19,10 @@ class HasPresenceChannelTest extends TestCase
         $user = User::factory()->create();
         $model = TestPresenceModel::find($user->getKey());
 
+        /** @phpstan-ignore-next-line */
         $expected = "presence.testpresencemodels.{$model->getKey()}";
 
+        /** @phpstan-ignore-next-line */
         $this->assertSame($expected, $model->presenceChannelName());
     }
 
@@ -29,6 +31,7 @@ class HasPresenceChannelTest extends TestCase
         $user = User::factory()->create();
         $model = TestPresenceModel::find($user->getKey());
 
+        /** @phpstan-ignore-next-line */
         $channelName = $model->presenceChannelName();
 
         $this->assertStringStartsWith('presence.testpresencemodel', $channelName);
@@ -42,6 +45,7 @@ class HasPresenceChannelTest extends TestCase
         $user = User::factory()->create();
         $model = TestPresenceModel::find($user->getKey());
 
+        /** @phpstan-ignore-next-line */
         $this->assertSame('ViewAny:TestPresenceModel', $model->presencePermission());
     }
 
@@ -50,6 +54,7 @@ class HasPresenceChannelTest extends TestCase
         $user = User::factory()->create();
         $model = TestPresenceModel::find($user->getKey());
 
+        /** @phpstan-ignore-next-line */
         $permission = $model->presencePermission();
 
         $this->assertStringNotContainsString('\\', $permission);

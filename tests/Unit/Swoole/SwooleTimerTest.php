@@ -25,6 +25,7 @@ class SwooleTimerTest extends TestCase
 
         SwooleTimer::reset();
         SwooleTimer::setAvailable(false);
+        /** @phpstan-ignore-next-line */
         SwooleTimer::useRedis(fn () => $this->mockRedis);
     }
 
@@ -237,6 +238,7 @@ class SwooleTimerTest extends TestCase
             /** @var array<string, string> */
             private array $store;
 
+            /** @phpstan-ignore-next-line */
             public function __construct(array &$store)
             {
                 $this->store = &$store;

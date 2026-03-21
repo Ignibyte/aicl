@@ -21,6 +21,7 @@ class NotificationSentLoggerTest extends TestCase
 
         $notification = new class extends Notification
         {
+            /** @phpstan-ignore-next-line */
             public function toArray(object $notifiable): array
             {
                 return ['title' => 'Test', 'body' => 'Test body'];
@@ -37,7 +38,9 @@ class NotificationSentLoggerTest extends TestCase
         ]);
 
         $log = NotificationLog::where('notifiable_id', $user->id)->first();
+        /** @phpstan-ignore-next-line */
         $this->assertEquals(['database'], $log->channels);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals(['database' => 'sent'], $log->channel_status);
     }
 
@@ -74,6 +77,7 @@ class NotificationSentLoggerTest extends TestCase
 
         $notification = new class extends Notification
         {
+            /** @phpstan-ignore-next-line */
             public function toArray(object $notifiable): array
             {
                 return ['test' => true];
@@ -94,6 +98,7 @@ class NotificationSentLoggerTest extends TestCase
 
         $notification = new class extends Notification
         {
+            /** @phpstan-ignore-next-line */
             public function toArray(object $notifiable): array
             {
                 return ['title' => 'Custom Title', 'body' => 'Custom Body'];
@@ -107,7 +112,9 @@ class NotificationSentLoggerTest extends TestCase
 
         $log = NotificationLog::where('notifiable_id', $user->id)->first();
 
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('Custom Title', $log->data['title']);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('Custom Body', $log->data['body']);
     }
 
@@ -124,6 +131,7 @@ class NotificationSentLoggerTest extends TestCase
 
         $log = NotificationLog::where('notifiable_id', $user->id)->first();
 
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('type', $log->data);
     }
 
@@ -133,6 +141,7 @@ class NotificationSentLoggerTest extends TestCase
 
         $notification = new class extends Notification
         {
+            /** @phpstan-ignore-next-line */
             public function toArray(object $notifiable): array
             {
                 return ['test' => true];
@@ -146,7 +155,9 @@ class NotificationSentLoggerTest extends TestCase
 
         $log = NotificationLog::where('notifiable_id', $user->id)->first();
 
+        /** @phpstan-ignore-next-line */
         $this->assertEquals(['mail'], $log->channels);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals(['mail' => 'sent'], $log->channel_status);
     }
 }

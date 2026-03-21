@@ -35,17 +35,17 @@ class EntityEventNotificationListenerTest extends TestCase
 
     public function test_listener_has_handle_created_method(): void
     {
-        $this->assertTrue(method_exists(EntityEventNotificationListener::class, 'handleCreated'));
+        $this->assertTrue((new \ReflectionClass(EntityEventNotificationListener::class))->hasMethod('handleCreated'));
     }
 
     public function test_listener_has_handle_updated_method(): void
     {
-        $this->assertTrue(method_exists(EntityEventNotificationListener::class, 'handleUpdated'));
+        $this->assertTrue((new \ReflectionClass(EntityEventNotificationListener::class))->hasMethod('handleUpdated'));
     }
 
     public function test_listener_has_handle_deleted_method(): void
     {
-        $this->assertTrue(method_exists(EntityEventNotificationListener::class, 'handleDeleted'));
+        $this->assertTrue((new \ReflectionClass(EntityEventNotificationListener::class))->hasMethod('handleDeleted'));
     }
 
     public function test_handle_created_creates_database_notification(): void
@@ -159,14 +159,23 @@ class EntityEventNotificationListenerTest extends TestCase
 
         $notification = DatabaseNotification::where('notifiable_id', $recipient->id)->first();
 
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('title', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('body', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('icon', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('color', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('entity_type', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('entity_id', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('action', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('actor_id', $notification->data);
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('actor_name', $notification->data);
     }
 
@@ -187,7 +196,9 @@ class EntityEventNotificationListenerTest extends TestCase
 
         $notification = DatabaseNotification::where('notifiable_id', $recipient->id)->first();
 
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('heroicon-o-plus-circle', $notification->data['icon']);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('success', $notification->data['color']);
     }
 

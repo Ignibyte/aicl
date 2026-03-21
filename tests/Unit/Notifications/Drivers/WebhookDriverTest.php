@@ -23,6 +23,7 @@ class WebhookDriverTest extends TestCase
         $this->driver = new WebhookDriver;
     }
 
+    /** @phpstan-ignore-next-line */
     private function createChannel(array $config = []): NotificationChannel
     {
         return NotificationChannel::create([
@@ -225,7 +226,9 @@ class WebhookDriverTest extends TestCase
 
         $result = $this->driver->send($channel, $payload);
 
+        /** @phpstan-ignore-next-line */
         $this->assertArrayHasKey('status', $result->response);
+        /** @phpstan-ignore-next-line */
         $this->assertSame(200, $result->response['status']);
     }
 

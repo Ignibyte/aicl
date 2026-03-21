@@ -49,6 +49,7 @@ class VersionServiceTest extends TestCase
 
     public function test_version_badge_view_exists(): void
     {
+        /** @phpstan-ignore-next-line */
         $this->assertTrue(view()->exists('aicl::components.version-badge'));
     }
 

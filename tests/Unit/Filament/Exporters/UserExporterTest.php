@@ -5,13 +5,14 @@ namespace Aicl\Tests\Unit\Filament\Exporters;
 use Aicl\Filament\Exporters\UserExporter;
 use App\Models\User;
 use Filament\Actions\Exports\Exporter;
+use Filament\Actions\Exports\Models\Export;
 use PHPUnit\Framework\TestCase;
 
 class UserExporterTest extends TestCase
 {
     public function test_extends_exporter(): void
     {
-        $this->assertTrue(is_subclass_of(UserExporter::class, Exporter::class));
+        $this->assertTrue((new \ReflectionClass(UserExporter::class))->isSubclassOf(Exporter::class));
     }
 
     public function test_model_is_user(): void
@@ -26,7 +27,6 @@ class UserExporterTest extends TestCase
     {
         $columns = UserExporter::getColumns();
 
-        $this->assertIsArray($columns);
         $this->assertNotEmpty($columns);
     }
 
@@ -43,7 +43,7 @@ class UserExporterTest extends TestCase
 
     public function test_completed_notification_body(): void
     {
-        $export = new \Filament\Actions\Exports\Models\Export;
+        $export = new Export;
         $export->successful_rows = 42;
 
         $body = UserExporter::getCompletedNotificationBody($export);

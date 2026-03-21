@@ -22,8 +22,9 @@ class MakeEntityCleanupTest extends TestCase
 
     public function test_run_cleanup_method_exists(): void
     {
+        $ref = new ReflectionClass(MakeEntityCommand::class);
         $this->assertTrue(
-            method_exists(MakeEntityCommand::class, 'runCleanup'),
+            $ref->hasMethod('runCleanup'),
             'MakeEntityCommand should have a runCleanup method.'
         );
     }
@@ -42,6 +43,7 @@ class MakeEntityCleanupTest extends TestCase
 
         $this->assertCount(1, $params);
         $this->assertSame('files', $params[0]->getName());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('array', $params[0]->getType()->getName());
     }
 }

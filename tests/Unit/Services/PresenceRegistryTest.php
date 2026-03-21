@@ -183,7 +183,9 @@ class PresenceRegistryTest extends TestCase
 
         $sessions = $this->registry->allSessions();
 
+        /** @phpstan-ignore-next-line */
         $this->assertSame('Newer', $sessions->first()['user_name']);
+        /** @phpstan-ignore-next-line */
         $this->assertSame('Older', $sessions->last()['user_name']);
     }
 

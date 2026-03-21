@@ -33,7 +33,7 @@ class LongWaitDetectedNotificationTest extends TestCase
 
     public function test_has_to_mail_method(): void
     {
-        $this->assertTrue(method_exists(LongWaitDetected::class, 'toMail'));
+        $this->assertTrue((new \ReflectionClass(LongWaitDetected::class))->hasMethod('toMail'));
     }
 
     public function test_signature_is_unique_per_connection_queue(): void

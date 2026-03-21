@@ -29,6 +29,7 @@ class TeamsCardAdapterTest extends TestCase
 
     public function test_produces_correct_adaptive_card_structure(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Teams Alert',
             'body' => 'Something happened',
@@ -49,6 +50,7 @@ class TeamsCardAdapterTest extends TestCase
 
     public function test_body_contains_title_text_block(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Teams Alert',
             'body' => 'Body text',
@@ -64,6 +66,7 @@ class TeamsCardAdapterTest extends TestCase
 
     public function test_body_contains_body_text_block(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body content',
@@ -78,6 +81,7 @@ class TeamsCardAdapterTest extends TestCase
 
     public function test_includes_action_when_action_url_present(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -95,6 +99,7 @@ class TeamsCardAdapterTest extends TestCase
 
     public function test_uses_default_action_text(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -108,6 +113,7 @@ class TeamsCardAdapterTest extends TestCase
 
     public function test_empty_actions_when_no_action_url(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -120,6 +126,7 @@ class TeamsCardAdapterTest extends TestCase
 
     public function test_empty_actions_when_action_url_is_null(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',

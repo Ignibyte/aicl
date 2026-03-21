@@ -32,9 +32,9 @@ class PausesWhenHiddenTest extends TestCase
     {
         $widget = new PausesWhenHiddenTestWidget;
 
-        $this->assertTrue(method_exists($widget, 'getPollingInterval'));
-        $this->assertTrue(method_exists($widget, 'visibilityPollingInterval'));
-        $this->assertTrue(method_exists($widget, 'bootPausesWhenHidden'));
+        $this->assertTrue((new \ReflectionClass($widget))->hasMethod('getPollingInterval'));
+        $this->assertTrue((new \ReflectionClass($widget))->hasMethod('visibilityPollingInterval'));
+        $this->assertTrue((new \ReflectionClass($widget))->hasMethod('bootPausesWhenHidden'));
     }
 }
 

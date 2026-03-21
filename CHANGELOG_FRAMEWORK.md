@@ -10,7 +10,59 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.13.0`
+Current version: `1.15.0`
+
+---
+
+## [1.15.0] - 2026-03-21
+
+### Added
+
+- **Comprehensive regression test suite** — 807 new test methods across three testing layers:
+  - PHPUnit: 562 regression tests (39 + 33 + 22 files) covering all PHPStan-modified code paths in Core Services, Filament/HTTP, and Models/Observers
+  - Dusk: 85 browser tests (21 new files) covering all Filament pages, resources, widgets, auth flows, navigation, and error pages
+  - Playwright: 160 E2E tests (30 spec files) with page object model, auth state persistence, and full admin panel interaction coverage
+- **Quality gate expansion** — Two-tier hook system: `enforce-quality.sh` (all agents: Pint, PHPStan, strict_types, docblocks) + `enforce-sast.sh` (code-producing agents: Semgrep, PHPCPD, Deptrac, Composer Unused)
+- **Deptrac architecture analysis** — 18-layer configuration aligned with PHPAt rules, enforcing Domain → Application → Infrastructure boundaries
+- **Pentest infrastructure** — ZAP DDEV sidecar, Nuclei binary, `/pentest` command for automated security scanning
+- **Playwright infrastructure** — `playwright.config.ts`, page object models, auth helpers, global setup with stored session state
+
+### Fixed
+
+- **API auth debug page leak** — Unauthenticated requests to `/api/user` and `/oauth/authorize` were exposing Ignition debug pages with full stack traces, PHP version, and file paths. Added fallback named `login` route returning JSON 401.
+- **robots.txt permissive crawling** — Empty `Disallow:` allowed full indexing. Now blocks `/admin/`, `/api/`, `/oauth/`, `/mcp/`, and internal routes.
+- **Dusk Selenium connectivity** — Fixed `net::ERR_CONNECTION_REFUSED` by overriding baseUrl to Docker internal hostname `https://web`.
+- **Section 14 test compliance** — All 120 existing test files brought to Constitution Section 14 compliance (strict_types, docblocks, PHPStan level 8 clean).
+
+### Changed
+
+- **Constitution Section 14 expanded** — Now references all 6 quality tools: PHPStan 8, Pint, Semgrep, PHPCPD, Deptrac, Composer Unused
+- **Test suite totals** — 4,908 PHPUnit + 107 Dusk + 160 Playwright = 5,175 tests
+
+---
+
+## [1.14.0] - 2026-03-20
+
+### Changed
+
+- **Migration consolidation** — 19 migration files collapsed to 5 domain-grouped files: auth, notifications, events, AI, and ops. Settings table migrations (created, modified 4x, dropped) eliminated entirely as they net to zero. Migration naming uses `0001_`-`0005_` prefix (no dates) for deterministic ordering.
+- **Docs consolidation** — 13 standalone docs moved from `packages/aicl/docs/` root into `packages/aicl/docs/architecture/` for a single documentation location. Cross-references in 4 architecture docs updated from absolute paths to relative links.
+- **Stubs cleanup** — 5 dead stubs removed: 3 pipeline templates (now delivered via Forge MCP) and 2 RLM stubs (RLM removed in Sprint F0).
+- **Upgrade manifest** bumped to v1.0.4.
+
+### Fixed
+
+- **Missing `stubs/local.example.php`** — The upgrade-manifest referenced this file but it did not exist, causing `aicl:upgrade` to show "ERROR source missing" for `config/local.example.php` on client projects. Created from project template.
+
+### Removed
+
+- `stubs/pipeline/` directory (3 files) — Pipeline templates now served via Forge MCP
+- `stubs/rlm/` directory (2 files) — RLM removed from AICL in Sprint F0
+- 19 individual migration files — Replaced by 5 consolidated domain-grouped migrations
+
+### Migration Notes
+
+- **`migrate:fresh` required** after upgrading — consolidated migrations replace the old 19-file chain. Running `migrate` alone will fail because the `migrations` table still references old filenames.
 
 ---
 

@@ -26,11 +26,13 @@ class PageAccessTest extends TestCase
 
     public function test_ai_assistant_extends_page(): void
     {
+        /** @phpstan-ignore-next-line */
         $this->assertTrue(is_subclass_of(AiAssistant::class, Page::class));
     }
 
     public function test_ai_assistant_slug(): void
     {
+        /** @phpstan-ignore-next-line */
         $reflection = new \ReflectionClass(AiAssistant::class);
         $prop = $reflection->getProperty('slug');
 
@@ -39,6 +41,7 @@ class PageAccessTest extends TestCase
 
     public function test_ai_assistant_navigation_group(): void
     {
+        /** @phpstan-ignore-next-line */
         $reflection = new \ReflectionClass(AiAssistant::class);
         $defaults = $reflection->getDefaultProperties();
 
@@ -47,6 +50,7 @@ class PageAccessTest extends TestCase
 
     public function test_ai_assistant_hidden_from_navigation(): void
     {
+        /** @phpstan-ignore-next-line */
         $reflection = new \ReflectionClass(AiAssistant::class);
         $defaults = $reflection->getDefaultProperties();
 
@@ -55,6 +59,7 @@ class PageAccessTest extends TestCase
 
     public function test_ai_assistant_navigation_sort(): void
     {
+        /** @phpstan-ignore-next-line */
         $reflection = new \ReflectionClass(AiAssistant::class);
         $defaults = $reflection->getDefaultProperties();
 
@@ -63,6 +68,7 @@ class PageAccessTest extends TestCase
 
     public function test_ai_assistant_view(): void
     {
+        /** @phpstan-ignore-next-line */
         $reflection = new \ReflectionClass(AiAssistant::class);
         $property = $reflection->getProperty('view');
 
@@ -75,6 +81,7 @@ class PageAccessTest extends TestCase
         $user->assignRole('super_admin');
         $this->actingAs($user);
 
+        /** @phpstan-ignore-next-line */
         $this->assertTrue(AiAssistant::canAccess());
     }
 
@@ -84,6 +91,7 @@ class PageAccessTest extends TestCase
         $user->assignRole('admin');
         $this->actingAs($user);
 
+        /** @phpstan-ignore-next-line */
         $this->assertTrue(AiAssistant::canAccess());
     }
 
@@ -93,11 +101,13 @@ class PageAccessTest extends TestCase
         $user->assignRole('viewer');
         $this->actingAs($user);
 
+        /** @phpstan-ignore-next-line */
         $this->assertFalse(AiAssistant::canAccess());
     }
 
     public function test_ai_assistant_not_accessible_without_auth(): void
     {
+        /** @phpstan-ignore-next-line */
         $this->assertFalse(AiAssistant::canAccess());
     }
 
@@ -105,7 +115,7 @@ class PageAccessTest extends TestCase
 
     public function test_ops_panel_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(OpsPanel::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(OpsPanel::class))->isSubclassOf(Page::class));
     }
 
     public function test_ops_panel_slug(): void
@@ -142,7 +152,7 @@ class PageAccessTest extends TestCase
 
     public function test_ops_panel_has_get_service_checks_method(): void
     {
-        $this->assertTrue(method_exists(OpsPanel::class, 'getServiceChecks'));
+        $this->assertTrue((new \ReflectionClass(OpsPanel::class))->hasMethod('getServiceChecks'));
     }
 
     public function test_ops_panel_no_longer_has_session_methods(): void
@@ -188,12 +198,12 @@ class PageAccessTest extends TestCase
 
     public function test_activity_log_extends_page(): void
     {
-        $this->assertTrue(is_subclass_of(ActivityLog::class, Page::class));
+        $this->assertTrue((new \ReflectionClass(ActivityLog::class))->isSubclassOf(Page::class));
     }
 
     public function test_activity_log_implements_has_forms(): void
     {
-        $this->assertTrue(is_subclass_of(ActivityLog::class, HasForms::class));
+        $this->assertTrue((new \ReflectionClass(ActivityLog::class))->isSubclassOf(HasForms::class));
     }
 
     public function test_activity_log_slug(): void

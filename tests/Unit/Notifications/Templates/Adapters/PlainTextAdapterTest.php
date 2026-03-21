@@ -29,6 +29,7 @@ class PlainTextAdapterTest extends TestCase
 
     public function test_strips_html_from_title_and_body(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => '<b>Important</b> Alert',
             'body' => '<p>Something happened</p>',
@@ -40,6 +41,7 @@ class PlainTextAdapterTest extends TestCase
 
     public function test_returns_title_and_body_keys(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -52,6 +54,7 @@ class PlainTextAdapterTest extends TestCase
 
     public function test_handles_missing_keys(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([], []);
 
         $this->assertSame('', $result['title']);
@@ -60,6 +63,7 @@ class PlainTextAdapterTest extends TestCase
 
     public function test_plain_text_passes_through(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Plain Title',
             'body' => 'Plain body text',

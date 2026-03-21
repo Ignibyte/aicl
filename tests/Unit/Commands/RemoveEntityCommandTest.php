@@ -10,7 +10,7 @@ class RemoveEntityCommandTest extends TestCase
 {
     public function test_extends_command(): void
     {
-        $this->assertTrue(is_subclass_of(RemoveEntityCommand::class, Command::class));
+        $this->assertTrue((new \ReflectionClass(RemoveEntityCommand::class))->isSubclassOf(Command::class));
     }
 
     public function test_has_signature(): void

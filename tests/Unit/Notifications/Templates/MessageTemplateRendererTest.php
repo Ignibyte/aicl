@@ -82,6 +82,7 @@ class MessageTemplateRendererTest extends TestCase
 
         $this->renderer->registerResolver('model', new class implements VariableResolver
         {
+            /** @phpstan-ignore-next-line */
             public function resolve(string $field, array $context): ?string
             {
                 return 'hello world';
@@ -103,6 +104,7 @@ class MessageTemplateRendererTest extends TestCase
 
         $this->renderer->registerResolver('model', new class implements VariableResolver
         {
+            /** @phpstan-ignore-next-line */
             public function resolve(string $field, array $context): ?string
             {
                 return 'HELLO WORLD ABCDEF';
@@ -131,6 +133,7 @@ class MessageTemplateRendererTest extends TestCase
     {
         $this->renderer->registerResolver('model', new class implements VariableResolver
         {
+            /** @phpstan-ignore-next-line */
             public function resolve(string $field, array $context): ?string
             {
                 return 'test_value';
@@ -160,6 +163,7 @@ class MessageTemplateRendererTest extends TestCase
 
         $result = $this->renderer->resolveTemplate($channel, 'App\\Notifications\\TestNotification');
 
+        /** @phpstan-ignore-next-line */
         $this->assertSame('Test Title', $result['title']);
         $this->assertSame('Test Body', $result['body']);
     }
@@ -176,6 +180,7 @@ class MessageTemplateRendererTest extends TestCase
 
         $result = $this->renderer->resolveTemplate($channel, 'App\\Notifications\\Unknown');
 
+        /** @phpstan-ignore-next-line */
         $this->assertSame('Default Title', $result['title']);
         $this->assertSame('Default Body', $result['body']);
     }
@@ -224,6 +229,7 @@ class MessageTemplateRendererTest extends TestCase
 
         $this->renderer->registerResolver('model', new class implements VariableResolver
         {
+            /** @phpstan-ignore-next-line */
             public function resolve(string $field, array $context): ?string
             {
                 return 'resolved_value';
@@ -261,6 +267,7 @@ class MessageTemplateRendererTest extends TestCase
         // config() returns null in unit tests, so escape_html defaults to true
         $this->renderer->registerResolver('model', new class implements VariableResolver
         {
+            /** @phpstan-ignore-next-line */
             public function resolve(string $field, array $context): ?string
             {
                 return '<script>alert("xss")</script>';
@@ -279,6 +286,7 @@ class MessageTemplateRendererTest extends TestCase
 
         $this->renderer->registerResolver('model', new class implements VariableResolver
         {
+            /** @phpstan-ignore-next-line */
             public function resolve(string $field, array $context): ?string
             {
                 return '<b>bold</b>';

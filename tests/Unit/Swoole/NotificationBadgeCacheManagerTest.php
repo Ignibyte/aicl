@@ -4,9 +4,11 @@ namespace Aicl\Tests\Unit\Swoole;
 
 use Aicl\Swoole\Cache\NotificationBadgeCacheManager;
 use Aicl\Swoole\SwooleCache;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class NotificationBadgeCacheManagerTest extends TestCase
@@ -22,8 +24,10 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
         SwooleCache::reset();
 
+        /** @phpstan-ignore-next-line */
         SwooleCache::useClock(fn (): int => Carbon::now()->timestamp);
 
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -95,7 +99,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_get_badge_returns_null_when_no_unread_notifications(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $result = NotificationBadgeCacheManager::getBadge($user->id);
 
@@ -104,7 +108,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_get_badge_returns_count_string_when_unread_exist(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $this->createNotification($user->id, unread: true);
         $this->createNotification($user->id, unread: true);
@@ -117,7 +121,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_get_badge_excludes_read_notifications(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $this->createNotification($user->id, unread: true);
         $this->createNotification($user->id, unread: true);
@@ -130,7 +134,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_get_badge_caches_result(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $this->createNotification($user->id, unread: true);
 
@@ -145,7 +149,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_get_badge_returns_cached_value_on_hit(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         // Pre-populate cache with a known value
         SwooleCache::set('notification_badges', "user:{$user->id}", ['count' => 42]);
@@ -158,7 +162,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_get_badge_returns_null_for_cached_zero_count(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         SwooleCache::set('notification_badges', "user:{$user->id}", ['count' => 0]);
 
@@ -169,8 +173,8 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_get_badge_only_counts_notifications_for_given_user(): void
     {
-        $user1 = \App\Models\User::factory()->create();
-        $user2 = \App\Models\User::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
 
         $this->createNotification($user1->id, unread: true);
         $this->createNotification($user1->id, unread: true);
@@ -186,7 +190,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_cached_badge_expires_after_ttl(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $this->createNotification($user->id, unread: true);
 
@@ -203,7 +207,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_creating_notification_invalidates_user_cache(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         // Populate cache
         NotificationBadgeCacheManager::getBadge($user->id);
@@ -217,7 +221,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_marking_notification_as_read_invalidates_user_cache(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $notification = $this->createNotification($user->id, unread: true);
 
@@ -233,7 +237,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_deleting_notification_invalidates_user_cache(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $notification = $this->createNotification($user->id, unread: true);
 
@@ -249,8 +253,8 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_notification_for_one_user_does_not_invalidate_another_users_cache(): void
     {
-        $user1 = \App\Models\User::factory()->create();
-        $user2 = \App\Models\User::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
 
         // Populate both caches
         NotificationBadgeCacheManager::getBadge($user1->id);
@@ -271,7 +275,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
     public function test_invalidate_for_user_removes_cache_entry(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         SwooleCache::set('notification_badges', "user:{$user->id}", ['count' => 5]);
 
@@ -294,7 +298,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
         SwooleCache::register('notification_badges', rows: 1000, ttl: 60, valueSize: 100);
         $this->assertFalse(SwooleCache::isAvailable());
 
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $this->createNotification($user->id, unread: true);
         $this->createNotification($user->id, unread: true);
 
@@ -303,6 +307,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
         $this->assertSame('2', $result);
 
         // Re-set the resolver for tearDown
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -317,7 +322,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
     private function createNotification(int $userId, bool $unread = true): DatabaseNotification
     {
         return DatabaseNotification::create([
-            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'id' => (string) Str::uuid(),
             'type' => 'App\\Notifications\\TestNotification',
             'notifiable_type' => 'App\\Models\\User',
             'notifiable_id' => $userId,
@@ -332,8 +337,10 @@ class NotificationBadgeCacheManagerTest extends TestCase
 
         return new class($data) implements \Countable, \IteratorAggregate
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private array &$data) {}
 
+            /** @phpstan-ignore-next-line */
             public function set(string $key, array $value): bool
             {
                 $this->data[$key] = $value;
@@ -378,6 +385,7 @@ class NotificationBadgeCacheManagerTest extends TestCase
                 return count($this->data);
             }
 
+            /** @phpstan-ignore-next-line */
             public function getIterator(): \ArrayIterator
             {
                 return new \ArrayIterator($this->data);

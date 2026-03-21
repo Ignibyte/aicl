@@ -23,9 +23,11 @@ class SwooleCacheTest extends TestCase
         SwooleCache::register('test_cache', rows: 100, ttl: 60, valueSize: 5000);
 
         // Use Carbon as the clock source so setTestNow works
+        /** @phpstan-ignore-next-line */
         SwooleCache::useClock(fn (): int => Carbon::now()->timestamp);
 
         // Inject a mock resolver that uses in-memory arrays
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -433,8 +435,10 @@ class SwooleCacheTest extends TestCase
 
         return new class($data) implements \Countable, \IteratorAggregate
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private array &$data) {}
 
+            /** @phpstan-ignore-next-line */
             public function set(string $key, array $value): bool
             {
                 $this->data[$key] = $value;
@@ -479,6 +483,7 @@ class SwooleCacheTest extends TestCase
                 return count($this->data);
             }
 
+            /** @phpstan-ignore-next-line */
             public function getIterator(): \ArrayIterator
             {
                 return new \ArrayIterator($this->data);

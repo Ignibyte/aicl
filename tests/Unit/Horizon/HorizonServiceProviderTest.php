@@ -12,7 +12,7 @@ class HorizonServiceProviderTest extends TestCase
 {
     public function test_extends_service_provider(): void
     {
-        $this->assertTrue(is_subclass_of(HorizonServiceProvider::class, ServiceProvider::class));
+        $this->assertTrue((new \ReflectionClass(HorizonServiceProvider::class))->isSubclassOf(ServiceProvider::class));
     }
 
     public function test_uses_event_map_trait(): void
@@ -31,11 +31,11 @@ class HorizonServiceProviderTest extends TestCase
 
     public function test_has_register_method(): void
     {
-        $this->assertTrue(method_exists(HorizonServiceProvider::class, 'register'));
+        $this->assertTrue((new \ReflectionClass(HorizonServiceProvider::class))->hasMethod('register'));
     }
 
     public function test_has_boot_method(): void
     {
-        $this->assertTrue(method_exists(HorizonServiceProvider::class, 'boot'));
+        $this->assertTrue((new \ReflectionClass(HorizonServiceProvider::class))->hasMethod('boot'));
     }
 }

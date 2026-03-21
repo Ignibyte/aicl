@@ -24,7 +24,9 @@ class RedisCheckTest extends TestCase
     public function test_returns_healthy_when_redis_available(): void
     {
         $connection = Mockery::mock();
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('ping')->once();
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->once()->andReturn([
             'Server' => [
                 'redis_version' => '7.2.0',
@@ -57,6 +59,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.2.0', 'uptime_in_days' => '5'],
             'Memory' => ['used_memory_human' => '1M', 'maxmemory' => 0],
@@ -76,6 +79,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.0', 'uptime_in_days' => '1'],
             'Memory' => ['used_memory_human' => '3.5M', 'maxmemory' => 0],
@@ -94,6 +98,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.0', 'uptime_in_days' => '1'],
             'Memory' => ['used_memory_human' => '1M', 'maxmemory' => 0],
@@ -112,6 +117,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.0', 'uptime_in_days' => '1'],
             'Memory' => ['used_memory_human' => '1M', 'maxmemory' => 0],
@@ -133,6 +139,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.0', 'uptime_in_days' => '42'],
             'Memory' => ['used_memory_human' => '1M', 'maxmemory' => 0],
@@ -153,6 +160,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.0', 'uptime_in_days' => '1'],
             'Memory' => [
@@ -179,6 +187,7 @@ class RedisCheckTest extends TestCase
 
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.0', 'uptime_in_days' => '1'],
             'Memory' => [
@@ -201,6 +210,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping');
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('info')->andReturn([
             'Server' => ['redis_version' => '7.0', 'uptime_in_days' => '1'],
             'Memory' => [
@@ -238,6 +248,7 @@ class RedisCheckTest extends TestCase
     {
         $connection = Mockery::mock();
         $connection->shouldReceive('ping')
+            /** @phpstan-ignore-next-line */
             ->once()
             ->andThrow(new \RuntimeException('NOAUTH Authentication required'));
 
@@ -246,6 +257,7 @@ class RedisCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Down, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('NOAUTH', $result->error);
     }
 

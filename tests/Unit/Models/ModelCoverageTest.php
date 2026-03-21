@@ -131,6 +131,7 @@ class ModelCoverageTest extends TestCase
         $results = DomainEventRecord::forEntity($this->user)->get();
 
         $this->assertCount(1, $results);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('user.updated', $results->first()->event_type);
     }
 
@@ -211,6 +212,7 @@ class ModelCoverageTest extends TestCase
         $results = DomainEventRecord::since(Carbon::now()->subDays(5))->get();
 
         $this->assertCount(1, $results);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('new.event', $results->first()->event_type);
     }
 
@@ -240,6 +242,7 @@ class ModelCoverageTest extends TestCase
         )->get();
 
         $this->assertCount(1, $results);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('inside.event', $results->first()->event_type);
     }
 
@@ -299,6 +302,7 @@ class ModelCoverageTest extends TestCase
         $results = DomainEventRecord::timeline($this->user)->get();
 
         $this->assertCount(2, $results);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('second.event', $results->first()->event_type);
     }
 

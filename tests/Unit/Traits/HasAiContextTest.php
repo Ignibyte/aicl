@@ -3,6 +3,7 @@
 namespace Aicl\Tests\Unit\Traits;
 
 use Aicl\Traits\HasAiContext;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\TestCase;
@@ -20,6 +21,7 @@ class HasAiContextTest extends TestCase
             'name' => 'Test Widget',
         ], ['name']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('type', $context);
@@ -34,6 +36,7 @@ class HasAiContextTest extends TestCase
     {
         $model = $this->createModelWithAttributes(['id' => 1], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         // The type is derived from the class basename via Str::headline
@@ -45,6 +48,7 @@ class HasAiContextTest extends TestCase
     {
         $model = $this->createModelWithAttributes(['id' => 99], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertSame(99, $context['id']);
@@ -62,6 +66,7 @@ class HasAiContextTest extends TestCase
             'title' => 'Widget Title',
         ], ['name', 'title']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertSame('My Widget', $context['label']);
@@ -75,6 +80,7 @@ class HasAiContextTest extends TestCase
             'title' => 'Fallback Title',
         ], ['name', 'title']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertSame('Fallback Title', $context['label']);
@@ -86,6 +92,7 @@ class HasAiContextTest extends TestCase
             'id' => 55,
         ], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertSame('55', $context['label']);
@@ -103,6 +110,7 @@ class HasAiContextTest extends TestCase
             'description' => 'A fine widget',
         ], ['name', 'description']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('name', $context['attributes']);
@@ -117,6 +125,7 @@ class HasAiContextTest extends TestCase
             'priority' => TestPriority::High,
         ], ['priority']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertSame('high', $context['attributes']['priority']);
@@ -131,6 +140,7 @@ class HasAiContextTest extends TestCase
             'due_date' => $dateTime,
         ], ['due_date']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertSame('2026-01-15 10:30:00', $context['attributes']['due_date']);
@@ -151,6 +161,7 @@ class HasAiContextTest extends TestCase
             'label' => $stringable,
         ], ['label']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertSame('stringified value', $context['attributes']['label']);
@@ -163,6 +174,7 @@ class HasAiContextTest extends TestCase
             'description' => null,
         ], ['description']);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('description', $context['attributes']);
@@ -177,6 +189,7 @@ class HasAiContextTest extends TestCase
     {
         $model = $this->createModelWithAttributes(['id' => 1], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertEmpty($context['relationships']);
@@ -189,6 +202,7 @@ class HasAiContextTest extends TestCase
         $model = $this->createModelWithAttributes(['id' => 1], []);
         $model->setRelation('owner', $related);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('owner', $context['relationships']);
@@ -201,6 +215,7 @@ class HasAiContextTest extends TestCase
         $model = $this->createModelWithAttributes(['id' => 1], []);
         $model->setRelation('owner', null);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('owner', $context['relationships']);
@@ -217,6 +232,7 @@ class HasAiContextTest extends TestCase
         $model = $this->createModelWithAttributes(['id' => 1], []);
         $model->setRelation('items', $collection);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('items', $context['relationships']);
@@ -231,11 +247,12 @@ class HasAiContextTest extends TestCase
 
     public function test_meta_includes_timestamps_when_present(): void
     {
-        $createdAt = \Carbon\Carbon::parse('2026-01-10 08:00:00');
-        $updatedAt = \Carbon\Carbon::parse('2026-02-10 12:00:00');
+        $createdAt = Carbon::parse('2026-01-10 08:00:00');
+        $updatedAt = Carbon::parse('2026-02-10 12:00:00');
 
         $model = $this->createTimestampModel($createdAt, $updatedAt);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('created_at', $context['meta']);
@@ -251,6 +268,7 @@ class HasAiContextTest extends TestCase
             'status' => 'active',
         ], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('status', $context['meta']);
@@ -264,6 +282,7 @@ class HasAiContextTest extends TestCase
             'status' => TestStatus::Active,
         ], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('status', $context['meta']);
@@ -277,6 +296,7 @@ class HasAiContextTest extends TestCase
             'is_active' => 1,
         ], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertArrayHasKey('is_active', $context['meta']);
@@ -290,6 +310,7 @@ class HasAiContextTest extends TestCase
             'is_active' => null,
         ], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         // When is_active is null, getAttribute returns null and the condition fails
@@ -300,6 +321,7 @@ class HasAiContextTest extends TestCase
     {
         $model = $this->createModelWithAttributes(['id' => 1], []);
 
+        /** @phpstan-ignore-next-line */
         $context = $model->toAiContext();
 
         $this->assertEmpty($context['meta']);
@@ -313,7 +335,7 @@ class HasAiContextTest extends TestCase
      * Create a model with Carbon timestamps pre-set in the attributes array.
      * Uses $timestamps=false to prevent Eloquent from casting date columns via DB connection.
      */
-    private function createTimestampModel(\Carbon\Carbon $createdAt, \Carbon\Carbon $updatedAt): Model
+    private function createTimestampModel(Carbon $createdAt, Carbon $updatedAt): Model
     {
         return new class($createdAt, $updatedAt) extends Model
         {
@@ -324,8 +346,8 @@ class HasAiContextTest extends TestCase
             protected $guarded = [];
 
             public function __construct(
-                private ?\Carbon\Carbon $createdAtValue = null,
-                private ?\Carbon\Carbon $updatedAtValue = null,
+                private ?Carbon $createdAtValue = null,
+                private ?Carbon $updatedAtValue = null,
             ) {
                 parent::__construct(['id' => 1]);
             }

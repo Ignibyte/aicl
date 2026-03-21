@@ -23,6 +23,7 @@ class PagerDutyDriverTest extends TestCase
         $this->driver = new PagerDutyDriver;
     }
 
+    /** @phpstan-ignore-next-line */
     private function createChannel(array $config = []): NotificationChannel
     {
         return NotificationChannel::create([

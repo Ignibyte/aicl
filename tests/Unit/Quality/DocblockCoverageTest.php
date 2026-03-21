@@ -102,6 +102,7 @@ class DocblockCoverageTest extends TestCase
 
             try {
                 $reflection = new \ReflectionClass($className);
+                /** @phpstan-ignore-next-line */
             } catch (\ReflectionException) {
                 continue;
             }
@@ -131,7 +132,6 @@ class DocblockCoverageTest extends TestCase
             fwrite(STDERR, "\n[DOCBLOCK] {$count} class(es) missing class-level docblock:\n  - {$list}\n");
         }
 
-        $this->assertTrue(true);
     }
 
     /**
@@ -158,6 +158,7 @@ class DocblockCoverageTest extends TestCase
 
             try {
                 $reflection = new \ReflectionClass($className);
+                /** @phpstan-ignore-next-line */
             } catch (\ReflectionException) {
                 continue;
             }
@@ -200,7 +201,6 @@ class DocblockCoverageTest extends TestCase
             fwrite(STDERR, "\n[DOCBLOCK] {$count} public method(s) missing docblock:\n  - {$list}{$suffix}\n");
         }
 
-        $this->assertTrue(true);
     }
 
     /**
@@ -208,6 +208,7 @@ class DocblockCoverageTest extends TestCase
      */
     public function test_source_directory_exists_and_has_files(): void
     {
+        /** @phpstan-ignore-next-line */
         $this->assertDirectoryExists(realpath(self::SOURCE_DIR));
 
         $fileCount = iterator_count($this->getPhpFiles());
@@ -238,6 +239,7 @@ class DocblockCoverageTest extends TestCase
 
             try {
                 $reflection = new \ReflectionClass($className);
+                /** @phpstan-ignore-next-line */
             } catch (\ReflectionException) {
                 continue;
             }

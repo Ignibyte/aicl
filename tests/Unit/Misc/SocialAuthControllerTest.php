@@ -14,12 +14,12 @@ class SocialAuthControllerTest extends TestCase
 
     public function test_has_redirect_method(): void
     {
-        $this->assertTrue(method_exists(SocialAuthController::class, 'redirect'));
+        $this->assertTrue((new \ReflectionClass(SocialAuthController::class))->hasMethod('redirect'));
     }
 
     public function test_has_callback_method(): void
     {
-        $this->assertTrue(method_exists(SocialAuthController::class, 'callback'));
+        $this->assertTrue((new \ReflectionClass(SocialAuthController::class))->hasMethod('callback'));
     }
 
     public function test_has_validate_provider_method(): void
@@ -49,6 +49,7 @@ class SocialAuthControllerTest extends TestCase
         $returnType = $reflection->getReturnType();
 
         $this->assertNotNull($returnType);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('Illuminate\Http\RedirectResponse', $returnType->getName());
     }
 
@@ -58,6 +59,7 @@ class SocialAuthControllerTest extends TestCase
         $returnType = $reflection->getReturnType();
 
         $this->assertNotNull($returnType);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('Illuminate\Http\RedirectResponse', $returnType->getName());
     }
 
@@ -68,6 +70,7 @@ class SocialAuthControllerTest extends TestCase
 
         $this->assertCount(1, $params);
         $this->assertEquals('provider', $params[0]->getName());
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('string', $params[0]->getType()->getName());
     }
 
@@ -78,6 +81,7 @@ class SocialAuthControllerTest extends TestCase
 
         $this->assertCount(1, $params);
         $this->assertEquals('provider', $params[0]->getName());
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('string', $params[0]->getType()->getName());
     }
 }

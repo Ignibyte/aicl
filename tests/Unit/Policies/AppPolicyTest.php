@@ -5,6 +5,7 @@ namespace Aicl\Tests\Unit\Policies;
 use Aicl\Policies\BasePolicy;
 use Aicl\Policies\RolePolicy;
 use Aicl\Policies\UserPolicy;
+use Illuminate\Auth\Access\HandlesAuthorization;
 use PHPUnit\Framework\TestCase;
 
 class AppPolicyTest extends TestCase
@@ -13,7 +14,7 @@ class AppPolicyTest extends TestCase
 
     public function test_user_policy_extends_base_policy(): void
     {
-        $this->assertTrue(is_subclass_of(UserPolicy::class, BasePolicy::class));
+        $this->assertTrue((new \ReflectionClass(UserPolicy::class))->isSubclassOf(BasePolicy::class));
     }
 
     public function test_user_policy_permission_prefix(): void
@@ -65,61 +66,61 @@ class AppPolicyTest extends TestCase
     public function test_role_policy_uses_handles_authorization(): void
     {
         $uses = class_uses(RolePolicy::class);
-        $this->assertContains(\Illuminate\Auth\Access\HandlesAuthorization::class, $uses);
+        $this->assertContains(HandlesAuthorization::class, $uses);
     }
 
     public function test_role_policy_defines_view_any(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'viewAny'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('viewAny'));
     }
 
     public function test_role_policy_defines_view(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'view'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('view'));
     }
 
     public function test_role_policy_defines_create(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'create'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('create'));
     }
 
     public function test_role_policy_defines_update(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'update'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('update'));
     }
 
     public function test_role_policy_defines_delete(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'delete'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('delete'));
     }
 
     public function test_role_policy_defines_restore(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'restore'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('restore'));
     }
 
     public function test_role_policy_defines_force_delete(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'forceDelete'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('forceDelete'));
     }
 
     public function test_role_policy_defines_force_delete_any(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'forceDeleteAny'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('forceDeleteAny'));
     }
 
     public function test_role_policy_defines_restore_any(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'restoreAny'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('restoreAny'));
     }
 
     public function test_role_policy_defines_replicate(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'replicate'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('replicate'));
     }
 
     public function test_role_policy_defines_reorder(): void
     {
-        $this->assertTrue(method_exists(RolePolicy::class, 'reorder'));
+        $this->assertTrue((new \ReflectionClass(RolePolicy::class))->hasMethod('reorder'));
     }
 }

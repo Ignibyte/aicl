@@ -90,7 +90,9 @@ class PermissionFilterBuilderTest extends TestCase
 
         // Should contain owner_id filter
         $json = json_encode($shouldClauses);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('owner_id', $json);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('42', $json);
     }
 
@@ -114,6 +116,7 @@ class PermissionFilterBuilderTest extends TestCase
 
         // Admin should get a simple term filter (no owner_id restriction)
         $json = json_encode($shouldClauses);
+        /** @phpstan-ignore-next-line */
         $this->assertStringNotContainsString('owner_id', $json);
     }
 
@@ -134,6 +137,7 @@ class PermissionFilterBuilderTest extends TestCase
 
         // Policy visibility should not have owner_id filter
         $json = json_encode($shouldClauses);
+        /** @phpstan-ignore-next-line */
         $this->assertStringNotContainsString('owner_id', $json);
     }
 

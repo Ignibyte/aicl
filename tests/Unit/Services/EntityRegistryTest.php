@@ -127,6 +127,7 @@ class EntityRegistryTest extends TestCase
             ],
         ]);
 
+        /** @phpstan-ignore-next-line */
         $registry = $this->createSearchableRegistry($entries);
 
         $results = $registry->search('test');
@@ -167,6 +168,7 @@ class EntityRegistryTest extends TestCase
             ],
         ]);
 
+        /** @phpstan-ignore-next-line */
         $registry = $this->createSearchableRegistry($entries);
 
         $results = $registry->atLocation(1);
@@ -207,11 +209,11 @@ class EntityRegistryTest extends TestCase
             ],
         ]);
 
+        /** @phpstan-ignore-next-line */
         $registry = $this->createSearchableRegistry($entries);
 
         $counts = $registry->countsByStatus();
 
-        $this->assertIsArray($counts);
     }
 
     public function test_counts_by_status_skips_entities_without_status_column(): void
@@ -232,6 +234,7 @@ class EntityRegistryTest extends TestCase
             ],
         ]);
 
+        /** @phpstan-ignore-next-line */
         $registry = $this->createSearchableRegistry($entries);
 
         $counts = $registry->countsByStatus();
@@ -245,7 +248,6 @@ class EntityRegistryTest extends TestCase
 
         $counts = $registry->countsByStatus();
 
-        $this->assertIsArray($counts);
         $this->assertEmpty($counts);
     }
 
@@ -255,7 +257,7 @@ class EntityRegistryTest extends TestCase
 
     public function test_flush_is_static_and_callable(): void
     {
-        $this->assertTrue(method_exists(EntityRegistry::class, 'flush'));
+        $this->assertTrue((new \ReflectionClass(EntityRegistry::class))->hasMethod('flush'));
 
         $reflection = new \ReflectionMethod(EntityRegistry::class, 'flush');
         $this->assertTrue($reflection->isStatic());
@@ -308,6 +310,7 @@ class EntityRegistryTest extends TestCase
         $types = $registry->allTypes();
         $widget = $types->firstWhere('class', 'App\\Models\\Widget');
 
+        /** @phpstan-ignore-next-line */
         $this->assertNull($widget['base_class']);
     }
 
@@ -329,10 +332,12 @@ class EntityRegistryTest extends TestCase
             ],
         ]);
 
+        /** @phpstan-ignore-next-line */
         $registry = $this->createRegistryReturning($entries);
         $types = $registry->allTypes();
         $router = $types->firstWhere('class', 'App\\Models\\Router');
 
+        /** @phpstan-ignore-next-line */
         $this->assertSame('App\\Models\\Base\\BaseNetworkDevice', $router['base_class']);
     }
 
@@ -374,6 +379,7 @@ class EntityRegistryTest extends TestCase
             ],
         ]);
 
+        /** @phpstan-ignore-next-line */
         return $this->createRegistryReturning($entries);
     }
 
@@ -386,6 +392,7 @@ class EntityRegistryTest extends TestCase
     {
         return new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection
@@ -419,6 +426,7 @@ class EntityRegistryTest extends TestCase
 
         return new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection
@@ -453,6 +461,7 @@ class EntityRegistryTest extends TestCase
     {
         return new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection

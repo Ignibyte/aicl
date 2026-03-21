@@ -52,9 +52,12 @@ class EntityLifecycleBroadcastTest extends TestCase
 
     public function test_pre_action_events_do_not_extend_domain_event(): void
     {
-        $this->assertFalse(is_subclass_of(EntityCreating::class, DomainEvent::class));
-        $this->assertFalse(is_subclass_of(EntityUpdating::class, DomainEvent::class));
-        $this->assertFalse(is_subclass_of(EntityDeleting::class, DomainEvent::class));
+        /** @phpstan-ignore-next-line */
+        $this->assertFalse((new \ReflectionClass(EntityCreating::class))->isSubclassOf(DomainEvent::class));
+        /** @phpstan-ignore-next-line */
+        $this->assertFalse((new \ReflectionClass(EntityUpdating::class))->isSubclassOf(DomainEvent::class));
+        /** @phpstan-ignore-next-line */
+        $this->assertFalse((new \ReflectionClass(EntityDeleting::class))->isSubclassOf(DomainEvent::class));
     }
 
     public function test_entity_created_broadcast_payload_includes_metadata(): void

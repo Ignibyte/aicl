@@ -3,6 +3,7 @@
 namespace Aicl\Tests\Unit\AI;
 
 use Aicl\AI\AiToolRegistry;
+use Aicl\AI\Tools\BaseTool;
 use Aicl\AI\Tools\CurrentUserTool;
 use Aicl\AI\Tools\EntityCountTool;
 use Aicl\AI\Tools\HealthStatusTool;
@@ -79,10 +80,14 @@ class AiToolRegistryTest extends TestCase
         $tools = $registry->resolve(42);
 
         // WhosOnlineTool should NOT have auth injected
-        $this->assertNull($tools[0]->getAuthenticatedUserId());
+        /** @var BaseTool $whosOnline */
+        $whosOnline = $tools[0];
+        $this->assertNull($whosOnline->getAuthenticatedUserId());
 
         // CurrentUserTool should have auth injected
-        $this->assertSame(42, $tools[1]->getAuthenticatedUserId());
+        /** @var BaseTool $currentUser */
+        $currentUser = $tools[1];
+        $this->assertSame(42, $currentUser->getAuthenticatedUserId());
     }
 
     public function test_resolve_without_user_id_does_not_inject_auth(): void
@@ -93,7 +98,9 @@ class AiToolRegistryTest extends TestCase
 
         $tools = $registry->resolve();
 
-        $this->assertNull($tools[0]->getAuthenticatedUserId());
+        /** @var BaseTool $tool */
+        $tool = $tools[0];
+        $this->assertNull($tool->getAuthenticatedUserId());
     }
 
     public function test_registered_returns_class_map(): void
@@ -104,7 +111,7 @@ class AiToolRegistryTest extends TestCase
 
         $registered = $registry->registered();
 
-        $this->assertIsArray($registered);
+        $this->assertNotEmpty($registered);
         $this->assertSame(WhosOnlineTool::class, $registered[WhosOnlineTool::class]);
     }
 
@@ -114,7 +121,6 @@ class AiToolRegistryTest extends TestCase
 
         $tools = $registry->resolve();
 
-        $this->assertIsArray($tools);
         $this->assertEmpty($tools);
     }
 

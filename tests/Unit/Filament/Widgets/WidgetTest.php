@@ -15,12 +15,12 @@ class WidgetTest extends TestCase
 
     public function test_queue_stats_extends_stats_overview(): void
     {
-        $this->assertTrue(is_subclass_of(QueueStatsWidget::class, StatsOverviewWidget::class));
+        $this->assertTrue((new \ReflectionClass(QueueStatsWidget::class))->isSubclassOf(StatsOverviewWidget::class));
     }
 
     public function test_queue_stats_defines_get_stats(): void
     {
-        $this->assertTrue(method_exists(QueueStatsWidget::class, 'getStats'));
+        $this->assertTrue((new \ReflectionClass(QueueStatsWidget::class))->hasMethod('getStats'));
     }
 
     public function test_queue_stats_defines_get_queue_size(): void
@@ -34,12 +34,12 @@ class WidgetTest extends TestCase
 
     public function test_recent_failed_jobs_extends_widget(): void
     {
-        $this->assertTrue(is_subclass_of(RecentFailedJobsWidget::class, Widget::class));
+        $this->assertTrue((new \ReflectionClass(RecentFailedJobsWidget::class))->isSubclassOf(Widget::class));
     }
 
     public function test_recent_failed_jobs_defines_table(): void
     {
-        $this->assertTrue(method_exists(RecentFailedJobsWidget::class, 'table'));
+        $this->assertTrue((new \ReflectionClass(RecentFailedJobsWidget::class))->hasMethod('table'));
     }
 
     public function test_recent_failed_jobs_has_full_column_span(): void
@@ -54,7 +54,7 @@ class WidgetTest extends TestCase
 
     public function test_global_search_extends_widget(): void
     {
-        $this->assertTrue(is_subclass_of(GlobalSearchWidget::class, Widget::class));
+        $this->assertTrue((new \ReflectionClass(GlobalSearchWidget::class))->isSubclassOf(Widget::class));
     }
 
     public function test_global_search_default_properties(): void
@@ -69,11 +69,11 @@ class WidgetTest extends TestCase
 
     public function test_global_search_defines_results_method(): void
     {
-        $this->assertTrue(method_exists(GlobalSearchWidget::class, 'results'));
+        $this->assertTrue((new \ReflectionClass(GlobalSearchWidget::class))->hasMethod('results'));
     }
 
     public function test_global_search_defines_clear_search(): void
     {
-        $this->assertTrue(method_exists(GlobalSearchWidget::class, 'clearSearch'));
+        $this->assertTrue((new \ReflectionClass(GlobalSearchWidget::class))->hasMethod('clearSearch'));
     }
 }

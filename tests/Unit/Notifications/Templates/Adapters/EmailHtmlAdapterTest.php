@@ -29,6 +29,7 @@ class EmailHtmlAdapterTest extends TestCase
 
     public function test_wraps_in_html_with_title(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Welcome Email',
             'body' => 'Hello there!',
@@ -42,6 +43,7 @@ class EmailHtmlAdapterTest extends TestCase
 
     public function test_body_contains_paragraph_with_text(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body content here',
@@ -53,6 +55,7 @@ class EmailHtmlAdapterTest extends TestCase
 
     public function test_includes_action_button_when_url_present(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -68,6 +71,7 @@ class EmailHtmlAdapterTest extends TestCase
 
     public function test_no_action_button_when_url_is_null(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -79,6 +83,7 @@ class EmailHtmlAdapterTest extends TestCase
 
     public function test_uses_default_action_text(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -90,6 +95,7 @@ class EmailHtmlAdapterTest extends TestCase
 
     public function test_output_contains_required_keys(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Title',
             'body' => 'Body',
@@ -104,6 +110,7 @@ class EmailHtmlAdapterTest extends TestCase
 
     public function test_html_has_inline_styles(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Styled Email',
             'body' => 'Content',

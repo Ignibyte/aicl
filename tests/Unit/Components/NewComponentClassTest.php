@@ -38,6 +38,7 @@ class NewComponentClassTest extends TestCase
         $this->assertTrue(method_exists($class, 'render'));
     }
 
+    /** @phpstan-ignore-next-line */
     public static function newComponentProvider(): array
     {
         return [

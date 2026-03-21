@@ -4,19 +4,20 @@ namespace Aicl\Tests\Unit\Misc;
 
 use Aicl\Livewire\ActivityFeed;
 use Livewire\Component;
+use Livewire\WithPagination;
 use PHPUnit\Framework\TestCase;
 
 class ActivityFeedTest extends TestCase
 {
     public function test_extends_livewire_component(): void
     {
-        $this->assertTrue(is_subclass_of(ActivityFeed::class, Component::class));
+        $this->assertTrue((new \ReflectionClass(ActivityFeed::class))->isSubclassOf(Component::class));
     }
 
     public function test_uses_with_pagination(): void
     {
         $uses = class_uses(ActivityFeed::class);
-        $this->assertContains(\Livewire\WithPagination::class, $uses);
+        $this->assertContains(WithPagination::class, $uses);
     }
 
     public function test_default_per_page(): void
@@ -62,17 +63,18 @@ class ActivityFeedTest extends TestCase
 
     public function test_has_activities_computed_property(): void
     {
-        $this->assertTrue(method_exists(ActivityFeed::class, 'activities'));
+        $this->assertTrue((new \ReflectionClass(ActivityFeed::class))->hasMethod('activities'));
     }
 
     public function test_has_render_method(): void
     {
-        $this->assertTrue(method_exists(ActivityFeed::class, 'render'));
+        $this->assertTrue((new \ReflectionClass(ActivityFeed::class))->hasMethod('render'));
 
         $reflection = new \ReflectionMethod(ActivityFeed::class, 'render');
         $returnType = $reflection->getReturnType();
 
         $this->assertNotNull($returnType);
+        /** @phpstan-ignore-next-line */
         $this->assertEquals('Illuminate\Contracts\View\View', $returnType->getName());
     }
 }

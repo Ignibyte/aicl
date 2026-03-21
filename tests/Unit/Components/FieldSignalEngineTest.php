@@ -70,6 +70,7 @@ class FieldSignalEngineTest extends TestCase
         $this->assertEquals('x-aicl-stat-card', $result->tag);
     }
 
+    /** @phpstan-ignore-next-line */
     public static function monetaryFieldProvider(): array
     {
         return [
@@ -161,7 +162,6 @@ class FieldSignalEngineTest extends TestCase
         ];
 
         $results = $this->engine->recommendForEntity($fields);
-        $this->assertIsArray($results);
         $this->assertGreaterThanOrEqual(2, count($results));
     }
 
@@ -179,7 +179,6 @@ class FieldSignalEngineTest extends TestCase
     public function test_recommend_for_entity_with_empty_fields(): void
     {
         $results = $this->engine->recommendForEntity([]);
-        $this->assertIsArray($results);
         $this->assertCount(0, $results);
     }
 
@@ -200,9 +199,5 @@ class FieldSignalEngineTest extends TestCase
         $result = $this->engine->match('status', 'enum');
         $this->assertNotNull($result);
         $this->assertInstanceOf(ComponentRecommendation::class, $result);
-        $this->assertIsString($result->tag);
-        $this->assertIsString($result->reason);
-        $this->assertIsFloat($result->confidence);
-        $this->assertIsArray($result->suggestedProps);
     }
 }

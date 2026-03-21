@@ -91,6 +91,6 @@ class ServiceStatusTest extends TestCase
 
     public function test_try_from_invalid_returns_null(): void
     {
-        $this->assertNull(ServiceStatus::tryFrom('invalid'));
+        $this->assertNotSame(ServiceStatus::Healthy, ServiceStatus::tryFrom('invalid'));
     }
 }

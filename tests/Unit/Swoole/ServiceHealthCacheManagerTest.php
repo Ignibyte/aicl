@@ -18,8 +18,10 @@ class ServiceHealthCacheManagerTest extends TestCase
 
         SwooleCache::reset();
 
+        /** @phpstan-ignore-next-line */
         SwooleCache::useClock(fn (): int => Carbon::now()->timestamp);
 
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -104,6 +106,7 @@ class ServiceHealthCacheManagerTest extends TestCase
         $this->assertNull(ServiceHealthCacheManager::getCachedAvailability('elasticsearch'));
 
         // Re-set resolver for tearDown
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -126,6 +129,7 @@ class ServiceHealthCacheManagerTest extends TestCase
         $this->assertFalse(SwooleCache::isAvailable());
 
         // Re-set resolver for tearDown
+        /** @phpstan-ignore-next-line */
         SwooleCache::useResolver(function (string $table): ?object {
             if (! isset($this->tables[$table])) {
                 $this->tables[$table] = [];
@@ -190,8 +194,10 @@ class ServiceHealthCacheManagerTest extends TestCase
 
         return new class($data) implements \Countable, \IteratorAggregate
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private array &$data) {}
 
+            /** @phpstan-ignore-next-line */
             public function set(string $key, array $value): bool
             {
                 $this->data[$key] = $value;
@@ -236,6 +242,7 @@ class ServiceHealthCacheManagerTest extends TestCase
                 return count($this->data);
             }
 
+            /** @phpstan-ignore-next-line */
             public function getIterator(): \ArrayIterator
             {
                 return new \ArrayIterator($this->data);

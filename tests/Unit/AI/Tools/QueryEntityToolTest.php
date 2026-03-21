@@ -49,6 +49,7 @@ class QueryEntityToolTest extends TestCase
     public function test_returns_error_for_unknown_entity_type(): void
     {
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -68,6 +69,7 @@ class QueryEntityToolTest extends TestCase
         User::factory()->create(['name' => 'Test User']);
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -90,6 +92,7 @@ class QueryEntityToolTest extends TestCase
         User::factory()->create();
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -112,6 +115,7 @@ class QueryEntityToolTest extends TestCase
         User::factory()->create();
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -134,6 +138,7 @@ class QueryEntityToolTest extends TestCase
         $user = User::factory()->create();
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -156,6 +161,7 @@ class QueryEntityToolTest extends TestCase
         User::factory()->count(5)->create();
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -176,6 +182,7 @@ class QueryEntityToolTest extends TestCase
     public function test_limit_capped_at_50(): void
     {
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -203,6 +210,7 @@ class QueryEntityToolTest extends TestCase
         User::query()->delete();
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -226,6 +234,7 @@ class QueryEntityToolTest extends TestCase
         User::factory()->create(['name' => 'Bob']);
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));
@@ -249,6 +258,7 @@ class QueryEntityToolTest extends TestCase
         User::factory()->create(['name' => 'Alice']);
 
         $registry = Mockery::mock(EntityRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('allTypes')->andReturn(new Collection([
             ['class' => User::class, 'table' => 'users', 'label' => 'User'],
         ]));

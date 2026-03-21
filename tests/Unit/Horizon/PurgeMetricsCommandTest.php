@@ -13,6 +13,7 @@ class PurgeMetricsCommandTest extends TestCase
     public function test_command_exists_with_correct_signature(): void
     {
         $this->artisan('aicl:horizon:purge-metrics')
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful();
     }
 
@@ -29,6 +30,7 @@ class PurgeMetricsCommandTest extends TestCase
         ]);
 
         $this->artisan('aicl:horizon:purge-metrics')
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful();
 
         $this->assertDatabaseCount('queue_metric_snapshots', 1);
@@ -44,6 +46,7 @@ class PurgeMetricsCommandTest extends TestCase
         ]);
 
         $this->artisan('aicl:horizon:purge-metrics', ['--days' => 7])
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful();
 
         $this->assertDatabaseCount('queue_metric_snapshots', 1);
@@ -61,6 +64,7 @@ class PurgeMetricsCommandTest extends TestCase
         ]);
 
         $this->artisan('aicl:horizon:purge-metrics')
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful();
 
         $this->assertDatabaseCount('queue_metric_snapshots', 1);
@@ -73,6 +77,7 @@ class PurgeMetricsCommandTest extends TestCase
         ]);
 
         $this->artisan('aicl:horizon:purge-metrics')
+            /** @phpstan-ignore-next-line */
             ->expectsOutputToContain('3')
             ->assertSuccessful();
     }
@@ -80,6 +85,7 @@ class PurgeMetricsCommandTest extends TestCase
     public function test_command_returns_success_exit_code(): void
     {
         $this->artisan('aicl:horizon:purge-metrics')
+            /** @phpstan-ignore-next-line */
             ->assertExitCode(0);
     }
 
@@ -88,6 +94,7 @@ class PurgeMetricsCommandTest extends TestCase
         $this->assertDatabaseCount('queue_metric_snapshots', 0);
 
         $this->artisan('aicl:horizon:purge-metrics')
+            /** @phpstan-ignore-next-line */
             ->assertSuccessful();
 
         $this->assertDatabaseCount('queue_metric_snapshots', 0);

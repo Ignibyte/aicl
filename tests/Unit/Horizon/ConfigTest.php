@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class ConfigTest extends TestCase
 {
+    /** @phpstan-ignore-next-line */
     private array $config;
 
     protected function setUp(): void

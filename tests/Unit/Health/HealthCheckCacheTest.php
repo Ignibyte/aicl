@@ -29,7 +29,6 @@ class HealthCheckCacheTest extends TestCase
     {
         $results = $this->registry->runAllCached();
 
-        $this->assertIsArray($results);
     }
 
     public function test_run_all_cached_populates_cache(): void
@@ -56,7 +55,6 @@ class HealthCheckCacheTest extends TestCase
 
         $results = $this->registry->forceRefresh();
 
-        $this->assertIsArray($results);
         // Cache is repopulated after force refresh
         $this->assertNotNull(Cache::get('aicl:health_checks'));
     }

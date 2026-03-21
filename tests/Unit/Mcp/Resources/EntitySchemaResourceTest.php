@@ -60,6 +60,7 @@ class EntitySchemaResourceTest extends TestCase
         $this->assertArrayHasKey('name', $array);
         $this->assertArrayHasKey('uri', $array);
         $this->assertArrayHasKey('mimeType', $array);
+        /** @phpstan-ignore-next-line */
         $this->assertSame('entity://user/schema', $array['uri']);
         $this->assertSame('application/json', $array['mimeType']);
     }

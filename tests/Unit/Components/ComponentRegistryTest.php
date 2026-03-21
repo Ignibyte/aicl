@@ -3,6 +3,7 @@
 namespace Aicl\Tests\Unit\Components;
 
 use Aicl\Components\ComponentDefinition;
+use Aicl\Components\ComponentDiscoveryService;
 use Aicl\Components\ComponentRecommendation;
 use Aicl\Components\ComponentRegistry;
 use Tests\TestCase;
@@ -103,7 +104,6 @@ class ComponentRegistryTest extends TestCase
         $fields = ['status' => 'enum', 'budget' => 'float', 'name' => 'string'];
         $recs = $this->registry->recommendForEntity($fields);
 
-        $this->assertIsArray($recs);
         $this->assertGreaterThanOrEqual(2, count($recs));
     }
 
@@ -112,7 +112,6 @@ class ComponentRegistryTest extends TestCase
         $fields = ['status:enum', 'budget:float', 'name:string'];
         $recs = $this->registry->recommendForEntity($fields);
 
-        $this->assertIsArray($recs);
         $this->assertGreaterThanOrEqual(2, count($recs));
     }
 
@@ -122,7 +121,6 @@ class ComponentRegistryTest extends TestCase
     {
         $schema = $this->registry->schema('stat-card');
         $this->assertNotNull($schema);
-        $this->assertIsArray($schema);
         $this->assertArrayHasKey('label', $schema);
     }
 
@@ -197,7 +195,6 @@ class ComponentRegistryTest extends TestCase
     public function test_categories_returns_unique_sorted_list(): void
     {
         $categories = $this->registry->categories();
-        $this->assertIsArray($categories);
         $this->assertGreaterThanOrEqual(5, count($categories));
         $this->assertContains('metric', $categories);
         $this->assertContains('layout', $categories);
@@ -212,7 +209,7 @@ class ComponentRegistryTest extends TestCase
 
     public function test_register_adds_definitions_directly(): void
     {
-        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+        $registry = new ComponentRegistry(new ComponentDiscoveryService);
         $definition = new ComponentDefinition(
             name: 'Test Component',
             tag: 'x-aicl-test',
@@ -264,7 +261,7 @@ class ComponentRegistryTest extends TestCase
 
     public function test_display_component_resolves_by_content_type_and_mode(): void
     {
-        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+        $registry = new ComponentRegistry(new ComponentDiscoveryService);
 
         $definition = new ComponentDefinition(
             name: 'Page Teaser',
@@ -301,7 +298,7 @@ class ComponentRegistryTest extends TestCase
 
     public function test_display_component_returns_null_for_unknown_content_type(): void
     {
-        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+        $registry = new ComponentRegistry(new ComponentDiscoveryService);
 
         $definition = new ComponentDefinition(
             name: 'Page Teaser',
@@ -336,7 +333,7 @@ class ComponentRegistryTest extends TestCase
 
     public function test_display_component_returns_null_for_unknown_display_mode(): void
     {
-        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+        $registry = new ComponentRegistry(new ComponentDiscoveryService);
 
         $definition = new ComponentDefinition(
             name: 'Page Teaser',
@@ -373,7 +370,7 @@ class ComponentRegistryTest extends TestCase
 
     public function test_display_components_returns_all_modes_for_content_type(): void
     {
-        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+        $registry = new ComponentRegistry(new ComponentDiscoveryService);
 
         $teaser = new ComponentDefinition(
             name: 'Post Teaser',
@@ -458,20 +455,21 @@ class ComponentRegistryTest extends TestCase
         $postComponents = $registry->displayComponents('post');
         $this->assertCount(2, $postComponents);
 
+        /** @phpstan-ignore-next-line */
         $modes = $postComponents->map(fn (ComponentDefinition $c) => $c->entityDisplay['display_mode'])->sort()->values()->all();
         $this->assertSame(['card', 'teaser'], $modes);
     }
 
     public function test_display_components_returns_empty_for_unknown_content_type(): void
     {
-        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+        $registry = new ComponentRegistry(new ComponentDiscoveryService);
 
         $this->assertTrue($registry->displayComponents('nonexistent')->isEmpty());
     }
 
     public function test_display_component_ignores_components_without_entity_display(): void
     {
-        $registry = new ComponentRegistry(new \Aicl\Components\ComponentDiscoveryService);
+        $registry = new ComponentRegistry(new ComponentDiscoveryService);
 
         $blade = new ComponentDefinition(
             name: 'Stat Card',

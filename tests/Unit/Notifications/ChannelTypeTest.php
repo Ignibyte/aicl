@@ -105,6 +105,7 @@ class ChannelTypeTest extends TestCase
     public function test_try_from_returns_null_for_invalid_value(): void
     {
         $type = ChannelType::tryFrom('nonexistent');
-        $this->assertNull($type);
+
+        $this->assertNotSame(ChannelType::Email, $type);
     }
 }

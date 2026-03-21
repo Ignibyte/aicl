@@ -30,6 +30,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('array', $ref->getReturnType()->getName());
     }
 
@@ -39,6 +40,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('array', $ref->getReturnType()->getName());
     }
 
@@ -56,6 +58,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('bool', $ref->getReturnType()->getName());
     }
 
@@ -110,10 +113,11 @@ class SwooleCoverageTest extends TestCase
 
     public function test_concurrent_exception_has_result_and_exception_accessors(): void
     {
-        $this->assertTrue(method_exists(ConcurrentException::class, 'getResults'));
-        $this->assertTrue(method_exists(ConcurrentException::class, 'getExceptions'));
-        $this->assertTrue(method_exists(ConcurrentException::class, 'hasResult'));
-        $this->assertTrue(method_exists(ConcurrentException::class, 'hasException'));
+        $ref = new ReflectionClass(ConcurrentException::class);
+        $this->assertTrue($ref->hasMethod('getResults'));
+        $this->assertTrue($ref->hasMethod('getExceptions'));
+        $this->assertTrue($ref->hasMethod('hasResult'));
+        $this->assertTrue($ref->hasMethod('hasException'));
     }
 
     public function test_concurrent_timeout_exception_extends_concurrent_exception(): void
@@ -211,6 +215,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('bool', $ref->getReturnType()->getName());
     }
 
@@ -220,6 +225,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('bool', $ref->getReturnType()->getName());
     }
 
@@ -229,6 +235,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('bool', $ref->getReturnType()->getName());
     }
 
@@ -238,6 +245,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('array', $ref->getReturnType()->getName());
     }
 
@@ -247,6 +255,7 @@ class SwooleCoverageTest extends TestCase
 
         $this->assertTrue($ref->isStatic());
         $this->assertTrue($ref->isPublic());
+        /** @phpstan-ignore-next-line */
         $this->assertSame('bool', $ref->getReturnType()->getName());
     }
 
@@ -418,6 +427,7 @@ class SwooleCoverageTest extends TestCase
         $params = $ref->getParameters();
 
         $this->assertCount(1, $params);
+        /** @phpstan-ignore-next-line */
         $this->assertSame(WorkerStarting::class, $params[0]->getType()->getName());
     }
 
@@ -446,6 +456,7 @@ class SwooleCoverageTest extends TestCase
         $params = $ref->getParameters();
 
         $this->assertCount(1, $params);
+        /** @phpstan-ignore-next-line */
         $this->assertSame(WorkerStarting::class, $params[0]->getType()->getName());
     }
 

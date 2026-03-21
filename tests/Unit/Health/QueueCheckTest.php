@@ -36,9 +36,11 @@ class QueueCheckTest extends TestCase
 
         $connection = Mockery::mock();
         $connection->shouldReceive('llen')
+            /** @phpstan-ignore-next-line */
             ->with('test_queues:default')
             ->andReturn(5);
         $connection->shouldReceive('llen')
+            /** @phpstan-ignore-next-line */
             ->with('test_queues:high')
             ->andReturn(2);
 
@@ -69,6 +71,7 @@ class QueueCheckTest extends TestCase
         ]);
 
         $connection = Mockery::mock();
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('llen')->andReturn(0);
 
         Redis::shouldReceive('connection')->andReturn($connection);
@@ -92,6 +95,7 @@ class QueueCheckTest extends TestCase
         ]);
 
         $connection = Mockery::mock();
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('llen')->andReturn(0);
 
         Redis::shouldReceive('connection')->andReturn($connection);
@@ -102,7 +106,9 @@ class QueueCheckTest extends TestCase
         $result = $this->check->check();
 
         $this->assertSame(ServiceStatus::Degraded, $result->status);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('15', $result->error);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('10', $result->error);
     }
 
@@ -115,6 +121,7 @@ class QueueCheckTest extends TestCase
         ]);
 
         $connection = Mockery::mock();
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('llen')->andReturn(0);
 
         Redis::shouldReceive('connection')->andReturn($connection);
@@ -161,15 +168,19 @@ class QueueCheckTest extends TestCase
 
         $connection = Mockery::mock();
         $connection->shouldReceive('llen')
+            /** @phpstan-ignore-next-line */
             ->with('queues:default')
             ->andReturn(0);
         $connection->shouldReceive('llen')
+            /** @phpstan-ignore-next-line */
             ->with('queues:notifications')
             ->andReturn(0);
         $connection->shouldReceive('llen')
+            /** @phpstan-ignore-next-line */
             ->with('queues:high')
             ->andReturn(0);
         $connection->shouldReceive('llen')
+            /** @phpstan-ignore-next-line */
             ->with('queues:low')
             ->andReturn(0);
 
@@ -196,6 +207,7 @@ class QueueCheckTest extends TestCase
         ]);
 
         $connection = Mockery::mock();
+        /** @phpstan-ignore-next-line */
         $connection->shouldReceive('llen')->andReturn(0);
 
         Redis::shouldReceive('connection')->andReturn($connection);

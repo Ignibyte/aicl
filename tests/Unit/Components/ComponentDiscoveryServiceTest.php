@@ -206,6 +206,7 @@ class ComponentDiscoveryServiceTest extends TestCase
     /**
      * Create a valid manifest array with optional overrides.
      */
+    /** @phpstan-ignore-next-line */
     private function validManifest(array $overrides = []): array
     {
         return array_merge([

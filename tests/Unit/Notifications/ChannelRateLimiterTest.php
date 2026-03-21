@@ -29,6 +29,7 @@ class ChannelRateLimiterTest extends TestCase
         parent::tearDown();
     }
 
+    /** @phpstan-ignore-next-line */
     private function createChannel(?array $rateLimit = null): NotificationChannel
     {
         return NotificationChannel::create([

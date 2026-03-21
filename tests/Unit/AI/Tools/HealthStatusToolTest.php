@@ -44,6 +44,7 @@ class HealthStatusToolTest extends TestCase
     public function test_returns_empty_array_when_no_checks(): void
     {
         $registry = Mockery::mock(HealthCheckRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('runAllCached')->once()->andReturn([]);
 
         $this->app->instance(HealthCheckRegistry::class, $registry);
@@ -51,7 +52,6 @@ class HealthStatusToolTest extends TestCase
         $tool = new HealthStatusTool;
         $result = $tool();
 
-        $this->assertIsArray($result);
         $this->assertCount(0, $result);
     }
 
@@ -60,10 +60,12 @@ class HealthStatusToolTest extends TestCase
         $checks = [
             ServiceCheckResult::healthy('Database', 'heroicon-o-circle-stack', ['driver' => 'pgsql']),
             ServiceCheckResult::degraded('Redis', 'heroicon-o-bolt', ['latency' => '50ms'], 'High latency'),
+            /** @phpstan-ignore-next-line */
             ServiceCheckResult::down('Elasticsearch', 'heroicon-o-magnifying-glass', 'Connection refused'),
         ];
 
         $registry = Mockery::mock(HealthCheckRegistry::class);
+        /** @phpstan-ignore-next-line */
         $registry->shouldReceive('runAllCached')->once()->andReturn($checks);
 
         $this->app->instance(HealthCheckRegistry::class, $registry);
@@ -71,7 +73,6 @@ class HealthStatusToolTest extends TestCase
         $tool = new HealthStatusTool;
         $result = $tool();
 
-        $this->assertIsArray($result);
         $this->assertCount(3, $result);
 
         // Healthy check

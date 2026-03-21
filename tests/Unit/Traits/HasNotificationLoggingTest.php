@@ -26,6 +26,7 @@ class HasNotificationLoggingTest extends TestCase
         $returnType = $method->getReturnType();
 
         $this->assertNotNull($returnType);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('MorphMany', $returnType->getName());
     }
 }

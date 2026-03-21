@@ -6,6 +6,7 @@ use Aicl\Events\DomainEvent;
 use Aicl\Events\DomainEventRegistry;
 use Aicl\Events\Enums\ActorType;
 use Aicl\Events\Exceptions\UnresolvableEventException;
+use Carbon\Carbon;
 use PHPUnit\Framework\TestCase;
 
 class DomainEventTest extends TestCase
@@ -113,8 +114,7 @@ class DomainEventTest extends TestCase
     {
         $event = new StubDomainEvent(ActorType::System);
 
-        $this->assertNotNull($event->occurredAt);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $event->occurredAt);
+        $this->assertInstanceOf(Carbon::class, $event->occurredAt);
     }
 
     public function test_event_accepts_explicit_actor_type(): void

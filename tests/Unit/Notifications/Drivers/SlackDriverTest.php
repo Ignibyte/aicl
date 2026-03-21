@@ -24,6 +24,7 @@ class SlackDriverTest extends TestCase
         $this->driver = new SlackDriver;
     }
 
+    /** @phpstan-ignore-next-line */
     private function createChannel(array $config = []): NotificationChannel
     {
         return NotificationChannel::create([
@@ -165,6 +166,7 @@ class SlackDriverTest extends TestCase
 
         $this->assertFalse($result->success);
         $this->assertFalse($result->retryable);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContains('400', $result->error);
     }
 

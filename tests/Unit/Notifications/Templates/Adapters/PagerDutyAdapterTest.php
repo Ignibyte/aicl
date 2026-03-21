@@ -31,6 +31,7 @@ class PagerDutyAdapterTest extends TestCase
     {
         $channel = (object) ['config' => ['routing_key' => 'test-routing-key']];
 
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Critical Alert',
             'body' => 'Server is down',
@@ -44,6 +45,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_payload_contains_summary(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert Title',
             'body' => 'Alert body',
@@ -54,6 +56,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_payload_contains_severity(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -65,6 +68,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_maps_warning_severity(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -76,6 +80,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_maps_success_to_info_severity(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -87,6 +92,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_maps_unknown_color_to_info(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -98,6 +104,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_default_color_maps_to_info(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -110,6 +117,7 @@ class PagerDutyAdapterTest extends TestCase
     {
         config(['app.name' => 'TestApp']);
 
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -122,6 +130,7 @@ class PagerDutyAdapterTest extends TestCase
     {
         $channel = (object) ['config' => ['routing_key' => 'my-key-123']];
 
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -132,6 +141,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_empty_routing_key_without_channel(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -148,6 +158,7 @@ class PagerDutyAdapterTest extends TestCase
             'color' => 'info',
         ];
 
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format($rendered, []);
 
         $this->assertSame($rendered, $result['payload']['custom_details']);
@@ -155,6 +166,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_payload_contains_component(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',
@@ -165,6 +177,7 @@ class PagerDutyAdapterTest extends TestCase
 
     public function test_default_component_is_application(): void
     {
+        /** @phpstan-ignore-next-line */
         $result = $this->adapter->format([
             'title' => 'Alert',
             'body' => 'Body',

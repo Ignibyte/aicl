@@ -11,17 +11,17 @@ class DomainEventViewerTest extends TestCase
 {
     public function test_extends_table_widget(): void
     {
-        $this->assertTrue(is_subclass_of(DomainEventTable::class, TableWidget::class));
+        $this->assertTrue((new \ReflectionClass(DomainEventTable::class))->isSubclassOf(TableWidget::class));
     }
 
     public function test_implements_has_table(): void
     {
-        $this->assertTrue(is_subclass_of(DomainEventTable::class, HasTable::class));
+        $this->assertTrue((new \ReflectionClass(DomainEventTable::class))->isSubclassOf(HasTable::class));
     }
 
     public function test_has_table_method(): void
     {
-        $this->assertTrue(method_exists(DomainEventTable::class, 'table'));
+        $this->assertTrue((new \ReflectionClass(DomainEventTable::class))->hasMethod('table'));
     }
 
     public function test_is_not_auto_discovered(): void

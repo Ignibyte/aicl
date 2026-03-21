@@ -8,6 +8,7 @@ use Aicl\AI\Events\AiStreamStarted;
 use Aicl\AI\Events\AiTokenEvent;
 use Aicl\AI\Jobs\AiStreamJob;
 use Generator;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +31,7 @@ class AiStreamJobTest extends TestCase
     {
         $job = new AiStreamJob('stream-1', 1, 'Hello');
 
-        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $job);
+        $this->assertInstanceOf(ShouldQueue::class, $job);
     }
 
     public function test_tries_is_one(): void
@@ -217,6 +218,7 @@ class AiStreamJobTest extends TestCase
         $response->setUsage($usage);
 
         $agent = \Mockery::mock(AgentInterface::class);
+        /** @phpstan-ignore-next-line */
         $agent->shouldReceive('stream')->once()->andReturnUsing(function () use ($tokens, $response): Generator {
             foreach ($tokens as $token) {
                 yield $token;
@@ -225,6 +227,7 @@ class AiStreamJobTest extends TestCase
             return $response;
         });
 
+        /** @phpstan-ignore-next-line */
         return new class($streamId, $userId, $prompt, $agent) extends AiStreamJob
         {
             private AgentInterface $mockAgent;
@@ -248,8 +251,10 @@ class AiStreamJobTest extends TestCase
     private function makeThrowingJob(string $streamId, int $userId, string $prompt, \Throwable $exception): AiStreamJob
     {
         $agent = \Mockery::mock(AgentInterface::class);
+        /** @phpstan-ignore-next-line */
         $agent->shouldReceive('stream')->once()->andThrow($exception);
 
+        /** @phpstan-ignore-next-line */
         return new class($streamId, $userId, $prompt, $agent) extends AiStreamJob
         {
             private AgentInterface $mockAgent;

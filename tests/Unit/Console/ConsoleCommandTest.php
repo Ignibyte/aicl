@@ -36,6 +36,7 @@ class ConsoleCommandTest extends TestCase
     #[DataProvider('commandWithSignatureProvider')]
     public function test_command_has_expected_signature(string $commandClass, string $expectedName): void
     {
+        /** @phpstan-ignore-next-line */
         $reflection = new \ReflectionClass($commandClass);
         $defaults = $reflection->getDefaultProperties();
 
@@ -46,6 +47,7 @@ class ConsoleCommandTest extends TestCase
     #[DataProvider('commandProvider')]
     public function test_command_has_non_empty_description(string $commandClass): void
     {
+        /** @phpstan-ignore-next-line */
         $reflection = new \ReflectionClass($commandClass);
         $defaults = $reflection->getDefaultProperties();
 
@@ -117,7 +119,7 @@ class ConsoleCommandTest extends TestCase
 
     public function test_upgrade_command_defines_build_initial_state(): void
     {
-        $this->assertTrue(method_exists(UpgradeCommand::class, 'buildInitialState'));
+        $this->assertTrue((new \ReflectionClass(UpgradeCommand::class))->hasMethod('buildInitialState'));
     }
 
     public function test_upgrade_command_build_initial_state_is_static(): void
@@ -572,52 +574,52 @@ class ConsoleCommandTest extends TestCase
 
     public function test_base_schema_inspector_has_validate_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'validate'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('validate'));
     }
 
     public function test_base_schema_inspector_has_columns_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'columns'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('columns'));
     }
 
     public function test_base_schema_inspector_has_traits_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'traits'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('traits'));
     }
 
     public function test_base_schema_inspector_has_contracts_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'contracts'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('contracts'));
     }
 
     public function test_base_schema_inspector_has_fillable_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'fillable'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('fillable'));
     }
 
     public function test_base_schema_inspector_has_casts_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'casts'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('casts'));
     }
 
     public function test_base_schema_inspector_has_relationships_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'relationships'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('relationships'));
     }
 
     public function test_base_schema_inspector_has_column_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'hasColumn'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('hasColumn'));
     }
 
     public function test_base_schema_inspector_has_trait_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'hasTrait'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('hasTrait'));
     }
 
     public function test_base_schema_inspector_has_column_type_method(): void
     {
-        $this->assertTrue(method_exists(BaseSchemaInspector::class, 'columnType'));
+        $this->assertTrue((new \ReflectionClass(BaseSchemaInspector::class))->hasMethod('columnType'));
     }
 
     public function test_base_schema_inspector_short_class_name(): void

@@ -50,6 +50,7 @@ class EntityRegistryConcurrentTest extends TestCase
 
         $registry = new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection
@@ -94,6 +95,7 @@ class EntityRegistryConcurrentTest extends TestCase
         $this->assertInstanceOf(Collection::class, $results);
         $this->assertCount(1, $results);
         $this->assertTrue($results->has('Fake Searchable'));
+        /** @phpstan-ignore-next-line */
         $this->assertCount(1, $results->get('Fake Searchable'));
     }
 
@@ -146,6 +148,7 @@ class EntityRegistryConcurrentTest extends TestCase
 
         $registry = new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection
@@ -237,6 +240,7 @@ class EntityRegistryConcurrentTest extends TestCase
 
         $registry = new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection
@@ -274,7 +278,6 @@ class EntityRegistryConcurrentTest extends TestCase
 
         $counts = $registry->countsByStatus();
 
-        $this->assertIsArray($counts);
         $this->assertArrayHasKey('Fake Status', $counts);
         $this->assertSame(5, $counts['Fake Status']['active']);
         $this->assertSame(2, $counts['Fake Status']['inactive']);
@@ -339,6 +342,7 @@ class EntityRegistryConcurrentTest extends TestCase
 
         $registry = new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection
@@ -384,10 +388,12 @@ class EntityRegistryConcurrentTest extends TestCase
     // Helpers
     // ========================================================================
 
+    /** @phpstan-ignore-next-line */
     private function createTestableRegistry(Collection $entries): EntityRegistry
     {
         return new class($entries) extends EntityRegistry
         {
+            /** @phpstan-ignore-next-line */
             public function __construct(private Collection $preset) {}
 
             public function allTypes(): Collection

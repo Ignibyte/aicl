@@ -51,6 +51,7 @@ class ShowEntityToolTest extends TestCase
 
         $this->assertArrayHasKey('inputSchema', $array);
         $this->assertSame('show_user', $array['name']);
+        /** @phpstan-ignore-next-line */
         $this->assertStringContainsString('User', $array['description']);
     }
 }
