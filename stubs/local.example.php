@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Local Configuration Overrides
  *
@@ -72,13 +74,6 @@ return [
 
     // 'aicl.ai.openai.api_key'    => 'sk-...',
     // 'aicl.ai.anthropic.api_key' => 'sk-ant-...',
-
-    // -------------------------------------------------------------------------
-    // CMS AI Keys (secrets — required for CMS AI content generation)
-    // -------------------------------------------------------------------------
-
-    // 'aicl-cms.ai.claude.api_key' => 'sk-ant-...',
-    // 'aicl-cms.ai.openai.api_key' => 'sk-...',
 
     // -------------------------------------------------------------------------
     // AICL Feature Flags (override package/project defaults)

@@ -55,7 +55,8 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
     {
         $length = $this->connection()->llen('commands:'.$name);
 
-        if ($length < 1) {
+        // phpredis with OPT_PREFIX can return \Redis object instead of int
+        if (! is_int($length) || $length < 1) {
             return [];
         }
 

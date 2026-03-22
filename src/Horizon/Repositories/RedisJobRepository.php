@@ -553,31 +553,31 @@ class RedisJobRepository implements JobRepository
         $this->connection()->pipeline(function ($pipe) {
             $pipe->zremrangebyscore(
                 'recent_jobs',
-                CarbonImmutable::now()->subMinutes($this->recentJobExpires)->getTimestamp() * -1,
+                (string) (CarbonImmutable::now()->subMinutes($this->recentJobExpires)->getTimestamp() * -1),
                 '+inf'
             );
 
             $pipe->zremrangebyscore(
                 'recent_failed_jobs',
-                CarbonImmutable::now()->subMinutes($this->recentFailedJobExpires)->getTimestamp() * -1,
+                (string) (CarbonImmutable::now()->subMinutes($this->recentFailedJobExpires)->getTimestamp() * -1),
                 '+inf'
             );
 
             $pipe->zremrangebyscore(
                 'pending_jobs',
-                CarbonImmutable::now()->subMinutes($this->pendingJobExpires)->getTimestamp() * -1,
+                (string) (CarbonImmutable::now()->subMinutes($this->pendingJobExpires)->getTimestamp() * -1),
                 '+inf'
             );
 
             $pipe->zremrangebyscore(
                 'completed_jobs',
-                CarbonImmutable::now()->subMinutes($this->completedJobExpires)->getTimestamp() * -1,
+                (string) (CarbonImmutable::now()->subMinutes($this->completedJobExpires)->getTimestamp() * -1),
                 '+inf'
             );
 
             $pipe->zremrangebyscore(
                 'silenced_jobs',
-                CarbonImmutable::now()->subMinutes($this->completedJobExpires)->getTimestamp() * -1,
+                (string) (CarbonImmutable::now()->subMinutes($this->completedJobExpires)->getTimestamp() * -1),
                 '+inf'
             );
         });
@@ -591,7 +591,7 @@ class RedisJobRepository implements JobRepository
     public function trimFailedJobs()
     {
         $this->connection()->zremrangebyscore(
-            'failed_jobs', CarbonImmutable::now()->subMinutes($this->failedJobExpires)->getTimestamp() * -1, '+inf'
+            'failed_jobs', (string) (CarbonImmutable::now()->subMinutes($this->failedJobExpires)->getTimestamp() * -1), '+inf'
         );
     }
 
@@ -603,7 +603,7 @@ class RedisJobRepository implements JobRepository
     public function trimMonitoredJobs()
     {
         $this->connection()->zremrangebyscore(
-            'monitored_jobs', CarbonImmutable::now()->subMinutes($this->monitoredJobExpires)->getTimestamp() * -1, '+inf'
+            'monitored_jobs', (string) (CarbonImmutable::now()->subMinutes($this->monitoredJobExpires)->getTimestamp() * -1), '+inf'
         );
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Repositories;
 
 use Aicl\Horizon\Contracts\SupervisorRepository;
@@ -10,6 +12,12 @@ use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Arr;
 
+/**
+ * Redis-backed repository for Horizon supervisor state.
+ *
+ * Stores supervisor heartbeats, process counts, and configuration
+ * in Redis sorted sets and hashes via the 'horizon' connection.
+ */
 class RedisSupervisorRepository implements SupervisorRepository
 {
     /**
@@ -36,9 +44,12 @@ class RedisSupervisorRepository implements SupervisorRepository
      */
     public function names()
     {
-        return $this->connection()->zrevrangebyscore('supervisors', '+inf',
-            CarbonImmutable::now()->subSeconds(29)->getTimestamp()
+        $result = $this->connection()->zrevrangebyscore('supervisors', '+inf',
+            (string) CarbonImmutable::now()->subSeconds(29)->getTimestamp()
         );
+
+        // phpredis with OPT_PREFIX can return \Redis object instead of array
+        return is_array($result) ? $result : [];
     }
 
     /**
@@ -166,7 +177,7 @@ class RedisSupervisorRepository implements SupervisorRepository
     public function flushExpired()
     {
         $this->connection()->zremrangebyscore('supervisors', '-inf',
-            CarbonImmutable::now()->subSeconds(14)->getTimestamp()
+            (string) CarbonImmutable::now()->subSeconds(14)->getTimestamp()
         );
     }
 

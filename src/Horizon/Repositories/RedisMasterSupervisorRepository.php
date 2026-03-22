@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Repositories;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
@@ -11,6 +13,12 @@ use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Arr;
 
+/**
+ * Redis-backed repository for Horizon master supervisor state.
+ *
+ * Tracks master supervisor heartbeats and metadata in Redis sorted
+ * sets via the 'horizon' connection.
+ */
 class RedisMasterSupervisorRepository implements MasterSupervisorRepository
 {
     /**
@@ -37,9 +45,11 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function names()
     {
-        return $this->connection()->zrevrangebyscore('masters', '+inf',
-            CarbonImmutable::now()->subSeconds(14)->getTimestamp()
+        $result = $this->connection()->zrevrangebyscore('masters', '+inf',
+            (string) CarbonImmutable::now()->subSeconds(14)->getTimestamp()
         );
+
+        return is_array($result) ? $result : [];
     }
 
     /**
@@ -155,7 +165,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     public function flushExpired()
     {
         $this->connection()->zremrangebyscore('masters', '-inf',
-            CarbonImmutable::now()->subSeconds(14)->getTimestamp()
+            (string) CarbonImmutable::now()->subSeconds(14)->getTimestamp()
         );
     }
 

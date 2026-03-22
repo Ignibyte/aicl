@@ -152,7 +152,7 @@ class AutoScaler
 
         $totalProcessCount = $pool->totalProcessCount();
 
-        $desiredProcessCount = ceil($workers);
+        $desiredProcessCount = (int) ceil((float) $workers);
 
         if ($desiredProcessCount > $totalProcessCount) {
             $maxUpShift = min(

@@ -10,7 +10,28 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.16.1`
+Current version: `1.16.2`
+
+---
+
+## [1.16.2] - 2026-03-22
+
+### Removed
+
+- **CMS package** — Completely removed `packages/aicl-cms/` (360+ files) including all models, controllers, Filament resources, blocks, templates, layouts, migrations, tests, views, CSS, and Puck editor JS/TS. The framework is now strictly the core AICL package + User entity.
+- **CMS dependencies** — Removed `@puckeditor/core` and React/TypeScript deps from `package.json`; removed `aicl/aicl-cms` from `composer.json`
+- **CMS tests** — Removed CmsBuilderTest, CmsPublicPageTest (Dusk), debug-builder/debug-preview (Playwright), MakeContentTypeCommandTest (Framework), and 538 CMS package tests
+- **CMS config/views/CSS** — Removed `config/aicl-cms.php`, `resources/views/cms/`, `resources/css/cms/`, Puck editor entries from `vite.config.js`
+
+### Added
+
+- **Drop migration** — `2026_03_22_000000_drop_cms_tables.php` drops all 10 CMS database tables in reverse dependency order
+
+### Fixed
+
+- **Horizon Redis TypeError** — Cast all `zremrangebyscore` and `zrevrangebyscore` timestamp arguments to `(string)` — phpredis with `declare(strict_types=1)` requires string, not int
+- **Horizon Redis object returns** — Added guards for `zrevrangebyscore` and `llen` returning `\Redis` object instead of expected type when `OPT_PREFIX` is set
+- **AutoScaler ceil() TypeError** — Cast `$workers` to `(float)` before `ceil()` to prevent string-to-float TypeError
 
 ---
 
