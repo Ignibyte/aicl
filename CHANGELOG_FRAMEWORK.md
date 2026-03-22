@@ -10,7 +10,39 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.16.0`
+Current version: `1.16.1`
+
+---
+
+## [1.16.1] - 2026-03-22
+
+### Fixed
+
+- **EntityEventNotificationListener** — Added `$deleteWhenMissingModels = true` to prevent 108K+ failed queue jobs when models are deleted before queued notification jobs execute.
+- **Bulk import event storm** — Wrapped `ScoutImportCommand` and `SearchReindexCommand` in `Model::withoutEvents()` to suppress entity event notifications during bulk reindexing operations.
+- **AI assistant light mode CSS** — `.prose-chat` styles now use `--ai-panel-fg` / `--ai-panel-fg-secondary` tokens instead of `--aicl-foreground` fallbacks, fixing unreadable text in light mode.
+- **PHPStan baseline** — Regenerated to remove 2 stale `str_replace` float-argument entries from `RedisJobRepository` and `RedisTagRepository` that were fixed in v1.16.0.
+- **Test suite alignment (26 fixes):**
+  - Removed 10 `PageAccessTest` tests for deleted `AiAssistant` page class (refactored to Livewire widget)
+  - Rewrote `OperationsManagerPageTest` — removed stale `killSessionAction` tests, added `terminateSession` coverage, fixed PHPStan Mockery typing
+  - Fixed `ServiceCheckResult::down()` signature in `HealthStatusToolTest` and `RefreshHealthChecksJobTest` (string → array for `$details`)
+  - Updated 5 AI tool auth tests (`HealthStatusTool`, `WhosOnlineTool` now require auth)
+  - Fixed `AiToolRegistryTest` user ID injection test (switched to `EntityCountTool`)
+  - Fixed `MiddlewareTest` stale cache between tests, CSP header assertions
+  - Fixed `ChangelogPageTest` version service cache reset
+  - Fixed `SocialOAuthTest` PHPUnit 12 DataProvider attribute, role for API tokens access
+  - Fixed `RemoveEntityCommandTest` seeder cleanup (FQCN → short class name match), added PHPStan-safe helpers
+  - Added `declare(strict_types=1)` and class docblocks to all modified test files
+
+### Changed
+
+- **Dusk test improvements (6 files):**
+  - `CmsBuilderTest` / `CmsPublicPageTest` — Tests now create their own CMS page data instead of relying on pre-seeded data
+  - `LoginTest` — Updated logout text assertion, registration test resilience
+  - `NavigationTest` — Fixed system nav selector and settings route assertion
+  - `DashboardTest` — Updated queue widget text assertion
+  - `TableInteractionTest` — Fixed admin user display name assertion
+- **routes/api.php** — Added `declare(strict_types=1)` and fixed empty group body
 
 ---
 

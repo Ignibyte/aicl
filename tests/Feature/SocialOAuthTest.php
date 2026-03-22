@@ -15,6 +15,7 @@ use Aicl\Traits\HasSocialAccounts;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -151,7 +152,7 @@ class SocialOAuthTest extends TestCase
     public function test_api_tokens_page_accessible_to_authenticated_user(): void
     {
         $user = User::factory()->create();
-        $user->assignRole('viewer');
+        $user->assignRole('admin');
 
         $response = $this->actingAs($user)->get('/admin/api-tokens');
 
@@ -205,9 +206,7 @@ class SocialOAuthTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider viewTemplateProvider
-     */
+    #[DataProvider('viewTemplateProvider')]
     public function test_view_template_exists(string $viewName, string $message): void
     {
         $this->assertTrue(view()->exists($viewName), $message);

@@ -30,6 +30,14 @@ use Illuminate\Support\Str;
 class EntityEventNotificationListener implements ShouldQueue
 {
     /**
+     * Delete the listener job if its referenced model no longer exists.
+     *
+     * Prevents 108K+ failed jobs when bulk deletes or imports remove
+     * entities before their queued notification jobs execute.
+     */
+    public bool $deleteWhenMissingModels = true;
+
+    /**
      * Handle entity created events.
      */
     public function handleCreated(EntityCreated $event): void

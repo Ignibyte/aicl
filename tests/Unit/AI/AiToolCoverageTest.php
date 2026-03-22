@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Unit\AI;
 
 use Aicl\AI\AiAssistantRequest;
@@ -29,6 +31,10 @@ use NeuronAI\Tools\Tool;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
+/**
+ * Coverage tests for the AI tool system including provider factory,
+ * tool interfaces, events, jobs, and request validation.
+ */
 class AiToolCoverageTest extends TestCase
 {
     // =====================================================================
@@ -291,9 +297,9 @@ class AiToolCoverageTest extends TestCase
         $this->assertFalse((new EntityCountTool)->requiresAuth());
     }
 
-    public function test_health_status_tool_does_not_require_auth(): void
+    public function test_health_status_tool_requires_auth(): void
     {
-        $this->assertFalse((new HealthStatusTool)->requiresAuth());
+        $this->assertTrue((new HealthStatusTool)->requiresAuth());
     }
 
     public function test_query_entity_tool_requires_auth(): void
@@ -301,9 +307,9 @@ class AiToolCoverageTest extends TestCase
         $this->assertTrue((new QueryEntityTool)->requiresAuth());
     }
 
-    public function test_whos_online_tool_does_not_require_auth(): void
+    public function test_whos_online_tool_requires_auth(): void
     {
-        $this->assertFalse((new WhosOnlineTool)->requiresAuth());
+        $this->assertTrue((new WhosOnlineTool)->requiresAuth());
     }
 
     // =====================================================================

@@ -1,12 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Traits\HasSearchableFields;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 
+/**
+ * Imports all searchable models into the Scout search index.
+ *
+ * Discovers models using the HasSearchableFields trait and delegates
+ * to scout:import. Wraps bulk operations in Model::withoutEvents()
+ * to prevent entity event notification storms.
+ */
 class ScoutImportCommand extends Command
 {
     /**
@@ -35,26 +46,29 @@ class ScoutImportCommand extends Command
 
         $failed = false;
 
-        foreach ($models as $modelClass) {
-            $shortName = class_basename($modelClass);
+        // Suppress entity events during bulk import to prevent notification storm
+        Model::withoutEvents(function () use ($models, &$failed): void {
+            foreach ($models as $modelClass) {
+                $shortName = class_basename($modelClass);
 
-            if ($this->option('flush')) {
-                $this->components->task("Flushing {$shortName}", function () use ($modelClass): void {
-                    $this->callSilently('scout:flush', ['searchable' => [$modelClass]]);
-                });
-            }
-
-            $importFailed = false;
-            $this->components->task("Importing {$shortName}", function () use ($modelClass, &$importFailed): void {
-                if ($this->callSilently('scout:import', ['searchable' => [$modelClass]]) !== self::SUCCESS) {
-                    $importFailed = true;
+                if ($this->option('flush')) {
+                    $this->components->task("Flushing {$shortName}", function () use ($modelClass): void {
+                        $this->callSilently('scout:flush', ['searchable' => [$modelClass]]);
+                    });
                 }
-            });
 
-            if ($importFailed) {
-                $failed = true;
+                $importFailed = false;
+                $this->components->task("Importing {$shortName}", function () use ($modelClass, &$importFailed): void {
+                    if ($this->callSilently('scout:import', ['searchable' => [$modelClass]]) !== self::SUCCESS) {
+                        $importFailed = true;
+                    }
+                });
+
+                if ($importFailed) {
+                    $failed = true;
+                }
             }
-        }
+        });
 
         $this->newLine();
 
@@ -72,9 +86,9 @@ class ScoutImportCommand extends Command
     /**
      * Discover all Eloquent models that use the HasSearchableFields trait.
      *
-     * @return \Illuminate\Support\Collection<int, class-string>
+     * @return Collection<int, class-string>
      */
-    protected function discoverSearchableModels(): \Illuminate\Support\Collection
+    protected function discoverSearchableModels(): Collection
     {
         $models = collect();
 

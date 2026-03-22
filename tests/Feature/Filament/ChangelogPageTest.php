@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Feature\Filament;
 
 use Aicl\Events\EntityCreated;
@@ -12,6 +14,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
+/**
+ * Tests the Changelog Filament page including version display,
+ * rendering, and access control.
+ */
 class ChangelogPageTest extends TestCase
 {
     use RefreshDatabase;
@@ -186,8 +192,8 @@ class ChangelogPageTest extends TestCase
         }
 
         try {
-            // Clear cached version
-            cache()->forget('aicl.version.project');
+            // Clear static memoized version so the missing file is re-read
+            VersionService::resetCache();
 
             $service = new VersionService;
             $this->assertSame('unknown', $service->projectVersion());
@@ -195,6 +201,7 @@ class ChangelogPageTest extends TestCase
             if ($exists) {
                 rename($backup, $path);
             }
+            VersionService::resetCache();
         }
     }
 
@@ -206,7 +213,7 @@ class ChangelogPageTest extends TestCase
         $originalContent = $existed ? file_get_contents($path) : null;
 
         file_put_contents($path, "# Changelog\n\n## [1.0.0] - 2026-02-17\n\n- Initial release\n");
-        cache()->forget('aicl.version.project');
+        VersionService::resetCache();
 
         try {
             $page = new Changelog;
@@ -219,7 +226,7 @@ class ChangelogPageTest extends TestCase
             } else {
                 @unlink($path);
             }
-            cache()->forget('aicl.version.project');
+            VersionService::resetCache();
         }
     }
 
@@ -232,7 +239,7 @@ class ChangelogPageTest extends TestCase
         if ($exists) {
             rename($path, $backup);
         }
-        cache()->forget('aicl.version.project');
+        VersionService::resetCache();
 
         try {
             $page = new Changelog;
@@ -243,7 +250,7 @@ class ChangelogPageTest extends TestCase
             if ($exists) {
                 rename($backup, $path);
             }
-            cache()->forget('aicl.version.project');
+            VersionService::resetCache();
         }
     }
 

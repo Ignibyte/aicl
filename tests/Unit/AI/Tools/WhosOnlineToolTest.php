@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Unit\AI\Tools;
 
 use Aicl\AI\Contracts\AiTool;
@@ -10,6 +12,10 @@ use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
 
+/**
+ * Tests the WhosOnlineTool AI tool including interface compliance,
+ * auth requirements, metadata, and presence data formatting.
+ */
 class WhosOnlineToolTest extends TestCase
 {
     public function test_implements_ai_tool_interface(): void
@@ -34,11 +40,11 @@ class WhosOnlineToolTest extends TestCase
         $this->assertSame('system', $tool->category());
     }
 
-    public function test_does_not_require_auth(): void
+    public function test_requires_auth(): void
     {
         $tool = new WhosOnlineTool;
 
-        $this->assertFalse($tool->requiresAuth());
+        $this->assertTrue($tool->requiresAuth());
     }
 
     public function test_returns_string_when_no_sessions(): void

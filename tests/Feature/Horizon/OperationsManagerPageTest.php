@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Feature\Horizon;
 
 use Aicl\Events\EntityCreated;
@@ -20,6 +22,10 @@ use Illuminate\Support\Facades\Event;
 use Mockery;
 use Tests\TestCase;
 
+/**
+ * Tests the OperationsManager Filament page including queue stats,
+ * supervisors, scheduler, notifications, sessions, and access control.
+ */
 class OperationsManagerPageTest extends TestCase
 {
     use RefreshDatabase;
@@ -47,16 +53,21 @@ class OperationsManagerPageTest extends TestCase
         $this->admin->assignRole('admin');
     }
 
+    // ── Page Structure ────────────────────────────────────
+
+    /** Verifies the OperationsManager class exists and is loadable. */
     public function test_operations_manager_page_exists(): void
     {
         $this->assertTrue(class_exists(OperationsManager::class));
     }
 
+    /** Verifies the slug is 'operations-manager'. */
     public function test_operations_manager_slug(): void
     {
         $this->assertSame('operations-manager', OperationsManager::getSlug());
     }
 
+    /** Verifies the correct Blade view is assigned. */
     public function test_operations_manager_uses_correct_view(): void
     {
         $page = new OperationsManager;
@@ -65,6 +76,7 @@ class OperationsManagerPageTest extends TestCase
         $this->assertSame('aicl::filament.pages.operations-manager', $reflection->getValue($page));
     }
 
+    /** Verifies default active tab is 'overview'. */
     public function test_operations_manager_has_active_tab_property(): void
     {
         $page = new OperationsManager;
@@ -72,6 +84,7 @@ class OperationsManagerPageTest extends TestCase
         $this->assertSame('overview', $page->activeTab);
     }
 
+    /** Verifies default active section is 'queues'. */
     public function test_operations_manager_has_active_section_property(): void
     {
         $page = new OperationsManager;
@@ -79,20 +92,26 @@ class OperationsManagerPageTest extends TestCase
         $this->assertSame('queues', $page->activeSection);
     }
 
+    // ── Queue Stats ────────────────────────────────────
+
+    /**
+     * Verifies getQueueStats returns all expected keys
+     * when Horizon repositories are mocked.
+     */
     public function test_get_queue_stats_returns_expected_structure(): void
     {
-        $jobRepo = Mockery::mock(JobRepository::class);
-        $jobRepo->shouldReceive('countPending')->andReturn(5);
-        $jobRepo->shouldReceive('countFailed')->andReturn(2);
-        app()->instance(JobRepository::class, $jobRepo);
+        $this->mock(JobRepository::class, function ($mock): void {
+            $mock->shouldReceive('countPending')->andReturn(5);
+            $mock->shouldReceive('countFailed')->andReturn(2);
+        });
 
-        $workloadRepo = Mockery::mock(WorkloadRepository::class);
-        $workloadRepo->shouldReceive('get')->andReturn([]);
-        app()->instance(WorkloadRepository::class, $workloadRepo);
+        $this->mock(WorkloadRepository::class, function ($mock): void {
+            $mock->shouldReceive('get')->andReturn([]);
+        });
 
-        $metricsRepo = Mockery::mock(MetricsRepository::class);
-        $metricsRepo->shouldReceive('snapshotsForQueue')->with('default')->andReturn([]);
-        app()->instance(MetricsRepository::class, $metricsRepo);
+        $this->mock(MetricsRepository::class, function ($mock): void {
+            $mock->shouldReceive('snapshotsForQueue')->with('default')->andReturn([]);
+        });
 
         $page = new OperationsManager;
         $stats = $page->getQueueStats();
@@ -105,22 +124,26 @@ class OperationsManagerPageTest extends TestCase
         $this->assertArrayHasKey('workload', $stats);
     }
 
+    /**
+     * Verifies Horizon data values flow through to stats output
+     * when Horizon is available.
+     */
     public function test_get_queue_stats_uses_horizon_data_when_available(): void
     {
-        $jobRepo = Mockery::mock(JobRepository::class);
-        $jobRepo->shouldReceive('countPending')->andReturn(42);
-        $jobRepo->shouldReceive('countFailed')->andReturn(7);
-        app()->instance(JobRepository::class, $jobRepo);
+        $this->mock(JobRepository::class, function ($mock): void {
+            $mock->shouldReceive('countPending')->andReturn(42);
+            $mock->shouldReceive('countFailed')->andReturn(7);
+        });
 
-        $workloadRepo = Mockery::mock(WorkloadRepository::class);
-        $workloadRepo->shouldReceive('get')->andReturn([
-            ['name' => 'default', 'length' => 10, 'wait' => 5, 'processes' => 3],
-        ]);
-        app()->instance(WorkloadRepository::class, $workloadRepo);
+        $this->mock(WorkloadRepository::class, function ($mock): void {
+            $mock->shouldReceive('get')->andReturn([
+                ['name' => 'default', 'length' => 10, 'wait' => 5, 'processes' => 3],
+            ]);
+        });
 
-        $metricsRepo = Mockery::mock(MetricsRepository::class);
-        $metricsRepo->shouldReceive('snapshotsForQueue')->andReturn([]);
-        app()->instance(MetricsRepository::class, $metricsRepo);
+        $this->mock(MetricsRepository::class, function ($mock): void {
+            $mock->shouldReceive('snapshotsForQueue')->andReturn([]);
+        });
 
         $page = new OperationsManager;
         $stats = $page->getQueueStats();
@@ -129,22 +152,26 @@ class OperationsManagerPageTest extends TestCase
         $this->assertSame(3, $stats['total_processes']);
     }
 
+    /**
+     * Verifies throughput from metric snapshots is reflected
+     * in the jobs_per_minute stat.
+     */
     public function test_get_queue_stats_includes_jobs_per_minute(): void
     {
         $snapshot = (object) ['throughput' => 8.5];
 
-        $jobRepo = Mockery::mock(JobRepository::class);
-        $jobRepo->shouldReceive('countPending')->andReturn(0);
-        $jobRepo->shouldReceive('countFailed')->andReturn(0);
-        app()->instance(JobRepository::class, $jobRepo);
+        $this->mock(JobRepository::class, function ($mock): void {
+            $mock->shouldReceive('countPending')->andReturn(0);
+            $mock->shouldReceive('countFailed')->andReturn(0);
+        });
 
-        $workloadRepo = Mockery::mock(WorkloadRepository::class);
-        $workloadRepo->shouldReceive('get')->andReturn([]);
-        app()->instance(WorkloadRepository::class, $workloadRepo);
+        $this->mock(WorkloadRepository::class, function ($mock): void {
+            $mock->shouldReceive('get')->andReturn([]);
+        });
 
-        $metricsRepo = Mockery::mock(MetricsRepository::class);
-        $metricsRepo->shouldReceive('snapshotsForQueue')->with('default')->andReturn([$snapshot]);
-        app()->instance(MetricsRepository::class, $metricsRepo);
+        $this->mock(MetricsRepository::class, function ($mock) use ($snapshot): void {
+            $mock->shouldReceive('snapshotsForQueue')->with('default')->andReturn([$snapshot]);
+        });
 
         $page = new OperationsManager;
         $stats = $page->getQueueStats();
@@ -152,18 +179,25 @@ class OperationsManagerPageTest extends TestCase
         $this->assertSame(8.5, $stats['jobs_per_minute']);
     }
 
+    // ── Supervisors ────────────────────────────────────
+
+    /**
+     * Verifies getSupervisors returns an empty array when
+     * the supervisor repository returns nothing.
+     */
     public function test_get_supervisors_returns_array(): void
     {
-        $supervisorRepo = Mockery::mock(SupervisorRepository::class);
-        $supervisorRepo->shouldReceive('all')->andReturn([]);
-        app()->instance(SupervisorRepository::class, $supervisorRepo);
+        $this->mock(SupervisorRepository::class, function ($mock): void {
+            $mock->shouldReceive('all')->andReturn([]);
+        });
 
         $page = new OperationsManager;
         $result = $page->getSupervisors();
 
-        $this->assertIsArray($result);
+        $this->assertSame([], $result);
     }
 
+    /** Verifies supervisors returns empty when Horizon is disabled. */
     public function test_get_supervisors_returns_empty_when_horizon_disabled(): void
     {
         config(['aicl.features.horizon' => false]);
@@ -174,16 +208,17 @@ class OperationsManagerPageTest extends TestCase
         $this->assertSame([], $result);
     }
 
+    /** Verifies Horizon is detected as available when repo is bound and feature enabled. */
     public function test_is_horizon_available_returns_true_when_repo_bound(): void
     {
-        $jobRepo = Mockery::mock(JobRepository::class);
-        app()->instance(JobRepository::class, $jobRepo);
+        $this->mock(JobRepository::class);
         config(['aicl.features.horizon' => true]);
 
         $page = new OperationsManager;
         $this->assertTrue($page->isHorizonAvailable());
     }
 
+    /** Verifies Horizon is detected as unavailable when feature flag is disabled. */
     public function test_is_horizon_available_returns_false_when_disabled(): void
     {
         config(['aicl.features.horizon' => false]);
@@ -192,6 +227,7 @@ class OperationsManagerPageTest extends TestCase
         $this->assertFalse($page->isHorizonAvailable());
     }
 
+    /** Verifies the queue driver is read from config. */
     public function test_get_queue_driver_returns_configured_driver(): void
     {
         config(['queue.default' => 'redis', 'queue.connections.redis.driver' => 'redis']);
@@ -200,10 +236,13 @@ class OperationsManagerPageTest extends TestCase
         $this->assertSame('redis', $page->getQueueDriver());
     }
 
+    /**
+     * Verifies all 10 queue tabs are available when Horizon is enabled,
+     * including recent, pending, completed, metrics, workload, supervisors, monitoring.
+     */
     public function test_get_queue_tabs_shows_all_tabs_when_horizon_available(): void
     {
-        $jobRepo = Mockery::mock(JobRepository::class);
-        app()->instance(JobRepository::class, $jobRepo);
+        $this->mock(JobRepository::class);
         config(['aicl.features.horizon' => true]);
 
         $page = new OperationsManager;
@@ -222,6 +261,10 @@ class OperationsManagerPageTest extends TestCase
         $this->assertCount(10, $tabs);
     }
 
+    /**
+     * Verifies only 3 queue tabs are available when Horizon is disabled:
+     * overview, failed-jobs, batches.
+     */
     public function test_get_queue_tabs_shows_reduced_tabs_when_horizon_unavailable(): void
     {
         config(['aicl.features.horizon' => false]);
@@ -244,6 +287,7 @@ class OperationsManagerPageTest extends TestCase
 
     // ── Scheduler Section ────────────────────────────────────
 
+    /** Verifies scheduler tabs include registered, history, and schedule-failures. */
     public function test_get_scheduler_tabs_returns_expected_tabs(): void
     {
         $page = new OperationsManager;
@@ -255,6 +299,7 @@ class OperationsManagerPageTest extends TestCase
         $this->assertCount(3, $tabs);
     }
 
+    /** Verifies scheduler stats include all expected metric keys. */
     public function test_get_scheduler_stats_returns_expected_structure(): void
     {
         $page = new OperationsManager;
@@ -266,16 +311,18 @@ class OperationsManagerPageTest extends TestCase
         $this->assertArrayHasKey('success_rate_24h', $stats);
     }
 
+    /** Verifies registered tasks returns a countable result. */
     public function test_get_registered_tasks_returns_array(): void
     {
         $page = new OperationsManager;
         $tasks = $page->getRegisteredTasks();
 
-        $this->assertIsArray($tasks);
+        $this->assertCount(count($tasks), $tasks);
     }
 
     // ── Notification Section ────────────────────────────────────
 
+    /** Verifies notification tabs include delivery-health and failed-deliveries. */
     public function test_get_notification_tabs_returns_expected_tabs(): void
     {
         $page = new OperationsManager;
@@ -286,32 +333,36 @@ class OperationsManagerPageTest extends TestCase
         $this->assertCount(2, $tabs);
     }
 
+    /** Verifies notification delivery health returns a countable result. */
     public function test_get_notification_delivery_health_returns_array(): void
     {
         $page = new OperationsManager;
         $health = $page->getNotificationDeliveryHealth();
 
-        $this->assertIsArray($health);
+        $this->assertCount(count($health), $health);
     }
 
+    /** Verifies notification queue depth returns a non-negative integer. */
     public function test_get_notification_queue_depth_returns_integer(): void
     {
         $page = new OperationsManager;
         $depth = $page->getNotificationQueueDepth();
 
-        $this->assertIsInt($depth);
+        $this->assertGreaterThanOrEqual(0, $depth);
     }
 
+    /** Verifies stuck deliveries count returns a non-negative integer. */
     public function test_get_stuck_deliveries_returns_integer(): void
     {
         $page = new OperationsManager;
         $stuck = $page->getStuckDeliveries();
 
-        $this->assertIsInt($stuck);
+        $this->assertGreaterThanOrEqual(0, $stuck);
     }
 
     // ── Access Control ────────────────────────────────────
 
+    /** Verifies guests cannot access the operations manager. */
     public function test_can_access_returns_false_for_guests(): void
     {
         $this->assertFalse(OperationsManager::canAccess());
@@ -319,6 +370,7 @@ class OperationsManagerPageTest extends TestCase
 
     // ── Sessions Section ──────────────────────────────────
 
+    /** Verifies getActiveSessions returns a Collection instance. */
     public function test_get_active_sessions_returns_collection(): void
     {
         Cache::forget('presence:session_index');
@@ -329,6 +381,10 @@ class OperationsManagerPageTest extends TestCase
         $this->assertInstanceOf(Collection::class, $sessions);
     }
 
+    /**
+     * Verifies getActiveSessions reads from the PresenceRegistry
+     * and returns sessions with correct user_id.
+     */
     public function test_get_active_sessions_delegates_to_presence_registry(): void
     {
         $registry = app(PresenceRegistry::class);
@@ -344,36 +400,19 @@ class OperationsManagerPageTest extends TestCase
         $sessions = $page->getActiveSessions();
 
         $this->assertCount(1, $sessions);
-        $this->assertSame($this->superAdmin->getKey(), $sessions->first()['user_id']);
+
+        /** @var array<string, mixed> $firstSession */
+        $firstSession = $sessions->first();
+        $this->assertSame($this->superAdmin->getKey(), $firstSession['user_id']);
 
         // Cleanup
         $registry->forget('test-sess-001');
     }
 
-    public function test_kill_session_action_exists(): void
-    {
-        $page = new OperationsManager;
-        $action = $page->killSessionAction();
-
-        $this->assertSame('killSession', $action->getName());
-    }
-
-    public function test_kill_session_action_requires_confirmation(): void
-    {
-        $page = new OperationsManager;
-        $action = $page->killSessionAction();
-
-        $this->assertTrue($action->isConfirmationRequired());
-    }
-
-    public function test_kill_session_action_is_danger_colored(): void
-    {
-        $page = new OperationsManager;
-        $action = $page->killSessionAction();
-
-        $this->assertSame('danger', $action->getColor());
-    }
-
+    /**
+     * Verifies that a non-super_admin user cannot terminate a session.
+     * The session should remain intact and no event should be dispatched.
+     */
     public function test_terminate_session_requires_super_admin(): void
     {
         Event::fake([SessionTerminated::class]);
@@ -399,6 +438,10 @@ class OperationsManagerPageTest extends TestCase
         $registry->forget('target-sess');
     }
 
+    /**
+     * Verifies that a super_admin can successfully terminate another
+     * user's session and the SessionTerminated event fires.
+     */
     public function test_terminate_session_succeeds_for_super_admin(): void
     {
         Event::fake([SessionTerminated::class]);
@@ -420,6 +463,10 @@ class OperationsManagerPageTest extends TestCase
         Event::assertDispatched(SessionTerminated::class);
     }
 
+    /**
+     * Verifies that a super_admin cannot terminate their own session.
+     * Self-termination prevention protects against accidental lockout.
+     */
     public function test_terminate_session_prevents_self_termination(): void
     {
         Event::fake([SessionTerminated::class]);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Unit\AI\Tools;
 
 use Aicl\AI\Contracts\AiTool;
@@ -10,6 +12,10 @@ use Aicl\Health\ServiceCheckResult;
 use Mockery;
 use Tests\TestCase;
 
+/**
+ * Tests the HealthStatusTool AI tool including interface compliance,
+ * auth requirements, metadata, and health check result formatting.
+ */
 class HealthStatusToolTest extends TestCase
 {
     public function test_implements_ai_tool_interface(): void
@@ -34,11 +40,11 @@ class HealthStatusToolTest extends TestCase
         $this->assertSame('system', $tool->category());
     }
 
-    public function test_does_not_require_auth(): void
+    public function test_requires_auth(): void
     {
         $tool = new HealthStatusTool;
 
-        $this->assertFalse($tool->requiresAuth());
+        $this->assertTrue($tool->requiresAuth());
     }
 
     public function test_returns_empty_array_when_no_checks(): void
@@ -60,8 +66,7 @@ class HealthStatusToolTest extends TestCase
         $checks = [
             ServiceCheckResult::healthy('Database', 'heroicon-o-circle-stack', ['driver' => 'pgsql']),
             ServiceCheckResult::degraded('Redis', 'heroicon-o-bolt', ['latency' => '50ms'], 'High latency'),
-            /** @phpstan-ignore-next-line */
-            ServiceCheckResult::down('Elasticsearch', 'heroicon-o-magnifying-glass', 'Connection refused'),
+            ServiceCheckResult::down('Elasticsearch', 'heroicon-o-magnifying-glass', [], 'Connection refused'),
         ];
 
         $registry = Mockery::mock(HealthCheckRegistry::class);
@@ -75,21 +80,21 @@ class HealthStatusToolTest extends TestCase
 
         $this->assertCount(3, $result);
 
-        // Healthy check
+        // Healthy check — no details key in tool output, error is null for healthy services
         $this->assertSame('Database', $result[0]['service']);
         $this->assertSame('healthy', $result[0]['status']);
         $this->assertSame('heroicon-o-circle-stack', $result[0]['icon']);
-        $this->assertSame(['driver' => 'pgsql'], $result[0]['details']);
+        $this->assertArrayNotHasKey('details', $result[0]);
         $this->assertNull($result[0]['error']);
 
-        // Degraded check
+        // Degraded check — error is redacted to generic message
         $this->assertSame('Redis', $result[1]['service']);
         $this->assertSame('degraded', $result[1]['status']);
-        $this->assertSame('High latency', $result[1]['error']);
+        $this->assertSame('Service error detected', $result[1]['error']);
 
-        // Down check
+        // Down check — error is redacted to generic message
         $this->assertSame('Elasticsearch', $result[2]['service']);
         $this->assertSame('down', $result[2]['status']);
-        $this->assertSame('Connection refused', $result[2]['error']);
+        $this->assertSame('Service error detected', $result[2]['error']);
     }
 }

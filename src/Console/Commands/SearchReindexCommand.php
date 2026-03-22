@@ -1,11 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Search\SearchDocumentBuilder;
 use Aicl\Search\SearchIndexingService;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Rebuilds the global Elasticsearch search index from database records.
+ *
+ * Supports per-entity filtering, fresh index creation with zero-downtime
+ * alias swapping, and chunked bulk indexing. Wraps bulk operations in
+ * Model::withoutEvents() to prevent entity event notification storms.
+ */
 class SearchReindexCommand extends Command
 {
     protected $signature = 'search:reindex
@@ -73,7 +83,8 @@ class SearchReindexCommand extends Command
             }
 
             $count = 0;
-            $query->chunk(200, function ($models) use ($indexingService, $config, $documentBuilder, &$count): void {
+            // Suppress entity events during bulk reindex to prevent notification storm
+            Model::withoutEvents(fn () => $query->chunk(200, function ($models) use ($indexingService, $config, $documentBuilder, &$count): void {
                 $documents = [];
 
                 foreach ($models as $model) {
@@ -87,7 +98,7 @@ class SearchReindexCommand extends Command
                     $indexingService->bulkIndex($documents);
                     $count += count($documents);
                 }
-            });
+            }));
 
             $this->components->info("  Indexed {$count} records.");
             $totalIndexed += $count;

@@ -45,28 +45,28 @@
             --ai-panel-hover-bg: 0 0% 100% / 0.05;
         }
 
-        .prose-chat { line-height: 1.6; }
+        .prose-chat { line-height: 1.6; color: hsl(var(--ai-panel-fg)); }
         .prose-chat p { margin: 0.25em 0; }
         .prose-chat p:first-child { margin-top: 0; }
         .prose-chat p:last-child { margin-bottom: 0; }
-        .prose-chat strong { font-weight: 600; color: hsl(var(--aicl-foreground, 224 71% 4%)); }
+        .prose-chat strong { font-weight: 600; color: hsl(var(--ai-panel-fg)); }
         .prose-chat em { font-style: italic; }
         .prose-chat ul, .prose-chat ol { margin: 0.5em 0; padding-left: 1.5em; }
         .prose-chat li { margin: 0.15em 0; }
-        .prose-chat li::marker { color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); }
+        .prose-chat li::marker { color: hsl(var(--ai-panel-fg-secondary)); }
         .prose-chat code { font-size: 0.85em; padding: 0.15em 0.35em; border-radius: 0.25rem; background: hsl(var(--ai-panel-code-bg)); color: hsl(var(--aicl-primary, 32 95% 55%)); font-family: ui-monospace, 'JetBrains Mono', monospace; }
         .prose-chat pre { margin: 0.5em 0; padding: 0.75em 1em; border-radius: 0.5rem; background: hsl(var(--ai-panel-pre-bg)); overflow-x: auto; border: 1px solid hsl(var(--ai-panel-border)); }
-        .prose-chat pre code { padding: 0; background: none; color: hsl(var(--aicl-foreground, 224 71% 4%)); font-size: 0.8em; }
+        .prose-chat pre code { padding: 0; background: none; color: hsl(var(--ai-panel-fg)); font-size: 0.8em; }
         .prose-chat a { color: hsl(var(--aicl-primary, 32 95% 55%)); text-decoration: underline; }
         .prose-chat a:hover { opacity: 0.8; }
-        .prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 600; color: hsl(var(--aicl-foreground, 224 71% 4%)); margin: 0.75em 0 0.25em; }
+        .prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 600; color: hsl(var(--ai-panel-fg)); margin: 0.75em 0 0.25em; }
         .prose-chat h1 { font-size: 1.15em; }
         .prose-chat h2 { font-size: 1.05em; }
         .prose-chat h3 { font-size: 0.95em; }
         .prose-chat table { width: 100%; border-collapse: collapse; margin: 0.5em 0; font-size: 0.85em; }
-        .prose-chat th { text-align: left; padding: 0.35em 0.5em; border-bottom: 1px solid hsl(var(--ai-panel-border)); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); font-weight: 500; }
+        .prose-chat th { text-align: left; padding: 0.35em 0.5em; border-bottom: 1px solid hsl(var(--ai-panel-border)); color: hsl(var(--ai-panel-fg-secondary)); font-weight: 500; }
         .prose-chat td { padding: 0.35em 0.5em; border-bottom: 1px solid hsl(var(--ai-panel-border)); }
-        .prose-chat blockquote { margin: 0.5em 0; padding-left: 0.75em; border-left: 3px solid hsl(var(--ai-panel-border)); color: hsl(var(--aicl-muted-foreground, 220 9% 46%)); }
+        .prose-chat blockquote { margin: 0.5em 0; padding-left: 0.75em; border-left: 3px solid hsl(var(--ai-panel-border)); color: hsl(var(--ai-panel-fg-secondary)); }
         .prose-chat hr { border: none; border-top: 1px solid hsl(var(--ai-panel-border)); margin: 0.75em 0; }
     </style>
 

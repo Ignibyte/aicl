@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Feature\Http\Middleware;
 
 use Aicl\Events\EntityCreated;
@@ -16,9 +18,14 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Mockery\MockInterface;
 use Psr\Log\LoggerInterface;
 use Tests\TestCase;
 
+/**
+ * Tests HTTP middleware including security headers configuration,
+ * API request logging, and presence tracking.
+ */
 class MiddlewareTest extends TestCase
 {
     use RefreshDatabase;
@@ -34,6 +41,11 @@ class MiddlewareTest extends TestCase
             EntityUpdated::class,
             EntityDeleted::class,
         ]);
+
+        // Reset static caches so each test starts with fresh config lookups.
+        // The middleware memoizes config values per-worker for Octane performance,
+        // which causes stale state across test methods.
+        SecurityHeadersMiddleware::resetCache();
     }
 
     // ─── SecurityHeadersMiddleware ──────────────────────────
@@ -136,9 +148,10 @@ class MiddlewareTest extends TestCase
 
     public function test_api_request_is_logged(): void
     {
+        /** @var MockInterface&LoggerInterface $channelMock */
         $channelMock = \Mockery::mock(LoggerInterface::class);
         $channelMock->shouldReceive('info')
-            ->once()
+            ->once() // @phpstan-ignore method.notFound
             ->with('API Request', \Mockery::on(function (array $context) {
                 return $context['method'] === 'GET'
                     && $context['path'] === 'api/v1/test'
@@ -160,8 +173,9 @@ class MiddlewareTest extends TestCase
 
     public function test_api_request_log_middleware_returns_response(): void
     {
+        /** @var MockInterface&LoggerInterface $channelMock */
         $channelMock = \Mockery::mock(LoggerInterface::class);
-        $channelMock->shouldReceive('info')->once();
+        $channelMock->shouldReceive('info')->once(); // @phpstan-ignore method.notFound
 
         Log::shouldReceive('channel')
             ->with('api-requests')

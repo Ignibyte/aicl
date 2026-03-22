@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Unit\Jobs;
 
 use Aicl\Health\HealthCheckRegistry;
@@ -11,14 +13,17 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
+/**
+ * Tests the RefreshHealthChecksJob including queue interface,
+ * cache storage of results, and error handling.
+ */
 class RefreshHealthChecksJobTest extends TestCase
 {
     public function test_job_stores_results_in_redis_cache(): void
     {
         $results = [
             ServiceCheckResult::healthy('database', 'heroicon-o-circle-stack'),
-            /** @phpstan-ignore-next-line */
-            ServiceCheckResult::down('elasticsearch', 'heroicon-o-magnifying-glass', 'Connection refused'),
+            ServiceCheckResult::down('elasticsearch', 'heroicon-o-magnifying-glass', [], 'Connection refused'),
         ];
 
         $registry = $this->createMock(HealthCheckRegistry::class);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Unit\AI;
 
 use Aicl\AI\AiToolRegistry;
@@ -10,6 +12,10 @@ use Aicl\AI\Tools\HealthStatusTool;
 use Aicl\AI\Tools\WhosOnlineTool;
 use Tests\TestCase;
 
+/**
+ * Tests the AiToolRegistry including registration, resolution,
+ * user ID injection, and auto-discovery of tool classes.
+ */
 class AiToolRegistryTest extends TestCase
 {
     public function test_register_adds_tool_class(): void
@@ -73,16 +79,16 @@ class AiToolRegistryTest extends TestCase
         $registry = new AiToolRegistry($this->app);
 
         $registry->registerMany([
-            WhosOnlineTool::class,    // requiresAuth = false
+            EntityCountTool::class,   // requiresAuth = false
             CurrentUserTool::class,   // requiresAuth = true
         ]);
 
         $tools = $registry->resolve(42);
 
-        // WhosOnlineTool should NOT have auth injected
-        /** @var BaseTool $whosOnline */
-        $whosOnline = $tools[0];
-        $this->assertNull($whosOnline->getAuthenticatedUserId());
+        // EntityCountTool should NOT have auth injected
+        /** @var BaseTool $entityCount */
+        $entityCount = $tools[0];
+        $this->assertNull($entityCount->getAuthenticatedUserId());
 
         // CurrentUserTool should have auth injected
         /** @var BaseTool $currentUser */

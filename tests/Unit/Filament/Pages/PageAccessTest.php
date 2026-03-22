@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Tests\Unit\Filament\Pages;
 
 use Aicl\Filament\Pages\ActivityLog;
-use Aicl\Filament\Pages\AiAssistant;
 use Aicl\Filament\Pages\OpsPanel;
 use App\Models\User;
 use Filament\Forms\Contracts\HasForms;
@@ -11,6 +12,10 @@ use Filament\Pages\Page;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/**
+ * Tests page access control, slugs, views, and navigation
+ * configuration for OpsPanel and ActivityLog Filament pages.
+ */
 class PageAccessTest extends TestCase
 {
     use RefreshDatabase;
@@ -20,95 +25,6 @@ class PageAccessTest extends TestCase
         parent::setUp();
 
         $this->artisan('db:seed', ['--class' => 'Aicl\Database\Seeders\RoleSeeder']);
-    }
-
-    // ─── AiAssistant ────────────────────────────────────────────
-
-    public function test_ai_assistant_extends_page(): void
-    {
-        /** @phpstan-ignore-next-line */
-        $this->assertTrue(is_subclass_of(AiAssistant::class, Page::class));
-    }
-
-    public function test_ai_assistant_slug(): void
-    {
-        /** @phpstan-ignore-next-line */
-        $reflection = new \ReflectionClass(AiAssistant::class);
-        $prop = $reflection->getProperty('slug');
-
-        $this->assertEquals('ai-assistant', $prop->getDefaultValue());
-    }
-
-    public function test_ai_assistant_navigation_group(): void
-    {
-        /** @phpstan-ignore-next-line */
-        $reflection = new \ReflectionClass(AiAssistant::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals('System', $defaults['navigationGroup']);
-    }
-
-    public function test_ai_assistant_hidden_from_navigation(): void
-    {
-        /** @phpstan-ignore-next-line */
-        $reflection = new \ReflectionClass(AiAssistant::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertFalse($defaults['shouldRegisterNavigation']);
-    }
-
-    public function test_ai_assistant_navigation_sort(): void
-    {
-        /** @phpstan-ignore-next-line */
-        $reflection = new \ReflectionClass(AiAssistant::class);
-        $defaults = $reflection->getDefaultProperties();
-
-        $this->assertEquals(8, $defaults['navigationSort']);
-    }
-
-    public function test_ai_assistant_view(): void
-    {
-        /** @phpstan-ignore-next-line */
-        $reflection = new \ReflectionClass(AiAssistant::class);
-        $property = $reflection->getProperty('view');
-
-        $this->assertEquals('aicl::filament.pages.ai-assistant', $property->getDefaultValue());
-    }
-
-    public function test_ai_assistant_accessible_by_super_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('super_admin');
-        $this->actingAs($user);
-
-        /** @phpstan-ignore-next-line */
-        $this->assertTrue(AiAssistant::canAccess());
-    }
-
-    public function test_ai_assistant_accessible_by_admin(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-        $this->actingAs($user);
-
-        /** @phpstan-ignore-next-line */
-        $this->assertTrue(AiAssistant::canAccess());
-    }
-
-    public function test_ai_assistant_not_accessible_by_viewer(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('viewer');
-        $this->actingAs($user);
-
-        /** @phpstan-ignore-next-line */
-        $this->assertFalse(AiAssistant::canAccess());
-    }
-
-    public function test_ai_assistant_not_accessible_without_auth(): void
-    {
-        /** @phpstan-ignore-next-line */
-        $this->assertFalse(AiAssistant::canAccess());
     }
 
     // ─── OpsPanel ───────────────────────────────────────────────
