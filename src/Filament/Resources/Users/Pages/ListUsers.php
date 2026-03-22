@@ -36,6 +36,6 @@ class ListUsers extends ListRecords
      */
     protected function modifyQueryUsing(Builder $query): Builder
     {
-        return $query->with(['roles', 'breezySessions']);
+        return $query->with(['roles', 'breezySessions', 'breezySession']);
     }
 }

@@ -10,7 +10,19 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.16.3`
+Current version: `1.16.4`
+
+---
+
+## [1.16.4] - 2026-03-22
+
+### Fixed
+
+- **LazyLoadingViolationException on ListUsers** — Added `breezySession` (singular `MorphOne`) to the eager-load array alongside `breezySessions` (plural `MorphMany`). The MFA column calls `hasConfirmedTwoFactor()` which accesses the singular relationship, triggering a lazy load violation when `Model::shouldBeStrict()` is enabled.
+
+### Changed
+
+- **Content nav group icon** — Added icon to Content navigation group in AdminPanelProvider.
 
 ---
 
