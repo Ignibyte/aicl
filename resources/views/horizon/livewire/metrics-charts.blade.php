@@ -84,52 +84,45 @@
             icon="heroicon-o-chart-bar"
         />
     @else
+        @php
+            $labelInterval = max(1, intval(count($snapshots) / 8));
+            $maxThroughput = max(array_column($snapshots, 'throughput')) ?: 1;
+            $maxRuntime = max(array_column($snapshots, 'runtime')) ?: 1;
+        @endphp
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {{-- Throughput Chart --}}
             <x-filament::section>
                 <x-slot name="heading">Throughput (jobs/min)</x-slot>
-                <div class="h-48">
-                    <div class="flex h-full items-end gap-1">
-                        @php
-                            $maxThroughput = max(array_column($snapshots, 'throughput')) ?: 1;
-                        @endphp
-                        @foreach($snapshots as $snapshot)
-                            <div class="group relative flex h-full flex-1 flex-col items-center justify-end">
-                                <div
-                                    class="w-full rounded-t bg-primary-500 dark:bg-primary-400 transition-all duration-200 hover:bg-primary-600 dark:hover:bg-primary-300"
-                                    style="height: {{ max(2, ($snapshot['throughput'] / $maxThroughput) * 100) }}%"
-                                    title="{{ $snapshot['time'] }}: {{ number_format($snapshot['throughput'], 1) }} jobs/min"
-                                ></div>
-                                @if($loop->index % max(1, intval(count($snapshots) / 6)) === 0)
-                                    <span class="mt-1 text-[10px] text-gray-400 dark:text-gray-500">{{ $snapshot['time'] }}</span>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
+                <div style="height: 180px; display: flex; align-items: flex-end; gap: 1px; margin-bottom: 20px;">
+                    @foreach($snapshots as $snapshot)
+                        @php $pct = ($snapshot['throughput'] / $maxThroughput) * 100; @endphp
+                        <div style="flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative;" title="{{ $snapshot['time'] }}: {{ number_format($snapshot['throughput'], 1) }} jobs/min">
+                            @if($snapshot['throughput'] > 0)
+                                <div style="width: 100%; height: {{ max(3, $pct) }}%; border-radius: 3px 3px 0 0; background: rgb(249, 115, 22); min-height: 2px;"></div>
+                            @endif
+                            @if($loop->index % $labelInterval === 0)
+                                <span style="position: absolute; bottom: -18px; font-size: 9px; white-space: nowrap; color: #9ca3af;">{{ $snapshot['time'] }}</span>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             </x-filament::section>
 
             {{-- Runtime Chart --}}
             <x-filament::section>
                 <x-slot name="heading">Avg Runtime (ms)</x-slot>
-                <div class="h-48">
-                    <div class="flex h-full items-end gap-1">
-                        @php
-                            $maxRuntime = max(array_column($snapshots, 'runtime')) ?: 1;
-                        @endphp
-                        @foreach($snapshots as $snapshot)
-                            <div class="group relative flex h-full flex-1 flex-col items-center justify-end">
-                                <div
-                                    class="w-full rounded-t bg-yellow-500 dark:bg-yellow-400 transition-all duration-200 hover:bg-yellow-600 dark:hover:bg-yellow-300"
-                                    style="height: {{ max(2, ($snapshot['runtime'] / $maxRuntime) * 100) }}%"
-                                    title="{{ $snapshot['time'] }}: {{ number_format($snapshot['runtime'], 2) }}ms"
-                                ></div>
-                                @if($loop->index % max(1, intval(count($snapshots) / 6)) === 0)
-                                    <span class="mt-1 text-[10px] text-gray-400 dark:text-gray-500">{{ $snapshot['time'] }}</span>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
+                <div style="height: 180px; display: flex; align-items: flex-end; gap: 1px; margin-bottom: 20px;">
+                    @foreach($snapshots as $snapshot)
+                        @php $pct = ($snapshot['runtime'] / $maxRuntime) * 100; @endphp
+                        <div style="flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative;" title="{{ $snapshot['time'] }}: {{ number_format($snapshot['runtime'], 2) }}ms">
+                            @if($snapshot['runtime'] > 0)
+                                <div style="width: 100%; height: {{ max(3, $pct) }}%; border-radius: 3px 3px 0 0; background: rgb(234, 179, 8); min-height: 2px;"></div>
+                            @endif
+                            @if($loop->index % $labelInterval === 0)
+                                <span style="position: absolute; bottom: -18px; font-size: 9px; white-space: nowrap; color: #9ca3af;">{{ $snapshot['time'] }}</span>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             </x-filament::section>
         </div>

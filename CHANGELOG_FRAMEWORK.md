@@ -10,7 +10,23 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.16.2`
+Current version: `1.16.3`
+
+---
+
+## [1.16.3] - 2026-03-22
+
+### Fixed
+
+- **Operations Manager metrics charts** — Replaced Tailwind utility classes with inline styles for chart bar containers. The `<x-filament::section>` component was collapsing `h-44` flex containers to zero height, making all chart bars invisible. Inline `height: 180px` with `display: flex; align-items: flex-end` ensures bars render at correct proportional heights regardless of Filament's section wrapper.
+- **Metrics chart zero-value artifacts** — Zero-throughput and zero-runtime data points no longer render as tiny baseline bars. Only non-zero values produce visible bars.
+- **Chart label spacing** — Improved x-axis label interval to show 8 evenly-spaced timestamps instead of 6, preventing label overlap.
+
+### Added
+
+- **Task demo entity** — Full CRUD entity with 9 field types (string, text, enum, boolean, datetime, decimal, integer, json, foreignId), 5-state machine (draft → active → in_progress → completed → archived), Filament resource, widgets, notifications, PDF reports, and API controller.
+- **85 new Dusk browser tests** — TaskCrud (14), TaskTableInteractions (11), AiAgentCrud (10), AiConversationCrud (11), RoleCrud (10), ProfilePage (8), SystemPages (15), KeyboardShortcuts (6).
+- **Playwright MCP test agent expanded** — From 30 to ~152 tests including Tasks CRUD, form validation, table interactions, full user journeys, AI assistant tool calls, and Operations Manager metrics chart verification.
 
 ---
 
