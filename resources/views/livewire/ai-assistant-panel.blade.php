@@ -39,10 +39,10 @@
             --ai-panel-fg: 0 0% 100%;
             --ai-panel-fg-secondary: 220 9% 46%;
             --ai-panel-fg-tertiary: 220 9% 40%;
-            --ai-panel-border: 0 0% 100% / 0.05;
-            --ai-panel-code-bg: 0 0% 100% / 0.08;
-            --ai-panel-pre-bg: 0 0% 0% / 0.3;
-            --ai-panel-hover-bg: 0 0% 100% / 0.05;
+            --ai-panel-border: 220 15% 14%;
+            --ai-panel-code-bg: 220 15% 16%;
+            --ai-panel-pre-bg: 220 20% 7%;
+            --ai-panel-hover-bg: 220 15% 14%;
         }
 
         .prose-chat { line-height: 1.6; color: hsl(var(--ai-panel-fg)); }
@@ -377,7 +377,7 @@
 
                                         {{-- Response Bubble (contains tool chips, cards, and text) --}}
                                         <div x-show="(msg.tools && msg.tools.length > 0) || (msg.content && !_isBufferingJson(_currentResponse && messages.indexOf(msg) === messages.length - 1 ? _currentResponse : ''))" class="max-w-full">
-                                            <div class="rounded-2xl rounded-tl-sm border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-800 dark:border-white/5 dark:bg-gray-800/50 dark:text-gray-100">
+                                            <div class="rounded-2xl rounded-tl-sm border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-800 dark:border-white/5 dark:bg-gray-800 dark:text-gray-100">
                                                 {{-- Tool Call Chips --}}
                                                 <template x-if="msg.tools && msg.tools.length > 0">
                                                     <div class="mb-2 flex flex-wrap gap-1">
@@ -419,7 +419,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
                                 </svg>
                             </div>
-                            <div class="rounded-2xl rounded-tl-sm border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/5 dark:bg-gray-800/50">
+                            <div class="rounded-2xl rounded-tl-sm border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/5 dark:bg-gray-800">
                                 <div class="flex items-center gap-1.5">
                                     <span class="h-2 w-2 animate-bounce rounded-full bg-gray-400 dark:bg-gray-500" style="animation-delay: 0ms"></span>
                                     <span class="h-2 w-2 animate-bounce rounded-full bg-gray-400 dark:bg-gray-500" style="animation-delay: 150ms"></span>

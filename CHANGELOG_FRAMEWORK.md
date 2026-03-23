@@ -10,7 +10,16 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.16.4`
+Current version: `1.16.5`
+
+---
+
+## [1.16.5] - 2026-03-23
+
+### Fixed
+
+- **AI Assistant panel dark mode borders** — Replaced CSS variable alpha-slash syntax (`0 0% 100% / 0.05`) with solid computed colors for `--ai-panel-border`, `--ai-panel-code-bg`, `--ai-panel-pre-bg`, and `--ai-panel-hover-bg`. The `/ alpha` notation inside `hsl(var(...))` is not parsed correctly by some browsers, rendering borders as solid white instead of subtle.
+- **AI Assistant bot reply bubble opacity** — Changed bot response and loading indicator bubbles from `dark:bg-gray-800/50` (50% opacity) to `dark:bg-gray-800` (full opacity) so white text is no longer washed out against the panel background.
 
 ---
 
