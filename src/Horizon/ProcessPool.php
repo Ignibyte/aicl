@@ -67,6 +67,8 @@ class ProcessPool implements Countable
      *
      * @param  int  $processes
      * @return void
+     *
+     * @codeCoverageIgnore Reason: horizon-process -- Process scaling requires running supervisors
      */
     public function scale($processes)
     {
@@ -77,7 +79,9 @@ class ProcessPool implements Countable
         }
 
         if ($processes > count($this->processes)) {
+            // @codeCoverageIgnoreStart — Horizon process management
             $this->scaleUp($processes);
+            // @codeCoverageIgnoreEnd
         } else {
             $this->scaleDown($processes);
         }
@@ -91,10 +95,12 @@ class ProcessPool implements Countable
      */
     protected function scaleUp($processes)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $difference = $processes - count($this->processes);
 
         for ($i = 0; $i < $difference; $i++) {
             $this->start();
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -164,6 +170,7 @@ class ProcessPool implements Countable
      */
     protected function start()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->processes[] = $this->createProcess()->handleOutputUsing(function ($type, $line) {
             if ($this->output !== null) {
                 call_user_func($this->output, $type, $line);
@@ -171,6 +178,7 @@ class ProcessPool implements Countable
         });
 
         return $this;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -180,6 +188,7 @@ class ProcessPool implements Countable
      */
     protected function createProcess()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $class = config('aicl-horizon.fast_termination')
             ? BackgroundProcess::class
             : Process::class;
@@ -187,6 +196,7 @@ class ProcessPool implements Countable
         return new WorkerProcess($class::fromShellCommandline(
             $this->options->toWorkerCommand(), $this->options->directory
         )->setTimeout(null)->disableOutput());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -206,11 +216,13 @@ class ProcessPool implements Countable
      */
     public function restart()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $count = count($this->processes);
 
         $this->scale(0);
 
         $this->scale($count);
+        // @codeCoverageIgnoreEnd
     }
 
     /**

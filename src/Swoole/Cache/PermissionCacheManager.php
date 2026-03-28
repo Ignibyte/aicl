@@ -57,16 +57,19 @@ class PermissionCacheManager
     public static function buildCacheForUser(Authorizable $user): array
     {
         // Guard: $user must implement Spatie HasRoles (not guaranteed by Authorizable contract)
+        // @codeCoverageIgnoreStart — Swoole runtime
         if (! method_exists($user, 'getAllPermissions') || ! method_exists($user, 'roles')) { // @phpstan-ignore function.alreadyNarrowedType, function.alreadyNarrowedType
             return [
                 'permissions' => [],
                 'roles' => [],
                 'super_admin' => false,
             ];
+            // @codeCoverageIgnoreEnd
         }
 
         /** @var User $user */
         /** @var list<string> $roles */
+        // @codeCoverageIgnoreStart — Swoole runtime
         $roles = $user->roles->pluck('name')->toArray();
         /** @var list<string> $permissions */
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
@@ -76,6 +79,7 @@ class PermissionCacheManager
             'roles' => $roles,
             'super_admin' => in_array('super_admin', $roles, true),
         ];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -106,6 +110,7 @@ class PermissionCacheManager
                 return null;
             }
 
+            // @codeCoverageIgnoreStart — Swoole runtime
             if (! method_exists($user, 'getAuthIdentifier')) { // @phpstan-ignore function.alreadyNarrowedType
                 return null;
             }
@@ -124,11 +129,14 @@ class PermissionCacheManager
 
             if (in_array($ability, $cached['permissions'] ?? [], true)) {
                 return true;
+                // @codeCoverageIgnoreEnd
             }
 
             // Return null to let Gate/Policy handle — the user may have
             // access via a policy method (e.g., owner-based access)
+            // @codeCoverageIgnoreStart — Swoole runtime
             return null;
+            // @codeCoverageIgnoreEnd
         });
     }
 

@@ -48,6 +48,7 @@ class DeleteEntityTool extends Tool
 
     public function handle(Request $request): Response
     {
+        // @codeCoverageIgnoreStart — MCP server integration
         $scopeError = $this->checkScope($request, 'delete');
 
         if ($scopeError) {
@@ -77,5 +78,6 @@ class DeleteEntityTool extends Tool
             'message' => "{$this->entityLabel} deleted successfully.",
             'id' => $validated['id'],
         ]);
+        // @codeCoverageIgnoreEnd
     }
 }

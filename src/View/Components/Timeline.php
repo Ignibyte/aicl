@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -18,6 +20,8 @@ use Illuminate\View\View;
  *     ['date' => '2026-01-15', 'title' => 'Project created', 'description' => 'By Admin', 'color' => 'green'],
  *     ['date' => '2026-01-20', 'title' => 'Status changed', 'description' => 'Draft → Active', 'color' => 'blue'],
  * ]" />
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class Timeline extends Component
 {

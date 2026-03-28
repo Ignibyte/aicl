@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiAgents\Tables;
 
 use Aicl\Enums\AiProvider;
@@ -21,6 +23,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class AiAgentsTable
 {
     public static function configure(Table $table): Table

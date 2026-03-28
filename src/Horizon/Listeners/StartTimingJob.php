@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Listeners;
 
 use Aicl\Horizon\Events\JobReserved;
 use Aicl\Horizon\Stopwatch;
 
+/**
+ * StartTimingJob.
+ */
 class StartTimingJob
 {
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Health\Checks;
 
 use Aicl\Health\Contracts\ServiceHealthCheck;
@@ -8,6 +10,9 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
+/**
+ * @codeCoverageIgnore External service health check
+ */
 class ElasticsearchCheck implements ServiceHealthCheck
 {
     public function check(): ServiceCheckResult

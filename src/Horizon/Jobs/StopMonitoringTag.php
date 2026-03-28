@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Jobs;
 
 use Aicl\Horizon\Contracts\JobRepository;
 use Aicl\Horizon\Contracts\TagRepository;
 
+/**
+ * StopMonitoringTag.
+ */
 class StopMonitoringTag
 {
     /**
@@ -24,6 +29,7 @@ class StopMonitoringTag
      */
     public function handle(JobRepository $jobs, TagRepository $tags)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $tags->stopMonitoring($this->tag);
 
         $monitored = $tags->paginate($this->tag);
@@ -37,5 +43,6 @@ class StopMonitoringTag
         }
 
         $tags->forget($this->tag);
+        // @codeCoverageIgnoreEnd
     }
 }

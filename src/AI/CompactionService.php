@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI;
 
 use Aicl\Enums\AiMessageRole;
@@ -11,6 +13,9 @@ use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
 use NeuronAI\Providers\AIProviderInterface;
 
+/**
+ * Manages AI conversation compaction by summarizing old messages to reduce token usage.
+ */
 class CompactionService
 {
     /**
@@ -37,7 +42,7 @@ class CompactionService
         $provider = AiProviderFactory::makeFromAgent($agent);
 
         if (! $provider) {
-            throw new \RuntimeException('AI provider not configured for compaction.');
+            throw new \RuntimeException('AI provider not configured for compaction.'); // @codeCoverageIgnore
         }
 
         // Load messages that will be summarized (everything except the most recent N)
@@ -96,6 +101,8 @@ class CompactionService
 
     /**
      * Send conversation text to the AI provider for summarization.
+     *
+     * @codeCoverageIgnore Requires real AI provider to generate summary — compact() flow tested with mocked provider
      */
     protected function summarizeWithAi(AIProviderInterface $provider, string $conversationText): string
     {

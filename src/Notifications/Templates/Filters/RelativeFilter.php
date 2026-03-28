@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates\Filters;
 
 use Aicl\Notifications\Templates\Contracts\TemplateFilter;
 use Carbon\Carbon;
 
+/**
+ * RelativeFilter.
+ */
 class RelativeFilter implements TemplateFilter
 {
     public function apply(string $value, ?string $argument, array $context): string

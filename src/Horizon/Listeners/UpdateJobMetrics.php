@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Listeners;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
 use Aicl\Horizon\Events\JobDeleted;
 use Aicl\Horizon\Stopwatch;
 
+/**
+ * UpdateJobMetrics.
+ */
 class UpdateJobMetrics
 {
     /**

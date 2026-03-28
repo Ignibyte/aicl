@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Observers;
 
 use Aicl\Models\AiConversation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * AiConversationObserver.
+ */
 class AiConversationObserver extends BaseObserver
 {
     /**

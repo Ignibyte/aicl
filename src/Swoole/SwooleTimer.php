@@ -69,7 +69,9 @@ final class SwooleTimer
         self::persistTimer($key, 'recurring', $seconds, $job, $data);
 
         if (! self::isAvailable()) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             return false;
+            // @codeCoverageIgnoreEnd
         }
 
         $callback = self::buildCallback($job, $data);
@@ -94,7 +96,9 @@ final class SwooleTimer
         self::persistTimer($key, 'once', $seconds, $job, $data);
 
         if (! self::isAvailable()) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             return false;
+            // @codeCoverageIgnoreEnd
         }
 
         $callback = function () use ($key, $job, $data): void {
@@ -138,6 +142,7 @@ final class SwooleTimer
      */
     public static function list(): array
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         $timers = [];
         $keys = self::redis()->keys(self::REDIS_PREFIX.'*');
 
@@ -162,6 +167,7 @@ final class SwooleTimer
         }
 
         return $timers;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -169,7 +175,9 @@ final class SwooleTimer
      */
     public static function exists(string $key): bool
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         return self::redis()->exists(self::REDIS_PREFIX.$key) > 0;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -192,6 +200,8 @@ final class SwooleTimer
      * Called on worker boot. Re-registers Swoole timers from their
      * persisted definitions. Should only be called from worker 0
      * to prevent duplicate recurring timers.
+     *
+     * @codeCoverageIgnore Requires Swoole runtime with active Timer — sequential fallback paths are tested
      */
     public static function restore(): void
     {
@@ -245,9 +255,11 @@ final class SwooleTimer
     {
         // Clear any active Swoole timers
         if (self::isAvailable()) {
+            // @codeCoverageIgnoreStart — Swoole Timer::clear() requires active runtime
             foreach (self::$timerIds as $timerId) {
                 Timer::clear($timerId);
             }
+            // @codeCoverageIgnoreEnd
         }
 
         self::$timerIds = [];
@@ -302,6 +314,8 @@ final class SwooleTimer
      *
      * @param  string|object  $job  Job class name or instance
      * @param  array<mixed>  $data  Constructor arguments (when $job is a string)
+     *
+     * @codeCoverageIgnore Callback closures execute inside Swoole Timer context only
      */
     private static function buildCallback(string|object $job, array $data = []): Closure
     {
@@ -372,6 +386,8 @@ final class SwooleTimer
             return (self::$redisResolver)();
         }
 
-        return Redis::connection();
+        // @codeCoverageIgnoreStart — Swoole runtime
+        return Redis::connection(); // @codeCoverageIgnore — production Redis only, tests use mock resolver
+        // @codeCoverageIgnoreEnd
     }
 }

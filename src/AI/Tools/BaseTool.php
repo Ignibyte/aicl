@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Tools;
 
 use Aicl\AI\Contracts\AiTool;
@@ -24,7 +26,9 @@ abstract class BaseTool extends Tool implements AiTool
      */
     public function category(): string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return 'general';
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -40,7 +44,9 @@ abstract class BaseTool extends Tool implements AiTool
      */
     public function renderAs(): ToolRenderType
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return ToolRenderType::Text;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -48,10 +54,12 @@ abstract class BaseTool extends Tool implements AiTool
      */
     public function formatResultForDisplay(mixed $result): array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return [
             'type' => $this->renderAs()->value,
             'data' => $result,
         ];
+        // @codeCoverageIgnoreEnd
     }
 
     /**

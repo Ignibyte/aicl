@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Jobs;
 
 use Aicl\Horizon\Contracts\TagRepository;
 
+/**
+ * MonitorTag.
+ */
 class MonitorTag
 {
     /**
@@ -23,6 +28,8 @@ class MonitorTag
      */
     public function handle(TagRepository $tags)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $tags->monitor($this->tag);
+        // @codeCoverageIgnoreEnd
     }
 }

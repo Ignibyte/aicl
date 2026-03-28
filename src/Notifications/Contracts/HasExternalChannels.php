@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Contracts;
 
 use Aicl\Notifications\Models\NotificationChannel;
 use Illuminate\Support\Collection;
 
+/**
+ * HasExternalChannels.
+ */
 interface HasExternalChannels
 {
     /**

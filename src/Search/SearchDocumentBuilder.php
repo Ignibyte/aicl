@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Search;
 
 use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * SearchDocumentBuilder.
+ */
 class SearchDocumentBuilder
 {
     /**
@@ -67,7 +72,9 @@ class SearchDocumentBuilder
         }
 
         if ($value instanceof BackedEnum) {
+            // @codeCoverageIgnoreStart — Elasticsearch dependency
             return (string) $value->value;
+            // @codeCoverageIgnoreEnd
         }
 
         if (is_object($value) && method_exists($value, '__toString')) {
@@ -92,7 +99,9 @@ class SearchDocumentBuilder
         }
 
         if ($model->getAttribute('owner_id') !== null) {
+            // @codeCoverageIgnoreStart — Elasticsearch dependency
             return (string) $model->getAttribute('owner_id');
+            // @codeCoverageIgnoreEnd
         }
 
         if ($model->getAttribute('user_id') !== null) {

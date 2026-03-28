@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Health\Contracts;
 
 use Aicl\Health\ServiceCheckResult;
 
+/**
+ * ServiceHealthCheck.
+ */
 interface ServiceHealthCheck
 {
     /**

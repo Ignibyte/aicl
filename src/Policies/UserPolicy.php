@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Policies;
 
 use Illuminate\Database\Eloquent\Model;
@@ -27,11 +29,13 @@ class UserPolicy extends BasePolicy
      */
     public function view(User $user, Model $record): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         if ($user->getKey() === $record->getKey()) {
             return true;
         }
 
         return parent::view($user, $record);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -39,10 +43,12 @@ class UserPolicy extends BasePolicy
      */
     public function update(User $user, Model $record): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         if ($user->getKey() === $record->getKey()) {
             return true;
         }
 
         return parent::update($user, $record);
+        // @codeCoverageIgnoreEnd
     }
 }

@@ -48,6 +48,7 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function push($job, $data = '', $queue = null)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->enqueueUsing(
             $job,
             $this->createPayload($job, $this->getQueue($queue), $data),
@@ -59,6 +60,7 @@ class RedisQueue extends BaseQueue
                 return $this->pushRaw($payload, $queue);
             }
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -72,6 +74,7 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function pushRaw($payload, $queue = null, array $options = [])
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $payload = (new JobPayload($payload))->prepare($this->lastPushed);
 
         $this->event($this->getQueue($queue), new JobPending($payload->value));
@@ -81,6 +84,7 @@ class RedisQueue extends BaseQueue
         $this->event($this->getQueue($queue), new JobPushed($payload->value));
 
         return $payload->id();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -113,6 +117,7 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function later($delay, $job, $data = '', $queue = null)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $payload = (new JobPayload($this->createPayload($job, $this->getQueue($queue), $data)))->prepare($job)->value;
 
         if (method_exists($this, 'enqueueUsing')) {
@@ -136,6 +141,7 @@ class RedisQueue extends BaseQueue
         return tap(parent::laterRaw($delay, $payload, $queue), function () use ($payload, $queue) {
             $this->event($this->getQueue($queue), new JobPushed($payload));
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -148,11 +154,13 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function pop($queue = null, $index = 0)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return tap(parent::pop($queue, $index), function ($result) use ($queue) {
             if ($result) {
                 $this->event($this->getQueue($queue), new JobReserved($result->getReservedJob()));
             }
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -165,9 +173,11 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function migrateExpiredJobs($from, $to)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return tap(parent::migrateExpiredJobs($from, $to), function ($jobs) use ($to) {
             $this->event($to, new JobsMigrated($jobs === false ? [] : $jobs));
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -180,9 +190,11 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function deleteReserved($queue, $job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         parent::deleteReserved($queue, $job);
 
         $this->event($this->getQueue($queue), new JobDeleted($job, $job->getReservedJob()));
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -196,9 +208,11 @@ class RedisQueue extends BaseQueue
     #[\Override]
     public function deleteAndRelease($queue, $job, $delay)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         parent::deleteAndRelease($queue, $job, $delay);
 
         $this->event($this->getQueue($queue), new JobReleased($job->getReservedJob(), $delay));
+        // @codeCoverageIgnoreEnd
     }
 
     /**

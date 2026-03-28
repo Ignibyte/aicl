@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Support;
 
 use Illuminate\Support\Collection;
@@ -30,6 +32,8 @@ class RlmBridge
      * Validate an entity against RLM patterns.
      *
      * @return array{score: float, total: int, passed: int, failed: int, results: array<int, mixed>}|null
+     *
+     * @codeCoverageIgnore Requires ignibyte/rlm package installation — installed() guard is tested
      */
     public static function validate(string $entityName): ?array
     {
@@ -56,6 +60,8 @@ class RlmBridge
      * Recall knowledge for an agent/phase context.
      *
      * @return array{failures: Collection<int, mixed>, lessons: Collection<int, mixed>, scores: Collection<int, mixed>, prevention_rules: Collection<int, mixed>, golden_annotations: Collection<int, mixed>, risk_briefing: array<string, mixed>, component_recommendations: array<string, mixed>}|null
+     *
+     * @codeCoverageIgnore Requires ignibyte/rlm package installation — installed() guard is tested
      */
     public static function recall(?string $agent = null, ?string $phase = null): ?array
     {
@@ -73,6 +79,8 @@ class RlmBridge
      * Get the PatternRegistry instance, if available.
      *
      * @return PatternRegistry|null
+     *
+     * @codeCoverageIgnore Requires ignibyte/rlm package installation — installed() guard is tested
      */
     public static function patternRegistry(): ?object
     {

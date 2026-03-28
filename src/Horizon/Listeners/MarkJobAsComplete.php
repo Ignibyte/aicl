@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Listeners;
 
 use Aicl\Horizon\Contracts\JobRepository;
 use Aicl\Horizon\Contracts\TagRepository;
 use Aicl\Horizon\Events\JobDeleted;
 
+/**
+ * MarkJobAsComplete.
+ */
 class MarkJobAsComplete
 {
     /**

@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Enums;
 
+/**
+ * ToolRenderType.
+ */
 enum ToolRenderType: string
 {
     case Text = 'text';

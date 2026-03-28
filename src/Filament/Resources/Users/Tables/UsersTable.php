@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\Users\Tables;
 
 use Aicl\Filament\Exporters\UserExporter;
@@ -13,6 +15,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class UsersTable
 {
     public static function configure(Table $table): Table

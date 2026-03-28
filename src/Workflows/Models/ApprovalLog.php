@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Workflows\Models;
 
 use App\Models\User;
@@ -7,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @codeCoverageIgnore Workflow infrastructure
+ */
 class ApprovalLog extends Model
 {
     protected $table = 'approval_logs';

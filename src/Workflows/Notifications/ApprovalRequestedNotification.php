@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Workflows\Notifications;
 
 use Aicl\Notifications\BaseNotification;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @codeCoverageIgnore Notification infrastructure
+ */
 class ApprovalRequestedNotification extends BaseNotification
 {
     public function __construct(

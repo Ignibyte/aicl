@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -15,6 +17,8 @@ use Illuminate\View\View;
  * - Use for non-editable data display (dates, IDs, statuses)
  *
  * @example <x-aicl-metadata-list :items="['Created' => $project->created_at, 'Owner' => $project->owner->name]" />
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class MetadataList extends Component
 {

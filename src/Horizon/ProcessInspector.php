@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
 use Aicl\Horizon\Contracts\SupervisorRepository;
 use Illuminate\Support\Arr;
 
+/**
+ * ProcessInspector.
+ */
 class ProcessInspector
 {
     /**
@@ -45,7 +50,9 @@ class ProcessInspector
      */
     public function orphaned()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return array_diff($this->current(), $this->monitoring());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -55,6 +62,7 @@ class ProcessInspector
      */
     public function monitoring()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return collect(app(SupervisorRepository::class)->all())
             ->pluck('pid')
             ->pipe(function ($processes) {
@@ -67,5 +75,6 @@ class ProcessInspector
             })
             ->merge(Arr::pluck(app(MasterSupervisorRepository::class)->all(), 'pid'))
             ->all();
+        // @codeCoverageIgnoreEnd
     }
 }

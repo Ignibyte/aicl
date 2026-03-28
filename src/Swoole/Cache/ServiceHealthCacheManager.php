@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole\Cache;
 
 use Aicl\Swoole\SwooleCache;
@@ -47,6 +49,7 @@ class ServiceHealthCacheManager
      */
     public static function getCachedAvailability(string $service): ?bool
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         if (! SwooleCache::isAvailable()) {
             return null;
         }
@@ -58,6 +61,7 @@ class ServiceHealthCacheManager
         }
 
         return $cached['available'] ?? null;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -65,11 +69,13 @@ class ServiceHealthCacheManager
      */
     public static function storeAvailability(string $service, bool $available): void
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         if (! SwooleCache::isAvailable()) {
             return;
         }
 
         SwooleCache::set(static::TABLE_NAME, $service, ['available' => $available]);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -77,6 +83,8 @@ class ServiceHealthCacheManager
      */
     public static function invalidate(string $service): void
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         SwooleCache::forget(static::TABLE_NAME, $service);
+        // @codeCoverageIgnoreEnd
     }
 }

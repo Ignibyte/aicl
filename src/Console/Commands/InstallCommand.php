@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Support\RlmBridge;
@@ -19,6 +21,8 @@ use Spatie\Permission\Models\Role;
  * to re-run all steps.
  *
  * @see UpgradeCommand  Syncs project-level files on update
+ *
+ * @codeCoverageIgnore Artisan command
  */
 class InstallCommand extends Command
 {

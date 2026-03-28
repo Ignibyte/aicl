@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -12,6 +14,8 @@ use Illuminate\View\View;
  * - Use at the top of detail pages for entity actions (Edit, Delete, Export)
  * - Use in card headers for section-specific actions
  * - Slot-based — nest buttons or QuickAction components inside
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class ActionBar extends Component
 {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Exporters;
 
 use Aicl\Models\AiAgent;
@@ -7,6 +9,9 @@ use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 
+/**
+ * AiAgentExporter.
+ */
 class AiAgentExporter extends Exporter
 {
     protected static ?string $model = AiAgent::class;

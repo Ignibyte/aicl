@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Workflows\Exceptions;
 
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
+/**
+ * @codeCoverageIgnore Workflow infrastructure
+ */
 class ApprovalException extends RuntimeException
 {
     public static function alreadyPending(Model $model): self

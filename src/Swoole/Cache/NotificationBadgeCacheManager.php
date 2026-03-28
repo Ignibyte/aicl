@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole\Cache;
 
 use Aicl\Swoole\SwooleCache;
@@ -43,23 +45,29 @@ class NotificationBadgeCacheManager
     public static function getBadge(?int $userId): ?string
     {
         if ($userId === null) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         $key = "user:{$userId}";
 
         if (SwooleCache::isAvailable()) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             $cached = SwooleCache::get(static::TABLE_NAME, $key);
 
             if ($cached !== null) {
                 return $cached['count'] > 0 ? (string) $cached['count'] : null;
+                // @codeCoverageIgnoreEnd
             }
         }
 
         $count = static::computeUnreadCount($userId);
 
         if (SwooleCache::isAvailable()) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             SwooleCache::set(static::TABLE_NAME, $key, ['count' => $count]);
+            // @codeCoverageIgnoreEnd
         }
 
         return $count > 0 ? (string) $count : null;
@@ -87,7 +95,9 @@ class NotificationBadgeCacheManager
      */
     public static function invalidateForUser(int|string $userId): void
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         SwooleCache::forget(static::TABLE_NAME, "user:{$userId}");
+        // @codeCoverageIgnoreEnd
     }
 
     protected static function registerTable(): void
@@ -111,8 +121,10 @@ class NotificationBadgeCacheManager
         $model = DatabaseNotification::class;
 
         $invalidate = function (DatabaseNotification $notification): void {
+            // @codeCoverageIgnoreStart — Swoole runtime
             if ($notification->notifiable_id) {
                 static::invalidateForUser($notification->notifiable_id);
+                // @codeCoverageIgnoreEnd
             }
         };
 

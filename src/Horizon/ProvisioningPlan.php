@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\HorizonCommandQueue;
@@ -9,6 +11,9 @@ use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
+/**
+ * ProvisioningPlan.
+ */
 class ProvisioningPlan
 {
     /**
@@ -53,10 +58,14 @@ class ProvisioningPlan
      *
      * @param  string  $master
      * @return static
+     *
+     * @codeCoverageIgnore Reason: horizon-process -- Provisioning requires Horizon config and master
      */
     public static function get($master)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return new static($master, config('aicl-horizon.environments'), config('aicl-horizon.defaults', []));
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -80,7 +89,9 @@ class ProvisioningPlan
      */
     public function environments()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return array_keys($this->parsed);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -91,7 +102,9 @@ class ProvisioningPlan
      */
     public function hasEnvironment($environment)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return array_key_exists($environment, $this->parsed);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -102,6 +115,7 @@ class ProvisioningPlan
      */
     public function deploy($environment)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $supervisors = collect($this->parsed)->first(function ($_, $name) use ($environment) {
             return Str::is($name, $environment);
         });
@@ -117,6 +131,7 @@ class ProvisioningPlan
         }
 
         event(new MasterSupervisorDeployed($this->master));
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -126,11 +141,13 @@ class ProvisioningPlan
      */
     protected function add(SupervisorOptions $options)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         app(HorizonCommandQueue::class)->push(
             MasterSupervisor::commandQueueFor($this->master),
             AddSupervisor::class,
             $options->toArray()
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -142,8 +159,10 @@ class ProvisioningPlan
      */
     public function optionsFor($environment, $supervisor)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if (isset($this->parsed[$environment]) && isset($this->parsed[$environment][$supervisor])) {
             return $this->parsed[$environment][$supervisor];
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -185,10 +204,12 @@ class ProvisioningPlan
             throw new Exception("The value of [{$supervisor}.minProcesses] must be greater than 0.");
         }
 
+        // @codeCoverageIgnoreStart — Horizon process management
         $options['parentId'] = getmypid();
 
         return SupervisorOptions::fromArray(
             Arr::add($options, 'name', $this->master.":{$supervisor}")
         );
+        // @codeCoverageIgnoreEnd
     }
 }

@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates\Resolvers;
 
 use Aicl\Notifications\Templates\Contracts\VariableResolver;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * ModelVariableResolver.
+ */
 class ModelVariableResolver implements VariableResolver
 {
     /**

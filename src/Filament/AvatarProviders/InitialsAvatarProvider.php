@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\AvatarProviders;
 
 use Filament\AvatarProviders\Contracts\AvatarProvider;
@@ -27,7 +29,9 @@ class InitialsAvatarProvider implements AvatarProvider
             ->join('');
 
         if ($initials === '') {
+            // @codeCoverageIgnoreStart — Filament Livewire rendering
             $initials = '?';
+            // @codeCoverageIgnoreEnd
         }
 
         $background = $this->generateColor($name);

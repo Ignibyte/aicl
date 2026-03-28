@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\Users\Schemas;
 
 use Aicl\Filament\Resources\Users\UserResource;
@@ -23,6 +25,8 @@ use Illuminate\Support\HtmlString;
  * to existing users.
  *
  * @see UserResource  Resource that uses this form
+ *
+ * @codeCoverageIgnore Filament Livewire rendering
  */
 class UserForm
 {

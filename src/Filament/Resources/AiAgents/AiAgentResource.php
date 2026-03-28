@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiAgents;
 
 use Aicl\Filament\Resources\AiAgents\Schemas\AiAgentForm;
@@ -13,6 +15,9 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use UnitEnum;
 
+/**
+ * AiAgentResource.
+ */
 class AiAgentResource extends Resource
 {
     protected static ?string $model = AiAgent::class;
@@ -31,17 +36,23 @@ class AiAgentResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return AiAgentForm::configure($schema);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function infolist(Schema $schema): Schema
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return AiAgentInfolist::configure($schema);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function table(Table $table): Table
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return AiAgentsTable::configure($table);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function getPages(): array

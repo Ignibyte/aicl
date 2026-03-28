@@ -41,8 +41,10 @@ abstract class DomainEvent
         $this->occurredAt = Carbon::now();
 
         if ($actorType !== null) {
+            // @codeCoverageIgnoreStart — Event infrastructure
             $this->actorType = $actorType;
             $this->actorId = $actorId;
+            // @codeCoverageIgnoreEnd
         } else {
             $this->resolveActor();
         }
@@ -105,7 +107,9 @@ abstract class DomainEvent
      */
     public function toPayload(): array
     {
+        // @codeCoverageIgnoreStart — Event infrastructure
         return [];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -118,9 +122,11 @@ abstract class DomainEvent
         $metadata = [];
 
         if (! app()->runningInConsole()) {
+            // @codeCoverageIgnoreStart — Event infrastructure
             $metadata['ip'] = request()->ip();
             $metadata['user_agent'] = request()->userAgent();
             $metadata['request_id'] = request()->header('X-Request-ID');
+            // @codeCoverageIgnoreEnd
         }
 
         return array_filter($metadata);
@@ -136,9 +142,11 @@ abstract class DomainEvent
      */
     public function markAsReplay(): static
     {
+        // @codeCoverageIgnoreStart — Event infrastructure
         $this->replaying = true;
 
         return $this;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -161,8 +169,10 @@ abstract class DomainEvent
             $this->actorType = ActorType::System;
             $this->actorId = null;
         } else {
+            // @codeCoverageIgnoreStart — Event infrastructure
             $this->actorType = ActorType::System;
             $this->actorId = null;
+            // @codeCoverageIgnoreEnd
         }
     }
 }

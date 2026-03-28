@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -13,6 +15,8 @@ use Illuminate\View\View;
  * - Use for placeholder content while data loads
  * - Size 'sm' for inline/button use, 'md' for sections, 'lg' for full-page
  * - Color 'white' when on colored backgrounds, 'primary' otherwise
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class Spinner extends Component
 {

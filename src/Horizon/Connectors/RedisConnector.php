@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Connectors;
 
 use Aicl\Horizon\RedisQueue;
 use Illuminate\Queue\Connectors\RedisConnector as BaseConnector;
 use Illuminate\Support\Arr;
 
+/**
+ * RedisConnector.
+ */
 class RedisConnector extends BaseConnector
 {
     /**

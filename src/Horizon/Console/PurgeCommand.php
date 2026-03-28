@@ -13,8 +13,15 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-/** Terminates any rogue Horizon processes not tracked by a master supervisor. */
+/**
+ * Terminates any rogue Horizon processes not tracked by a master supervisor.
+ *
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:purge')]
+/**
+ * PurgeCommand.
+ */
 class PurgeCommand extends Command
 {
     /**

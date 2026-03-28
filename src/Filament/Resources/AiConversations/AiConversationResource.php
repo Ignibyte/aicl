@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiConversations;
 
 use Aicl\Filament\Resources\AiConversations\Pages\CreateAiConversation;
@@ -16,6 +18,9 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use UnitEnum;
 
+/**
+ * AiConversationResource.
+ */
 class AiConversationResource extends Resource
 {
     protected static ?string $model = AiConversation::class;
@@ -32,17 +37,23 @@ class AiConversationResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return AiConversationForm::configure($schema);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function infolist(Schema $schema): Schema
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return AiConversationInfolist::configure($schema);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function table(Table $table): Table
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return AiConversationsTable::configure($table);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function getPages(): array

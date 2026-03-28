@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Listeners;
 
 use Aicl\Horizon\Stopwatch;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 
+/**
+ * ForgetJobTimer.
+ */
 class ForgetJobTimer
 {
     /**

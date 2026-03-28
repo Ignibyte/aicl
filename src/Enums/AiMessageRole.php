@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Enums;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
+/**
+ * AiMessageRole.
+ */
 enum AiMessageRole: string implements HasColor, HasIcon, HasLabel
 {
     case User = 'user';

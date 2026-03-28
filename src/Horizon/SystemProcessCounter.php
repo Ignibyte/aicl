@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Symfony\Component\Process\Process;
 
+/**
+ * SystemProcessCounter.
+ */
 class SystemProcessCounter
 {
     /**
@@ -17,6 +22,9 @@ class SystemProcessCounter
      * Get the number of Horizon workers for a given supervisor.
      *
      * @param  string  $name
+     *
+     * @codeCoverageIgnore Reason: horizon-process -- Process counting requires /proc or exec access
+     *
      * @return int
      */
     public function get($name)

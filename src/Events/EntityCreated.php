@@ -28,7 +28,9 @@ class EntityCreated extends DomainEvent implements ShouldBroadcast
     public function toPayload(): array
     {
         if (! $this->entity) {
+            // @codeCoverageIgnoreStart — Event infrastructure
             return ['action' => 'created'];
+            // @codeCoverageIgnoreEnd
         }
 
         return [

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Generators;
 
 /**
@@ -18,6 +20,8 @@ class PolicyGenerator extends BaseGenerator
 
         $content = <<<'PHP'
 <?php
+
+declare(strict_types=1);
 
 namespace App\Policies;
 

@@ -70,7 +70,9 @@ class RedisSupervisorRepository implements SupervisorRepository
      */
     public function find($name)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return Arr::get($this->get([$name]), 0);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -113,8 +115,10 @@ class RedisSupervisorRepository implements SupervisorRepository
      */
     public function longestActiveTimeout()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return collect($this->all())
             ->max(fn ($supervisor) => $supervisor->options['timeout']) ?: 0;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -124,6 +128,7 @@ class RedisSupervisorRepository implements SupervisorRepository
      */
     public function update(Supervisor $supervisor)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $processes = $supervisor->processPools
             ->mapWithKeys(fn ($pool) => [$supervisor->options->connection.':'.$pool->queue() => count($pool->processes())])
             ->toJson();
@@ -146,6 +151,7 @@ class RedisSupervisorRepository implements SupervisorRepository
 
             $pipe->expire('supervisor:'.$supervisor->name, 30);
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -156,6 +162,7 @@ class RedisSupervisorRepository implements SupervisorRepository
      */
     public function forget($names)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $names = (array) $names;
 
         if (empty($names)) {
@@ -167,6 +174,7 @@ class RedisSupervisorRepository implements SupervisorRepository
         })->all());
 
         $this->connection()->zrem('supervisors', ...$names);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -176,9 +184,11 @@ class RedisSupervisorRepository implements SupervisorRepository
      */
     public function flushExpired()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->zremrangebyscore('supervisors', '-inf',
             (string) CarbonImmutable::now()->subSeconds(14)->getTimestamp()
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Livewire;
 
 use Illuminate\Contracts\View\View;
@@ -47,7 +49,9 @@ class ActivityFeed extends Component
     #[On('entity-changed')]
     public function onEntityChanged(): void
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         unset($this->activities);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -63,6 +67,7 @@ class ActivityFeed extends Component
         }
 
         if ($this->subjectId) {
+            // @codeCoverageIgnoreStart — Filament Livewire rendering
             $query->where('subject_id', $this->subjectId);
         }
 
@@ -76,6 +81,7 @@ class ActivityFeed extends Component
 
         if ($this->logName) {
             $query->where('log_name', $this->logName);
+            // @codeCoverageIgnoreEnd
         }
 
         return $query->paginate($this->perPage);

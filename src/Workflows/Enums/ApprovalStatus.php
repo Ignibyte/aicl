@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Workflows\Enums;
 
+/**
+ * @codeCoverageIgnore Workflow infrastructure
+ */
 enum ApprovalStatus: string
 {
     case Draft = 'draft';

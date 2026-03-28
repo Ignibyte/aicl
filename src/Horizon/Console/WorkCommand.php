@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Illuminate\Queue\Console\WorkCommand as BaseWorkCommand;
 
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 class WorkCommand extends BaseWorkCommand
 {
     /**

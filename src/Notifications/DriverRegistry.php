@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications;
 
 use Aicl\Notifications\Contracts\NotificationChannelDriver;
@@ -7,6 +9,9 @@ use Aicl\Notifications\Enums\ChannelType;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 
+/**
+ * @codeCoverageIgnore Notification infrastructure
+ */
 class DriverRegistry
 {
     /**

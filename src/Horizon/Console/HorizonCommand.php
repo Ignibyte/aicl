@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
@@ -9,6 +11,11 @@ use Illuminate\Console\Command;
 use Predis\Client;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * HorizonCommand.
+ *
+ * @codeCoverageIgnore Reason: horizon-process -- Requires real Redis workers, pcntl signals, and MasterSupervisor process management
+ */
 #[AsCommand(name: 'aicl:horizon')]
 class HorizonCommand extends Command
 {

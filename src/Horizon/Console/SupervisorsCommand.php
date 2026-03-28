@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\SupervisorRepository;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:supervisors')]
 class SupervisorsCommand extends Command
 {

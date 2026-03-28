@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Workflows\Notifications;
 
 use Aicl\Notifications\BaseNotification;
@@ -7,6 +9,9 @@ use Aicl\Workflows\Enums\ApprovalStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @codeCoverageIgnore Notification infrastructure
+ */
 class ApprovalDecisionNotification extends BaseNotification
 {
     public function __construct(

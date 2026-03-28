@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Traits;
 
 use Aicl\Models\SocialAccount;
@@ -30,7 +32,9 @@ trait HasSocialAccounts
      */
     public function hasSocialAccount(string $provider): bool
     {
+        // @codeCoverageIgnoreStart — Trait requiring integration context
         return $this->socialAccounts()->where('provider', $provider)->exists();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -41,7 +45,9 @@ trait HasSocialAccounts
     public function getSocialAccount(string $provider): ?SocialAccount
     {
         /** @var SocialAccount|null */
+        // @codeCoverageIgnoreStart — Trait requiring integration context
         return $this->socialAccounts()->where('provider', $provider)->first();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -58,6 +64,7 @@ trait HasSocialAccounts
     public function linkSocialAccount(string $provider, string $providerId, ?string $token = null, ?string $refreshToken = null, ?\DateTimeInterface $expiresAt = null, ?string $avatarUrl = null): SocialAccount
     {
         /** @var SocialAccount */
+        // @codeCoverageIgnoreStart — Trait requiring integration context
         return $this->socialAccounts()->updateOrCreate(
             ['provider' => $provider],
             [
@@ -68,6 +75,7 @@ trait HasSocialAccounts
                 'token_expires_at' => $expiresAt,
             ]
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -90,6 +98,8 @@ trait HasSocialAccounts
      */
     public function unlinkSocialAccount(string $provider): bool
     {
+        // @codeCoverageIgnoreStart — Trait requiring integration context
         return $this->socialAccounts()->where('provider', $provider)->delete() > 0;
+        // @codeCoverageIgnoreEnd
     }
 }

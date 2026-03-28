@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
+/**
+ * RelationshipDefinition.
+ */
 class RelationshipDefinition
 {
     public function __construct(

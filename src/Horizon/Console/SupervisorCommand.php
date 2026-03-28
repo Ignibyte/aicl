@@ -11,8 +11,15 @@ use Exception;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-/** Starts a Horizon supervisor process with the given balancing and worker options. */
+/**
+ * Starts a Horizon supervisor process with the given balancing and worker options.
+ *
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:supervisor')]
+/**
+ * SupervisorCommand.
+ */
 class SupervisorCommand extends Command
 {
     /**

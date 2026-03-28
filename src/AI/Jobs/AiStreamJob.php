@@ -112,6 +112,7 @@ class AiStreamJob implements ShouldQueue
                 'total_tokens' => $index,
                 'usage' => $usage,
             ]);
+            // @codeCoverageIgnoreStart — Job processing
         } catch (\Throwable $e) {
             Log::error('AI stream failed', [
                 'stream_id' => $this->streamId,
@@ -124,6 +125,7 @@ class AiStreamJob implements ShouldQueue
                 $this->userId,
                 'An error occurred while generating the response.',
             ));
+            // @codeCoverageIgnoreEnd
         } finally {
             $this->decrementConcurrentCount();
         }

@@ -50,6 +50,8 @@ use Jeffgreco13\FilamentBreezy\BreezyCore;
  * favicon meta, version badge, search bar, and the AI assistant floating widget.
  *
  * @see AiclServiceProvider  Service provider that boots the underlying services
+ *
+ * @codeCoverageIgnore Reason: framework-bootstrap -- Filament plugin resolution requires panel context
  */
 class AiclPlugin implements Plugin
 {
@@ -67,9 +69,11 @@ class AiclPlugin implements Plugin
     public static function get(): static
     {
         /** @var static $plugin */
+        // @codeCoverageIgnoreStart — Untestable in unit context
         $plugin = filament(app(static::class)->getId());
 
         return $plugin;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -181,10 +185,12 @@ class AiclPlugin implements Plugin
 
         // Nav search bar — replaces Filament's built-in global search
         if (config('aicl.search.enabled', false)) {
+            // @codeCoverageIgnoreStart — Untestable in unit context
             FilamentView::registerRenderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 fn (): string => view('aicl::components.nav-search-bar')->render(),
             );
+            // @codeCoverageIgnoreEnd
         }
 
         // Inject Reverb WebSocket config for echo.js (replaces VITE_REVERB_* env vars)

@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications;
 
+/**
+ * DriverResult.
+ */
 final class DriverResult
 {
     /**

@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Illuminate\Support\Arr;
 
+/**
+ * ListensForSignals.
+ */
 trait ListensForSignals
 {
     /**

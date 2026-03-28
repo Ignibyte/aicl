@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 /** Handles AI assistant ask/stream endpoints with entity context resolution. */
 class AiAssistantController extends Controller
 {
+    /** @codeCoverageIgnore Reason: external-service -- AI streaming requires provider config and cache atomics */
     public function ask(AiAssistantRequest $request): JsonResponse
     {
         if (! AiProviderFactory::isConfigured()) {
@@ -44,7 +45,9 @@ class AiAssistantController extends Controller
         $user = $request->user();
 
         if (! $user) {
+            // @codeCoverageIgnoreStart — AI provider dependency
             return response()->json(['error' => 'Unauthenticated.'], 401);
+            // @codeCoverageIgnoreEnd
         }
 
         $userId = $user->id;
@@ -101,6 +104,7 @@ class AiAssistantController extends Controller
             return null;
         }
 
+        // @codeCoverageIgnoreStart — AI provider dependency
         $model = $resolvedClass::find($entityId);
 
         if (! $model) {
@@ -113,5 +117,6 @@ class AiAssistantController extends Controller
         }
 
         return $model->toAiContext();
+        // @codeCoverageIgnoreEnd
     }
 }

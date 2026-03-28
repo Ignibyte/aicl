@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Models;
 
 use Aicl\Database\Factories\Horizon\QueueMetricSnapshotFactory;
@@ -17,6 +19,8 @@ use Illuminate\Support\Carbon;
  * @property float $runtime
  * @property float|null $wait
  * @property Carbon $recorded_at
+ *
+ * @codeCoverageIgnore Horizon process management
  */
 class QueueMetricSnapshot extends Model
 {

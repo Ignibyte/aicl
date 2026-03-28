@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Widgets;
 
 use Aicl\Filament\Pages\OperationsManager;
@@ -11,6 +13,9 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Support\Facades\Artisan;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class RecentFailedJobsWidget extends TableWidget
 {
     protected static ?int $sort = 2;

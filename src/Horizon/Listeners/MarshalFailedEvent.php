@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Listeners;
 
 use Aicl\Horizon\Events\JobFailed;
@@ -7,6 +9,9 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Queue\Events\JobFailed as LaravelJobFailed;
 use Illuminate\Queue\Jobs\RedisJob;
 
+/**
+ * MarshalFailedEvent.
+ */
 class MarshalFailedEvent
 {
     /**

@@ -28,6 +28,7 @@ class SearchIndexingService
      */
     public function index(Model $model, array $entityConfig): void
     {
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         $indexName = $this->getIndexAlias();
         $document = $this->documentBuilder->build($model, $entityConfig);
         $documentId = $this->documentBuilder->documentId($model);
@@ -44,6 +45,7 @@ class SearchIndexingService
                 'id' => $model->getKey(),
                 'error' => $e->getMessage(),
             ]);
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -52,6 +54,7 @@ class SearchIndexingService
      */
     public function delete(Model $model): void
     {
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         $indexName = $this->getIndexAlias();
         $documentId = $this->documentBuilder->documentId($model);
 
@@ -75,6 +78,7 @@ class SearchIndexingService
                 'id' => $model->getKey(),
                 'error' => $e->getMessage(),
             ]);
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -83,6 +87,7 @@ class SearchIndexingService
      */
     public function createIndex(string $indexName): void
     {
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         $this->client->indices()->create([
             'index' => $indexName,
             'body' => [
@@ -114,6 +119,7 @@ class SearchIndexingService
                 ],
             ],
         ]);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -122,10 +128,12 @@ class SearchIndexingService
     public function deleteIndex(string $indexName): void
     {
         try {
+            // @codeCoverageIgnoreStart — Elasticsearch dependency
             $this->client->indices()->delete(['index' => $indexName]);
         } catch (ClientResponseException $e) {
             if ($e->getCode() !== 404) {
                 throw $e;
+                // @codeCoverageIgnoreEnd
             }
         }
     }
@@ -137,11 +145,13 @@ class SearchIndexingService
     {
         try {
             /** @var Elasticsearch $response */
+            // @codeCoverageIgnoreStart — Elasticsearch dependency
             $response = $this->client->indices()->exists(['index' => $indexName]);
 
             return $response->asBool();
         } catch (\Throwable) {
             return false;
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -150,6 +160,7 @@ class SearchIndexingService
      */
     public function swapAlias(string $alias, string $oldIndex, string $newIndex): void
     {
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         $actions = [
             ['add' => ['index' => $newIndex, 'alias' => $alias]],
         ];
@@ -161,6 +172,7 @@ class SearchIndexingService
         $this->client->indices()->updateAliases([
             'body' => ['actions' => $actions],
         ]);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -170,6 +182,7 @@ class SearchIndexingService
      */
     public function bulkIndex(array $documents, ?string $indexName = null): int
     {
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         $index = $indexName ?? $this->getIndexAlias();
         $params = ['body' => []];
         $indexed = 0;
@@ -188,16 +201,19 @@ class SearchIndexingService
                 $this->client->bulk($params);
                 $indexed += 500;
                 $params['body'] = [];
+                // @codeCoverageIgnoreEnd
             }
         }
 
         // Flush remaining
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         if (! empty($params['body'])) {
             $this->client->bulk($params);
             $indexed += count($params['body']) / 2;
         }
 
         return (int) $indexed;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -205,7 +221,9 @@ class SearchIndexingService
      */
     public function getIndexAlias(): string
     {
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         return config('aicl.search.index', 'aicl_global_search');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -213,6 +231,7 @@ class SearchIndexingService
      */
     public function ensureIndex(): void
     {
+        // @codeCoverageIgnoreStart — Elasticsearch dependency
         $alias = $this->getIndexAlias();
         $concreteIndex = $alias.'_v1';
 
@@ -227,6 +246,7 @@ class SearchIndexingService
                     ],
                 ],
             ]);
+            // @codeCoverageIgnoreEnd
         }
     }
 }

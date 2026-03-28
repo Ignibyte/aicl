@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Events;
 
 use Aicl\Notifications\BaseNotification;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @codeCoverageIgnore Notification infrastructure
+ */
 class NotificationSending
 {
     public bool $cancelled = false;

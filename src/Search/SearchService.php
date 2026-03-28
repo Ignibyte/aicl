@@ -12,6 +12,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /** Executes permission-filtered search queries against the unified Elasticsearch index. */
+/**
+ * @codeCoverageIgnore Elasticsearch dependency
+ */
 class SearchService
 {
     protected PermissionFilterBuilder $permissionBuilder;

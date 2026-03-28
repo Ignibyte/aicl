@@ -120,7 +120,9 @@ PHP;
             'enum' => "\$table->string('{$field->name}')",
             'json' => "\$table->json('{$field->name}')",
             'foreignId' => "\$table->foreignId('{$field->name}')->constrained('{$field->typeArgument}')->cascadeOnDelete()",
+            // @codeCoverageIgnoreStart — Code generation command
             default => "\$table->string('{$field->name}')",
+            // @codeCoverageIgnoreEnd
         };
 
         if ($field->nullable && $field->type !== 'foreignId') {

@@ -77,6 +77,7 @@ class RedisWorkloadRepository implements WorkloadRepository
 
                 $length = ! Str::contains($queue, ',')
                     ? collect([$queueName => $this->queue->connection($connection)->readyNow($queueName)])
+                    // @codeCoverageIgnoreStart — Horizon process management
                     : collect(explode(',', $queueName))->mapWithKeys(function ($queueName) use ($connection) {
                         return [$queueName => $this->queue->connection($connection)->readyNow($queueName)];
                     });
@@ -87,6 +88,7 @@ class RedisWorkloadRepository implements WorkloadRepository
                         'length' => $length,
                         'wait' => $wait += $this->waitTime->calculateTimeToClear($connection, $queueName, $totalProcesses),
                     ];
+                    // @codeCoverageIgnoreEnd
                 }) : null;
 
                 return [

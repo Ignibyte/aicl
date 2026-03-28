@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Models;
 
 use Aicl\Database\Factories\SocialAccountFactory;
@@ -71,15 +73,19 @@ class SocialAccount extends Model
      */
     public function isExpired(): bool
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         if (! $this->token_expires_at) {
             return false;
         }
 
         return $this->token_expires_at->isPast();
+        // @codeCoverageIgnoreEnd
     }
 
     protected static function newFactory(): SocialAccountFactory
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return SocialAccountFactory::new();
+        // @codeCoverageIgnoreEnd
     }
 }

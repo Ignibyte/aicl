@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Generators;
 
 use Illuminate\Support\Str;
@@ -43,6 +45,8 @@ class StateMachineGenerator extends BaseGenerator
         $abstractContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\States;
 
 {$stateImportsStr}
@@ -85,6 +89,8 @@ PHP;
 
             $concreteContent = <<<PHP
 <?php
+
+declare(strict_types=1);
 
 namespace App\\States\\{$name};
 

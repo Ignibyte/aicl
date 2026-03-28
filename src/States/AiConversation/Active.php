@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\States\AiConversation;
 
+/**
+ * Active.
+ */
 class Active extends AiConversationState
 {
     public function label(): string

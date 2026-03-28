@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Models;
 
 use Aicl\Database\Factories\FailedJobFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * Model for Laravel's built-in failed_jobs table.
@@ -15,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $queue
  * @property string $payload
  * @property string $exception
- * @property \Illuminate\Support\Carbon $failed_at
+ * @property Carbon $failed_at
  */
 class FailedJob extends Model
 {
@@ -63,6 +66,8 @@ class FailedJob extends Model
 
     protected static function newFactory(): FailedJobFactory
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return FailedJobFactory::new();
+        // @codeCoverageIgnoreEnd
     }
 }

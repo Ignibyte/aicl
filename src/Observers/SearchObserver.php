@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Observers;
 
 use Aicl\Jobs\IndexSearchDocumentJob;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @codeCoverageIgnore Observer lifecycle hook
+ */
 class SearchObserver
 {
     public function created(Model $model): void

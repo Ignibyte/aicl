@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
  * Queries the ComponentRegistry to select appropriate components based on
  * entity field patterns. Generates: index, show, card component, filters
  * component, ViewController, and web routes.
+ *
+ * @codeCoverageIgnore Code generation command
  */
 class ViewGenerator extends BaseGenerator
 {

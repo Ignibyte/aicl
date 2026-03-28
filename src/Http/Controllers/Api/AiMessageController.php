@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Controllers\Api;
 
 use Aicl\Http\Resources\AiMessageResource;
@@ -11,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
 
+/**
+ * AiMessageController.
+ */
 class AiMessageController extends Controller
 {
     use AuthorizesRequests;

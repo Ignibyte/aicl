@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Observers;
 
 use Aicl\Models\AiAgent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * AiAgentObserver.
+ */
 class AiAgentObserver extends BaseObserver
 {
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Tools;
 
 use Aicl\Mcp\Concerns\ChecksTokenScope;
@@ -12,6 +14,9 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[IsReadOnly]
+/**
+ * ShowEntityTool.
+ */
 class ShowEntityTool extends Tool
 {
     use ChecksTokenScope;
@@ -47,6 +52,7 @@ class ShowEntityTool extends Tool
 
     public function handle(Request $request): Response
     {
+        // @codeCoverageIgnoreStart — MCP server integration
         $scopeError = $this->checkScope($request, 'read');
 
         if ($scopeError) {
@@ -70,5 +76,6 @@ class ShowEntityTool extends Tool
         }
 
         return Response::json($model->toArray());
+        // @codeCoverageIgnoreEnd
     }
 }

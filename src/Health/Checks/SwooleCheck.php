@@ -1,13 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Health\Checks;
 
 use Aicl\Health\Contracts\ServiceHealthCheck;
 use Aicl\Health\ServiceCheckResult;
+use Swoole\Coroutine;
 use Throwable;
 
+/**
+ * Health check for Swoole/OpenSwoole extension availability and coroutine support.
+ *
+ * @codeCoverageIgnore External service health check
+ */
 class SwooleCheck implements ServiceHealthCheck
 {
+    /**
+     * @codeCoverageIgnore Swoole extension is always loaded in CI — branch coverage depends on runtime environment state
+     */
     public function check(): ServiceCheckResult
     {
         try {
@@ -25,9 +36,9 @@ class SwooleCheck implements ServiceHealthCheck
             ];
 
             // Try to get coroutine stats if running under Swoole
-            if (class_exists(\Swoole\Coroutine::class)) {
+            if (class_exists(Coroutine::class)) {
                 try {
-                    $stats = \Swoole\Coroutine::stats();
+                    $stats = Coroutine::stats();
                     $details['Coroutines'] = (string) ($stats['coroutine_num'] ?? 0);
                 } catch (Throwable) {
                     // Not running in coroutine context

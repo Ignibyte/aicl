@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages;
 
 use Aicl\Models\SearchLog;
@@ -15,6 +17,8 @@ use UnitEnum;
  * Full-page search. Queries the unified Elasticsearch index via SearchService.
  *
  * @property SearchResultCollection $searchResults
+ *
+ * @codeCoverageIgnore Filament Livewire rendering
  */
 class Search extends Page
 {

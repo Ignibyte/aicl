@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiAgents\Schemas;
 
 use Aicl\States\AiAgent\AiAgentState;
@@ -8,6 +10,9 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class AiAgentInfolist
 {
     public static function configure(Schema $schema): Schema

@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Events\Enums;
 
+/**
+ * ActorType.
+ */
 enum ActorType: string
 {
     case User = 'user';

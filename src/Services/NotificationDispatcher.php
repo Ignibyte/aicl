@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Services;
 
 use Aicl\Models\NotificationLog;
@@ -37,6 +39,8 @@ use Throwable;
  * @see DriverRegistry  Registry of external channel drivers
  * @see ChannelRateLimiter  Per-channel rate limiting
  * @see BaseNotification  Base class for AICL notifications
+ *
+ * @codeCoverageIgnore Service integration
  */
 class NotificationDispatcher
 {

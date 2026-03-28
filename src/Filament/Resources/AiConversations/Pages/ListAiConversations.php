@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiConversations\Pages;
 
 use Aicl\Filament\Resources\AiConversations\AiConversationResource;
@@ -7,6 +9,9 @@ use Aicl\Models\AiConversation;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class ListAiConversations extends ListRecords
 {
     protected static string $resource = AiConversationResource::class;

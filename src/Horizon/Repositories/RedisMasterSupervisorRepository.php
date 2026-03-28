@@ -45,11 +45,13 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function names()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $result = $this->connection()->zrevrangebyscore('masters', '+inf',
             (string) CarbonImmutable::now()->subSeconds(14)->getTimestamp()
         );
 
         return is_array($result) ? $result : [];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -59,7 +61,9 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function all()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->get($this->names());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -70,7 +74,9 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function find($name)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return Arr::get($this->get([$name]), 0);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -81,6 +87,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function get(array $names)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $records = $this->connection()->pipeline(function ($pipe) use ($names) {
             foreach ($names as $name) {
                 $pipe->hmget('master:'.$name, ['name', 'pid', 'status', 'supervisors', 'environment']);
@@ -106,6 +113,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
             })
             ->filter()
             ->all();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -115,6 +123,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function update(MasterSupervisor $master)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $supervisors = $master->supervisors->map->name->all();
 
         $this->connection()->pipeline(function ($pipe) use ($master, $supervisors) {
@@ -134,6 +143,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
 
             $pipe->expire('master:'.$master->name, 15);
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -144,6 +154,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function forget($name)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if (! $master = $this->find($name)) {
             return;
         }
@@ -155,6 +166,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
         $this->connection()->del('master:'.$name);
 
         $this->connection()->zrem('masters', $name);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -164,9 +176,11 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     public function flushExpired()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->zremrangebyscore('masters', '-inf',
             (string) CarbonImmutable::now()->subSeconds(14)->getTimestamp()
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -176,6 +190,8 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      */
     protected function connection()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->redis->connection('horizon');
+        // @codeCoverageIgnoreEnd
     }
 }

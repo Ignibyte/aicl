@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Models\SearchLog;
 use Illuminate\Console\Command;
 
+/**
+ * @codeCoverageIgnore Artisan command
+ */
 class PruneSearchLogsCommand extends Command
 {
     protected $signature = 'search:prune-logs';

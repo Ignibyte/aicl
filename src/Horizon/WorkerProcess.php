@@ -53,6 +53,7 @@ class WorkerProcess
      */
     public function start(Closure $callback)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->output = $callback;
 
         $this->cooldown();
@@ -60,6 +61,7 @@ class WorkerProcess
         $this->process->start($callback);
 
         return $this;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -93,7 +95,9 @@ class WorkerProcess
             return;
         }
 
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->restart();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -103,11 +107,13 @@ class WorkerProcess
      */
     protected function restart()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if ($this->process->isStarted()) {
             event(new WorkerProcessRestarting($this));
         }
 
         $this->start($this->output);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -156,6 +162,7 @@ class WorkerProcess
      */
     protected function cooldown()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if ($this->coolingDown()) {
             return;
         }
@@ -170,6 +177,7 @@ class WorkerProcess
             }
         } else {
             $this->restartAgainAt = CarbonImmutable::now()->addSecond();
+            // @codeCoverageIgnoreEnd
         }
     }
 

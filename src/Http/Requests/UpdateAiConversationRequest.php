@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * UpdateAiConversationRequest.
+ */
 class UpdateAiConversationRequest extends FormRequest
 {
     public function authorize(): bool

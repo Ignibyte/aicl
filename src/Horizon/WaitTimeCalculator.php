@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
@@ -9,6 +11,9 @@ use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
+/**
+ * WaitTimeCalculator.
+ */
 class WaitTimeCalculator
 {
     /**

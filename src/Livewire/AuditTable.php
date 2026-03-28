@@ -19,6 +19,7 @@ class AuditTable extends TableWidget
 
     protected string $view = 'aicl::livewire.audit-table';
 
+    /** @codeCoverageIgnore Reason: filament-closure -- Filament searchable callbacks and badge color closures */
     public function table(Table $table): Table
     {
         return $table
@@ -42,8 +43,10 @@ class AuditTable extends TableWidget
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
                         'created' => 'success',
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         'updated' => 'warning',
                         'deleted' => 'danger',
+                        // @codeCoverageIgnoreEnd
                         default => 'gray',
                     }),
                 TextColumn::make('subject_type')

@@ -2,7 +2,7 @@
 
 **Version:** 1.2
 **Last Updated:** 2026-02-15
-**Owner:** `/docs`
+**Owner:** Human-maintained
 
 ---
 

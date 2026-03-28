@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -18,6 +20,8 @@ use Illuminate\View\View;
  *     <div>Card 2</div>
  *     <div>Card 3</div>
  * </x-aicl-card-grid>
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class CardGrid extends Component
 {

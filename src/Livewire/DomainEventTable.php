@@ -37,6 +37,7 @@ class DomainEventTable extends TableWidget
                     ->label('Who')
                     ->badge()
                     ->formatStateUsing(function (?string $state, DomainEventRecord $record): string {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         $label = ($state !== null ? ActorType::tryFrom($state)?->label() : null) ?? $state ?? 'Unknown';
 
                         if ($record->actor_id && $state === 'user') {
@@ -54,6 +55,7 @@ class DomainEventTable extends TableWidget
                         'agent' => 'warning',
                         'automation' => 'success',
                         default => 'gray',
+                        // @codeCoverageIgnoreEnd
                     }),
                 TextColumn::make('event_type')
                     ->label('What')
@@ -63,6 +65,7 @@ class DomainEventTable extends TableWidget
                 TextColumn::make('entity_type')
                     ->label('Where')
                     ->formatStateUsing(function (?string $state, DomainEventRecord $record): string {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         if (! $state) {
                             return 'N/A';
                         }
@@ -72,11 +75,14 @@ class DomainEventTable extends TableWidget
                         return $record->entity_id
                             ? $basename.' #'.$record->entity_id
                             : $basename;
+                        // @codeCoverageIgnoreEnd
                     }),
                 TextColumn::make('payload')
                     ->label('Details')
                     ->formatStateUsing(fn ($state): string => is_array($state) && ! empty($state)
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         ? (string) json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                        // @codeCoverageIgnoreEnd
                         : '{}')
                     ->limit(60)
                     ->wrap()

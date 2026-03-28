@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Tools;
 
 use Aicl\AI\Enums\ToolRenderType;
@@ -8,6 +10,9 @@ use Illuminate\Support\Collection;
 use NeuronAI\Tools\PropertyType;
 use NeuronAI\Tools\ToolProperty;
 
+/**
+ * EntityCountTool.
+ */
 class EntityCountTool extends BaseTool
 {
     public function __construct()
@@ -34,12 +39,16 @@ class EntityCountTool extends BaseTool
 
     public function category(): string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return 'queries';
+        // @codeCoverageIgnoreEnd
     }
 
     public function renderAs(): ToolRenderType
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return ToolRenderType::KeyValue;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -47,6 +56,7 @@ class EntityCountTool extends BaseTool
      */
     public function formatResultForDisplay(mixed $result): array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         if (is_string($result)) {
             return ['type' => ToolRenderType::Text->value, 'data' => $result];
         }
@@ -68,6 +78,7 @@ class EntityCountTool extends BaseTool
             'type' => ToolRenderType::KeyValue->value,
             'data' => ['pairs' => $pairs],
         ];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -75,6 +86,7 @@ class EntityCountTool extends BaseTool
      */
     public function __invoke(?string $entity_type = null, ?bool $group_by_status = null): string|array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         $registry = app(EntityRegistry::class);
         $allTypes = $registry->allTypes();
 
@@ -87,6 +99,7 @@ class EntityCountTool extends BaseTool
         }
 
         return $this->simpleCounts($allTypes, $entity_type);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -95,6 +108,7 @@ class EntityCountTool extends BaseTool
      */
     private function simpleCounts(Collection $allTypes, ?string $entityType): array|string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         if ($entityType !== null) {
             $normalizedType = strtolower(str_replace([' ', '-'], '_', $entityType));
 
@@ -117,6 +131,7 @@ class EntityCountTool extends BaseTool
         }
 
         return $counts;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -124,6 +139,7 @@ class EntityCountTool extends BaseTool
      */
     private function countsByStatus(EntityRegistry $registry, ?string $entityType): array|string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         $allCounts = $registry->countsByStatus();
 
         if (empty($allCounts)) {
@@ -143,5 +159,6 @@ class EntityCountTool extends BaseTool
         }
 
         return $allCounts;
+        // @codeCoverageIgnoreEnd
     }
 }

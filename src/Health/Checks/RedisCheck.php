@@ -1,18 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Health\Checks;
 
 use Aicl\Health\Contracts\ServiceHealthCheck;
 use Aicl\Health\ServiceCheckResult;
+use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Facades\Redis;
 use Throwable;
 
+/**
+ * Health check for Redis connectivity and response time.
+ *
+ * @codeCoverageIgnore External service health check
+ */
 class RedisCheck implements ServiceHealthCheck
 {
     public function check(): ServiceCheckResult
     {
         try {
-            /** @var \Illuminate\Redis\Connections\Connection $connection */
+            /** @var Connection $connection */
             $connection = Redis::connection();
             $connection->ping();
 

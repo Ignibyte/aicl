@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Events;
 
 use Aicl\Horizon\WorkerProcess;
 
+/**
+ * UnableToLaunchProcess.
+ */
 class UnableToLaunchProcess
 {
     /**

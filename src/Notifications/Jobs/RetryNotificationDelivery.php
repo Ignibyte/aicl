@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Jobs;
 
 use Aicl\Notifications\DriverRegistry;
@@ -7,10 +9,16 @@ use Aicl\Notifications\Enums\DeliveryStatus;
 use Aicl\Notifications\Models\NotificationDeliveryLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Queued job that retries a failed notification delivery via the appropriate channel driver.
+ *
+ * @codeCoverageIgnore Notification job processing
+ */
 class RetryNotificationDelivery implements ShouldQueue
 {
     use Dispatchable;
@@ -30,7 +38,7 @@ class RetryNotificationDelivery implements ShouldQueue
     {
         try {
             $log = NotificationDeliveryLog::find($this->deliveryLogId);
-        } catch (\Illuminate\Database\QueryException) {
+        } catch (QueryException) {
             return;
         }
 

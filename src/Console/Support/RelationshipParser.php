@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use InvalidArgumentException;
 
+/**
+ * RelationshipParser.
+ */
 class RelationshipParser
 {
     use ParsesCommaSeparatedDefinitions;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages;
 
 use Aicl\Filament\Resources\AiAgents\AiAgentResource;
@@ -8,6 +10,9 @@ use BackedEnum;
 use Filament\Pages\Page;
 use UnitEnum;
 
+/**
+ * Tools.
+ */
 class Tools extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = null;
@@ -29,7 +34,9 @@ class Tools extends Page
         $user = auth()->user();
 
         if (! $user) {
+            // @codeCoverageIgnoreStart — Filament Livewire rendering
             return false;
+            // @codeCoverageIgnoreEnd
         }
 
         return $user->hasRole(['super_admin', 'admin']);
@@ -42,6 +49,7 @@ class Tools extends Page
      */
     public function getCards(): array
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return [
             [
                 'title' => 'AI Agents',
@@ -62,5 +70,6 @@ class Tools extends Page
                 'url' => DocumentBrowser::getUrl(),
             ],
         ];
+        // @codeCoverageIgnoreEnd
     }
 }

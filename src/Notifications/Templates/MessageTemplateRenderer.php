@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates;
 
 use Aicl\Notifications\Enums\ChannelType;
@@ -7,6 +9,9 @@ use Aicl\Notifications\Models\NotificationChannel;
 use Aicl\Notifications\Templates\Contracts\VariableResolver;
 use Aicl\Notifications\Templates\Filters\RawFilter;
 
+/**
+ * MessageTemplateRenderer.
+ */
 class MessageTemplateRenderer
 {
     /** @var array<string, VariableResolver> */

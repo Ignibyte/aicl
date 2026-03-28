@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Controllers\Api;
 
 use Aicl\AI\AiChatService;
@@ -9,6 +11,9 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 
+/**
+ * AiChatController.
+ */
 class AiChatController extends Controller
 {
     use AuthorizesRequests;

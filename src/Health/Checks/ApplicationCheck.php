@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Health\Checks;
 
 use Aicl\Health\Contracts\ServiceHealthCheck;
 use Aicl\Health\ServiceCheckResult;
 
+/**
+ * @codeCoverageIgnore External service health check
+ */
 class ApplicationCheck implements ServiceHealthCheck
 {
     public function check(): ServiceCheckResult

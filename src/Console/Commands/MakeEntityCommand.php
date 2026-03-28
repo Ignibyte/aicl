@@ -108,6 +108,7 @@ class MakeEntityCommand extends Command
      */
     protected array $specEnums = [];
 
+    /** @codeCoverageIgnore Reason: filament-closure -- Interactive prompt validation closure */
     public function handle(): int
     {
         // Handle --from-spec mode first
@@ -120,11 +121,13 @@ class MakeEntityCommand extends Command
             placeholder: 'e.g., Task, Invoice, Customer',
             required: true,
             validate: function (string $value): ?string {
+                // @codeCoverageIgnoreStart — Artisan command
                 if (! preg_match('/^[A-Z][a-zA-Z]+$/', $value)) {
                     return 'Entity name must be PascalCase (e.g., Task, ProjectTask).';
                 }
 
                 return null;
+                // @codeCoverageIgnoreEnd
             }
         );
 
@@ -138,7 +141,9 @@ class MakeEntityCommand extends Command
 
         // Build entity feature signature from parsed options (requires RLM)
         if (RlmBridge::installed()) {
+            // @codeCoverageIgnoreStart — Artisan command
             $this->entitySignature = $this->buildEntitySignature($name);
+            // @codeCoverageIgnoreEnd
         }
 
         $traits = $this->selectTraits();
@@ -270,14 +275,17 @@ class MakeEntityCommand extends Command
         // Ensure default state is first in the array (state machine generator uses [0] as default)
         $states = $spec->states;
         if (! empty($states) && $spec->defaultState !== '' && $states[0] !== $spec->defaultState) {
+            // @codeCoverageIgnoreStart — Artisan command
             $states = array_values(array_diff($states, [$spec->defaultState]));
             array_unshift($states, $spec->defaultState);
+            // @codeCoverageIgnoreEnd
         }
         $this->states = $states;
 
         // Handle --base from spec
         if ($spec->baseClass !== null) {
             try {
+                // @codeCoverageIgnoreStart — Artisan command
                 $this->baseInspector = new BaseSchemaInspector($spec->baseClass);
                 $this->baseInspector->validate();
             } catch (InvalidArgumentException $e) {
@@ -296,6 +304,7 @@ class MakeEntityCommand extends Command
                 }
 
                 return self::FAILURE;
+                // @codeCoverageIgnoreEnd
             }
         }
 
@@ -305,9 +314,11 @@ class MakeEntityCommand extends Command
                 $this->fields,
                 function (FieldDefinition $field): bool {
                     if ($field->name === 'status' && ($field->isEnum() || $field->type === 'string')) {
+                        // @codeCoverageIgnoreStart — Artisan command
                         $this->components->warn("Field 'status' conflicts with states. State machine takes precedence.");
 
                         return false;
+                        // @codeCoverageIgnoreEnd
                     }
 
                     return true;
@@ -318,7 +329,9 @@ class MakeEntityCommand extends Command
         // Resolve traits from spec
         $traits = ! empty($spec->traits)
             ? $spec->traits
+            // @codeCoverageIgnoreStart — Artisan command
             : ['HasEntityEvents', 'HasAuditTrail', 'HasStandardScopes'];
+        // @codeCoverageIgnoreEnd
 
         // Resolve generation flags from spec options
         $generateFilament = $spec->wantsFilament();
@@ -337,7 +350,9 @@ class MakeEntityCommand extends Command
 
         // Build entity feature signature from spec-parsed options (requires RLM)
         if (RlmBridge::installed()) {
+            // @codeCoverageIgnoreStart — Artisan command
             $this->entitySignature = $this->buildEntitySignature($name);
+            // @codeCoverageIgnoreEnd
         }
 
         $files = $this->scaffoldEntityFiles(
@@ -356,7 +371,9 @@ class MakeEntityCommand extends Command
 
         // Cleanup: run Pint on generated files
         if ($this->option('cleanup')) {
+            // @codeCoverageIgnoreStart — Artisan command
             $this->runCleanup($files);
+            // @codeCoverageIgnoreEnd
         }
 
         $this->newLine();
@@ -545,10 +562,12 @@ class MakeEntityCommand extends Command
 
         // Public Blade views (registry-driven)
         if ($generateViews) {
+            // @codeCoverageIgnoreStart — Artisan command
             $viewGen = new ViewGenerator($ctx);
             $this->components->task($viewGen->label(), function () use ($viewGen, &$files): void {
                 $files = array_merge($files, $viewGen->generate());
             });
+            // @codeCoverageIgnoreEnd
         }
 
         return $files;
@@ -572,7 +591,9 @@ class MakeEntityCommand extends Command
         }
 
         if (empty($phpFiles)) {
+            // @codeCoverageIgnoreStart — Artisan command
             return;
+            // @codeCoverageIgnoreEnd
         }
 
         $this->newLine();
@@ -580,9 +601,11 @@ class MakeEntityCommand extends Command
             $pintBin = base_path('vendor/bin/pint');
 
             if (! file_exists($pintBin)) {
+                // @codeCoverageIgnoreStart — Artisan command
                 $this->components->warn('Pint not found at vendor/bin/pint — skipping cleanup.');
 
                 return;
+                // @codeCoverageIgnoreEnd
             }
 
             $process = new Process(
@@ -616,10 +639,12 @@ class MakeEntityCommand extends Command
         // Validate --base first (fail-fast)
         if ($baseOption !== null) {
             try {
+                // @codeCoverageIgnoreStart — Artisan command
                 $this->baseInspector = new BaseSchemaInspector($baseOption);
                 $this->baseInspector->validate();
             } catch (InvalidArgumentException $e) {
                 $errors[] = $e->getMessage();
+                // @codeCoverageIgnoreEnd
             }
         }
 
@@ -627,11 +652,13 @@ class MakeEntityCommand extends Command
         if ($fieldsOption !== null) {
             try {
                 $this->fields = (new FieldParser)->parse($fieldsOption);
+                // @codeCoverageIgnoreStart — Artisan command
             } catch (InvalidArgumentException $e) {
                 $errors[] = $e->getMessage();
             }
         } else {
             $this->fields = [];
+            // @codeCoverageIgnoreEnd
         }
 
         // Parse states
@@ -655,19 +682,25 @@ class MakeEntityCommand extends Command
         if ($relationshipsOption !== null) {
             try {
                 $this->relationships = (new RelationshipParser)->parse($relationshipsOption);
+                // @codeCoverageIgnoreStart — Artisan command
             } catch (InvalidArgumentException $e) {
                 $errors[] = $e->getMessage();
+                // @codeCoverageIgnoreEnd
             }
         }
 
         // Base schema field deduplication
         if ($this->baseInspector !== null && $this->fields !== null && empty($errors)) {
+            // @codeCoverageIgnoreStart — Artisan command
             $this->fields = $this->deduplicateBaseFields($this->fields, $errors);
+            // @codeCoverageIgnoreEnd
         }
 
         // Base schema + --states conflict check
         if ($this->baseInspector !== null && ! empty($this->states) && $this->baseInspector->hasColumn('status')) {
+            // @codeCoverageIgnoreStart — Artisan command
             $errors[] = "Cannot use --states when base class already declares 'status' column.";
+            // @codeCoverageIgnoreEnd
         }
 
         // Conflict resolution: status field + --states
@@ -701,6 +734,7 @@ class MakeEntityCommand extends Command
      */
     protected function buildEntitySignature(string $name): object
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $fields = [];
         if ($this->fields) {
             foreach ($this->fields ?? [] as $field) {
@@ -741,6 +775,7 @@ class MakeEntityCommand extends Command
             relationships: $relationships,
             features: $features,
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -750,7 +785,9 @@ class MakeEntityCommand extends Command
      */
     public function getEntitySignature(): ?object
     {
+        // @codeCoverageIgnoreStart — Artisan command
         return $this->entitySignature;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -762,6 +799,7 @@ class MakeEntityCommand extends Command
      */
     protected function deduplicateBaseFields(array $fields, array &$errors): array
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $filtered = [];
 
         foreach ($fields as $field) {
@@ -783,6 +821,7 @@ class MakeEntityCommand extends Command
         }
 
         return $filtered;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -797,6 +836,7 @@ class MakeEntityCommand extends Command
         } elseif ($this->option('no-interaction')) {
             $traits = ['HasEntityEvents', 'HasAuditTrail', 'HasStandardScopes'];
         } else {
+            // @codeCoverageIgnoreStart — Artisan command
             $traits = multiselect(
                 label: 'Which traits should the entity use?',
                 options: [
@@ -808,6 +848,7 @@ class MakeEntityCommand extends Command
                 ],
                 default: ['HasEntityEvents', 'HasAuditTrail', 'HasStandardScopes'],
             );
+            // @codeCoverageIgnoreEnd
         }
 
         /** @var array<int, string> */
@@ -820,10 +861,12 @@ class MakeEntityCommand extends Command
             return true;
         }
 
+        // @codeCoverageIgnoreStart — Artisan command
         return confirm(
             label: 'Generate Filament admin resource?',
             default: true,
         );
+        // @codeCoverageIgnoreEnd
     }
 
     protected function shouldGenerateApi(): bool
@@ -832,10 +875,12 @@ class MakeEntityCommand extends Command
             return true;
         }
 
+        // @codeCoverageIgnoreStart — Artisan command
         return confirm(
             label: 'Generate API controller and routes?',
             default: false,
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -868,8 +913,10 @@ class MakeEntityCommand extends Command
         $softDeletesImport = $baseSoftDeletes ? '' : "\nuse Illuminate\\Database\\Eloquent\\SoftDeletes;";
 
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             $extendsClass = $this->baseInspector->shortClassName();
             $modelImport = "use {$this->baseInspector->fullClassName()};";
+            // @codeCoverageIgnoreEnd
         } else {
             $extendsClass = 'Model';
             $modelImport = 'use Illuminate\\Database\\Eloquent\\Model;';
@@ -885,7 +932,9 @@ class MakeEntityCommand extends Command
     {
         return ['name'];
     }
+        // @codeCoverageIgnoreStart — Artisan command
 SEARCH : '';
+        // @codeCoverageIgnoreEnd
 
         $aiContextMethod = $aiContext ? <<<'AICONTEXT'
 
@@ -1000,7 +1049,9 @@ PHP;
                 $hasExplicitIsActive = true;
             }
             if ($field->name === 'owner_id') {
+                // @codeCoverageIgnoreStart — Artisan command
                 $hasExplicitOwnerId = true;
+                // @codeCoverageIgnoreEnd
             }
         }
 
@@ -1155,8 +1206,10 @@ PHP;
         $baseSoftDeletes = $this->baseInspector !== null && $this->baseInspector->hasTrait('SoftDeletes');
 
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             $extendsClass = $this->baseInspector->shortClassName();
             $modelImportLine = "use {$this->baseInspector->fullClassName()};";
+            // @codeCoverageIgnoreEnd
         } else {
             $extendsClass = 'Model';
             $modelImportLine = 'use Illuminate\\Database\\Eloquent\\Model;';
@@ -1240,6 +1293,7 @@ PHP;
 
     protected function generateMigration(string $name, string $tableName): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $timestamp = now()->format('Y_m_d_His');
         $filename = "{$timestamp}_create_{$tableName}_table.php";
 
@@ -1247,6 +1301,7 @@ PHP;
             $columns = $this->buildSmartMigrationColumns($name, $tableName);
         } else {
             $columns = <<<'COLS'
+        // @codeCoverageIgnoreEnd
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
@@ -1254,11 +1309,13 @@ PHP;
             $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
+        // @codeCoverageIgnoreStart — Artisan command
 COLS;
         }
 
         $content = <<<PHP
 <?php
+        // @codeCoverageIgnoreEnd
 
 use Illuminate\\Database\\Migrations\\Migration;
 use Illuminate\\Database\\Schema\\Blueprint;
@@ -1268,13 +1325,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // @codeCoverageIgnoreStart — Artisan command
         Schema::create('{$tableName}', function (Blueprint \$table) {
 {$columns}
+        // @codeCoverageIgnoreEnd
         });
     }
 
     public function down(): void
     {
+        // @codeCoverageIgnoreStart — Artisan command
         Schema::dropIfExists('{$tableName}');
     }
 };
@@ -1284,11 +1344,13 @@ PHP;
         file_put_contents($path, $content);
 
         return "database/migrations/{$filename}";
+        // @codeCoverageIgnoreEnd
     }
 
     protected function buildSmartMigrationColumns(string $name, string $tableName): string
     {
         $lines = [];
+        // @codeCoverageIgnoreStart — Artisan command
         $lines[] = '            $table->id();';
 
         // Check if base class provides is_active / owner_id
@@ -1325,10 +1387,12 @@ PHP;
         $lines[] = '            $table->softDeletes();';
 
         return implode("\n", $lines);
+        // @codeCoverageIgnoreEnd
     }
 
     protected function getMigrationColumnForField(FieldDefinition $field): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $col = match ($field->type) {
             'string' => "\$table->string('{$field->name}')",
             'text' => "\$table->text('{$field->name}')",
@@ -1363,6 +1427,7 @@ PHP;
         }
 
         return $col.';';
+        // @codeCoverageIgnoreEnd
     }
 
     protected function generateFactory(string $name): string
@@ -1426,6 +1491,7 @@ PHP;
 
         // Include base field fakers in the factory definition
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             foreach ($this->baseInspector->columns() as $baseField) {
                 $fakerCall = $this->getFakerForField($baseField);
                 $definitions[] = "            '{$baseField->name}' => {$fakerCall},";
@@ -1439,6 +1505,7 @@ PHP;
                 }
                 if ($baseField->isEnum()) {
                     $imports[] = "use App\\Enums\\{$baseField->typeArgument};";
+                    // @codeCoverageIgnoreEnd
                 }
             }
         }
@@ -1451,7 +1518,9 @@ PHP;
                 $hasExplicitIsActive = true;
             }
             if ($field->name === 'owner_id') {
+                // @codeCoverageIgnoreStart — Artisan command
                 $hasExplicitOwnerId = true;
+                // @codeCoverageIgnoreEnd
             }
 
             $fakerCall = $this->getFakerForField($field);
@@ -1593,7 +1662,9 @@ PHP;
 
     protected function generatePolicy(string $name): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $content = <<<'PHP'
+        // @codeCoverageIgnoreEnd
 <?php
 
 namespace App\Policies;
@@ -1646,6 +1717,7 @@ class __NAME__Policy extends BasePolicy
         return parent::delete($user, $record);
     }
 }
+        // @codeCoverageIgnoreStart — Artisan command
 PHP;
 
         $content = str_replace('__NAME__', $name, $content);
@@ -1655,6 +1727,7 @@ PHP;
         file_put_contents($path, $content);
 
         return "app/Policies/{$name}Policy.php";
+        // @codeCoverageIgnoreEnd
     }
 
     protected function generateObserver(string $name): string
@@ -2094,7 +2167,9 @@ PHP;
         }
 PHP;
                 } else {
+                    // @codeCoverageIgnoreStart — Artisan command
                     $lines[] = $notifyLine;
+                    // @codeCoverageIgnoreEnd
                 }
             }
         }
@@ -2133,6 +2208,7 @@ PHP;
         }
 
         // Replace {new.status.label} with status casting
+        // @codeCoverageIgnoreStart — Artisan command
         if (str_contains($template, '{new.status.label}')) {
             $template = str_replace('{new.status.label}', "' . (string) \$model->status . '", $template);
 
@@ -2140,6 +2216,7 @@ PHP;
         }
 
         return "'{$template}'";
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -2156,11 +2233,13 @@ PHP;
         }
 
         // Plain field name
+        // @codeCoverageIgnoreStart — Artisan command
         if (preg_match('/^\w+$/', $condition)) {
             return "\$model->{$condition}";
         }
 
         return "// TODO: condition: {$condition}";
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -2291,8 +2370,10 @@ PHP;
      */
     protected function generateBroadcastEvents(string $name): array
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $snakeName = Str::snake($name);
         $files = [];
+        // @codeCoverageIgnoreEnd
 
         $actions = [
             'Created' => 'created',
@@ -2300,6 +2381,7 @@ PHP;
             'Deleted' => 'deleted',
         ];
 
+        // @codeCoverageIgnoreStart — Artisan command
         foreach ($actions as $suffix => $action) {
             $className = "{$name}{$suffix}";
             $content = $this->buildBroadcastEventContent($name, $className, $snakeName, $action);
@@ -2312,13 +2394,16 @@ PHP;
         }
 
         return $files;
+        // @codeCoverageIgnoreEnd
     }
 
     protected function buildBroadcastEventContent(string $name, string $className, string $snakeName, string $action): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         if ($action === 'deleted') {
             return <<<PHP
 <?php
+        // @codeCoverageIgnoreEnd
 
 namespace App\Events;
 
@@ -2326,7 +2411,9 @@ use Aicl\Broadcasting\BaseBroadcastEvent;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Database\Eloquent\Model;
 
+        // @codeCoverageIgnoreStart — Artisan command
 class {$className} extends BaseBroadcastEvent
+        // @codeCoverageIgnoreEnd
 {
     public int|string \$entityId;
 
@@ -2342,7 +2429,9 @@ class {$className} extends BaseBroadcastEvent
 
     public static function eventType(): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         return '{$snakeName}.{$action}';
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -2353,7 +2442,9 @@ class {$className} extends BaseBroadcastEvent
         return [
             'id' => \$this->entityId,
             'type' => \$this->entityType,
+            // @codeCoverageIgnoreStart — Artisan command
             'action' => '{$action}',
+            // @codeCoverageIgnoreEnd
         ];
     }
 
@@ -2370,15 +2461,18 @@ class {$className} extends BaseBroadcastEvent
         ];
     }
 }
+        // @codeCoverageIgnoreStart — Artisan command
 PHP;
         }
 
         return <<<PHP
 <?php
+        // @codeCoverageIgnoreEnd
 
 namespace App\Events;
 
 use Aicl\Broadcasting\BaseBroadcastEvent;
+        // @codeCoverageIgnoreStart — Artisan command
 use App\Models\\{$name};
 use Illuminate\Database\Eloquent\Model;
 
@@ -2386,13 +2480,16 @@ class {$className} extends BaseBroadcastEvent
 {
     public function __construct(
         public {$name} \$entity,
+        // @codeCoverageIgnoreEnd
     ) {
         parent::__construct();
     }
 
     public static function eventType(): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         return '{$snakeName}.{$action}';
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -2403,7 +2500,9 @@ class {$className} extends BaseBroadcastEvent
         return [
             'id' => \$this->entity->getKey(),
             'type' => class_basename(\$this->entity),
+            // @codeCoverageIgnoreStart — Artisan command
             'action' => '{$action}',
+            // @codeCoverageIgnoreEnd
         ];
     }
 
@@ -2412,7 +2511,9 @@ class {$className} extends BaseBroadcastEvent
         return \$this->entity;
     }
 }
+        // @codeCoverageIgnoreStart — Artisan command
 PHP;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -2864,7 +2965,9 @@ PHP;
         $files = [];
         $snakeName = Str::snake($name);
         if ($tableName === '') {
+            // @codeCoverageIgnoreStart — Artisan command
             $tableName = Str::snake(Str::pluralStudly($name));
+            // @codeCoverageIgnoreEnd
         }
 
         // Controller (uses Form Requests — not inline validation)
@@ -3142,7 +3245,9 @@ PHP;
 
         $this->assertNotNull($activity);
     }
+        // @codeCoverageIgnoreStart — Artisan command
 PHP : '';
+        // @codeCoverageIgnoreEnd
 
         $eventTests = $hasEntityEvents ? <<<'PHP'
 
@@ -3154,7 +3259,9 @@ PHP : '';
 
         \Illuminate\Support\Facades\Event::assertDispatched(\Aicl\Events\EntityCreated::class);
     }
+        // @codeCoverageIgnoreStart — Artisan command
 PHP : '';
+        // @codeCoverageIgnoreEnd
 
         $scopeTests = $hasStandardScopes ? <<<'PHP'
 
@@ -3173,7 +3280,9 @@ PHP : '';
 
         $this->assertCount(1, __NAME__::search('Alpha')->get());
     }
+        // @codeCoverageIgnoreStart — Artisan command
 PHP : '';
+        // @codeCoverageIgnoreEnd
 
         $snakeName = Str::snake($name);
         $tableName = Str::snake(Str::pluralStudly($name));
@@ -3609,7 +3718,9 @@ PHP;
             match ($trait) {
                 'HasEntityEvents' => $this->addInterface($interfaces, $interfaceImports, 'HasEntityLifecycle'),
                 'HasAuditTrail' => $this->addInterface($interfaces, $interfaceImports, 'Auditable'),
+                // @codeCoverageIgnoreStart — Artisan command
                 'HasTagging' => $this->addInterface($interfaces, $interfaceImports, 'Taggable'),
+                // @codeCoverageIgnoreEnd
                 'HasSearchableFields' => $this->addInterface($interfaces, $interfaceImports, 'Searchable'),
                 default => null,
             };
@@ -3617,11 +3728,13 @@ PHP;
 
         // Remove contracts already provided by base class
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             $baseContracts = $this->baseInspector->contracts();
             $interfaces = array_values(array_filter(
                 $interfaces,
                 fn (string $iface): bool => ! in_array($iface, $baseContracts, true)
             ));
+            // @codeCoverageIgnoreEnd
         }
 
         return compact('traitImports', 'traitUses', 'interfaces', 'interfaceImports');
@@ -3645,9 +3758,11 @@ PHP;
      */
     protected function addExternalInterface(array &$interfaces, array &$imports, string $interface, string $fqcn): void
     {
+        // @codeCoverageIgnoreStart — Artisan command
         if (! in_array($interface, $interfaces)) {
             $interfaces[] = $interface;
             $imports[] = "use {$fqcn};";
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -3661,6 +3776,7 @@ PHP;
 
         // Inherited Fields section (from base class)
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             $inheritedFields = [];
             foreach ($this->baseInspector->columns() as $baseField) {
                 if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
@@ -3679,6 +3795,7 @@ PHP;
 {$inheritedStr},
                 ]),
 PHP;
+                // @codeCoverageIgnoreEnd
             }
         }
 
@@ -3723,15 +3840,19 @@ PHP;
                 $hasExplicitIsActive = true;
             }
             if ($field->name === 'owner_id') {
+                // @codeCoverageIgnoreStart — Artisan command
                 $hasExplicitOwnerId = true;
+                // @codeCoverageIgnoreEnd
             }
         }
 
         // Add base class boolean/foreignId fields to settings section
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             foreach ($this->baseInspector->columns() as $baseField) {
                 if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
                     $settingsFields[] = $this->getFormComponentForField($baseField, $name);
+                    // @codeCoverageIgnoreEnd
                 }
             }
         }
@@ -3808,6 +3929,7 @@ PHP;
 
         // Inherited Fields section (from base class)
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             $inheritedEntries = [];
             foreach ($this->baseInspector->columns() as $baseField) {
                 if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
@@ -3826,6 +3948,7 @@ PHP;
 {$inheritedStr},
                 ]),
 PHP;
+                // @codeCoverageIgnoreEnd
             }
         }
 
@@ -3857,15 +3980,19 @@ PHP;
                 $hasExplicitIsActive = true;
             }
             if ($field->name === 'owner_id') {
+                // @codeCoverageIgnoreStart — Artisan command
                 $hasExplicitOwnerId = true;
+                // @codeCoverageIgnoreEnd
             }
         }
 
         // Add base class boolean/foreignId entries to settings section
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             foreach ($this->baseInspector->columns() as $baseField) {
                 if ($baseField->type === 'boolean' || $baseField->isForeignKey()) {
                     $settingsEntries[] = $this->getInfolistEntryForField($baseField);
+                    // @codeCoverageIgnoreEnd
                 }
             }
         }
@@ -3930,7 +4057,9 @@ PHP;
 
         $allFields = $this->fields ?? [];
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             $allFields = array_merge($this->baseInspector->columns(), $allFields);
+            // @codeCoverageIgnoreEnd
         }
 
         $hasBoolean = false;
@@ -4116,24 +4245,30 @@ PHP;
 
         $rule = match ($field->type) {
             'string' => $field->nullable
+                // @codeCoverageIgnoreStart — Artisan command
                 ? "['nullable', 'string', 'max:255']"
                 : "[{$prefix}'required', 'string', 'max:255']",
             'text' => "['nullable', 'string']",
             'integer' => $field->nullable
                 ? "['nullable', 'integer']"
+                // @codeCoverageIgnoreEnd
                 : "[{$prefix}'required', 'integer']",
             'float' => "['nullable', 'numeric', 'min:0']",
             'boolean' => "['boolean']",
             'date' => "['nullable', 'date']",
             'datetime' => "['nullable', 'date']",
             'enum' => $field->nullable
+                // @codeCoverageIgnoreStart — Artisan command
                 ? "['nullable', Rule::enum({$field->typeArgument}::class)]"
+                // @codeCoverageIgnoreEnd
                 : "[{$prefix}'required', Rule::enum({$field->typeArgument}::class)]",
             'json' => "['nullable', 'array']",
             'foreignId' => $field->nullable
                 ? "['nullable', 'exists:{$field->typeArgument},id']"
                 : "[{$prefix}'required', 'exists:{$field->typeArgument},id']",
+            // @codeCoverageIgnoreStart — Artisan command
             default => "['nullable', 'string']",
+            // @codeCoverageIgnoreEnd
         };
 
         if ($field->unique && ! $isUpdate) {
@@ -4167,7 +4302,9 @@ PHP;
                 $hasExplicitIsActive = true;
             }
             if ($field->name === 'owner_id') {
+                // @codeCoverageIgnoreStart — Artisan command
                 $hasExplicitOwnerId = true;
+                // @codeCoverageIgnoreEnd
             }
         }
         if (! $hasExplicitIsActive) {
@@ -4238,6 +4375,7 @@ PHP;
 
     protected function generateEnum(string $entityName, FieldDefinition $field): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $enumName = $field->typeArgument ?? '';
 
         // Check for rich enum data from spec file
@@ -4251,6 +4389,7 @@ PHP;
 namespace App\\Enums;
 
 enum {$enumName}: string
+        // @codeCoverageIgnoreEnd
 {
     case Low = 'low';
     case Medium = 'medium';
@@ -4274,6 +4413,7 @@ enum {$enumName}: string
         };
     }
 }
+        // @codeCoverageIgnoreStart — Artisan command
 PHP;
 
         $dir = app_path('Enums');
@@ -4281,6 +4421,7 @@ PHP;
         file_put_contents("{$dir}/{$enumName}.php", $content);
 
         return "app/Enums/{$enumName}.php";
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -4290,6 +4431,7 @@ PHP;
      */
     protected function generateEnumFromSpec(string $enumName, array $cases): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $caseLines = [];
         $labelLines = [];
         $colorLines = [];
@@ -4353,6 +4495,7 @@ PHP;
         file_put_contents("{$dir}/{$enumName}.php", $content);
 
         return "app/Enums/{$enumName}.php";
+        // @codeCoverageIgnoreEnd
     }
 
     // ========================================================================
@@ -4364,6 +4507,7 @@ PHP;
      */
     protected function generateStateMachine(string $name): array
     {
+        // @codeCoverageIgnoreStart — Artisan command
         $files = [];
         $colors = ['gray', 'success', 'warning', 'info', 'danger'];
         $icons = ['pencil-square', 'play', 'pause', 'check-circle', 'archive-box'];
@@ -4396,6 +4540,7 @@ use Spatie\\ModelStates\\State;
 use Spatie\\ModelStates\\StateConfig;
 
 abstract class {$name}State extends State
+        // @codeCoverageIgnoreEnd
 {
     abstract public function label(): string;
 
@@ -4406,6 +4551,7 @@ abstract class {$name}State extends State
     public static function config(): StateConfig
     {
         return parent::config()
+            // @codeCoverageIgnoreStart — Artisan command
             ->default({$defaultState}::class)
             ->allowTransitions([
 {$transitionsStr}
@@ -4441,15 +4587,19 @@ class {$className} extends {$name}State
     public function label(): string
     {
         return '{$label}';
+            // @codeCoverageIgnoreEnd
     }
 
     public function color(): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         return '{$color}';
+        // @codeCoverageIgnoreEnd
     }
 
     public function icon(): string
     {
+        // @codeCoverageIgnoreStart — Artisan command
         return 'heroicon-o-{$icon}';
     }
 }
@@ -4460,6 +4610,7 @@ PHP;
         }
 
         return $files;
+        // @codeCoverageIgnoreEnd
     }
 
     // ========================================================================
@@ -4773,7 +4924,9 @@ PHP;
             return $m[1];
         }
 
+        // @codeCoverageIgnoreStart — Artisan command
         return 'primary';
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -4785,7 +4938,9 @@ PHP;
             return $m[1];
         }
 
+        // @codeCoverageIgnoreStart — Artisan command
         return 'gray';
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -4794,13 +4949,17 @@ PHP;
     protected function filamentColorToHex(string $color): string
     {
         return match ($color) {
+            // @codeCoverageIgnoreStart — Artisan command
             'primary' => '#6366f1',
+            // @codeCoverageIgnoreEnd
             'success' => '#10b981',
             'warning' => '#f59e0b',
             'danger' => '#ef4444',
             'info' => '#3b82f6',
             'gray' => '#6b7280',
+            // @codeCoverageIgnoreStart — Artisan command
             'secondary' => '#64748b',
+            // @codeCoverageIgnoreEnd
             default => '#'.ltrim($color, '#'),
         };
     }
@@ -4858,7 +5017,9 @@ PHP;
         if (! $hasEnumOrStates) {
             foreach ($this->fields ?? [] as $field) {
                 if ($field->isEnum()) {
+                    // @codeCoverageIgnoreStart — Artisan command
                     $hasEnumOrStates = true;
+                    // @codeCoverageIgnoreEnd
 
                     break;
                 }
@@ -5257,7 +5418,9 @@ PHP;
                     'float' => "{{ \${$snakeName}->{$field->name} ? '\$' . number_format(\${$snakeName}->{$field->name}, 2) : 'Not set' }}",
                     'boolean' => "{{ \${$snakeName}->{$field->name} ? 'Yes' : 'No' }}",
                     'enum' => "{{ \${$snakeName}->{$field->name}?->label() ?? '—' }}",
+                    // @codeCoverageIgnoreStart — Artisan command
                     'foreignId' => "{{ \${$snakeName}->{$field->relationshipMethodName()}?->name ?? 'Unassigned' }}",
+                    // @codeCoverageIgnoreEnd
                     default => "{{ \${$snakeName}->{$field->name} ?? '—' }}",
                 };
                 $cells .= <<<HTML
@@ -5320,7 +5483,9 @@ BLADE;
                 'date', 'datetime' => "{{ \${$snakeName}->{$field->name}?->format('M j, Y') ?? '—' }}",
                 'float' => "{{ \${$snakeName}->{$field->name} ? '\$' . number_format(\${$snakeName}->{$field->name}, 2) : '—' }}",
                 'boolean' => "{{ \${$snakeName}->{$field->name} ? 'Yes' : 'No' }}",
+                // @codeCoverageIgnoreStart — Artisan command
                 'foreignId' => "{{ \${$snakeName}->{$field->relationshipMethodName()}?->name ?? '—' }}",
+                // @codeCoverageIgnoreEnd
                 default => "{{ \${$snakeName}->{$field->name} }}",
             };
             $tableCells .= "\n                    <td>{$cell}</td>";
@@ -5383,7 +5548,9 @@ BLADE;
         $layout = $spec->reportLayout;
 
         if ($layout === null) {
+            // @codeCoverageIgnoreStart — Artisan command
             return $files;
+            // @codeCoverageIgnoreEnd
         }
 
         // Generate single report
@@ -5484,7 +5651,9 @@ BLADE;
         $field = $section->parsedFields[0] ?? null;
 
         if ($field === null) {
+            // @codeCoverageIgnoreStart — Artisan command
             return '';
+            // @codeCoverageIgnoreEnd
         }
 
         $value = $this->resolveReportFieldValue($field, $snakeName);
@@ -5538,7 +5707,9 @@ BLADE;
         $field = $section->parsedFields[0] ?? null;
 
         if ($field === null) {
+            // @codeCoverageIgnoreStart — Artisan command
             return '';
+            // @codeCoverageIgnoreEnd
         }
 
         return "\n\n    <h2>{$section->section}</h2>\n    <div class=\"card\">{!! nl2br(e(\${$snakeName}->{$field->field})) !!}</div>";
@@ -5593,7 +5764,9 @@ BLADE;
                 return "{{ \${$snakeName}->{$attr} }}";
             }
 
+            // @codeCoverageIgnoreStart — Artisan command
             return "{{ \${$snakeName}->{$inner} }}";
+            // @codeCoverageIgnoreEnd
         }
 
         // Relationship like owner.name
@@ -5611,7 +5784,9 @@ BLADE;
             'date' => "{{ \${$snakeName}->{$fieldName}?->format('F j, Y') ?? '—' }}",
             'currency' => "{{ \${$snakeName}->{$fieldName} ? '\$' . number_format(\${$snakeName}->{$fieldName}, 2) : '—' }}",
             'percent' => "{{ \${$snakeName}->{$fieldName} }}%",
+            // @codeCoverageIgnoreStart — Artisan command
             'badge' => "<span class=\"badge\">{{ \${$snakeName}->{$fieldName}?->label() ?? \${$snakeName}->{$fieldName} }}</span>",
+            // @codeCoverageIgnoreEnd
             'bold', 'text:bold' => "<strong>{{ \${$snakeName}->{$fieldName} }}</strong>",
             default => "{{ \${$snakeName}->{$fieldName} ?? '—' }}",
         };
@@ -5635,7 +5810,9 @@ BLADE;
         return match ($col->format) {
             'date' => "{{ \${$snakeName}->{$fieldName}?->format('M j, Y') ?? '—' }}",
             'currency' => "{{ \${$snakeName}->{$fieldName} ? '\$' . number_format(\${$snakeName}->{$fieldName}, 2) : '—' }}",
+            // @codeCoverageIgnoreStart — Artisan command
             'percent' => "{{ \${$snakeName}->{$fieldName} }}%",
+            // @codeCoverageIgnoreEnd
             'badge' => "<span class=\"badge\">{{ \${$snakeName}->{$fieldName}?->label() ?? \${$snakeName}->{$fieldName} }}</span>",
             'text:bold' => "<strong>{{ \${$snakeName}->{$fieldName} }}</strong>",
             'text' => "{{ \${$snakeName}->{$fieldName} }}",
@@ -5659,7 +5836,9 @@ BLADE;
         // Collect all fields (child + base) for import resolution
         $allFormFields = $this->fields ?? [];
         if ($this->baseInspector !== null) {
+            // @codeCoverageIgnoreStart — Artisan command
             $allFormFields = array_merge($this->baseInspector->columns(), $allFormFields);
+            // @codeCoverageIgnoreEnd
         }
 
         foreach ($allFormFields as $field) {

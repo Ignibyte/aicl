@@ -12,8 +12,15 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Arr;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-/** Clears all jobs from a specified Horizon queue connection. */
+/**
+ * Clears all jobs from a specified Horizon queue connection.
+ *
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:clear')]
+/**
+ * ClearCommand.
+ */
 class ClearCommand extends Command
 {
     use ConfirmableTrait;

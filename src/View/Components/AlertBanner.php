@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -12,6 +14,8 @@ use Illuminate\View\View;
  * - Use for system-wide messages (maintenance, feature announcements)
  * - Use for contextual warnings within a section
  * - Type determines color: info (blue), success (green), warning (yellow), danger (red)
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class AlertBanner extends Component
 {

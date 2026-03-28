@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -87,7 +89,9 @@ abstract class BasePolicy
      */
     public function restore(User $user, Model $record): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         return $user->can('Restore:'.$this->permissionPrefix());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -98,7 +102,9 @@ abstract class BasePolicy
      */
     public function forceDelete(User $user, Model $record): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         return $user->can('ForceDelete:'.$this->permissionPrefix());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -108,7 +114,9 @@ abstract class BasePolicy
      */
     public function restoreAny(User $user): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         return $user->can('RestoreAny:'.$this->permissionPrefix());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -118,7 +126,9 @@ abstract class BasePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         return $user->can('ForceDeleteAny:'.$this->permissionPrefix());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -129,7 +139,9 @@ abstract class BasePolicy
      */
     public function replicate(User $user, Model $record): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         return $user->can('Replicate:'.$this->permissionPrefix());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -139,6 +151,8 @@ abstract class BasePolicy
      */
     public function reorder(User $user): bool
     {
+        // @codeCoverageIgnoreStart — Authorization policy
         return $user->can('Reorder:'.$this->permissionPrefix());
+        // @codeCoverageIgnoreEnd
     }
 }

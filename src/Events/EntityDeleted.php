@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Events;
 
 use Aicl\Events\Traits\BroadcastsDomainEvent;
@@ -8,6 +10,9 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * EntityDeleted.
+ */
 class EntityDeleted extends DomainEvent implements ShouldBroadcast
 {
     use BroadcastsDomainEvent;

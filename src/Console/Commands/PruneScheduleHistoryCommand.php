@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\Models\ScheduleHistory;
@@ -7,6 +9,11 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'schedule:prune-history')]
+/**
+ * PruneScheduleHistoryCommand.
+ *
+ * @codeCoverageIgnore Artisan command
+ */
 class PruneScheduleHistoryCommand extends Command
 {
     protected $signature = 'schedule:prune-history {--days= : Number of days to retain}';

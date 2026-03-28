@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Notifications;
 
 use Aicl\Horizon\Contracts\LongWaitDetectedNotification;
@@ -7,6 +9,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * LongWaitDetected.
+ */
 class LongWaitDetected extends Notification implements LongWaitDetectedNotification
 {
     use Queueable;
@@ -66,6 +71,7 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
      */
     public function toMail($notifiable)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return (new MailMessage)
             ->error()
             ->subject(config('app.name').': Long Queue Wait Detected')
@@ -74,6 +80,7 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
                 'The "%s" queue on the "%s" connection has a wait time of %s seconds.',
                 $this->longWaitQueue, $this->longWaitConnection, $this->seconds
             ));
+        // @codeCoverageIgnoreEnd
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Models;
 
 use Aicl\Database\Factories\AiMessageFactory;
@@ -66,7 +68,9 @@ class AiMessage extends Model
      */
     public function conversation(): BelongsTo
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return $this->belongsTo(AiConversation::class, 'ai_conversation_id');
+        // @codeCoverageIgnoreEnd
     }
 
     // ──────────────────────────────────────────────

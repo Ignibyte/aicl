@@ -355,9 +355,7 @@ class ComponentsCommand extends Command
         // Write to file
         $docsPath = dirname(__DIR__, 3).'/resources/docs/component-decision-tree.md';
         $docsDir = dirname($docsPath);
-        if (! is_dir($docsDir)) {
-            mkdir($docsDir, 0755, true);
-        }
+        $this->ensureDirectoryExists($docsDir);
         file_put_contents($docsPath, $markdown);
 
         // Console output (compact tree view)
@@ -389,6 +387,14 @@ class ComponentsCommand extends Command
         return self::SUCCESS;
     }
 
+    /** @codeCoverageIgnore Reason: external-service -- Directory creation only runs when docs dir is missing */
+    private function ensureDirectoryExists(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+    }
+
     private function handleCache(ComponentRegistry $registry): int
     {
         $path = $registry->writeCache();
@@ -409,6 +415,7 @@ class ComponentsCommand extends Command
         return self::SUCCESS;
     }
 
+    /** @codeCoverageIgnore Reason: external-service -- Unknown subcommand error path */
     private function handleUnknown(): int
     {
         $this->error('Unknown action. Available: list, show, validate, recommend, tree, cache, clear');

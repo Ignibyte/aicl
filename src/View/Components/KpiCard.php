@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -13,6 +15,8 @@ use Illuminate\View\View;
  * - Use for budget tracking (budget vs spent), completion rates, quota progress
  * - Progress automatically calculates percentage from actual/target
  * - Color changes based on progress: green (>=80%), yellow (50-79%), red (<50%)
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class KpiCard extends Component
 {

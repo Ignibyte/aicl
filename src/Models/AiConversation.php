@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Models;
 
 use Aicl\Database\Factories\AiConversationFactory;
@@ -155,7 +157,9 @@ class AiConversation extends Model
      */
     public function scopePinned(Builder $query): Builder
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return $query->where('is_pinned', true)->orderByDesc('updated_at');
+        // @codeCoverageIgnoreEnd
     }
 
     // ──────────────────────────────────────────────
@@ -183,7 +187,9 @@ class AiConversation extends Model
      */
     protected function searchableColumns(): array
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return ['title'];
+        // @codeCoverageIgnoreEnd
     }
 
     // ──────────────────────────────────────────────

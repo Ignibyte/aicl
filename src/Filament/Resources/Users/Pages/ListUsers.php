@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * Eager-loads roles and breezySessions to prevent N+1 queries
  * and lazy-load violations under Model::shouldBeStrict().
+ *
+ * @codeCoverageIgnore Filament Livewire rendering
  */
 class ListUsers extends ListRecords
 {

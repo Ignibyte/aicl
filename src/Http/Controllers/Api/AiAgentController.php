@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Controllers\Api;
 
 use Aicl\Http\Requests\StoreAiAgentRequest;
@@ -11,6 +13,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
 
+/**
+ * AiAgentController.
+ */
 class AiAgentController extends Controller
 {
     use AuthorizesRequests;

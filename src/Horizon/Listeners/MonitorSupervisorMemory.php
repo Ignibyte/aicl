@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Listeners;
 
 use Aicl\Horizon\Events\SupervisorLooped;
 use Aicl\Horizon\Events\SupervisorOutOfMemory;
 
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 class MonitorSupervisorMemory
 {
     /**

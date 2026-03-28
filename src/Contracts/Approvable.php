@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Contracts;
 
 use Aicl\Workflows\Models\ApprovalLog;

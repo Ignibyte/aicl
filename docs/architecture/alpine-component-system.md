@@ -248,6 +248,3 @@ The RLM validates that generated views use library components correctly (see com
 
 - [Component Library Reference](component-library.md) — Existing component documentation
 - [Filament UI](filament-ui.md) — Filament's built-in components
-- [Frontend Strategy](../planning/framework/solutions/design-react-component-layer.md) — Options analysis
-- [CMS Design](../planning/framework/solutions/design-aicl-cms-package.md) — Alpine page builder
-- [Component Decision Tree](../planning/framework/solutions/design-component-decision-tree.md) — RLM rules for component selection

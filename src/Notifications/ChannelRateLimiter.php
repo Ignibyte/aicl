@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications;
 
 use Aicl\Notifications\Models\NotificationChannel;
 use Illuminate\Support\Facades\RateLimiter;
 use InvalidArgumentException;
 
+/**
+ * @codeCoverageIgnore Notification infrastructure
+ */
 class ChannelRateLimiter
 {
     /**

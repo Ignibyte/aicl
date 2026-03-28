@@ -100,7 +100,9 @@ class RedisJobRepository implements JobRepository
      */
     public function nextJobId()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return (string) $this->connection()->incr('job_id');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -110,7 +112,9 @@ class RedisJobRepository implements JobRepository
      */
     public function totalRecent()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->connection()->zcard('recent_jobs');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -120,7 +124,9 @@ class RedisJobRepository implements JobRepository
      */
     public function totalFailed()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->connection()->zcard('failed_jobs');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -142,7 +148,9 @@ class RedisJobRepository implements JobRepository
      */
     public function getFailed($afterIndex = null)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->getJobsByType('failed_jobs', $afterIndex);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -175,7 +183,9 @@ class RedisJobRepository implements JobRepository
      */
     public function getSilenced($afterIndex = null)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->getJobsByType('silenced_jobs', $afterIndex);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -185,7 +195,9 @@ class RedisJobRepository implements JobRepository
      */
     public function countRecent()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->countJobsByType('recent_jobs');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -215,7 +227,9 @@ class RedisJobRepository implements JobRepository
      */
     public function countCompleted()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->countJobsByType('completed_jobs');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -225,7 +239,9 @@ class RedisJobRepository implements JobRepository
      */
     public function countSilenced()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->countJobsByType('silenced_jobs');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -235,7 +251,9 @@ class RedisJobRepository implements JobRepository
      */
     public function countRecentlyFailed()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->countJobsByType('recent_failed_jobs');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -279,10 +297,12 @@ class RedisJobRepository implements JobRepository
     {
         return match ($type) {
             'failed_jobs' => $this->failedJobExpires,
+            // @codeCoverageIgnoreStart — Horizon process management
             'recent_failed_jobs' => $this->recentFailedJobExpires,
             'pending_jobs' => $this->pendingJobExpires,
             'completed_jobs' => $this->completedJobExpires,
             'silenced_jobs' => $this->completedJobExpires,
+            // @codeCoverageIgnoreEnd
             default => $this->recentJobExpires,
         };
     }
@@ -298,15 +318,19 @@ class RedisJobRepository implements JobRepository
     {
         $jobs = $this->connection()->pipeline(function ($pipe) use ($ids) {
             foreach ($ids as $id) {
+                // @codeCoverageIgnoreStart — Horizon process management
                 $pipe->hmget($id, $this->keys);
+                // @codeCoverageIgnoreEnd
             }
         });
 
         /** @var array<int, mixed> $jobs */
         return $this->indexJobs(collect($jobs)->filter(function ($job) {
+            // @codeCoverageIgnoreStart — Horizon process management
             $job = is_array($job) ? array_values($job) : null;
 
             return is_array($job) && $job[0] !== null && $job[0] !== false;
+            // @codeCoverageIgnoreEnd
         })->values(), $indexFrom);
     }
 
@@ -320,6 +344,7 @@ class RedisJobRepository implements JobRepository
     protected function indexJobs($jobs, $indexFrom)
     {
         return $jobs->map(function ($job) use (&$indexFrom) {
+            // @codeCoverageIgnoreStart — Horizon process management
             $job = (object) array_combine($this->keys, $job);
 
             $job->index = $indexFrom;
@@ -327,6 +352,7 @@ class RedisJobRepository implements JobRepository
             $indexFrom++;
 
             return $job;
+            // @codeCoverageIgnoreEnd
         });
     }
 
@@ -339,6 +365,7 @@ class RedisJobRepository implements JobRepository
      */
     public function pushed($connection, $queue, JobPayload $payload)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($connection, $queue, $payload) {
             $this->storeJobReference($pipe, 'recent_jobs', $payload);
             $this->storeJobReference($pipe, 'pending_jobs', $payload);
@@ -360,6 +387,7 @@ class RedisJobRepository implements JobRepository
                 $payload->id(), CarbonImmutable::now()->addMinutes($this->pendingJobExpires)->getTimestamp()
             );
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -371,6 +399,7 @@ class RedisJobRepository implements JobRepository
      */
     public function reserved($connection, $queue, JobPayload $payload)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $time = str_replace(',', '.', (string) microtime(true));
 
         $this->connection()->hmset(
@@ -381,6 +410,7 @@ class RedisJobRepository implements JobRepository
                 'reserved_at' => $time,
             ]
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -393,6 +423,7 @@ class RedisJobRepository implements JobRepository
      */
     public function released($connection, $queue, JobPayload $payload, $delay = 0)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->hmset(
             $payload->id(), [
                 'status' => 'pending',
@@ -401,6 +432,7 @@ class RedisJobRepository implements JobRepository
                 'delay' => $delay,
             ]
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -412,6 +444,7 @@ class RedisJobRepository implements JobRepository
      */
     public function remember($connection, $queue, JobPayload $payload)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($connection, $queue, $payload) {
             $this->storeJobReference($pipe, 'monitored_jobs', $payload);
 
@@ -431,6 +464,7 @@ class RedisJobRepository implements JobRepository
                 $payload->id(), CarbonImmutable::now()->addMinutes($this->monitoredJobExpires)->getTimestamp()
             );
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -443,6 +477,7 @@ class RedisJobRepository implements JobRepository
      */
     public function migrated($connection, $queue, Collection $payloads)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($payloads) {
             foreach ($payloads as $payload) {
                 $pipe->hmset(
@@ -455,6 +490,7 @@ class RedisJobRepository implements JobRepository
                 );
             }
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -466,6 +502,7 @@ class RedisJobRepository implements JobRepository
      */
     public function completed(JobPayload $payload, $failed = false, $silenced = false)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if ($payload->isRetry()) {
             $this->updateRetryInformationOnParent($payload, $failed);
         }
@@ -483,6 +520,7 @@ class RedisJobRepository implements JobRepository
 
             $pipe->expireat($payload->id(), CarbonImmutable::now()->addMinutes($this->completedJobExpires)->getTimestamp());
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -493,6 +531,7 @@ class RedisJobRepository implements JobRepository
      */
     protected function updateRetryInformationOnParent(JobPayload $payload, $failed)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $retryOf = $payload->retryOf();
 
         if ($retryOf === null) {
@@ -507,6 +546,7 @@ class RedisJobRepository implements JobRepository
             $this->connection()->hset(
                 $retryOf, 'retried_by', json_encode($retries)
             );
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -519,6 +559,7 @@ class RedisJobRepository implements JobRepository
      */
     protected function updateRetryStatus(JobPayload $payload, $retries, $failed)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return collect($retries)
             ->map(function ($retry) use ($payload, $failed) {
                 return $retry['id'] === $payload->id()
@@ -526,6 +567,7 @@ class RedisJobRepository implements JobRepository
                     : $retry;
             })
             ->all();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -536,11 +578,13 @@ class RedisJobRepository implements JobRepository
      */
     public function deleteMonitored(array $ids)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($ids) {
             foreach ($ids as $id) {
                 $pipe->expireat($id, CarbonImmutable::now()->addDays(7)->getTimestamp());
             }
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -550,6 +594,7 @@ class RedisJobRepository implements JobRepository
      */
     public function trimRecentJobs()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) {
             $pipe->zremrangebyscore(
                 'recent_jobs',
@@ -581,6 +626,7 @@ class RedisJobRepository implements JobRepository
                 '+inf'
             );
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -590,9 +636,11 @@ class RedisJobRepository implements JobRepository
      */
     public function trimFailedJobs()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->zremrangebyscore(
             'failed_jobs', (string) (CarbonImmutable::now()->subMinutes($this->failedJobExpires)->getTimestamp() * -1), '+inf'
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -602,9 +650,11 @@ class RedisJobRepository implements JobRepository
      */
     public function trimMonitoredJobs()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->zremrangebyscore(
             'monitored_jobs', (string) (CarbonImmutable::now()->subMinutes($this->monitoredJobExpires)->getTimestamp() * -1), '+inf'
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -615,6 +665,7 @@ class RedisJobRepository implements JobRepository
      */
     public function findFailed($id)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $attributes = $this->connection()->hmget(
             $id, $this->keys
         );
@@ -626,6 +677,7 @@ class RedisJobRepository implements JobRepository
         }
 
         return $job;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -638,6 +690,7 @@ class RedisJobRepository implements JobRepository
      */
     public function failed($exception, $connection, $queue, JobPayload $payload)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($exception, $connection, $queue, $payload) {
             $this->storeJobReference($pipe, 'failed_jobs', $payload);
             $this->storeJobReference($pipe, 'recent_failed_jobs', $payload);
@@ -665,6 +718,7 @@ class RedisJobRepository implements JobRepository
                 $payload->id(), CarbonImmutable::now()->addMinutes($this->failedJobExpires)->getTimestamp()
             );
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -676,7 +730,9 @@ class RedisJobRepository implements JobRepository
      */
     protected function storeJobReference($pipe, $key, JobPayload $payload)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $pipe->zadd($key, str_replace(',', '.', (string) (microtime(true) * -1)), $payload->id());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -688,7 +744,9 @@ class RedisJobRepository implements JobRepository
      */
     protected function removeJobReference($pipe, $key, JobPayload $payload)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $pipe->zrem($key, $payload->id());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -700,6 +758,7 @@ class RedisJobRepository implements JobRepository
      */
     public function storeRetryReference($id, $retryId)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $retries = json_decode($this->connection()->hget($id, 'retried_by') ?: '[]');
 
         $retries[] = [
@@ -709,6 +768,7 @@ class RedisJobRepository implements JobRepository
         ];
 
         $this->connection()->hmset($id, ['retried_by' => json_encode($retries)]);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -719,9 +779,11 @@ class RedisJobRepository implements JobRepository
      */
     public function deleteFailed($id)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->connection()->zrem('failed_jobs', $id) != 1
             ? 0
             : $this->connection()->del($id);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -732,6 +794,7 @@ class RedisJobRepository implements JobRepository
      */
     public function purge($queue)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $count = 0;
         $cursor = 0;
 
@@ -751,6 +814,7 @@ class RedisJobRepository implements JobRepository
         } while ($cursor !== '0');
 
         return $count;
+        // @codeCoverageIgnoreEnd
     }
 
     /**

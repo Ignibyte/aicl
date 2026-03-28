@@ -9,6 +9,9 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Cache;
 
 /** Synchronizes project-level files with the installed AICL package version. */
+/**
+ * @codeCoverageIgnore Artisan command
+ */
 class UpgradeCommand extends Command
 {
     /**

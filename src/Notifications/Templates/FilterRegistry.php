@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates;
 
 use Aicl\Notifications\Templates\Contracts\TemplateFilter;
 use InvalidArgumentException;
 
+/**
+ * FilterRegistry.
+ */
 class FilterRegistry
 {
     /** @var array<string, TemplateFilter> */

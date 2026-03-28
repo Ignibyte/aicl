@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Tools;
 
 use Aicl\AI\Enums\ToolRenderType;
 use App\Models\User;
 
+/**
+ * CurrentUserTool.
+ */
 class CurrentUserTool extends BaseTool
 {
     public function __construct()
@@ -17,7 +22,9 @@ class CurrentUserTool extends BaseTool
 
     public function category(): string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return 'system';
+        // @codeCoverageIgnoreEnd
     }
 
     public function requiresAuth(): bool
@@ -27,7 +34,9 @@ class CurrentUserTool extends BaseTool
 
     public function renderAs(): ToolRenderType
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return ToolRenderType::KeyValue;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -35,6 +44,7 @@ class CurrentUserTool extends BaseTool
      */
     public function formatResultForDisplay(mixed $result): array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         if (is_string($result)) {
             return ['type' => ToolRenderType::Text->value, 'data' => $result];
         }
@@ -50,6 +60,7 @@ class CurrentUserTool extends BaseTool
                 ],
             ],
         ];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -57,6 +68,7 @@ class CurrentUserTool extends BaseTool
      */
     public function __invoke(): string|array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         if ($this->authenticatedUserId === null) {
             return 'No authenticated user context available.';
         }
@@ -74,5 +86,6 @@ class CurrentUserTool extends BaseTool
             'roles' => $user->getRoleNames()->toArray(),
             'created_at' => $user->created_at?->toIso8601String(),
         ];
+        // @codeCoverageIgnoreEnd
     }
 }

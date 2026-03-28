@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Contracts;
 
 use Aicl\Horizon\Supervisor;
 
+/**
+ * SupervisorRepository.
+ */
 interface SupervisorRepository
 {
     /**

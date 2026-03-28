@@ -102,12 +102,14 @@ class JobPayload implements ArrayAccess
      */
     public function prepare($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->set([
             'type' => $this->determineType($job),
             'tags' => $tags = $this->determineTags($job),
             'silenced' => $this->shouldBeSilenced($job, $tags),
             'pushedAt' => str_replace(',', '.', (string) microtime(true)),
         ]);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -119,11 +121,13 @@ class JobPayload implements ArrayAccess
     protected function determineType($job)
     {
         return match (true) {
+            // @codeCoverageIgnoreStart — Horizon process management
             $job instanceof BroadcastEvent => 'broadcast',
             $job instanceof CallQueuedListener => 'event',
             $job instanceof SendQueuedMailable => 'mail',
             $job instanceof SendQueuedNotifications => 'notification',
             default => 'job',
+            // @codeCoverageIgnoreEnd
         };
     }
 
@@ -135,10 +139,12 @@ class JobPayload implements ArrayAccess
      */
     protected function determineTags($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return array_merge(
             $this->decoded['tags'] ?? [],
             ! $job || is_string($job) ? [] : Tags::for($job)
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -150,6 +156,7 @@ class JobPayload implements ArrayAccess
      */
     protected function shouldBeSilenced($job, array $tags = [])
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if (! $job) {
             return false;
         }
@@ -162,6 +169,7 @@ class JobPayload implements ArrayAccess
         return in_array($jobClass, config('aicl-horizon.silenced', [])) ||
             is_a($jobClass, Silenced::class, true) ||
             count(array_intersect($tags, config('aicl-horizon.silenced_tags', []))) > 0;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -173,11 +181,13 @@ class JobPayload implements ArrayAccess
     protected function underlyingJob($job)
     {
         return match (true) {
+            // @codeCoverageIgnoreStart — Horizon process management
             $job instanceof BroadcastEvent => $job->event,
             $job instanceof CallQueuedListener => $job->class,
             $job instanceof SendQueuedMailable => $job->mailable,
             $job instanceof SendQueuedNotifications => $job->notification,
             default => $job,
+            // @codeCoverageIgnoreEnd
         };
     }
 

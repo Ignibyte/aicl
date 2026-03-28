@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -14,6 +16,8 @@ use Illuminate\View\View;
  * - Combines a card wrapper with MetadataList-style content
  *
  * @example <x-aicl-info-card heading="Project Details" :items="['Status' => 'Active', 'Priority' => 'High']" />
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class InfoCard extends Component
 {

@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Concerns;
 
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 
+/**
+ * ChecksTokenScope.
+ */
 trait ChecksTokenScope
 {
     /**

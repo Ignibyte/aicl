@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Widgets;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
@@ -10,6 +12,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class QueueStatsWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = 1;

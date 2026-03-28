@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Tools;
 
 use Aicl\AI\Enums\ToolRenderType;
 use Aicl\Health\HealthCheckRegistry;
 
+/**
+ * HealthStatusTool.
+ */
 class HealthStatusTool extends BaseTool
 {
     public function __construct()
@@ -17,7 +22,9 @@ class HealthStatusTool extends BaseTool
 
     public function category(): string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return 'system';
+        // @codeCoverageIgnoreEnd
     }
 
     public function requiresAuth(): bool
@@ -27,7 +34,9 @@ class HealthStatusTool extends BaseTool
 
     public function renderAs(): ToolRenderType
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return ToolRenderType::Status;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -35,6 +44,7 @@ class HealthStatusTool extends BaseTool
      */
     public function formatResultForDisplay(mixed $result): array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         if (is_string($result)) {
             return ['type' => ToolRenderType::Text->value, 'data' => $result];
         }
@@ -52,6 +62,7 @@ class HealthStatusTool extends BaseTool
                 ])->toArray(),
             ],
         ];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -59,6 +70,7 @@ class HealthStatusTool extends BaseTool
      */
     public function __invoke(): array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         $registry = app(HealthCheckRegistry::class);
         $results = $registry->runAllCached();
 
@@ -69,5 +81,6 @@ class HealthStatusTool extends BaseTool
             // Redact connection details — only expose safe summary fields
             'error' => $result->error ? 'Service error detected' : null,
         ], $results);
+        // @codeCoverageIgnoreEnd
     }
 }

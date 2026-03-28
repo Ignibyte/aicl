@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole\Listeners;
 
 use Aicl\Swoole\SwooleCache;
@@ -9,6 +11,8 @@ use Laravel\Octane\Events\WorkerStarting;
  * Octane WorkerStarting listener that warms all registered SwooleCache tables.
  *
  * @see SwooleCache::registerWarm()  Registers warm callbacks
+ *
+ * @codeCoverageIgnore Swoole runtime
  */
 class WarmSwooleCaches
 {

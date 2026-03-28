@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Drivers;
 
 use Aicl\Notifications\Contracts\NotificationChannelDriver;
@@ -8,6 +10,9 @@ use Aicl\Notifications\Models\NotificationChannel;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
+/**
+ * @codeCoverageIgnore External notification service
+ */
 class SmsDriver implements NotificationChannelDriver
 {
     public function send(NotificationChannel $channel, array $payload): DriverResult

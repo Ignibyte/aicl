@@ -1,6 +1,6 @@
 # Project Entity Extraction — Future Task
 
-**Status:** Deferred — covered in `.claude/planning/framework/architect/v1-architect-tasks.md` (Task 5)
+**Status:** Deferred
 **Related:** Golden example patterns now served via Forge MCP `search-patterns`
 
 ---

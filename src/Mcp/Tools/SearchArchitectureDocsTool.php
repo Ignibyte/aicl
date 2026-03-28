@@ -25,6 +25,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
  *
  * Registered into Laravel Boost via AiclServiceProvider so every AICL
  * project exposes its architecture docs through MCP automatically.
+ *
+ * @codeCoverageIgnore Reason: mcp-runtime -- MCP tool handle/schema methods require live MCP server request/response cycle
  */
 #[IsReadOnly]
 class SearchArchitectureDocsTool extends Tool

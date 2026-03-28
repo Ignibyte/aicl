@@ -2,7 +2,7 @@
 
 **Version:** 1.1
 **Last Updated:** 2026-02-06
-**Owner:** `/architect`, `/rlm`
+**Owner:** `/pipeline-implement`, `/pipeline-validate`
 
 ---
 
@@ -853,4 +853,3 @@ When generating a new entity:
 - [Auth & RBAC](auth-rbac.md)
 - [Filament UI](filament-ui.md)
 - [Notifications](notifications.md) — Mandatory notification logging via NotificationDispatcher
-- [Golden Entity Guide](../planning/rlm/golden-entity-guide.md)

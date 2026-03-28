@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates\Contracts;
 
+/**
+ * TemplateFilter.
+ */
 interface TemplateFilter
 {
     /**

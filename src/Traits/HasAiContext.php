@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Traits;
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
@@ -11,7 +15,7 @@ use Illuminate\Support\Str;
  * type metadata, key attributes, relationships, and timestamps.
  * Override aiContextFields() or toAiContext() to customize.
  *
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
  */
 trait HasAiContext
 {
@@ -103,13 +107,13 @@ trait HasAiContext
         foreach ($loaded as $name => $related) {
             if ($related === null) {
                 $context[$name] = null;
-            } elseif ($related instanceof \Illuminate\Database\Eloquent\Collection) {
+            } elseif ($related instanceof Collection) {
                 $context[$name] = $related->map(fn ($model): array => [
                     'id' => $model->getKey(),
                     'type' => class_basename($model),
                     'label' => $model->getAttribute('name') ?? $model->getAttribute('title') ?? (string) $model->getKey(),
                 ])->toArray();
-            } elseif ($related instanceof \Illuminate\Database\Eloquent\Model) {
+            } elseif ($related instanceof Model) {
                 $context[$name] = [
                     'id' => $related->getKey(),
                     'type' => class_basename($related),

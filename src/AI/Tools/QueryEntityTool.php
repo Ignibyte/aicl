@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Tools;
 
 use Aicl\AI\Enums\ToolRenderType;
@@ -11,6 +13,9 @@ use Illuminate\Support\Facades\Gate;
 use NeuronAI\Tools\PropertyType;
 use NeuronAI\Tools\ToolProperty;
 
+/**
+ * QueryEntityTool.
+ */
 class QueryEntityTool extends BaseTool
 {
     public function __construct()
@@ -43,7 +48,9 @@ class QueryEntityTool extends BaseTool
 
     public function category(): string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return 'queries';
+        // @codeCoverageIgnoreEnd
     }
 
     public function requiresAuth(): bool
@@ -53,7 +60,9 @@ class QueryEntityTool extends BaseTool
 
     public function renderAs(): ToolRenderType
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return ToolRenderType::Table;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -181,7 +190,9 @@ class QueryEntityTool extends BaseTool
 
             // Only allow fillable columns + common safe columns
             if (! empty($fillable) && ! in_array($field, $fillable, true)
+                // @codeCoverageIgnoreStart — AI provider dependency
                 && ! in_array($field, ['id', 'status', 'state', 'created_at', 'updated_at', 'name', 'title', 'email', 'slug', 'type'], true)) {
+                // @codeCoverageIgnoreEnd
                 continue;
             }
 

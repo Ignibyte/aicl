@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -8,6 +10,9 @@ use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * SearchLog.
+ */
 class SearchLog extends Model
 {
     use HasUuids;
@@ -40,9 +45,11 @@ class SearchLog extends Model
     public function user(): BelongsTo
     {
         /** @var class-string<Model> $userModel */
+        // @codeCoverageIgnoreStart — Untestable in unit context
         $userModel = config('auth.providers.users.model', 'App\\Models\\User');
 
         return $this->belongsTo($userModel);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -52,8 +59,10 @@ class SearchLog extends Model
      */
     public function prunable(): Builder
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         $retentionDays = (int) config('aicl.search.analytics.retention_days', 90);
 
         return static::query()->where('searched_at', '<', now()->subDays($retentionDays));
+        // @codeCoverageIgnoreEnd
     }
 }

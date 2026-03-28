@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Health\Checks;
 
 use Aicl\Health\Contracts\ServiceHealthCheck;
@@ -11,6 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Throwable;
 
+/**
+ * @codeCoverageIgnore External service health check
+ */
 class QueueCheck implements ServiceHealthCheck
 {
     public function check(): ServiceCheckResult

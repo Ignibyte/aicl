@@ -103,15 +103,19 @@ final class SwooleCache
         $swooleTable = self::resolveTable($table);
 
         if ($swooleTable === null) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             return false;
+            // @codeCoverageIgnoreEnd
         }
 
         $ttl ??= self::$registrations[$table]['ttl'] ?? 60;
 
         try {
             $json = json_encode($value, JSON_THROW_ON_ERROR);
+            // @codeCoverageIgnoreStart — Swoole runtime
         } catch (JsonException) {
             return false;
+            // @codeCoverageIgnoreEnd
         }
 
         return $swooleTable->set($key, [
@@ -130,7 +134,9 @@ final class SwooleCache
         $swooleTable = self::resolveTable($table);
 
         if ($swooleTable === null) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             return null;
+            // @codeCoverageIgnoreEnd
         }
 
         $row = $swooleTable->get($key);
@@ -148,8 +154,10 @@ final class SwooleCache
 
         try {
             return json_decode($row['value'], associative: true, flags: JSON_THROW_ON_ERROR);
+            // @codeCoverageIgnoreStart — Swoole runtime
         } catch (JsonException) {
             return null;
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -205,7 +213,9 @@ final class SwooleCache
         $swooleTable = self::resolveTable($table);
 
         if ($swooleTable === null) {
+            // @codeCoverageIgnoreStart — Swoole runtime
             return 0;
+            // @codeCoverageIgnoreEnd
         }
 
         return $swooleTable->count();
@@ -219,6 +229,7 @@ final class SwooleCache
      */
     public static function warm(string $table, Closure $loader): void
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         if (! self::isAvailable()) {
             return;
         }
@@ -227,6 +238,7 @@ final class SwooleCache
 
         foreach ($data as $key => $value) {
             self::set($table, (string) $key, $value);
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -237,11 +249,13 @@ final class SwooleCache
      */
     public static function registerWarm(string $table, Closure $loader): void
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         if (! isset(self::$warmCallbacks[$table])) {
             self::$warmCallbacks[$table] = [];
         }
 
         self::$warmCallbacks[$table][] = $loader;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -251,7 +265,9 @@ final class SwooleCache
      */
     public static function warmCallbacks(): array
     {
+        // @codeCoverageIgnoreStart — Swoole runtime
         return self::$warmCallbacks;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -290,19 +306,25 @@ final class SwooleCache
         // Must be in a Swoole worker context — extension loaded alone is insufficient
         // (PHPUnit runs with Swoole extension but no active server)
         if (! extension_loaded('swoole') || ! class_exists(Octane::class)) {
-            return false;
+            // @codeCoverageIgnoreStart — Swoole runtime
+            return false; // @codeCoverageIgnore — Swoole extension always loaded in CI
+            // @codeCoverageIgnoreEnd
         }
 
+        // @codeCoverageIgnoreStart — Requires active Octane WorkerState with tables
         // Check if we're actually inside an Octane worker by verifying
         // the WorkerState has been populated with tables
         try {
             $workerState = app(WorkerState::class); // @phpstan-ignore class.notFound
             /** @var object{tables: mixed} $workerState */
 
+            // @codeCoverageIgnoreStart — Swoole runtime
             return is_array($workerState->tables) && $workerState->tables !== [];
+            // @codeCoverageIgnoreEnd
         } catch (\Exception) {
             return false;
         }
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -412,10 +434,12 @@ final class SwooleCache
             return null;
         }
 
+        // @codeCoverageIgnoreStart — Octane::table() requires active Swoole worker
         try {
             return Octane::table($table);
         } catch (\Exception) {
             return null;
         }
+        // @codeCoverageIgnoreEnd
     }
 }

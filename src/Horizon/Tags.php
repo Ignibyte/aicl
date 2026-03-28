@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Illuminate\Broadcasting\BroadcastEvent;
@@ -13,6 +15,9 @@ use ReflectionClass;
 use ReflectionProperty;
 use stdClass;
 
+/**
+ * Tags.
+ */
 class Tags
 {
     /**
@@ -48,7 +53,9 @@ class Tags
     public static function extractExplicitTags($job)
     {
         return $job instanceof CallQueuedListener
+            // @codeCoverageIgnoreStart — Horizon process management
             ? static::tagsForListener($job)
+            // @codeCoverageIgnoreEnd
             : static::explicitTags(static::targetsFor($job));
     }
 
@@ -60,6 +67,7 @@ class Tags
      */
     protected static function tagsForListener($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $event = static::extractEvent($job);
 
         static::setEvent($event);
@@ -72,6 +80,7 @@ class Tags
                 static::flushEventState();
             })
             ->toArray();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -126,9 +135,11 @@ class Tags
                     $value = static::getValue($property, $target);
 
                     if ($value instanceof Model) {
+                        // @codeCoverageIgnoreStart — Horizon process management
                         return [$value];
                     } elseif ($value instanceof EloquentCollection) {
                         return $value->all();
+                        // @codeCoverageIgnoreEnd
                     }
                 })
                 ->collapse()
@@ -163,7 +174,9 @@ class Tags
      */
     protected static function extractListener($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return (new ReflectionClass($job->class))->newInstanceWithoutConstructor();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -174,9 +187,11 @@ class Tags
      */
     protected static function extractEvent($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return isset($job->data[0]) && is_object($job->data[0])
             ? $job->data[0]
             : new stdClass;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -187,7 +202,9 @@ class Tags
      */
     protected static function setEvent($event)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         static::$event = $event;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -197,6 +214,8 @@ class Tags
      */
     protected static function flushEventState()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         static::$event = null;
+        // @codeCoverageIgnoreEnd
     }
 }

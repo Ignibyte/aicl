@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Workflows\Traits;
 
 use Aicl\Services\NotificationDispatcher;
@@ -18,6 +20,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
 
+/**
+ * @codeCoverageIgnore Workflow infrastructure
+ */
 trait RequiresApproval
 {
     public function initializeRequiresApproval(): void

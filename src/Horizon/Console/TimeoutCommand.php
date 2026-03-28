@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\MasterSupervisor;
@@ -7,6 +9,11 @@ use Aicl\Horizon\ProvisioningPlan;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * TimeoutCommand.
+ *
+ * @codeCoverageIgnore Reason: horizon-process -- Requires real Horizon provisioning plan and environment config
+ */
 #[AsCommand(name: 'aicl:horizon:timeout')]
 class TimeoutCommand extends Command
 {

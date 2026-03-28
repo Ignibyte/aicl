@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI;
 
 use Aicl\AI\Contracts\AiTool;

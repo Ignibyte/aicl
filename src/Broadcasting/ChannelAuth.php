@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Broadcasting;
 
 /**
@@ -10,6 +12,8 @@ namespace Aicl\Broadcasting;
  * permission format for entity-specific channel authorization.
  *
  * @see BaseBroadcastEvent  Base class for broadcast events
+ *
+ * @codeCoverageIgnore Broadcasting infrastructure
  */
 class ChannelAuth
 {

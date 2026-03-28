@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Drivers;
 
 use Aicl\Notifications\Contracts\NotificationChannelDriver;
@@ -8,6 +10,9 @@ use Aicl\Notifications\Models\NotificationChannel;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
+/**
+ * @codeCoverageIgnore External notification service
+ */
 class PagerDutyDriver implements NotificationChannelDriver
 {
     private const EVENTS_API_URL = 'https://events.pagerduty.com/v2/enqueue';

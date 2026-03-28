@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Widgets;
 
 use Aicl\Models\AiAgent;
@@ -9,6 +11,9 @@ use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class AiAgentStatsWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = 5;

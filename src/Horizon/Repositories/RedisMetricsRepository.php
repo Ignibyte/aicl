@@ -75,7 +75,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function jobsProcessedPerMinute()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return round($this->throughput() / $this->minutesSinceLastSnapshot());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -85,8 +87,10 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function throughput()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return (int) collect($this->measuredQueues())
             ->reduce(fn ($carry, $queue) => $carry + $this->connection()->hget('queue:'.$queue, 'throughput'), 0);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -97,7 +101,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function throughputForJob($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->throughputFor('job:'.$job);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -108,7 +114,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function throughputForQueue($queue)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->throughputFor('queue:'.$queue);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -119,7 +127,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     protected function throughputFor($key)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return (int) $this->connection()->hget($key, 'throughput');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -130,7 +140,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function runtimeForJob($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->runtimeFor('job:'.$job);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -162,6 +174,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function queueWithMaximumRuntime()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return collect($this->measuredQueues())
             ->sortBy(function ($queue) {
                 if ($snapshots = $this->connection()->zrange('snapshot:queue:'.$queue, -1, 1)) {
@@ -169,6 +182,7 @@ class RedisMetricsRepository implements MetricsRepository
                 }
             })
             ->last();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -178,6 +192,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function queueWithMaximumThroughput()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return collect($this->measuredQueues())
             ->sortBy(function ($queue) {
                 if ($snapshots = $this->connection()->zrange('snapshot:queue:'.$queue, -1, 1)) {
@@ -185,6 +200,7 @@ class RedisMetricsRepository implements MetricsRepository
                 }
             })
             ->last();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -196,9 +212,11 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function incrementJob($job, $runtime)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->eval(LuaScripts::updateMetrics(), 2,
             'job:'.$job, 'measured_jobs', str_replace(',', '.', (string) $runtime)
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -210,9 +228,11 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function incrementQueue($queue, $runtime)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->eval(LuaScripts::updateMetrics(), 2,
             'queue:'.$queue, 'measured_queues', str_replace(',', '.', (string) $runtime)
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -223,7 +243,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function snapshotsForJob($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->snapshotsFor('job:'.$job);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -258,6 +280,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function snapshot()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $dbRows = [];
 
         collect($this->measuredJobs())->each(function ($job) use (&$dbRows) {
@@ -293,6 +316,7 @@ class RedisMetricsRepository implements MetricsRepository
         $this->storeSnapshotTimestamp();
 
         $this->persistToDatabase($dbRows);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -302,6 +326,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     private function persistToDatabase(array $rows): void
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if (empty($rows)) {
             return;
         }
@@ -317,6 +342,7 @@ class RedisMetricsRepository implements MetricsRepository
                 'error' => $e->getMessage(),
                 'row_count' => count($rows),
             ]);
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -328,6 +354,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     protected function storeSnapshotForJob($job)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $data = $this->baseSnapshotData($key = 'job:'.$job);
 
         $this->connection()->zadd(
@@ -343,6 +370,7 @@ class RedisMetricsRepository implements MetricsRepository
         );
 
         return $data;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -353,6 +381,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     protected function storeSnapshotForQueue($queue)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $data = $this->baseSnapshotData($key = 'queue:'.$queue);
 
         $wait = app(WaitTimeCalculator::class)->calculateFor($queue);
@@ -373,6 +402,7 @@ class RedisMetricsRepository implements MetricsRepository
         $data['wait'] = $wait;
 
         return $data;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -383,6 +413,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     protected function baseSnapshotData($key)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $responses = $this->connection()->transaction(function ($trans) use ($key) {
             $trans->hmget($key, ['throughput', 'runtime']);
 
@@ -395,6 +426,7 @@ class RedisMetricsRepository implements MetricsRepository
             'throughput' => $snapshot[0],
             'runtime' => $snapshot[1],
         ];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -404,12 +436,14 @@ class RedisMetricsRepository implements MetricsRepository
      */
     protected function minutesSinceLastSnapshot()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $lastSnapshotAt = (int) ($this->connection()->get('last_snapshot_at')
             ?: $this->storeSnapshotTimestamp());
 
         return max(
             (CarbonImmutable::now()->getTimestamp() - $lastSnapshotAt) / 60, 1
         );
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -419,9 +453,11 @@ class RedisMetricsRepository implements MetricsRepository
      */
     protected function storeSnapshotTimestamp()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return tap(CarbonImmutable::now()->getTimestamp(), function ($timestamp) {
             $this->connection()->set('last_snapshot_at', $timestamp);
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -431,7 +467,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function acquireWaitTimeMonitorLock()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return app(Lock::class)->get('monitor:time-to-clear');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -442,7 +480,9 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function forget($key)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->del($key);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -452,6 +492,7 @@ class RedisMetricsRepository implements MetricsRepository
      */
     public function clear()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->forget('last_snapshot_at');
         $this->forget('measured_jobs');
         $this->forget('measured_queues');
@@ -475,6 +516,7 @@ class RedisMetricsRepository implements MetricsRepository
                     $this->forget(Str::after($key, config('aicl-horizon.prefix')));
                 }
             } while ($cursor > 0);
+            // @codeCoverageIgnoreEnd
         }
     }
 

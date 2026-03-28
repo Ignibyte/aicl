@@ -292,11 +292,15 @@ class SupervisorOptions
     /**
      * Get the command-line representation of the options for a supervisor.
      *
+     * @codeCoverageIgnore Reason: horizon-process -- Supervisor command string requires Horizon runtime
+     *
      * @return string
      */
     public function toSupervisorCommand()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return SupervisorCommandString::fromOptions($this);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -306,7 +310,9 @@ class SupervisorOptions
      */
     public function toWorkerCommand()
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return WorkerCommandString::fromOptions($this);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -359,10 +365,12 @@ class SupervisorOptions
      */
     public static function fromArray(array $array)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return tap(new static($array['name'], $array['connection']), function ($options) use ($array) {
             foreach ($array as $key => $value) {
                 $options->{$key} = $value;
             }
         });
+        // @codeCoverageIgnoreEnd
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Traits;
 
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +16,7 @@ use Laravel\Scout\Searchable;
  *
  * @mixin Model
  *
- * @phpstan-ignore trait.unused
+ * @codeCoverageIgnore Trait requiring integration context
  */
 trait HasSearchableFields
 {

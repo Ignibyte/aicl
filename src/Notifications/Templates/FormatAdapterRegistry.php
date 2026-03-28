@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates;
 
 use Aicl\Notifications\Enums\ChannelType;
 use Aicl\Notifications\Templates\Contracts\ChannelFormatAdapter;
 use InvalidArgumentException;
 
+/**
+ * FormatAdapterRegistry.
+ */
 class FormatAdapterRegistry
 {
     /** @var array<string, ChannelFormatAdapter> */

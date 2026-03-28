@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Traits;
 
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +18,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * Override getActivitylogOptions() in your model to customize.
  *
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
  */
 trait HasAuditTrail
 {

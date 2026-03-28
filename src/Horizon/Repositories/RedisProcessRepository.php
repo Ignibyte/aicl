@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Repositories;
 
 use Aicl\Horizon\Contracts\ProcessRepository;
@@ -8,6 +10,9 @@ use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 class RedisProcessRepository implements ProcessRepository
 {
     /**

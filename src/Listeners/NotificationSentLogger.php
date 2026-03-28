@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Listeners;
 
 use Aicl\Models\NotificationLog;
@@ -16,6 +18,8 @@ use Illuminate\Notifications\Events\NotificationSent;
  * are already logged by the NotificationDispatcher service.
  *
  * @see NotificationDispatcher  Handles logging for AICL notifications
+ *
+ * @codeCoverageIgnore Event listener
  */
 class NotificationSentLogger
 {

@@ -19,6 +19,9 @@ use Illuminate\Support\Collection;
 use Throwable;
 
 /** Manages a pool of queue worker processes with auto-scaling, pause, and restart capabilities. */
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 class Supervisor implements Pausable, Restartable, Terminable
 {
     use ListensForSignals;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -7,6 +9,9 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 
+/**
+ * AiToolCallEvent.
+ */
 class AiToolCallEvent implements ShouldBroadcastNow
 {
     use Dispatchable;

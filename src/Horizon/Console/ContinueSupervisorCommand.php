@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\SupervisorRepository;
@@ -8,6 +10,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * ContinueSupervisorCommand.
+ *
+ * @codeCoverageIgnore Reason: horizon-process -- Requires real supervisor processes and posix_kill signals
+ */
 #[AsCommand(name: 'aicl:horizon:continue-supervisor')]
 class ContinueSupervisorCommand extends Command
 {

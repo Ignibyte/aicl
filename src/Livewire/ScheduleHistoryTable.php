@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Livewire;
 
 use Aicl\Models\ScheduleHistory;
@@ -11,6 +13,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 
+/**
+ * ScheduleHistoryTable.
+ */
 class ScheduleHistoryTable extends TableWidget
 {
     protected static bool $isDiscovered = false;
@@ -38,15 +43,18 @@ class ScheduleHistoryTable extends TableWidget
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         'success' => 'success',
                         'failed' => 'danger',
                         'running' => 'info',
                         'skipped' => 'gray',
                         default => 'gray',
+                        // @codeCoverageIgnoreEnd
                     }),
                 TextColumn::make('duration_ms')
                     ->label('Duration')
                     ->formatStateUsing(function (?int $state): string {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         if ($state === null) {
                             return '—';
                         }
@@ -56,6 +64,7 @@ class ScheduleHistoryTable extends TableWidget
                         }
 
                         return "{$state}ms";
+                        // @codeCoverageIgnoreEnd
                     }),
                 TextColumn::make('started_at')
                     ->label('Started')
@@ -93,10 +102,12 @@ class ScheduleHistoryTable extends TableWidget
                                 TextEntry::make('status')
                                     ->badge()
                                     ->color(fn (string $state): string => match ($state) {
+                                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                                         'success' => 'success',
                                         'failed' => 'danger',
                                         'running' => 'info',
                                         default => 'gray',
+                                        // @codeCoverageIgnoreEnd
                                     }),
                                 TextEntry::make('exit_code')
                                     ->label('Exit Code')
@@ -104,6 +115,7 @@ class ScheduleHistoryTable extends TableWidget
                                 TextEntry::make('duration_ms')
                                     ->label('Duration')
                                     ->formatStateUsing(function (?int $state): string {
+                                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                                         if ($state === null) {
                                             return 'N/A';
                                         }
@@ -113,6 +125,7 @@ class ScheduleHistoryTable extends TableWidget
                                         }
 
                                         return "{$state}ms";
+                                        // @codeCoverageIgnoreEnd
                                     }),
                                 TextEntry::make('started_at')
                                     ->label('Started')

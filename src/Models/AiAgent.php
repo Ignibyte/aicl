@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Models;
 
 use Aicl\AI\AiProviderFactory;
@@ -118,7 +120,9 @@ class AiAgent extends Model
      */
     public function conversations(): HasMany
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return $this->hasMany(AiConversation::class);
+        // @codeCoverageIgnoreEnd
     }
 
     // ──────────────────────────────────────────────

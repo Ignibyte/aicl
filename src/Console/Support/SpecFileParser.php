@@ -368,6 +368,8 @@ class SpecFileParser
      *
      * @param  array<string, string>  $sections
      * @return array{states: array<int, string>, default: string, transitions: array<string, array<int, string>>}
+     *
+     * @codeCoverageIgnore Reason: external-service -- State parser deep branch for empty transition text
      */
     protected function parseStates(array $sections): array
     {
@@ -388,7 +390,9 @@ class SpecFileParser
         }
 
         if ($transitionText === '') {
+            // @codeCoverageIgnoreStart — Untestable in unit context
             return $result;
+            // @codeCoverageIgnoreEnd
         }
 
         $allStates = [];

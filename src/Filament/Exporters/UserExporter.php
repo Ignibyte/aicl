@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Exporters;
 
 use App\Models\User;
@@ -7,6 +9,9 @@ use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 
+/**
+ * UserExporter.
+ */
 class UserExporter extends Exporter
 {
     protected static ?string $model = User::class;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Observers;
 
 use Aicl\Models\AiConversation;
@@ -7,6 +9,9 @@ use Aicl\Models\AiMessage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * AiMessageObserver.
+ */
 class AiMessageObserver extends BaseObserver
 {
     /**

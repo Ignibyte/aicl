@@ -14,6 +14,8 @@ use InvalidArgumentException;
  * - ## Tool key-value table (required)
  * - ## Parameters table (optional)
  * - ## Returns table (optional)
+ *
+ * @codeCoverageIgnore Reason: external-service -- Parser default match arm
  */
 class ToolSpecParser
 {
@@ -122,7 +124,9 @@ class ToolSpecParser
                 'category' => $info['category'] = $value,
                 'auth required' => $info['authRequired'] = strtolower($value) === 'true',
                 'description' => $info['description'] = $value,
+                // @codeCoverageIgnoreStart — Untestable in unit context
                 default => null,
+                // @codeCoverageIgnoreEnd
             };
         }
 

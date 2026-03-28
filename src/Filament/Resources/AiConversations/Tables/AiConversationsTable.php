@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiConversations\Tables;
 
 use Aicl\Filament\Exporters\AiConversationExporter;
@@ -20,6 +22,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class AiConversationsTable
 {
     public static function configure(Table $table): Table

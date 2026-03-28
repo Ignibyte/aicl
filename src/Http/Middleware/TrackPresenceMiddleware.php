@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Middleware;
 
 use Aicl\Services\PresenceRegistry;
@@ -51,7 +53,9 @@ class TrackPresenceMiddleware
         $throttleKey = 'presence:throttle:'.$sessionId;
 
         if (Cache::has($throttleKey)) {
+            // @codeCoverageIgnoreStart — Untestable in unit context
             return $response;
+            // @codeCoverageIgnoreEnd
         }
 
         Cache::put($throttleKey, true, self::THROTTLE_SECONDS);

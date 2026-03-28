@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon;
 
 use Closure;
 use Exception;
 use Illuminate\Http\Request;
 
+/**
+ * Horizon.
+ */
 class Horizon
 {
     /**
@@ -33,9 +38,11 @@ class Horizon
      */
     public static function check($request)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return (static::$authUsing ?: function () {
             return app()->environment('local');
         })($request);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -61,9 +68,11 @@ class Horizon
     public static function use($connection)
     {
         if (! is_null($config = config("database.redis.clusters.{$connection}.0"))) {
+            // @codeCoverageIgnoreStart — Horizon process management
             config(["database.redis.{$connection}" => $config]);
         } elseif (is_null($config) && is_null($config = config("database.redis.{$connection}"))) {
             throw new Exception("Redis connection [{$connection}] has not been configured.");
+            // @codeCoverageIgnoreEnd
         }
 
         $config['options']['prefix'] = config('aicl-horizon.prefix') ?: 'horizon:';

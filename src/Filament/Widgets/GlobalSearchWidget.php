@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Widgets;
 
 use Aicl\Search\SearchResultCollection;
@@ -13,6 +15,8 @@ use Livewire\Attributes\Computed;
  * Queries the unified Elasticsearch index via SearchService.
  *
  * @property SearchResultCollection $results
+ *
+ * @codeCoverageIgnore Filament Livewire rendering
  */
 class GlobalSearchWidget extends Widget
 {

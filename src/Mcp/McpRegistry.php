@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp;
 
 use Laravel\Mcp\Server\Prompt;

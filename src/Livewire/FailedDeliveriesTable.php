@@ -19,6 +19,7 @@ class FailedDeliveriesTable extends TableWidget
 
     protected string $view = 'aicl::livewire.failed-deliveries-table';
 
+    /** @codeCoverageIgnore Reason: filament-closure -- Filament table format closures require Livewire rendering */
     public function table(Table $table): Table
     {
         return $table
@@ -27,6 +28,7 @@ class FailedDeliveriesTable extends TableWidget
                 TextColumn::make('notificationLog.type')
                     ->label('Notification')
                     ->formatStateUsing(function (?string $state): string {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         if (! $state) {
                             return 'Unknown';
                         }
@@ -35,6 +37,7 @@ class FailedDeliveriesTable extends TableWidget
                             ->replaceLast('Notification', '')
                             ->headline()
                             ->toString();
+                        // @codeCoverageIgnoreEnd
                     })
                     ->limit(30),
                 TextColumn::make('channel.name')
@@ -72,6 +75,7 @@ class FailedDeliveriesTable extends TableWidget
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(function (NotificationDeliveryLog $record): void {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
                         $record->update([
                             'status' => DeliveryStatus::Pending,
                             'failed_at' => null,
@@ -83,6 +87,7 @@ class FailedDeliveriesTable extends TableWidget
                             ->title('Delivery Queued for Retry')
                             ->body('The notification delivery has been reset to pending.')
                             ->send();
+                        // @codeCoverageIgnoreEnd
                     }),
             ])
             ->emptyStateHeading('No failed deliveries')

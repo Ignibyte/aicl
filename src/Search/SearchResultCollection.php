@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Search;
 
 use Illuminate\Support\Collection;
 
+/**
+ * @codeCoverageIgnore Elasticsearch dependency
+ */
 class SearchResultCollection
 {
     /**

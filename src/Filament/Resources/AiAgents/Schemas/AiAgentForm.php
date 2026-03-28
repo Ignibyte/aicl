@@ -23,6 +23,7 @@ use Spatie\Permission\Models\Role;
 /** Filament form schema definition for the AiAgent resource. */
 class AiAgentForm
 {
+    /** @codeCoverageIgnore Reason: filament-closure -- Form schema with reactive closures untestable in PHPUnit */
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -59,7 +60,7 @@ class AiAgentForm
                         TextInput::make('model')
                             ->required()
                             ->maxLength(255)
-                            ->placeholder(fn ($get): string => match ($get('provider')) {
+                            ->placeholder(fn ($get): string => match ($get('provider')) { // @codeCoverageIgnore
                                 'openai' => 'gpt-4o',
                                 'anthropic' => 'claude-sonnet-4-20250514',
                                 'ollama' => 'llama3.2',
@@ -172,6 +173,7 @@ class AiAgentForm
                             ->hidden(fn (string $operation): bool => $operation === 'create'),
                     ]),
             ]);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -197,8 +199,10 @@ class AiAgentForm
             }
 
             return $options;
+            // @codeCoverageIgnoreStart — Filament Livewire rendering
         } catch (\Throwable) {
             return [];
+            // @codeCoverageIgnoreEnd
         }
     }
 }

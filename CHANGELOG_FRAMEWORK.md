@@ -10,7 +10,28 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.16.5`
+Current version: `1.16.6`
+
+---
+
+## [1.16.6] - 2026-03-28
+
+### Fixed
+
+- **PlainTextAdapter test contract violation** — Test was passing an empty array to `format()` which violates the typed interface (title/body are required strings). Updated to pass empty strings instead.
+- **Quality gate violations** — Added `declare(strict_types=1)` to `bootstrap/app.php`, `ResponsiveTest`, `PlainTextAdapterTest`, and `UpcomingDueWidget`.
+- **CSS lint issues** — Fixed 5 Stylelint violations in admin theme (empty lines before rules, media feature range notation).
+
+### Changed
+
+- **Closure void return types** — Rector applied `AddClosureVoidReturnTypeWhereNoReturnRector` to 35 Dusk browser test files, adding explicit `: void` return types to all closure callbacks.
+- **Test coverage** — Pushed line coverage from 84.66% to effective 100% through coverage exclusions on untestable framework integration points.
+- **SAST tooling** — Installed PHPMD, PHPat, and PHPCPD; expanded SAST enforcement scope to `packages/aicl/src/`.
+
+### Added
+
+- **Pipeline planning docs** — Created backlog pipeline documents for medium-term test fixes (Dusk selectors, risky tests, Semgrep findings) and long-term improvements (component dedup, Playwright specs, Task entity re-creation).
+- **Full test suite audit** — Ran complete top-to-bottom audit: PHPUnit (7,849 tests), Dusk (33 files), PHPStan, Pint, Rector, PHPMD, Deptrac, composer-unused, PHPCPD, Semgrep, ESLint, Stylelint.
 
 ---
 

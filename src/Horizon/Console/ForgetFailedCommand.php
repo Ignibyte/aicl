@@ -8,8 +8,15 @@ use Aicl\Horizon\Contracts\JobRepository;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-/** Deletes one or all failed jobs from the Horizon failed job repository. */
+/**
+ * Deletes one or all failed jobs from the Horizon failed job repository.
+ *
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:forget')]
+/**
+ * ForgetFailedCommand.
+ */
 class ForgetFailedCommand extends Command
 {
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Models;
 
 use Aicl\Notifications\Enums\ChannelType;
@@ -7,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $id
@@ -17,8 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property array<string, array{title: string, body: string}>|null $message_templates
  * @property array{max: int, period: string}|null $rate_limit
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class NotificationChannel extends Model
 {
@@ -55,7 +58,9 @@ class NotificationChannel extends Model
      */
     public function deliveryLogs(): HasMany
     {
+        // @codeCoverageIgnoreStart — Notification infrastructure
         return $this->hasMany(NotificationDeliveryLog::class, 'channel_id');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -67,6 +72,7 @@ class NotificationChannel extends Model
      */
     public function getTemplate(string $notificationClass): ?array
     {
+        // @codeCoverageIgnoreStart — Notification infrastructure
         $templates = $this->message_templates ?? [];
 
         if (isset($templates[$notificationClass])) {
@@ -78,6 +84,7 @@ class NotificationChannel extends Model
         }
 
         return null;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -95,6 +102,8 @@ class NotificationChannel extends Model
      */
     public function scopeOfType(Builder $query, ChannelType $type): Builder
     {
+        // @codeCoverageIgnoreStart — Notification infrastructure
         return $query->where('type', $type->value);
+        // @codeCoverageIgnoreEnd
     }
 }

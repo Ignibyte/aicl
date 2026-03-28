@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -14,6 +16,8 @@ use Illuminate\View\View;
  * - Use inside tables, metadata lists, and card headers
  *
  * @example <x-aicl-status-badge label="Active" color="success" />
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class StatusBadge extends Component
 {

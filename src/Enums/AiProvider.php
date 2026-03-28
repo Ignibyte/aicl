@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Enums;
 
+/**
+ * AiProvider.
+ */
 enum AiProvider: string
 {
     case OpenAi = 'openai';

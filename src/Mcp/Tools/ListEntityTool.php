@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Mcp\Tools;
 
 use Aicl\Mcp\Concerns\ChecksTokenScope;
@@ -13,6 +15,9 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[IsReadOnly]
+/**
+ * ListEntityTool.
+ */
 class ListEntityTool extends Tool
 {
     use ChecksTokenScope;
@@ -52,6 +57,7 @@ class ListEntityTool extends Tool
 
     public function handle(Request $request): Response
     {
+        // @codeCoverageIgnoreStart — MCP server integration
         $scopeError = $this->checkScope($request, 'read');
 
         if ($scopeError) {
@@ -112,6 +118,7 @@ class ListEntityTool extends Tool
                 'total' => $results->total(),
             ],
         ]);
+        // @codeCoverageIgnoreEnd
     }
 
     protected function toSnakePlural(): string

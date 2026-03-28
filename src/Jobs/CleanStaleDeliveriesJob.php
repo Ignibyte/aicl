@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Jobs;
 
 use Aicl\Notifications\Enums\DeliveryStatus;
@@ -10,6 +12,9 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @codeCoverageIgnore Job processing
+ */
 class CleanStaleDeliveriesJob implements ShouldQueue
 {
     use Dispatchable;

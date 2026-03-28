@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole\Exceptions;
 
 use Throwable;
 
+/**
+ * ConcurrentTimeoutException.
+ */
 class ConcurrentTimeoutException extends ConcurrentException
 {
     /**

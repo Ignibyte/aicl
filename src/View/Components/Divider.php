@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -12,6 +14,8 @@ use Illuminate\View\View;
  * - Use to separate content sections within a page or card
  * - Use with a label for named section breaks (e.g., "Additional Details")
  * - Use without label for simple visual separation
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class Divider extends Component
 {

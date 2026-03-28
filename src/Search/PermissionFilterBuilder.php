@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Search;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 
+/**
+ * @codeCoverageIgnore Elasticsearch dependency
+ */
 class PermissionFilterBuilder
 {
     /**

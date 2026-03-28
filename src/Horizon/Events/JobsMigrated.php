@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Events;
 
 use Aicl\Horizon\JobPayload;
 use Illuminate\Support\Collection;
 
+/**
+ * JobsMigrated.
+ */
 class JobsMigrated
 {
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Observers;
 
 use Illuminate\Database\Eloquent\Model;

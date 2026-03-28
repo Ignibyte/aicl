@@ -1,13 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Livewire;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
+/**
+ * BatchesTable.
+ */
 class BatchesTable extends Component
 {
+    /** @codeCoverageIgnore Reason: horizon-process -- Requires job_batches table with real Horizon batch data */
     public function render(): View
     {
         $batches = collect();

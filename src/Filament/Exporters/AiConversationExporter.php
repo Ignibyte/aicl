@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Exporters;
 
 use Aicl\Models\AiConversation;
@@ -7,6 +9,9 @@ use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class AiConversationExporter extends Exporter
 {
     protected static ?string $model = AiConversation::class;

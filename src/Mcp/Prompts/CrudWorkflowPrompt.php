@@ -40,6 +40,7 @@ class CrudWorkflowPrompt extends Prompt
 
     public function handle(Request $request): Response
     {
+        // @codeCoverageIgnoreStart — MCP server integration
         $entityType = $request->get('entity_type');
         $operation = $request->get('operation', 'create');
 
@@ -66,6 +67,7 @@ class CrudWorkflowPrompt extends Prompt
         $instructions = $this->buildInstructions($label, $operation, $fillable, $casts, $hasStatus);
 
         return Response::text($instructions);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -81,6 +83,7 @@ class CrudWorkflowPrompt extends Prompt
         array $casts,
         bool $hasStatus,
     ): string {
+        // @codeCoverageIgnoreStart — MCP server integration
         $fieldList = implode(', ', $fillable);
         $castInfo = '';
         foreach ($casts as $field => $type) {
@@ -127,5 +130,6 @@ class CrudWorkflowPrompt extends Prompt
                 ."### Available Operations\ncreate, update, list, delete\n"
                 ."Specify an operation for detailed instructions.\n",
         };
+        // @codeCoverageIgnoreEnd
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Requests;
 
 use Aicl\Enums\AiProvider;
@@ -7,6 +9,9 @@ use Aicl\Models\AiAgent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * StoreAiAgentRequest.
+ */
 class StoreAiAgentRequest extends FormRequest
 {
     public function authorize(): bool

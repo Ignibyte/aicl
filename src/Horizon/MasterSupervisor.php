@@ -21,6 +21,9 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /** Top-level Horizon process that manages supervisor child processes and handles lifecycle signals. */
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 class MasterSupervisor implements Pausable, Restartable, Terminable
 {
     use ListensForSignals;

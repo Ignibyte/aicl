@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Commands;
 
 use Aicl\AI\Jobs\CompactConversationJob;
 use Aicl\Models\AiConversation;
 use Illuminate\Console\Command;
 
+/**
+ * @codeCoverageIgnore Artisan command
+ */
 class CompactConversationsCommand extends Command
 {
     protected $signature = 'aicl:compact-conversations

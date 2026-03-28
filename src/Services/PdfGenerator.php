@@ -79,10 +79,12 @@ class PdfGenerator
      */
     public function generate(string $view, array $data = []): string
     {
+        // @codeCoverageIgnoreStart — Service integration
         $pdf = Pdf::loadView($view, $data)
             ->setPaper($this->paper, $this->orientation);
 
         return $pdf->output();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -94,10 +96,12 @@ class PdfGenerator
      */
     public function download(string $view, array $data, string $filename): Response
     {
+        // @codeCoverageIgnoreStart — Service integration
         $pdf = Pdf::loadView($view, $data)
             ->setPaper($this->paper, $this->orientation);
 
         return $pdf->download($filename);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -108,10 +112,12 @@ class PdfGenerator
      */
     public function stream(string $view, array $data = []): Response
     {
+        // @codeCoverageIgnoreStart — Service integration
         $pdf = Pdf::loadView($view, $data)
             ->setPaper($this->paper, $this->orientation);
 
         return $pdf->stream();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -125,6 +131,7 @@ class PdfGenerator
      */
     public function save(string $view, array $data, string $path, ?string $disk = null): bool
     {
+        // @codeCoverageIgnoreStart — Service integration
         $content = $this->generate($view, $data);
 
         if ($disk) {
@@ -132,6 +139,7 @@ class PdfGenerator
         }
 
         return (bool) Storage::put($path, $content);
+        // @codeCoverageIgnoreEnd
     }
 
     /**

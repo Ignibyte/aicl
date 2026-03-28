@@ -3,7 +3,7 @@
 **Version:** 1.1
 **Last Updated:** 2026-02-06
 **Filament Version:** v4.7.0
-**Owner:** `/architect`, `/rlm`
+**Owner:** `/pipeline-implement`, `/pipeline-validate`
 
 ---
 

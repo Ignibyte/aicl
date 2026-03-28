@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -12,6 +14,8 @@ use Illuminate\View\View;
  * - Use when entity has created_at and user wants trends over time
  * - Provide 7-30 data points for the sparkline
  * - Use alongside StatCards for detailed metric sections
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class TrendCard extends Component
 {

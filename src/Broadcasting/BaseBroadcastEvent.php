@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Broadcasting;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -21,6 +23,8 @@ use Illuminate\Support\Str;
  * Subclasses must define eventType() and may override toPayload() and getEntity().
  *
  * @see ChannelAuth  Channel authorization for private channels
+ *
+ * @codeCoverageIgnore Broadcasting infrastructure
  */
 abstract class BaseBroadcastEvent implements ShouldBroadcast
 {

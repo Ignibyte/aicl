@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * AiAssistantRequest.
+ */
 class AiAssistantRequest extends FormRequest
 {
     public function authorize(): bool

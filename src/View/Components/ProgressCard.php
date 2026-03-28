@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -12,6 +14,8 @@ use Illuminate\View\View;
  * - Use for completion tracking (tasks done/total, progress percentage)
  * - Use for capacity/usage metrics (storage used, seats filled)
  * - Simpler than KpiCard — use when you only have a percentage, not target/actual
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class ProgressCard extends Component
 {

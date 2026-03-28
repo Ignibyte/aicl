@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -13,6 +15,8 @@ use Illuminate\View\View;
  * - Prefer tabs over accordions for 2-5 sections of equal importance
  * - Use variant 'underline' for page-level tabs, 'pills' for card-level
  * - Set default-tab to the most commonly needed tab
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class Tabs extends Component
 {

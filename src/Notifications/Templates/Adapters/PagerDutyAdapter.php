@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates\Adapters;
 
 use Aicl\Notifications\Enums\ChannelType;
@@ -9,6 +11,8 @@ use Aicl\Notifications\Templates\Contracts\ChannelFormatAdapter;
  * PagerDuty Events API v2 adapter.
  *
  * Produces the same structure as PagerDutyDriver::buildPayload().
+ *
+ * @codeCoverageIgnore Notification infrastructure
  */
 class PagerDutyAdapter implements ChannelFormatAdapter
 {

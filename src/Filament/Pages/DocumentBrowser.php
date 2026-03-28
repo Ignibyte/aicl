@@ -11,6 +11,9 @@ use Livewire\Attributes\Url;
 use UnitEnum;
 
 /** Filament page that provides an in-panel browser for architecture documentation files. */
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class DocumentBrowser extends Page
 {
     protected static bool $shouldRegisterNavigation = false;

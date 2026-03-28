@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates\Contracts;
 
 use Aicl\Notifications\Enums\ChannelType;
 
+/**
+ * ChannelFormatAdapter.
+ */
 interface ChannelFormatAdapter
 {
     /**

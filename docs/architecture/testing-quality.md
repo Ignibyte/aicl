@@ -2,7 +2,7 @@
 
 **Version:** 1.1
 **Last Updated:** 2026-02-15
-**Owner:** `/tester`
+**Owner:** `/pipeline-validate`
 
 ---
 
@@ -240,14 +240,16 @@ See [AI Generation Pipeline](ai-generation-pipeline.md) for the full pattern lis
 
 ## Security Scanning
 
-Additional quality tools available via agent commands:
+Additional quality tools available via the `/scan` command:
 
-| Scanner | Command | What It Does |
-|---------|---------|-------------|
-| PHPStan | `/scan-phpstan` | Static analysis |
-| Snyk | `/scan-snyk` | Dependency vulnerability scanning |
-| Semgrep | `/scan-semgrep` | SAST security analysis |
-| All | `/scan-all` | Run all scanners sequentially |
+| Scanner | What It Does |
+|---------|-------------|
+| PHPStan | Static analysis (level 6+) |
+| Semgrep | SAST security analysis |
+| PHPMD | Mess detection (complexity, unused code) |
+| Deptrac | Architecture layer enforcement |
+| PHPCPD | Copy-paste detection |
+| composer-unused | Unused dependency detection |
 
 ---
 

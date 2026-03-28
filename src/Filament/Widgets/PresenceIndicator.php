@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Widgets;
 
 use Filament\Widgets\Widget;
 
+/**
+ * PresenceIndicator.
+ */
 class PresenceIndicator extends Widget
 {
     protected string $view = 'aicl::widgets.presence-indicator';

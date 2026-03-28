@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Generators;
 
 use Illuminate\Support\Str;
@@ -45,6 +47,8 @@ class BroadcastEventGenerator extends BaseGenerator
         if ($action === 'deleted') {
             return <<<PHP
 <?php
+
+declare(strict_types=1);
 
 namespace App\Events;
 
@@ -101,6 +105,8 @@ PHP;
 
         return <<<PHP
 <?php
+
+declare(strict_types=1);
 
 namespace App\Events;
 

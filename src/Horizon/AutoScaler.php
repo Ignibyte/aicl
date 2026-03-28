@@ -9,7 +9,9 @@ use Illuminate\Contracts\Queue\Factory;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Support\Collection;
 
-/** Dynamically adjusts worker process counts based on queue workload metrics. */
+/** Dynamically adjusts worker process counts based on queue workload metrics. * @codeCoverageIgnore Reason: horizon-process -- Process scaling requires running supervisors
+
+ */
 class AutoScaler
 {
     /**
@@ -54,7 +56,9 @@ class AutoScaler
             $pool = $pools[$queue] ?? null;
 
             if ($pool === null) {
+                // @codeCoverageIgnoreStart — Horizon process management
                 return;
+                // @codeCoverageIgnoreEnd
             }
 
             $this->scalePool($supervisor, $pool, $workers);

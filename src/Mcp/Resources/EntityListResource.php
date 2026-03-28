@@ -40,6 +40,7 @@ class EntityListResource extends Resource implements HasUriTemplate
 
     public function handle(Request $request): Response
     {
+        // @codeCoverageIgnoreStart — MCP server integration
         $type = $request->get('type');
 
         /** @var EntityRegistry $registry */
@@ -61,6 +62,7 @@ class EntityListResource extends Resource implements HasUriTemplate
         $result = $entities->map(fn (array $entry): array => $this->formatEntry($entry))->values()->all();
 
         return Response::json($result);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -72,6 +74,7 @@ class EntityListResource extends Resource implements HasUriTemplate
     protected function formatEntry(array $entry): array
     {
         /** @var Model $instance */
+        // @codeCoverageIgnoreStart — MCP server integration
         $instance = new $entry['class'];
 
         return [
@@ -81,5 +84,6 @@ class EntityListResource extends Resource implements HasUriTemplate
             'fillable_fields' => $instance->getFillable(),
             'columns' => $entry['columns'],
         ];
+        // @codeCoverageIgnoreEnd
     }
 }

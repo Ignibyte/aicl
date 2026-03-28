@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole;
 
 use Aicl\Swoole\Exceptions\ConcurrentException;
@@ -134,6 +136,8 @@ final class Concurrent
      * @return array<string|int, mixed>
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
+     *
+     * @codeCoverageIgnore Requires Swoole coroutine runtime — sequential fallback is tested
      */
     private static function runCoroutine(array $callables, ?float $timeout): array
     {
@@ -185,6 +189,8 @@ final class Concurrent
      * @return array<TKey, TResult>
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
+     *
+     * @codeCoverageIgnore Requires Swoole coroutine runtime — sequential fallback is tested
      */
     private static function mapCoroutine(array $items, Closure $fn, int $concurrency, ?float $timeout): array
     {
@@ -235,6 +241,8 @@ final class Concurrent
      * @param  array<string|int, callable(): mixed>  $callables
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
+     *
+     * @codeCoverageIgnore Requires Swoole coroutine runtime — sequential fallback is tested
      */
     private static function raceCoroutine(array $callables, ?float $timeout): mixed
     {

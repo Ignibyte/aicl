@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * AiChatRequest.
+ */
 class AiChatRequest extends FormRequest
 {
     public function authorize(): bool

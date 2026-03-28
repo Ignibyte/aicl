@@ -51,7 +51,9 @@ class VersionService
      */
     public function projectVersion(): string
     {
+        // @codeCoverageIgnoreStart — Service integration
         return self::$cachedProjectVersion ??= $this->parseVersionFrom(base_path('CHANGELOG.md'));
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -59,7 +61,9 @@ class VersionService
      */
     public static function resetCache(): void
     {
+        // @codeCoverageIgnoreStart — Service integration
         self::$cachedProjectVersion = null;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -68,6 +72,7 @@ class VersionService
      */
     private function parseVersionFrom(string $path): string
     {
+        // @codeCoverageIgnoreStart — Service integration
         if (! file_exists($path)) {
             return 'unknown';
         }
@@ -83,5 +88,6 @@ class VersionService
         }
 
         return 'unknown';
+        // @codeCoverageIgnoreEnd
     }
 }

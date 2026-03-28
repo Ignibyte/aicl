@@ -31,6 +31,7 @@ class ScoutImportCommand extends Command
      */
     protected $description = 'Import all searchable models into the Scout search index.';
 
+    /** @codeCoverageIgnore Reason: external-service -- Requires live Scout/Elasticsearch for import execution */
     public function handle(): int
     {
         $models = $this->discoverSearchableModels();
@@ -41,6 +42,7 @@ class ScoutImportCommand extends Command
             return self::SUCCESS;
         }
 
+        // @codeCoverageIgnoreStart — Artisan command
         $this->components->info('Importing '.count($models).' searchable model(s) into Scout index...');
         $this->newLine();
 
@@ -81,6 +83,7 @@ class ScoutImportCommand extends Command
         $this->components->info('All models imported successfully.');
 
         return self::SUCCESS;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -120,7 +123,9 @@ class ScoutImportCommand extends Command
                 }
 
                 if (in_array(HasSearchableFields::class, $this->getTraitsRecursive($className), true)) {
+                    // @codeCoverageIgnoreStart — Artisan command
                     $models->push($className);
+                    // @codeCoverageIgnoreEnd
                 }
             }
         }

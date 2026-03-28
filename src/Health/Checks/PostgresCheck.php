@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Health\Checks;
 
 use Aicl\Health\Contracts\ServiceHealthCheck;
@@ -7,6 +9,9 @@ use Aicl\Health\ServiceCheckResult;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
+/**
+ * @codeCoverageIgnore External service health check
+ */
 class PostgresCheck implements ServiceHealthCheck
 {
     public function check(): ServiceCheckResult

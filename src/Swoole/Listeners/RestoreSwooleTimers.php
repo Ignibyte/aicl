@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Swoole\Listeners;
 
 use Aicl\Swoole\SwooleTimer;
 use Laravel\Octane\Events\WorkerStarting;
 
+/**
+ * @codeCoverageIgnore Swoole runtime
+ */
 class RestoreSwooleTimers
 {
     /**

@@ -37,6 +37,8 @@ use Laravel\Mcp\Server\Resource;
  *
  * @see McpRegistry  Programmatic registration of MCP primitives
  * @see EntityRegistry  Central registry of all entity types
+ *
+ * @codeCoverageIgnore Reason: mcp-runtime -- MCP server boot and tool/resource/prompt registration requires live MCP client connections
  */
 #[Name('AICL MCP Server')]
 #[Version('1.0.0')]

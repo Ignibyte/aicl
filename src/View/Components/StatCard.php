@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -14,6 +16,8 @@ use Illuminate\View\View;
  * - If entity has status enum → generate per-status count
  * - Always include a descriptive label and meaningful icon
  * - Use trend (up/down) when comparing to previous period
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class StatCard extends Component
 {

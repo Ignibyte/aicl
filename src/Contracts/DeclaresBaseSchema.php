@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Contracts;
 
+/**
+ * DeclaresBaseSchema.
+ */
 interface DeclaresBaseSchema
 {
     /**

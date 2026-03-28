@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Policies;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 
+/**
+ * AiConversationPolicy.
+ */
 class AiConversationPolicy extends BasePolicy
 {
     protected function permissionPrefix(): string

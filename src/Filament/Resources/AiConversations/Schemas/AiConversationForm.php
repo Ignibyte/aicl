@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\AiConversations\Schemas;
 
 use Aicl\Models\AiAgent;
@@ -13,6 +15,9 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class AiConversationForm
 {
     public static function configure(Schema $schema): Schema

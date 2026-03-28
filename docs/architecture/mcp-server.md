@@ -436,7 +436,6 @@ Fully compatible. The MCP streamable HTTP transport uses standard request/respon
 
 ## Related
 
-- [MCP Server Design Doc](./../planning/framework/solutions/MCP-SERVER-ARCHITECTURE.md) — original architecture decisions
 - [Auth & RBAC](auth-rbac.md) — Passport OAuth2, Spatie Permission policies
 - [Entity System](entity-system.md) — HasEntityLifecycle, EntityRegistry
 - [laravel/mcp Documentation](https://laravel.com/docs/mcp)

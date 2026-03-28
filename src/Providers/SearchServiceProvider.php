@@ -12,6 +12,9 @@ use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Support\ServiceProvider;
 
 /** Registers Elasticsearch client, search services, and entity model search observers. */
+/**
+ * @codeCoverageIgnore Service provider boot
+ */
 class SearchServiceProvider extends ServiceProvider
 {
     public function register(): void

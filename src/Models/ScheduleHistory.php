@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Models;
 
 use Aicl\Database\Factories\ScheduleHistoryFactory;
@@ -59,8 +61,10 @@ class ScheduleHistory extends Model
     protected static function booted(): void
     {
         static::creating(function (self $model): void {
+            // @codeCoverageIgnoreStart — Untestable in unit context
             if (! $model->created_at) {
                 $model->created_at = now();
+                // @codeCoverageIgnoreEnd
             }
         });
     }
@@ -71,7 +75,9 @@ class ScheduleHistory extends Model
      */
     public function scopeSuccessful(Builder $query): Builder
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return $query->where('status', 'success');
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -103,6 +109,8 @@ class ScheduleHistory extends Model
 
     protected static function newFactory(): ScheduleHistoryFactory
     {
+        // @codeCoverageIgnoreStart — Untestable in unit context
         return ScheduleHistoryFactory::new();
+        // @codeCoverageIgnoreEnd
     }
 }

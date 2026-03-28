@@ -11,8 +11,15 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-/** Pauses the Horizon master supervisor to stop processing jobs. */
+/**
+ * Pauses the Horizon master supervisor to stop processing jobs.
+ *
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:pause')]
+/**
+ * PauseCommand.
+ */
 class PauseCommand extends Command
 {
     /**

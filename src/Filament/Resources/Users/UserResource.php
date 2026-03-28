@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Resources\Users;
 
 use Aicl\Filament\Resources\Users\Pages\CreateUser;
@@ -35,14 +37,19 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    /** @codeCoverageIgnore Reason: filament-closure -- Filament form schema closure */
     public static function form(Schema $schema): Schema
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return UserForm::configure($schema);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function table(Table $table): Table
     {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
         return UsersTable::configure($table);
+        // @codeCoverageIgnoreEnd
     }
 
     public static function getRelations(): array

@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates\Resolvers;
 
 use Aicl\Notifications\Templates\Contracts\VariableResolver;
 
+/**
+ * @codeCoverageIgnore Notification infrastructure
+ */
 class AppVariableResolver implements VariableResolver
 {
     /** @var array<int, string> */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
@@ -7,6 +9,9 @@ use Aicl\Horizon\Lock;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:snapshot')]
 class SnapshotCommand extends Command
 {

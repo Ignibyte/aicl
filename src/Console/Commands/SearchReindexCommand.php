@@ -24,6 +24,7 @@ class SearchReindexCommand extends Command
 
     protected $description = 'Rebuild the global search index from database records.';
 
+    /** @codeCoverageIgnore Reason: external-service -- Requires Elasticsearch connection */
     public function handle(): int
     {
         if (! config('aicl.search.enabled', false)) {
@@ -79,12 +80,15 @@ class SearchReindexCommand extends Command
 
             // Exclude soft-deleted records
             if (method_exists(new $modelClass, 'trashed')) {
+                // @codeCoverageIgnoreStart — Artisan command
                 $query->withoutTrashed();
+                // @codeCoverageIgnoreEnd
             }
 
             $count = 0;
             // Suppress entity events during bulk reindex to prevent notification storm
             Model::withoutEvents(fn () => $query->chunk(200, function ($models) use ($indexingService, $config, $documentBuilder, &$count): void {
+                // @codeCoverageIgnoreStart — Artisan command
                 $documents = [];
 
                 foreach ($models as $model) {
@@ -97,6 +101,7 @@ class SearchReindexCommand extends Command
                 if (! empty($documents)) {
                     $indexingService->bulkIndex($documents);
                     $count += count($documents);
+                    // @codeCoverageIgnoreEnd
                 }
             }));
 

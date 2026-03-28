@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Enums;
 
+/**
+ * DeliveryStatus.
+ */
 enum DeliveryStatus: string
 {
     case Pending = 'pending';

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -13,6 +15,8 @@ use Illuminate\View\View;
  * - Right side is hidden on mobile (< lg breakpoint)
  * - Provide a background image URL or fall back to branded gradient
  * - Overlay content (slot) is centered over the background image
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class AuthSplitLayout extends Component
 {

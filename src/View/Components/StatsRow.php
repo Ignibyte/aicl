@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -17,6 +19,8 @@ use Illuminate\View\View;
  *     <x-aicl-stat-card label="Total" value="42" />
  *     <x-aicl-stat-card label="Active" value="28" />
  * </x-aicl-stats-row>
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class StatsRow extends Component
 {

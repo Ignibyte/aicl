@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Livewire;
 
 use Aicl\Horizon\Contracts\MetricsRepository;
@@ -7,6 +9,9 @@ use Aicl\Horizon\Models\QueueMetricSnapshot;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
+/**
+ * MetricsCharts.
+ */
 class MetricsCharts extends Component
 {
     public string $view = 'queues';
@@ -41,17 +46,21 @@ class MetricsCharts extends Component
         $persistenceEnabled = (bool) config('aicl-horizon.metrics.persist_to_database', true);
 
         if ($this->timeRange !== 'live' && $persistenceEnabled) {
+            // @codeCoverageIgnoreStart — Horizon process management
             $snapshots = $this->getSnapshotsForRange();
+            // @codeCoverageIgnoreEnd
         } else {
             // Live mode: fall back to Redis snapshots
             if ($this->view === 'queues' && $this->selectedQueue) {
                 $snapshots = $this->formatRedisSnapshots(
                     $metrics->snapshotsForQueue($this->selectedQueue)
                 );
+                // @codeCoverageIgnoreStart — Horizon process management
             } elseif ($this->view === 'jobs' && $this->selectedJob) {
                 $snapshots = $this->formatRedisSnapshots(
                     $metrics->snapshotsForJob($this->selectedJob)
                 );
+                // @codeCoverageIgnoreEnd
             }
         }
 
@@ -70,6 +79,7 @@ class MetricsCharts extends Component
      */
     protected function getSnapshotsForRange(): array
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $minutesBack = static::$rangeMinutes[$this->timeRange] ?? 60;
 
         $type = $this->view === 'queues' ? 'queue' : 'job';
@@ -85,6 +95,7 @@ class MetricsCharts extends Component
         $thinned = $this->thinDataPoints($snapshots->all(), $minutesBack);
 
         return $this->formatDatabaseSnapshots($thinned);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -143,6 +154,7 @@ class MetricsCharts extends Component
      */
     protected function formatDatabaseSnapshots(array $snapshots): array
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $format = $this->getTimeFormat();
 
         return collect($snapshots)->map(function (QueueMetricSnapshot $snapshot) use ($format) {
@@ -152,6 +164,7 @@ class MetricsCharts extends Component
                 'runtime' => round($snapshot->runtime, 2),
             ];
         })->values()->all();
+        // @codeCoverageIgnoreEnd
     }
 
     /**

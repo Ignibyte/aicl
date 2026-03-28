@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\MasterSupervisorCommands;
 
 use Aicl\Horizon\MasterSupervisor;
@@ -7,6 +9,9 @@ use Aicl\Horizon\SupervisorOptions;
 use Aicl\Horizon\SupervisorProcess;
 use Symfony\Component\Process\Process;
 
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 class AddSupervisor
 {
     /**

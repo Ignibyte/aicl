@@ -11,8 +11,15 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-/** Instructs the Horizon master supervisor to resume processing jobs. */
+/**
+ * Instructs the Horizon master supervisor to resume processing jobs.
+ *
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:continue')]
+/**
+ * ContinueCommand.
+ */
 class ContinueCommand extends Command
 {
     /**

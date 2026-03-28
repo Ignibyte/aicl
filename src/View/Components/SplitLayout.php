@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -18,6 +20,8 @@ use Illuminate\View\View;
  *     <x-slot:main>Main content</x-slot:main>
  *     <x-slot:sidebar>Sidebar content</x-slot:sidebar>
  * </x-aicl-split-layout>
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class SplitLayout extends Component
 {

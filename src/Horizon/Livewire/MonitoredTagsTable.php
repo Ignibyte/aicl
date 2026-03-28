@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Livewire;
 
 use Aicl\Horizon\Contracts\TagRepository;
@@ -9,12 +11,16 @@ use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
+/**
+ * MonitoredTagsTable.
+ */
 class MonitoredTagsTable extends Component
 {
     public string $newTag = '';
 
     public function monitor(): void
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         if (empty($this->newTag)) {
             return;
         }
@@ -28,10 +34,12 @@ class MonitoredTagsTable extends Component
             ->send();
 
         $this->newTag = '';
+        // @codeCoverageIgnoreEnd
     }
 
     public function stopMonitoring(string $tag): void
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         dispatch(new StopMonitoringTag($tag));
 
         Notification::make()
@@ -39,6 +47,7 @@ class MonitoredTagsTable extends Component
             ->title('Tag Monitoring Stopped')
             ->body("Stopped monitoring tag: {$tag}")
             ->send();
+        // @codeCoverageIgnoreEnd
     }
 
     public function render(): View

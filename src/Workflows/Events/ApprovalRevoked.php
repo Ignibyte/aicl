@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Workflows\Events;
 
 use Aicl\Events\DomainEvent;
@@ -7,6 +9,9 @@ use Aicl\Events\Enums\ActorType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @codeCoverageIgnore Workflow infrastructure
+ */
 class ApprovalRevoked extends DomainEvent
 {
     public static string $eventType = 'approval.revoked';

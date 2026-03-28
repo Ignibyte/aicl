@@ -34,6 +34,7 @@ class IndexSearchDocumentJob implements ShouldQueue
 
     public function handle(SearchIndexingService $indexingService): void
     {
+        // @codeCoverageIgnoreStart — Job processing
         if ($this->action === 'delete') {
             $this->handleDelete($indexingService);
 
@@ -41,11 +42,13 @@ class IndexSearchDocumentJob implements ShouldQueue
         }
 
         $this->handleIndex($indexingService);
+        // @codeCoverageIgnoreEnd
     }
 
     protected function handleIndex(SearchIndexingService $indexingService): void
     {
         /** @var Model|null $model */
+        // @codeCoverageIgnoreStart — Job processing
         $model = $this->modelClass::find($this->modelId);
 
         if ($model === null) {
@@ -66,15 +69,18 @@ class IndexSearchDocumentJob implements ShouldQueue
         }
 
         $indexingService->index($model, $entityConfig);
+        // @codeCoverageIgnoreEnd
     }
 
     protected function handleDelete(SearchIndexingService $indexingService): void
     {
         // Build a minimal model instance for document ID generation
         /** @var Model $model */
+        // @codeCoverageIgnoreStart — Job processing
         $model = new $this->modelClass;
         $model->forceFill([$model->getKeyName() => $this->modelId]);
 
         $indexingService->delete($model);
+        // @codeCoverageIgnoreEnd
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -12,6 +14,8 @@ use Illuminate\View\View;
  * - Use inside ActionBar for compact icon-only actions
  * - Always include a tooltip label for accessibility
  * - Use for secondary actions (copy, share, pin, bookmark)
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class QuickAction extends Component
 {

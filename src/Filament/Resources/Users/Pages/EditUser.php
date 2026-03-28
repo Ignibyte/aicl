@@ -12,6 +12,9 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
 /** Edit page for the User resource with 2FA reset action. */
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class EditUser extends EditRecord
 {
     protected static string $resource = UserResource::class;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -15,6 +17,8 @@ use Illuminate\View\View;
  *   <x-aicl-ignibyte-logo />
  *   <x-aicl-ignibyte-logo size="sm" />
  *   <x-aicl-ignibyte-logo size="lg" icon-only />
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class IgnibyteLogo extends Component
 {

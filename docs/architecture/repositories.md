@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Last Updated:** 2026-02-09
-**Owner:** `/release` agent
+**Owner:** Human-maintained
 
 ---
 
@@ -18,7 +18,7 @@ AICL uses three GitHub repositories under the **Ignibyte** organization. All dev
 
 ### Golden Rule
 
-> **All development happens in `aicl_dev`.** The `aicl` and `project` repos are build artifacts derived from `aicl_dev`. They are never edited directly, only synced via the `/release` agent.
+> **All development happens in `aicl_dev`.** The `aicl` and `project` repos are build artifacts derived from `aicl_dev`. They are never edited directly, only synced during releases.
 
 ---
 
@@ -136,35 +136,30 @@ All three repos use the **same version number** for a given release. SemVer (`MA
 - **MINOR** — New features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-The human decides the version. The `/release` agent suggests based on the changes.
+The human decides the version based on the scope of changes.
 
 ---
 
 ## Release Workflow Summary
 
-The `/release` agent handles the complete lifecycle. See [release.md](../commands/release.md) for the full agent prompt.
-
 ### Quick Reference
 
 ```
-1. /release                         # Invoke the release agent
-2. Agent runs pre-flight checks     # Tests, Pint, agent variant sync
-3. Agent analyzes changes           # What changed since last release?
-4. Human approves version number    # v1.x.x
-5. Agent commits dev repo           # If uncommitted changes exist
-6. Agent builds package             # rsync packages/aicl/ → temp clone
-7. Agent builds skeleton            # dist/build-skeleton.sh → temp clone
-8. Agent tags both                  # git tag v{VERSION}
-9. Human pushes all three repos     # Agent provides copy-paste commands
-10. Agent verifies                  # Post-release summary
+1. Run pre-flight checks            # Tests, Pint, quality gates
+2. Analyze changes                  # What changed since last release?
+3. Decide version number            # v1.x.x (human decision)
+4. Commit dev repo                  # If uncommitted changes exist
+5. Build package                    # rsync packages/aicl/ → temp clone
+6. Build skeleton                   # dist/build-skeleton.sh → temp clone
+7. Tag both                         # git tag v{VERSION}
+8. Push all three repos             # Manual push
+9. Verify                           # Post-release summary
 ```
 
 ### Detailed Documentation
 
 | Document | Location | Purpose |
 |----------|----------|---------|
-| Release agent prompt | `.claude/commands/release.md` | Full workflow the agent follows |
-| Release process reference | `.claude/planning/framework/reference/release-process.md` | Step-by-step guide for humans |
 | Skeleton build script | `dist/build-skeleton.sh` | Automated skeleton assembly |
 | Changelog | `CHANGELOG_FRAMEWORK.md` | Version history |
 
@@ -181,25 +176,12 @@ The `/release` agent handles the complete lifecycle. See [release.md](../command
 
 ---
 
-## Agent Prompt Variants
+## Pipeline Commands & Standalone Agents
 
-The dev repo has two versions of each agent prompt:
+The dev repo uses Forge-synced pipeline commands (`.claude/commands/pipeline/`) and standalone agents (`.claude/agents/`). See the project root `CLAUDE.md` for the complete list.
 
-| Framework Variant | Pipeline Variant | Key Differences |
-|-------------------|-----------------|-----------------|
-| `generate.md` | `generate-pipeline.md` | Path → vendor, boundary block, Phase 8 inline docs |
-| `pm.md` | `pm-pipeline.md` | Inline phases, vendor paths, boundary block |
-| `rlm.md` | `rlm-pipeline.md` | Vendor paths, pipeline references |
-| `designer.md` | `designer-pipeline.md` | Vendor paths |
-| `architect.md` | `architect-pipeline.md` | Vendor paths |
-| `solutions.md` | `solutions-pipeline.md` | Vendor paths |
-| `tester.md` | `tester-pipeline.md` | Vendor paths |
-| `docs.md` | `docs-pipeline.md` | Vendor paths |
-
-**Framework variants** are used in the dev monorepo (packages at `packages/aicl/`).
-**Pipeline variants** are installed in the skeleton (packages at `vendor/aicl/aicl/`).
-
-The `/release` agent syncs these during pre-flight to catch any drift before release.
+**Framework** (dev monorepo) uses packages at `packages/aicl/`.
+**Skeleton** (client projects) uses packages at `vendor/aicl/aicl/`.
 
 ---
 

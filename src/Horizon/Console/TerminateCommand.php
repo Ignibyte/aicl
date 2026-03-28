@@ -13,8 +13,15 @@ use Illuminate\Support\InteractsWithTime;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-/** Gracefully terminates all Horizon master supervisors and optionally waits for completion. */
+/**
+ * Gracefully terminates all Horizon master supervisors and optionally waits for completion.
+ *
+ * @codeCoverageIgnore Horizon process management
+ */
 #[AsCommand(name: 'aicl:horizon:terminate')]
+/**
+ * TerminateCommand.
+ */
 class TerminateCommand extends Command
 {
     use InteractsWithTime;

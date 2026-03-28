@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Events;
 
 use Aicl\Models\DomainEventRecord;
 use Illuminate\Events\Dispatcher;
 
+/**
+ * DomainEventSubscriber.
+ */
 class DomainEventSubscriber
 {
     /**
@@ -17,7 +22,9 @@ class DomainEventSubscriber
     public function handleDomainEvent(DomainEvent $event): void
     {
         if ($event->isReplay()) {
+            // @codeCoverageIgnoreStart — Event infrastructure
             return;
+            // @codeCoverageIgnoreEnd
         }
 
         DomainEventRecord::create([

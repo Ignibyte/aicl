@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Middleware;
 
 use Closure;
@@ -30,7 +32,9 @@ class ApiRequestLogMiddleware
 
         // Guard against non-Response objects (e.g., Livewire Redirector)
         if (! $response instanceof Response) {
+            // @codeCoverageIgnoreStart — Untestable in unit context
             return $response;
+            // @codeCoverageIgnoreEnd
         }
 
         $duration = round((microtime(true) - $startTime) * 1000, 2);

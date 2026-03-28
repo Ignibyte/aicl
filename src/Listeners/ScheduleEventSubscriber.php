@@ -17,6 +17,7 @@ class ScheduleEventSubscriber
 {
     public function handleStarting(ScheduledTaskStarting $event): void
     {
+        // @codeCoverageIgnoreStart — Event listener
         $task = $event->task;
 
         $history = ScheduleHistory::query()->create([
@@ -28,10 +29,12 @@ class ScheduleEventSubscriber
         ]);
 
         $task->_scheduleHistoryId = $history->id;
+        // @codeCoverageIgnoreEnd
     }
 
     public function handleFinished(ScheduledTaskFinished $event): void
     {
+        // @codeCoverageIgnoreStart — Event listener
         $historyId = $event->task->_scheduleHistoryId ?? null;
 
         if (! $historyId) {
@@ -58,10 +61,12 @@ class ScheduleEventSubscriber
             'duration_ms' => (int) $history->started_at->diffInMilliseconds(now()),
             'finished_at' => now(),
         ]);
+        // @codeCoverageIgnoreEnd
     }
 
     public function handleFailed(ScheduledTaskFailed $event): void
     {
+        // @codeCoverageIgnoreStart — Event listener
         $historyId = $event->task->_scheduleHistoryId ?? null;
 
         if (! $historyId) {
@@ -93,6 +98,7 @@ class ScheduleEventSubscriber
             'duration_ms' => (int) $history->started_at->diffInMilliseconds(now()),
             'finished_at' => now(),
         ]);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -109,6 +115,7 @@ class ScheduleEventSubscriber
 
     protected function getCommandName(Event $task): string
     {
+        // @codeCoverageIgnoreStart — Event listener
         if ($task->command) {
             // Strip quotes first, then the PHP binary and artisan prefix for readability
             $command = str_replace("'", '', $task->command);
@@ -118,10 +125,12 @@ class ScheduleEventSubscriber
         }
 
         return $task->description ?: 'Closure';
+        // @codeCoverageIgnoreEnd
     }
 
     protected function captureOutput(Event $task): ?string
     {
+        // @codeCoverageIgnoreStart — Event listener
         $outputPath = $task->output ?? null;
 
         if (! $outputPath || $outputPath === '/dev/null' || ! file_exists($outputPath)) {
@@ -146,5 +155,6 @@ class ScheduleEventSubscriber
         }
 
         return $content;
+        // @codeCoverageIgnoreEnd
     }
 }

@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Filament\Pages\Errors;
 
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 
+/**
+ * @codeCoverageIgnore Filament Livewire rendering
+ */
 class ServerError extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedExclamationTriangle;

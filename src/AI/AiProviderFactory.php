@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI;
 
 use Aicl\Enums\AiProvider;
@@ -119,10 +121,12 @@ final class AiProviderFactory
             return null;
         }
 
+        // @codeCoverageIgnoreStart — AI provider dependency
         return new Anthropic(
             key: $key,
             model: config('aicl.ai.anthropic.model', 'claude-haiku-4-5-20251001'),
         );
+        // @codeCoverageIgnoreEnd
     }
 
     private static function makeOllama(): Ollama

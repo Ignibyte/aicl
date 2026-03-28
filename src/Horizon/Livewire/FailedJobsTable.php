@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Horizon\Livewire;
 
 use Aicl\Horizon\Contracts\JobRepository;
@@ -8,6 +10,9 @@ use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
+/**
+ * @codeCoverageIgnore Horizon process management
+ */
 class FailedJobsTable extends Component
 {
     public ?string $afterIndex = null;

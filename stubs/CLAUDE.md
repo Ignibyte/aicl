@@ -10,7 +10,7 @@ All your code goes in `app/`, `database/`, `resources/`, `routes/`, and `tests/`
 
 ## Mission
 
-AICL is an AI-first Laravel application framework. The "developer" is Claude Code — humans define entities and business rules; AI generates the full stack consistently, every time. The package provides guardrails, base components, and RLM validation so AI output stays within guidelines.
+AICL is an AI-first Laravel application framework. The "developer" is Claude Code — humans define entities and business rules; AI generates the full stack consistently, every time. The package provides guardrails, base components, and Forge-powered validation so AI output stays within guidelines.
 
 ## MCP-First Workflow
 
@@ -41,7 +41,7 @@ All other agents (entity generation, pipeline sub-agents, quality scans, mainten
 
 **Step-by-step with human review:**
 ```
-/pm new {EntityName}
+/work new {EntityName}
 ```
 
 **Scaffold only (no pipeline):**
@@ -66,12 +66,12 @@ ddev exec php artisan aicl:validate {EntityName}
 
 For features, integrations, infrastructure, and refactors that aren't full entities:
 
-**Step-by-step with human review (6 phases):**
+**Step-by-step with human review:**
 ```
-/pm work {description}
+/work {description}
 ```
 
-This creates a `WORK-{Title}.md` pipeline document with phases: Plan, Design, Implement, Validate, Verify, Complete. Same agents, same workspace, same conventions as the entity pipeline — but without entity-specific phases (Register, Re-Validate, RLM scoring).
+This creates a `WORK-{Title}.md` pipeline document with phases: Plan, Design, Implement, Validate, Verify, Complete. The unified pipeline uses the same commands and conventions — entity-specific phases (Register) are conditional.
 
 ## Development Environment
 

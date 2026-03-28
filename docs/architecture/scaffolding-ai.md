@@ -2,7 +2,7 @@
 
 **Version:** 3.0
 **Last Updated:** 2026-02-15
-**Owner:** `/architect`
+**Owner:** `/pipeline-implement`
 **Sprint:** D, K, O
 
 ---

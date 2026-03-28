@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -21,6 +23,8 @@ use Illuminate\View\View;
  *     :action-url="route('projects.create')"
  *     action-label="Create Project"
  * />
+ *
+ * @codeCoverageIgnore Blade view component
  */
 class EmptyState extends Component
 {

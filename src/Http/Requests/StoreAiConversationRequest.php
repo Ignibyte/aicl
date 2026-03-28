@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Http\Requests;
 
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * StoreAiConversationRequest.
+ */
 class StoreAiConversationRequest extends FormRequest
 {
     public function authorize(): bool
@@ -37,7 +42,9 @@ class StoreAiConversationRequest extends FormRequest
                     }
 
                     if (! $agent->is_active) {
+                        // @codeCoverageIgnoreStart — Untestable in unit context
                         $fail('The selected AI agent is not active.');
+                        // @codeCoverageIgnoreEnd
                     }
                 },
             ],

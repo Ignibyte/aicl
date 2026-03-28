@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Drivers;
 
 use Aicl\Notifications\Contracts\NotificationChannelDriver;
@@ -9,6 +11,9 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
+/**
+ * @codeCoverageIgnore External notification service
+ */
 class WebhookDriver implements NotificationChannelDriver
 {
     public function send(NotificationChannel $channel, array $payload): DriverResult

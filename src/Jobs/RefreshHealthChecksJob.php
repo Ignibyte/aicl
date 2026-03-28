@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Jobs;
 
 use Aicl\Health\HealthCheckRegistry;
@@ -12,6 +14,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @codeCoverageIgnore Job processing
+ */
 class RefreshHealthChecksJob implements ShouldQueue
 {
     use Dispatchable;

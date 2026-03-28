@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\States\AiAgent;
 
+/**
+ * Active.
+ */
 class Active extends AiAgentState
 {
     public function label(): string

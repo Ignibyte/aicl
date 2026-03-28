@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Notifications\Templates\Resolvers;
 
 use Aicl\Notifications\Templates\Contracts\VariableResolver;
 
+/**
+ * ChannelVariableResolver.
+ */
 class ChannelVariableResolver implements VariableResolver
 {
     /** @var array<int, string> */

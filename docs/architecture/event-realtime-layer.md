@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Last Updated:** 2026-02-15
-**Owner:** `/solutions`
+**Owner:** `/pipeline-design`
 
 ---
 

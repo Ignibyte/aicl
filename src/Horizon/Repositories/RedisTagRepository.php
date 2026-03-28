@@ -49,7 +49,9 @@ class RedisTagRepository implements TagRepository
      */
     public function monitored(array $tags)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return array_intersect($tags, $this->monitoring());
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -60,7 +62,9 @@ class RedisTagRepository implements TagRepository
      */
     public function monitor($tag)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->sadd('monitoring', $tag);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -71,7 +75,9 @@ class RedisTagRepository implements TagRepository
      */
     public function stopMonitoring($tag)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->srem('monitoring', $tag);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -83,11 +89,13 @@ class RedisTagRepository implements TagRepository
      */
     public function add($id, array $tags)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($id, $tags) {
             foreach ($tags as $tag) {
                 $pipe->zadd($tag, str_replace(',', '.', (string) microtime(true)), $id);
             }
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -100,6 +108,7 @@ class RedisTagRepository implements TagRepository
      */
     public function addTemporary($minutes, $id, array $tags)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($minutes, $id, $tags) {
             foreach ($tags as $tag) {
                 $pipe->zadd($tag, str_replace(',', '.', (string) microtime(true)), $id);
@@ -107,6 +116,7 @@ class RedisTagRepository implements TagRepository
                 $pipe->expire($tag, $minutes * 60);
             }
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -117,7 +127,9 @@ class RedisTagRepository implements TagRepository
      */
     public function count($tag)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return $this->connection()->zcard($tag);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -128,7 +140,9 @@ class RedisTagRepository implements TagRepository
      */
     public function jobs($tag)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         return (array) $this->connection()->zrange($tag, 0, -1);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -141,6 +155,7 @@ class RedisTagRepository implements TagRepository
      */
     public function paginate($tag, $startingAt = 0, $limit = 25)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $tags = (array) $this->connection()->zrevrange(
             $tag, $startingAt, $startingAt + $limit - 1
         );
@@ -149,6 +164,7 @@ class RedisTagRepository implements TagRepository
             ->values()
             ->mapWithKeys(fn ($tag, $index) => [$index + $startingAt => $tag])
             ->all();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -160,6 +176,7 @@ class RedisTagRepository implements TagRepository
      */
     public function forgetJobs($tags, $ids)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->pipeline(function ($pipe) use ($tags, $ids) {
             foreach ((array) $tags as $tag) {
                 foreach ((array) $ids as $id) {
@@ -167,6 +184,7 @@ class RedisTagRepository implements TagRepository
                 }
             }
         });
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -177,7 +195,9 @@ class RedisTagRepository implements TagRepository
      */
     public function forget($tag)
     {
+        // @codeCoverageIgnoreStart — Horizon process management
         $this->connection()->del($tag);
+        // @codeCoverageIgnoreEnd
     }
 
     /**

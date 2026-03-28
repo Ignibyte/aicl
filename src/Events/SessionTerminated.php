@@ -7,6 +7,9 @@ namespace Aicl\Events;
 use Aicl\Events\Enums\ActorType;
 
 /** Domain event dispatched when an admin terminates another user's session. */
+/**
+ * @codeCoverageIgnore Event infrastructure
+ */
 class SessionTerminated extends DomainEvent
 {
     public static string $eventType = 'session.terminated';

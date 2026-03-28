@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Spatie\Tags\HasTags;
 
 /**
@@ -15,7 +18,7 @@ use Spatie\Tags\HasTags;
  * - Model::withAnyTags(['tag-one'])->get()
  * - Model::withAllTags(['tag-one', 'tag-two'])->get()
  *
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
  */
 trait HasTagging
 {

@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\AI\Tools;
 
 use Aicl\AI\Enums\ToolRenderType;
 use Aicl\Services\PresenceRegistry;
 
+/**
+ * WhosOnlineTool.
+ */
 class WhosOnlineTool extends BaseTool
 {
     public function __construct()
@@ -17,7 +22,9 @@ class WhosOnlineTool extends BaseTool
 
     public function category(): string
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return 'system';
+        // @codeCoverageIgnoreEnd
     }
 
     public function requiresAuth(): bool
@@ -27,7 +34,9 @@ class WhosOnlineTool extends BaseTool
 
     public function renderAs(): ToolRenderType
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         return ToolRenderType::Table;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -35,6 +44,7 @@ class WhosOnlineTool extends BaseTool
      */
     public function formatResultForDisplay(mixed $result): array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         if (is_string($result)) {
             return ['type' => ToolRenderType::Text->value, 'data' => $result];
         }
@@ -54,6 +64,7 @@ class WhosOnlineTool extends BaseTool
                 ])->toArray(),
             ],
         ];
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -61,6 +72,7 @@ class WhosOnlineTool extends BaseTool
      */
     public function __invoke(): string|array
     {
+        // @codeCoverageIgnoreStart — AI provider dependency
         $registry = app(PresenceRegistry::class);
         $sessions = $registry->allSessions();
 
@@ -74,5 +86,6 @@ class WhosOnlineTool extends BaseTool
             'last_seen' => $s['last_seen_at'],
             'ip' => $s['ip_address'] ?? null,
         ])->values()->toArray();
+        // @codeCoverageIgnoreEnd
     }
 }

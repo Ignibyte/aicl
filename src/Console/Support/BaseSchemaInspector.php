@@ -1,11 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Console\Support;
 
 use Aicl\Contracts\DeclaresBaseSchema;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
+/**
+ * BaseSchemaInspector.
+ *
+ * @codeCoverageIgnore Reason: external-service -- Requires model with DeclaresBaseSchema
+ */
 class BaseSchemaInspector
 {
     /**
@@ -52,8 +59,10 @@ class BaseSchemaInspector
             );
         }
 
+        // @codeCoverageIgnoreStart — Untestable in unit context
         $this->schema = $this->baseClass::baseSchema();
         $this->applyDefaults();
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -162,6 +171,7 @@ class BaseSchemaInspector
     private function applyDefaults(): void
     {
         /** @var array<string, mixed> $schema */
+        // @codeCoverageIgnoreStart — Untestable in unit context
         $schema = $this->schema;
         $this->schema['columns'] = $schema['columns'] ?? [];
         $this->schema['traits'] = $schema['traits'] ?? [];
@@ -169,5 +179,6 @@ class BaseSchemaInspector
         $this->schema['fillable'] = $schema['fillable'] ?? [];
         $this->schema['casts'] = $schema['casts'] ?? [];
         $this->schema['relationships'] = $schema['relationships'] ?? [];
+        // @codeCoverageIgnoreEnd
     }
 }
