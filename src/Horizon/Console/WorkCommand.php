@@ -48,7 +48,7 @@ class WorkCommand extends BaseWorkCommand
      */
     public function handle()
     {
-        if (config('aicl-horizon.fast_termination')) {
+        if ((bool) config('aicl-horizon.fast_termination')) {
             ignore_user_abort(true);
         }
 

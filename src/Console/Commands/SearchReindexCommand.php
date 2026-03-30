@@ -43,26 +43,12 @@ class SearchReindexCommand extends Command
 
         $indexingService = app(SearchIndexingService::class);
 
-        $entityFilter = $this->option('entity');
-        if ($entityFilter !== null) {
-            $entityConfigs = array_filter(
-                $entityConfigs,
-                fn (mixed $config, string $class): bool => $class === $entityFilter || class_basename($class) === $entityFilter,
-                ARRAY_FILTER_USE_BOTH,
-            );
-
-            if (empty($entityConfigs)) {
-                $this->components->error("Entity '{$entityFilter}' is not configured for search indexing.");
-
-                return self::FAILURE;
-            }
+        $entityConfigs = $this->filterEntityConfigs($entityConfigs);
+        if ($entityConfigs === null) {
+            return self::FAILURE;
         }
 
-        if ($this->option('fresh')) {
-            $this->freshIndex($indexingService);
-        } else {
-            $indexingService->ensureIndex();
-        }
+        $this->prepareIndex($indexingService);
 
         $documentBuilder = new SearchDocumentBuilder;
         $totalIndexed = 0;
@@ -133,10 +119,56 @@ class SearchReindexCommand extends Command
             $indexingService->createIndex($v2);
             $indexingService->swapAlias($alias, $v1, $v2);
             $indexingService->deleteIndex($v1);
-        } else {
-            $indexingService->createIndex($v1);
 
-            $indexingService->swapAlias($alias, '', $v1);
+            return;
         }
+
+        $indexingService->createIndex($v1);
+        $indexingService->swapAlias($alias, '', $v1);
+    }
+
+    /**
+     * Filter entity configs by the --entity option, returning null on failure.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- $config required by ARRAY_FILTER_USE_BOTH callback signature
+     *
+     * @param array<string, mixed> $entityConfigs
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function filterEntityConfigs(array $entityConfigs): ?array
+    {
+        $entityFilter = $this->option('entity');
+        if ($entityFilter === null) {
+            return $entityConfigs;
+        }
+
+        $filtered = array_filter(
+            $entityConfigs,
+            fn (mixed $config, string $class): bool => $class === $entityFilter || class_basename($class) === $entityFilter,
+            ARRAY_FILTER_USE_BOTH,
+        );
+
+        if (empty($filtered)) {
+            $this->components->error("Entity '{$entityFilter}' is not configured for search indexing.");
+
+            return null;
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * Prepare the search index, creating fresh if requested or ensuring it exists.
+     */
+    protected function prepareIndex(SearchIndexingService $indexingService): void
+    {
+        if ($this->option('fresh')) {
+            $this->freshIndex($indexingService);
+
+            return;
+        }
+
+        $indexingService->ensureIndex();
     }
 }

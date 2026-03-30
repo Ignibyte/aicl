@@ -186,21 +186,23 @@ class ActivityLog extends Page implements HasForms
 
                     $logParser = app(LogParser::class);
 
-                    if ($logParser->clearFile($this->selectedFile)) {
-                        Notification::make()
-                            ->success()
-                            ->title('Log Cleared')
-                            ->body('The log file has been cleared.')
-                            ->send();
-
-                        unset($this->logEntries);
-                    } else {
+                    if (! $logParser->clearFile($this->selectedFile)) {
                         Notification::make()
                             ->danger()
                             ->title('Error')
                             ->body('Failed to clear the log file.')
                             ->send();
+
+                        return;
                     }
+
+                    Notification::make()
+                        ->success()
+                        ->title('Log Cleared')
+                        ->body('The log file has been cleared.')
+                        ->send();
+
+                    unset($this->logEntries);
                 })
                 ->disabled(fn () => ! $this->selectedFile)
                 ->visible(fn (): bool => $this->activeTab === 'app-logs'),
@@ -218,24 +220,26 @@ class ActivityLog extends Page implements HasForms
 
                     $logParser = app(LogParser::class);
 
-                    if ($logParser->deleteFile($this->selectedFile)) {
-                        Notification::make()
-                            ->success()
-                            ->title('Log Deleted')
-                            ->body('The log file has been deleted.')
-                            ->send();
-
-                        $files = $logParser->getLogFiles();
-                        $this->selectedFile = ! empty($files) ? $files[0]['path'] : null;
-                        unset($this->logEntries);
-                        unset($this->logFiles);
-                    } else {
+                    if (! $logParser->deleteFile($this->selectedFile)) {
                         Notification::make()
                             ->danger()
                             ->title('Error')
                             ->body('Failed to delete the log file.')
                             ->send();
+
+                        return;
                     }
+
+                    Notification::make()
+                        ->success()
+                        ->title('Log Deleted')
+                        ->body('The log file has been deleted.')
+                        ->send();
+
+                    $files = $logParser->getLogFiles();
+                    $this->selectedFile = ! empty($files) ? $files[0]['path'] : null;
+                    unset($this->logEntries);
+                    unset($this->logFiles);
                 })
                 ->disabled(fn () => ! $this->selectedFile)
                 ->visible(fn (): bool => $this->activeTab === 'app-logs'),

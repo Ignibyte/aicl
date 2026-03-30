@@ -23,6 +23,8 @@ class StopMonitoringTag
 
     /**
      * Execute the job.
+     *
+     * @SuppressWarnings(PHPMD.CountInLoopExpression)
      */
     public function handle(JobRepository $jobs, TagRepository $tags)
     {

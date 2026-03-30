@@ -60,7 +60,24 @@ class InstallCommand extends Command
 
         $this->components->info('Installing AICL...');
 
-        // Publish config
+        $this->publishAssets();
+        $this->runMigrationsAndPermissions();
+        $this->ensureLocalConfig();
+        $this->seedData();
+        $this->finalizeInstall();
+
+        $this->newLine();
+        $this->components->info('AICL installed successfully.');
+        $this->components->info('Login: admin@aicl.test / password');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Publish config, brand assets, and Filament Shield config.
+     */
+    protected function publishAssets(): void
+    {
         $this->components->task('Publishing AICL config', function (): void {
             $params = ['--provider' => 'Aicl\AiclServiceProvider', '--tag' => 'aicl-config'];
             if ($this->option('force')) {
@@ -69,7 +86,6 @@ class InstallCommand extends Command
             $this->callSilently('vendor:publish', $params);
         });
 
-        // Publish brand assets (logo, images)
         $this->components->task('Publishing AICL brand assets', function (): void {
             $this->callSilently('vendor:publish', [
                 '--provider' => 'Aicl\AiclServiceProvider',
@@ -78,7 +94,6 @@ class InstallCommand extends Command
             ]);
         });
 
-        // Publish Filament Shield config
         $this->components->task('Publishing Filament Shield config', function (): void {
             $params = ['--tag' => 'filament-shield-config'];
             if ($this->option('force')) {
@@ -86,13 +101,17 @@ class InstallCommand extends Command
             }
             $this->callSilently('vendor:publish', $params);
         });
+    }
 
-        // Run migrations
+    /**
+     * Run migrations and generate Shield permissions.
+     */
+    protected function runMigrationsAndPermissions(): void
+    {
         $this->components->task('Running migrations', function (): void {
             $this->callSilently('migrate', ['--force' => true]);
         });
 
-        // Generate Shield permissions
         $this->components->task('Generating Shield permissions', function (): void {
             $this->callSilently('shield:generate', [
                 '--all' => true,
@@ -101,18 +120,19 @@ class InstallCommand extends Command
             ]);
         });
 
-        // Seed roles
         $this->components->task('Seeding default roles', function (): void {
             $this->callSilently('db:seed', [
                 '--class' => 'Aicl\Database\Seeders\RoleSeeder',
                 '--force' => true,
             ]);
         });
+    }
 
-        // Generate local config if not present
-        $this->ensureLocalConfig();
-
-        // Seed admin user (required before RLM seeding — RLM uses owner_id => 1)
+    /**
+     * Seed admin user, RLM data, and notification channels.
+     */
+    protected function seedData(): void
+    {
         $this->components->task('Seeding admin user', function (): void {
             $this->callSilently('db:seed', [
                 '--class' => 'Aicl\Database\Seeders\AdminUserSeeder',
@@ -120,41 +140,47 @@ class InstallCommand extends Command
             ]);
         });
 
-        if (RlmBridge::installed()) {
-            $this->callSilently('rlm:seed');
-        } else {
-            $this->components->info('Skipping RLM seeding (ignibyte/rlm not installed).');
-        }
+        $this->seedRlmIfInstalled();
 
-        // Seed notification channels
         $this->components->task('Seeding notification channels', function (): void {
             $this->callSilently('db:seed', [
                 '--class' => 'Aicl\Database\Seeders\NotificationChannelSeeder',
                 '--force' => true,
             ]);
         });
+    }
 
-        // Publish Filament assets
+    /**
+     * Seed RLM data if the package is installed.
+     */
+    protected function seedRlmIfInstalled(): void
+    {
+        if (RlmBridge::installed()) {
+            $this->callSilently('rlm:seed');
+
+            return;
+        }
+
+        $this->components->info('Skipping RLM seeding (ignibyte/rlm not installed).');
+    }
+
+    /**
+     * Publish Filament assets, clear caches, and sync project files.
+     */
+    protected function finalizeInstall(): void
+    {
         $this->components->task('Publishing Filament assets', function (): void {
             $this->callSilently('filament:assets');
         });
 
-        // Clear cached version strings so they reflect the newly installed version
         $this->components->task('Clearing version cache', function (): void {
             Cache::forget('aicl.version.framework');
             Cache::forget('aicl.version.project');
         });
 
-        // Sync project-level files (agents, config stubs, planning docs)
         $this->components->task('Syncing project files (aicl:upgrade)', function (): void {
             $this->callSilently('aicl:upgrade', ['--force' => true]);
         });
-
-        $this->newLine();
-        $this->components->info('AICL installed successfully.');
-        $this->components->info('Login: admin@aicl.test / password');
-
-        return self::SUCCESS;
     }
 
     /**

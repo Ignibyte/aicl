@@ -24,9 +24,24 @@ class StateMachineGenerator extends BaseGenerator
         $colors = ['gray', 'success', 'warning', 'info', 'danger'];
         $icons = ['pencil-square', 'play', 'pause', 'check-circle', 'archive-box'];
 
-        // Abstract state class
+        $files = array_merge($files, $this->generateAbstractState($name, $states));
+        $files = array_merge($files, $this->generateConcreteStates($name, $states, $colors, $icons));
+
+        return $files;
+    }
+
+    /**
+     * Generate the abstract state class.
+     *
+     * @param array<int, string> $states
+     *
+     * @return array<int, string>
+     */
+    protected function generateAbstractState(string $name, array $states): array
+    {
         $transitionLines = [];
-        for ($i = 0; $i < count($states) - 1; $i++) {
+        $stateCount = count($states);
+        for ($i = 0; $i < $stateCount - 1; $i++) {
             $fromClass = Str::studly($states[$i]);
             $toClass = Str::studly($states[$i + 1]);
             $transitionLines[] = "                    {$fromClass}::class => [{$toClass}::class],";
@@ -75,17 +90,32 @@ PHP;
         $dir = app_path('States');
         $this->ensureDirectoryExists($dir);
         file_put_contents("{$dir}/{$name}State.php", $abstractContent);
-        $files[] = "app/States/{$name}State.php";
 
-        // Concrete state classes
+        return ["app/States/{$name}State.php"];
+    }
+
+    /**
+     * Generate concrete state classes.
+     *
+     * @param array<int, string> $states
+     * @param array<int, string> $colors
+     * @param array<int, string> $icons
+     *
+     * @return array<int, string>
+     */
+    protected function generateConcreteStates(string $name, array $states, array $colors, array $icons): array
+    {
+        $files = [];
         $stateDir = app_path("States/{$name}");
         $this->ensureDirectoryExists($stateDir);
+        $colorCount = count($colors);
+        $iconCount = count($icons);
 
         foreach ($states as $index => $state) {
             $className = Str::studly($state);
             $label = Str::title(str_replace('_', ' ', $state));
-            $color = $colors[$index % count($colors)];
-            $icon = $icons[$index % count($icons)];
+            $color = $colors[$index % $colorCount];
+            $icon = $icons[$index % $iconCount];
 
             $concreteContent = <<<PHP
 <?php

@@ -55,29 +55,33 @@ class ForgetFailedCommand extends Command
                 });
             } while ($repository->totalFailed() !== 0 && $failedJobs->isNotEmpty());
 
-            if ($totalFailedCount) {
-                $this->components->info($totalFailedCount.' failed jobs deleted successfully!');
-            } else {
+            if ($totalFailedCount === 0) {
                 $this->components->info('No failed jobs detected.');
+
+                return;
             }
+
+            $this->components->info($totalFailedCount.' failed jobs deleted successfully!');
 
             return;
         }
 
-        if (! $this->argument('id')) {
+        $argId = $this->argument('id');
+
+        if ($argId === null || $argId === '') {
             $this->components->error('No failed job ID provided.');
         }
 
-        $id = (string) $this->argument('id');
+        $id = (string) $argId;
 
         $repository->deleteFailed($id);
 
-        if (app('queue.failer')->forget($id)) {
-            $this->components->info('Failed job deleted successfully!');
-        } else {
+        if (! app('queue.failer')->forget($id)) {
             $this->components->error('No failed job matches the given ID.');
 
             return 1;
         }
+
+        $this->components->info('Failed job deleted successfully!');
     }
 }

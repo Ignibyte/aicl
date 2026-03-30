@@ -34,6 +34,8 @@ class AddSupervisor
      * Create the Symfony process instance.
      *
      * @return Process
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function createProcess(MasterSupervisor $master, SupervisorOptions $options)
     {

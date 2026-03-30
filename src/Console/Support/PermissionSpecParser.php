@@ -112,7 +112,6 @@ class PermissionSpecParser
         }
 
         $rows = MarkdownTableParser::parseMarkdownTable($sections['Permissions']);
-        $roleNames = array_map(fn (RoleSpec $r): string => strtolower($r->name), $roles);
         $matrix = [];
 
         foreach ($rows as $row) {

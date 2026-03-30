@@ -15,6 +15,8 @@ class ExpireSupervisors
 {
     /**
      * Handle the event.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function handle(MasterSupervisorLooped $event)
     {

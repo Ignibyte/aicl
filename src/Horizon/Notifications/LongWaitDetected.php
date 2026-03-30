@@ -57,6 +57,8 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
      * @param mixed $notifiable
      *
      * @return array<int, string>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function via($notifiable)
     {
@@ -69,6 +71,8 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
      * @param mixed $notifiable
      *
      * @return MailMessage
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function toMail($notifiable)
     {

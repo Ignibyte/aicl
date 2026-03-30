@@ -21,7 +21,7 @@ class MonitoredTagsTable extends Component
     public function monitor(): void
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        if (empty($this->newTag)) {
+        if ($this->newTag === '') {
             return;
         }
 

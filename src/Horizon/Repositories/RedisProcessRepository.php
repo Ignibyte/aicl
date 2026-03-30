@@ -58,7 +58,7 @@ class RedisProcessRepository implements ProcessRepository
             $key = "{$master}:orphans"
         ), $processIds);
 
-        if (! empty($shouldRemove)) {
+        if ($shouldRemove !== []) {
             $this->connection()->hdel($key, ...$shouldRemove);
         }
 

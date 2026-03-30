@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Aicl\Horizon;
 
-/** Value object holding configuration options for a Horizon supervisor instance. */
+/**
+ * Value object holding configuration options for a Horizon supervisor instance.
+ *
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ */
 class SupervisorOptions
 {
     /**
@@ -198,6 +202,9 @@ class SupervisorOptions
      * @param int         $balanceMaxShift
      * @param int         $parentId
      * @param int         $rest
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     *
      * @param string|null $autoScalingStrategy
      */
     public function __construct(
@@ -225,7 +232,7 @@ class SupervisorOptions
     ) {
         $this->name = $name;
         $this->connection = $connection;
-        $this->queue = $queue ?: config('queue.connections.'.$connection.'.queue');
+        $this->queue = ($queue !== null && $queue !== '') ? $queue : (string) config('queue.connections.'.$connection.'.queue');
         $this->workersName = $workersName;
         $this->balance = $balance;
         $this->backoff = $backoff;
@@ -323,7 +330,9 @@ class SupervisorOptions
      */
     public function toJson()
     {
-        return json_encode($this->toArray()) ?: '{}';
+        $encoded = json_encode($this->toArray());
+
+        return ($encoded !== false && $encoded !== '') ? $encoded : '{}';
     }
 
     /**

@@ -16,7 +16,12 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use stdClass;
 
-/** Redis-backed repository for storing and querying Horizon job records. */
+/**
+ * Redis-backed repository for storing and querying Horizon job records.
+ *
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ */
 class RedisJobRepository implements JobRepository
 {
     /**
@@ -531,6 +536,8 @@ class RedisJobRepository implements JobRepository
      * Update the retry status of a job's parent.
      *
      * @param bool $failed
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     protected function updateRetryInformationOnParent(JobPayload $payload, $failed)
     {
@@ -670,7 +677,7 @@ class RedisJobRepository implements JobRepository
 
         $job = is_array($attributes) && $attributes[0] !== null ? (object) array_combine($this->keys, $attributes) : null;
 
-        if ($job && $job->status !== 'failed') {
+        if ($job !== null && $job->status !== 'failed') {
             return;
         }
 
@@ -753,7 +760,8 @@ class RedisJobRepository implements JobRepository
     public function storeRetryReference($id, $retryId)
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        $retries = json_decode($this->connection()->hget($id, 'retried_by') ?: '[]');
+        $retriedBy = $this->connection()->hget($id, 'retried_by');
+        $retries = json_decode(($retriedBy !== null && $retriedBy !== false && $retriedBy !== '') ? $retriedBy : '[]');
 
         $retries[] = [
             'id' => $retryId,

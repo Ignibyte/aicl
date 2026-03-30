@@ -151,7 +151,7 @@ class WorkerProcess
             return;
         }
 
-        if ($this->restartAgainAt) {
+        if ($this->restartAgainAt !== null) {
             $this->restartAgainAt = ! $this->process->isRunning()
                 ? CarbonImmutable::now()->addMinute()
                 : null;
@@ -159,10 +159,12 @@ class WorkerProcess
             if (! $this->process->isRunning()) {
                 event(new UnableToLaunchProcess($this));
             }
-        } else {
-            $this->restartAgainAt = CarbonImmutable::now()->addSecond();
-            // @codeCoverageIgnoreEnd
+
+            return;
         }
+
+        $this->restartAgainAt = CarbonImmutable::now()->addSecond();
+        // @codeCoverageIgnoreEnd
     }
 
     /**

@@ -79,6 +79,8 @@ class AutoScaler
      * @param Collection<string, ProcessPool> $pools
      *
      * @return Collection<string, array{size: mixed, time: int}>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function timeToClearPerQueue(Supervisor $supervisor, Collection $pools)
     {
@@ -105,6 +107,8 @@ class AutoScaler
      * @param Collection<string, array{size: mixed, time: int}> $queues
      *
      * @return Collection<string, float|int>
+     *
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
     protected function numberOfWorkersPerQueue(Supervisor $supervisor, Collection $queues)
     {
@@ -131,7 +135,7 @@ class AutoScaler
             } elseif ($timeToClearAll == 0 &&
                       $supervisor->options->autoScaling()) {
                 return [
-                    $queue => $timeToClear['size']
+                    $queue => ($timeToClear['size'] !== 0 && $timeToClear['size'] !== null)
                         ? $supervisor->options->maxProcesses
                         : $supervisor->options->minProcesses,
                 ];

@@ -66,130 +66,164 @@ class NotificationCenter extends Page implements HasForms, HasTable
             ]);
     }
 
+    /**
+     * @return array<int, mixed>
+     */
+    private function getColumns(): array
+    {
+        return [
+            IconColumn::make('read_at')
+                ->label('')
+                ->icon(fn ($state) => $state ? 'heroicon-o-envelope-open' : 'heroicon-o-envelope')
+                ->color(fn ($state) => $state ? 'gray' : 'primary')
+                ->size('sm'),
+            TextColumn::make('data.title')
+                ->label('Title')
+                ->weight(fn (DatabaseNotification $record) => $record->read_at ? 'normal' : 'bold')
+                ->searchable(query: function (Builder $query, string $search): Builder {
+                    // @codeCoverageIgnoreStart — Filament Livewire rendering
+                    return $query->where('data->title', 'like', "%{$search}%");
+                    // @codeCoverageIgnoreEnd
+                }),
+            TextColumn::make('data.body')
+                ->label('Message')
+                ->limit(60)
+                ->wrap(),
+            TextColumn::make('created_at')
+                ->label('Received')
+                ->since()
+                ->sortable(),
+        ];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function getFilters(): array
+    {
+        return [
+            SelectFilter::make('read_status')
+                ->options([
+                    'unread' => 'Unread',
+                    'read' => 'Read',
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return match ($data['value']) {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
+                        'unread' => $query->whereNull('read_at'),
+                        'read' => $query->whereNotNull('read_at'),
+                        // @codeCoverageIgnoreEnd
+                        default => $query,
+                    };
+                }),
+        ];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function getRecordActions(): array
+    {
+        return [
+            Action::make('view')
+                ->label('View')
+                ->icon('heroicon-o-eye')
+                ->url(fn (DatabaseNotification $record): ?string => $record->data['action_url'] ?? null)
+                ->openUrlInNewTab()
+                ->visible(fn (DatabaseNotification $record): bool => isset($record->data['action_url']))
+                ->after(function (DatabaseNotification $record): void {
+                    // @codeCoverageIgnoreStart — Filament Livewire rendering
+                    $record->markAsRead();
+                    // @codeCoverageIgnoreEnd
+                }),
+            Action::make('mark_read')
+                ->label(fn (DatabaseNotification $record) => $record->read_at ? 'Mark Unread' : 'Mark Read')
+                ->icon(fn (DatabaseNotification $record) => $record->read_at ? 'heroicon-o-envelope' : 'heroicon-o-envelope-open')
+                ->action(function (DatabaseNotification $record): void {
+                    // @codeCoverageIgnoreStart — Filament Livewire rendering
+                    if ($record->read_at) {
+                        $record->update(['read_at' => null]);
+
+                        return;
+                    }
+
+                    $record->markAsRead();
+                    // @codeCoverageIgnoreEnd
+                }),
+            Action::make('delete')
+                ->label('Delete')
+                ->icon('heroicon-o-trash')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->action(fn (DatabaseNotification $record) => $record->delete()),
+        ];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function getToolbarActions(): array
+    {
+        return [
+            BulkActionGroup::make([
+                BulkAction::make('mark_read')
+                    ->label('Mark as Read')
+                    ->icon('heroicon-o-envelope-open')
+                    ->action(function (Collection $records): void {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
+                        $records->each->markAsRead();
+
+                        Notification::make()
+                            ->success()
+                            ->title('Notifications marked as read')
+                            ->send();
+                        // @codeCoverageIgnoreEnd
+                    })
+                    ->deselectRecordsAfterCompletion(),
+                BulkAction::make('mark_unread')
+                    ->label('Mark as Unread')
+                    ->icon('heroicon-o-envelope')
+                    ->action(function (Collection $records): void {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
+                        $records->each(fn ($n) => $n->update(['read_at' => null]));
+
+                        Notification::make()
+                            ->success()
+                            ->title('Notifications marked as unread')
+                            ->send();
+                        // @codeCoverageIgnoreEnd
+                    })
+                    ->deselectRecordsAfterCompletion(),
+                BulkAction::make('delete')
+                    ->label('Delete Selected')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function (Collection $records): void {
+                        // @codeCoverageIgnoreStart — Filament Livewire rendering
+                        $records->each->delete();
+
+                        Notification::make()
+                            ->success()
+                            ->title('Notifications deleted')
+                            ->send();
+                        // @codeCoverageIgnoreEnd
+                    })
+                    ->deselectRecordsAfterCompletion(),
+            ]),
+        ];
+    }
+
     /** @codeCoverageIgnore Reason: filament-closure -- Filament table query closure */
     public function table(Table $table): Table
     {
         return $table
             ->query($this->getTableQuery())
-            ->columns([
-                IconColumn::make('read_at')
-                    ->label('')
-                    ->icon(fn ($state) => $state ? 'heroicon-o-envelope-open' : 'heroicon-o-envelope')
-                    ->color(fn ($state) => $state ? 'gray' : 'primary')
-                    ->size('sm'),
-                TextColumn::make('data.title')
-                    ->label('Title')
-                    ->weight(fn (DatabaseNotification $record) => $record->read_at ? 'normal' : 'bold')
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        // @codeCoverageIgnoreStart — Filament Livewire rendering
-                        return $query->where('data->title', 'like', "%{$search}%");
-                        // @codeCoverageIgnoreEnd
-                    }),
-                TextColumn::make('data.body')
-                    ->label('Message')
-                    ->limit(60)
-                    ->wrap(),
-                TextColumn::make('created_at')
-                    ->label('Received')
-                    ->since()
-                    ->sortable(),
-            ])
+            ->columns($this->getColumns())
             ->defaultSort('created_at', 'desc')
-            ->filters([
-                SelectFilter::make('read_status')
-                    ->options([
-                        'unread' => 'Unread',
-                        'read' => 'Read',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return match ($data['value']) {
-                            // @codeCoverageIgnoreStart — Filament Livewire rendering
-                            'unread' => $query->whereNull('read_at'),
-                            'read' => $query->whereNotNull('read_at'),
-                            // @codeCoverageIgnoreEnd
-                            default => $query,
-                        };
-                    }),
-            ])
-            ->recordActions([
-                Action::make('view')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn (DatabaseNotification $record): ?string => $record->data['action_url'] ?? null)
-                    ->openUrlInNewTab()
-                    ->visible(fn (DatabaseNotification $record): bool => isset($record->data['action_url']))
-                    ->after(function (DatabaseNotification $record): void {
-                        // @codeCoverageIgnoreStart — Filament Livewire rendering
-                        $record->markAsRead();
-                        // @codeCoverageIgnoreEnd
-                    }),
-                Action::make('mark_read')
-                    ->label(fn (DatabaseNotification $record) => $record->read_at ? 'Mark Unread' : 'Mark Read')
-                    ->icon(fn (DatabaseNotification $record) => $record->read_at ? 'heroicon-o-envelope' : 'heroicon-o-envelope-open')
-                    ->action(function (DatabaseNotification $record): void {
-                        // @codeCoverageIgnoreStart — Filament Livewire rendering
-                        if ($record->read_at) {
-                            $record->update(['read_at' => null]);
-                        } else {
-                            $record->markAsRead();
-                            // @codeCoverageIgnoreEnd
-                        }
-                    }),
-                Action::make('delete')
-                    ->label('Delete')
-                    ->icon('heroicon-o-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(fn (DatabaseNotification $record) => $record->delete()),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    BulkAction::make('mark_read')
-                        ->label('Mark as Read')
-                        ->icon('heroicon-o-envelope-open')
-                        ->action(function (Collection $records): void {
-                            // @codeCoverageIgnoreStart — Filament Livewire rendering
-                            $records->each->markAsRead();
-
-                            Notification::make()
-                                ->success()
-                                ->title('Notifications marked as read')
-                                ->send();
-                            // @codeCoverageIgnoreEnd
-                        })
-                        ->deselectRecordsAfterCompletion(),
-                    BulkAction::make('mark_unread')
-                        ->label('Mark as Unread')
-                        ->icon('heroicon-o-envelope')
-                        ->action(function (Collection $records): void {
-                            // @codeCoverageIgnoreStart — Filament Livewire rendering
-                            $records->each(fn ($n) => $n->update(['read_at' => null]));
-
-                            Notification::make()
-                                ->success()
-                                ->title('Notifications marked as unread')
-                                ->send();
-                            // @codeCoverageIgnoreEnd
-                        })
-                        ->deselectRecordsAfterCompletion(),
-                    BulkAction::make('delete')
-                        ->label('Delete Selected')
-                        ->icon('heroicon-o-trash')
-                        ->color('danger')
-                        ->requiresConfirmation()
-                        ->action(function (Collection $records): void {
-                            // @codeCoverageIgnoreStart — Filament Livewire rendering
-                            $records->each->delete();
-
-                            Notification::make()
-                                ->success()
-                                ->title('Notifications deleted')
-                                ->send();
-                            // @codeCoverageIgnoreEnd
-                        })
-                        ->deselectRecordsAfterCompletion(),
-                ]),
-            ])
+            ->filters($this->getFilters())
+            ->recordActions($this->getRecordActions())
+            ->toolbarActions($this->getToolbarActions())
             ->headerActions([
                 Action::make('mark_all_read')
                     ->label('Mark All Read')

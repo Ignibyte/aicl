@@ -48,6 +48,8 @@ class JobPayload implements ArrayAccess
      * Get the job ID from the payload.
      *
      * @return string
+     *
+     * @SuppressWarnings(PHPMD.ShortMethodName)
      */
     public function id()
     {
@@ -145,7 +147,7 @@ class JobPayload implements ArrayAccess
         // @codeCoverageIgnoreStart — Horizon process management
         return array_merge(
             $this->decoded['tags'] ?? [],
-            ! $job || is_string($job) ? [] : Tags::for($job)
+            ($job === null || $job === false || is_string($job)) ? [] : Tags::for($job)
         );
         // @codeCoverageIgnoreEnd
     }
@@ -161,7 +163,7 @@ class JobPayload implements ArrayAccess
     protected function shouldBeSilenced($job, array $tags = [])
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        if (! $job) {
+        if ($job === null || $job === false) {
             return false;
         }
 
@@ -207,7 +209,8 @@ class JobPayload implements ArrayAccess
     {
         $this->decoded = array_merge($this->decoded, $values);
 
-        $this->value = json_encode($this->decoded) ?: '{}';
+        $encoded = json_encode($this->decoded);
+        $this->value = ($encoded !== false && $encoded !== '') ? $encoded : '{}';
 
         return $this;
     }

@@ -102,41 +102,57 @@ class RemoveEntityCommand extends Command
      */
     protected function discoverEntityFiles(string $name, string $plural, string $snakePlural): void
     {
-        $snake = Str::snake($name);
+        $this->discoverSingleFiles($name);
+        $this->discoverGlobFiles($name, $plural, $snakePlural);
+        $this->discoverDirectories($name, $plural, $snakePlural);
+        $this->discoverPdfViewFiles(Str::snake($name), $snakePlural);
+    }
 
-        // Single files — exact matches
+    /**
+     * Discover single entity-specific files by exact path.
+     */
+    protected function discoverSingleFiles(string $name): void
+    {
         $singleFiles = [
-            'Model' => app_path("Models/{$name}.php"),
-            'Policy' => app_path("Policies/{$name}Policy.php"),
-            'Observer' => app_path("Observers/{$name}Observer.php"),
-            'Created Event' => app_path("Events/{$name}Created.php"),
-            'Updated Event' => app_path("Events/{$name}Updated.php"),
-            'Deleted Event' => app_path("Events/{$name}Deleted.php"),
-            'Exporter' => app_path("Filament/Exporters/{$name}Exporter.php"),
-            'API Controller' => app_path("Http/Controllers/Api/{$name}Controller.php"),
-            'Store Request' => app_path("Http/Requests/Store{$name}Request.php"),
-            'Update Request' => app_path("Http/Requests/Update{$name}Request.php"),
-            'API Resource' => app_path("Http/Resources/{$name}Resource.php"),
-            'Factory' => database_path("factories/{$name}Factory.php"),
-            'Seeder' => database_path("seeders/{$name}Seeder.php"),
-            'Entity Test' => base_path("tests/Feature/Entities/{$name}Test.php"),
-            'API Test' => base_path("tests/Feature/Api/{$name}CrudTest.php"),
-            'Resource Test' => base_path("tests/Unit/Filament/Resources/{$name}ResourceTest.php"),
+            app_path("Models/{$name}.php"),
+            app_path("Policies/{$name}Policy.php"),
+            app_path("Observers/{$name}Observer.php"),
+            app_path("Events/{$name}Created.php"),
+            app_path("Events/{$name}Updated.php"),
+            app_path("Events/{$name}Deleted.php"),
+            app_path("Filament/Exporters/{$name}Exporter.php"),
+            app_path("Http/Controllers/Api/{$name}Controller.php"),
+            app_path("Http/Requests/Store{$name}Request.php"),
+            app_path("Http/Requests/Update{$name}Request.php"),
+            app_path("Http/Resources/{$name}Resource.php"),
+            database_path("factories/{$name}Factory.php"),
+            database_path("seeders/{$name}Seeder.php"),
+            base_path("tests/Feature/Entities/{$name}Test.php"),
+            base_path("tests/Feature/Api/{$name}CrudTest.php"),
+            base_path("tests/Unit/Filament/Resources/{$name}ResourceTest.php"),
         ];
+
+        // Abstract state class (sits alongside the States/{Name}/ directory)
+        $singleFiles[] = app_path("States/{$name}State.php");
 
         foreach ($singleFiles as $file) {
             if (file_exists($file)) {
                 $this->filesToDelete[] = $file;
             }
         }
+    }
 
-        // Glob-matched files — pattern matches
+    /**
+     * Discover entity files using glob patterns.
+     */
+    protected function discoverGlobFiles(string $name, string $plural, string $snakePlural): void
+    {
         $globPatterns = [
-            'Enums' => app_path("Enums/{$name}*.php"),
-            'Widgets (prefix)' => app_path("Filament/Widgets/{$name}*.php"),
-            'Widgets (contains)' => app_path("Filament/Widgets/*{$plural}*.php"),
-            'Notifications' => app_path("Notifications/{$name}*.php"),
-            'Migration' => database_path("migrations/*_create_{$snakePlural}_table.php"),
+            app_path("Enums/{$name}*.php"),
+            app_path("Filament/Widgets/{$name}*.php"),
+            app_path("Filament/Widgets/*{$plural}*.php"),
+            app_path("Notifications/{$name}*.php"),
+            database_path("migrations/*_create_{$snakePlural}_table.php"),
         ];
 
         foreach ($globPatterns as $pattern) {
@@ -144,19 +160,18 @@ class RemoveEntityCommand extends Command
                 $this->filesToDelete[] = $file;
             }
         }
+    }
 
-        // Abstract state class (sits alongside the States/{Name}/ directory)
-        $abstractState = app_path("States/{$name}State.php");
-        if (file_exists($abstractState)) {
-            $this->filesToDelete[] = $abstractState;
-        }
-
-        // Directories
+    /**
+     * Discover entity directories.
+     */
+    protected function discoverDirectories(string $name, string $plural, string $snakePlural): void
+    {
         $dirs = [
-            'Filament Resource' => app_path("Filament/Resources/{$plural}"),
-            'States' => app_path("States/{$name}"),
-            'PDF Views' => resource_path("views/pdf/{$snakePlural}"),
-            'Widget Views' => resource_path("views/filament/resources/{$snakePlural}"),
+            app_path("Filament/Resources/{$plural}"),
+            app_path("States/{$name}"),
+            resource_path("views/pdf/{$snakePlural}"),
+            resource_path("views/filament/resources/{$snakePlural}"),
         ];
 
         foreach ($dirs as $dir) {
@@ -164,8 +179,13 @@ class RemoveEntityCommand extends Command
                 $this->dirsToDelete[] = $dir;
             }
         }
+    }
 
-        // Also check for single PDF view files (some entities use flat files instead of directories)
+    /**
+     * Discover single PDF view files (some entities use flat files instead of directories).
+     */
+    protected function discoverPdfViewFiles(string $snake, string $snakePlural): void
+    {
         $pdfGlob = resource_path("views/pdf/{$snake}*.blade.php");
         foreach (glob($pdfGlob) ?: [] as $file) {
             if (! in_array($file, $this->filesToDelete, true)) {
@@ -185,6 +205,8 @@ class RemoveEntityCommand extends Command
     /**
      * Discover lines to remove from shared registration files.
      *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- $plural reserved for future shared-file pattern matching
+     *
      * @codeCoverageIgnore Reason: external-service -- PDF file glob discovery edge case
      */
     protected function discoverSharedFileCleanups(string $name, string $plural, string $snakePlural): void
@@ -200,39 +222,13 @@ class RemoveEntityCommand extends Command
      */
     protected function scanAppServiceProvider(string $name): void
     {
-        $file = app_path('Providers/AppServiceProvider.php');
-        if (! file_exists($file)) {
-            return;
-        }
-
-        $content = file_get_contents($file);
-        if ($content === false) {
-            // @codeCoverageIgnoreStart — Artisan command
-            return;
-            // @codeCoverageIgnoreEnd
-        }
-        $patterns = [
+        $this->scanFileForPatterns(app_path('Providers/AppServiceProvider.php'), [
             "use App\\Models\\{$name};",
             "use App\\Observers\\{$name}Observer;",
             "use App\\Policies\\{$name}Policy;",
             "Gate::policy({$name}::class",
             "{$name}::observe(",
-        ];
-
-        $matches = [];
-        foreach ($patterns as $pattern) {
-            if (str_contains($content, $pattern)) {
-                // @codeCoverageIgnoreStart — Artisan command
-                $matches[] = $pattern;
-                // @codeCoverageIgnoreEnd
-            }
-        }
-
-        if (! empty($matches)) {
-            // @codeCoverageIgnoreStart — Artisan command
-            $this->sharedFileCleanups[$file] = $matches;
-            // @codeCoverageIgnoreEnd
-        }
+        ]);
     }
 
     /**
@@ -240,39 +236,11 @@ class RemoveEntityCommand extends Command
      */
     protected function scanApiRoutes(string $name, string $snakePlural): void
     {
-        $file = base_path('routes/api.php');
-        if (! file_exists($file)) {
-            // @codeCoverageIgnoreStart — Artisan command
-            return;
-            // @codeCoverageIgnoreEnd
-        }
-
-        $content = file_get_contents($file);
-        if ($content === false) {
-            // @codeCoverageIgnoreStart — Artisan command
-            return;
-            // @codeCoverageIgnoreEnd
-        }
-        $patterns = [
+        $this->scanFileForPatterns(base_path('routes/api.php'), [
             "use App\\Http\\Controllers\\Api\\{$name}Controller;",
             "'{$snakePlural}'",
             "{$name}Controller::class",
-        ];
-
-        $matches = [];
-        foreach ($patterns as $pattern) {
-            if (str_contains($content, $pattern)) {
-                // @codeCoverageIgnoreStart — Artisan command
-                $matches[] = $pattern;
-                // @codeCoverageIgnoreEnd
-            }
-        }
-
-        if (! empty($matches)) {
-            // @codeCoverageIgnoreStart — Artisan command
-            $this->sharedFileCleanups[$file] = $matches;
-            // @codeCoverageIgnoreEnd
-        }
+        ]);
     }
 
     /**
@@ -280,11 +248,31 @@ class RemoveEntityCommand extends Command
      */
     protected function scanChannelsFile(string $name, string $snakePlural): void
     {
-        $file = base_path('routes/channels.php');
+        $this->scanFileForPatterns(base_path('routes/channels.php'), [
+            "use App\\Models\\{$name};",
+            "'{$snakePlural}.",
+        ]);
+    }
+
+    /**
+     * Scan DatabaseSeeder for entity seeder references.
+     */
+    protected function scanDatabaseSeeder(string $name): void
+    {
+        $this->scanFileForPatterns(database_path('seeders/DatabaseSeeder.php'), [
+            "{$name}Seeder::class",
+        ]);
+    }
+
+    /**
+     * Scan a file for patterns and record any matches in sharedFileCleanups.
+     *
+     * @param array<int, string> $patterns
+     */
+    protected function scanFileForPatterns(string $file, array $patterns): void
+    {
         if (! file_exists($file)) {
-            // @codeCoverageIgnoreStart — Artisan command
             return;
-            // @codeCoverageIgnoreEnd
         }
 
         $content = file_get_contents($file);
@@ -293,10 +281,6 @@ class RemoveEntityCommand extends Command
             return;
             // @codeCoverageIgnoreEnd
         }
-        $patterns = [
-            "use App\\Models\\{$name};",
-            "'{$snakePlural}.",
-        ];
 
         $matches = [];
         foreach ($patterns as $pattern) {
@@ -310,33 +294,6 @@ class RemoveEntityCommand extends Command
         if (! empty($matches)) {
             // @codeCoverageIgnoreStart — Artisan command
             $this->sharedFileCleanups[$file] = $matches;
-            // @codeCoverageIgnoreEnd
-        }
-    }
-
-    /**
-     * Scan DatabaseSeeder for entity seeder references.
-     */
-    protected function scanDatabaseSeeder(string $name): void
-    {
-        $file = database_path('seeders/DatabaseSeeder.php');
-        if (! file_exists($file)) {
-            // @codeCoverageIgnoreStart — Artisan command
-            return;
-            // @codeCoverageIgnoreEnd
-        }
-
-        $content = file_get_contents($file);
-        if ($content === false) {
-            // @codeCoverageIgnoreStart — Artisan command
-            return;
-            // @codeCoverageIgnoreEnd
-        }
-        $pattern = "{$name}Seeder::class";
-
-        if (str_contains($content, $pattern)) {
-            // @codeCoverageIgnoreStart — Artisan command
-            $this->sharedFileCleanups[$file] = [$pattern];
             // @codeCoverageIgnoreEnd
         }
     }
@@ -550,9 +507,10 @@ class RemoveEntityCommand extends Command
             $path = $dir.'/'.$item;
             if (is_dir($path)) {
                 $this->removeDirectoryRecursive($path);
-            } else {
-                unlink($path);
+
+                continue;
             }
+            unlink($path);
         }
 
         rmdir($dir);

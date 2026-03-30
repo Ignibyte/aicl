@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Cache;
 /** Synchronizes project-level files with the installed AICL package version. */
 /**
  * @codeCoverageIgnore Artisan command
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class UpgradeCommand extends Command
 {
@@ -69,29 +71,12 @@ class UpgradeCommand extends Command
             return self::SUCCESS;
         }
 
-        $versionLabel = $currentVersion === 'unknown'
-            ? "Initial sync → v{$manifestVersion}"
-            : "v{$currentVersion} → v{$manifestVersion}";
-
-        if ($isForce) {
-            $this->components->info("AICL Upgrade — {$versionLabel} (applying changes)");
-        } else {
-            $this->components->info("AICL Upgrade — {$versionLabel} (dry-run)");
-        }
-
+        $this->printVersionBanner($currentVersion, $manifestVersion, $isForce);
         $this->newLine();
 
-        // Filter sections if requested
-        $sections = $manifest['sections'];
-        $sectionFilter = $this->option('section');
-        if ($sectionFilter) {
-            if (! isset($sections[$sectionFilter])) {
-                $this->components->error("Unknown section: {$sectionFilter}");
-                $this->components->info('Available sections: '.implode(', ', array_keys($sections)));
-
-                return self::FAILURE;
-            }
-            $sections = [$sectionFilter => $sections[$sectionFilter]];
+        $sections = $this->filterSections($manifest['sections']);
+        if ($sections === null) {
+            return self::FAILURE;
         }
 
         // Process each section
@@ -99,19 +84,94 @@ class UpgradeCommand extends Command
             $this->processSection($sectionKey, $section, $isForce, $isFresh);
         }
 
-        // Update state file
-        if ($isForce) {
-            $this->state['package_version'] = $manifestVersion;
-            $this->state['last_upgraded'] = now()->toIso8601String();
-            $this->writeState();
+        $this->persistStateIfForced($isForce, $manifestVersion);
+        $this->printSummary($isForce);
 
-            // Clear cached version strings so they reflect the upgraded version
-            Cache::forget('aicl.version.framework');
-            Cache::forget('aicl.version.project');
+        return self::SUCCESS;
+    }
+
+    /**
+     * Print the upgrade version banner.
+     */
+    protected function printVersionBanner(string $currentVersion, string $manifestVersion, bool $isForce): void
+    {
+        $versionLabel = $currentVersion === 'unknown'
+            ? "Initial sync → v{$manifestVersion}"
+            : "v{$currentVersion} → v{$manifestVersion}";
+
+        $mode = $isForce ? 'applying changes' : 'dry-run';
+        $this->components->info("AICL Upgrade — {$versionLabel} ({$mode})");
+    }
+
+    /**
+     * Filter manifest sections by the --section option.
+     *
+     * @param array<string, array{label: string, entries: list<array<string, string>>}> $sections
+     *
+     * @return array<string, array{label: string, entries: list<array<string, string>>}>|null
+     */
+    protected function filterSections(array $sections): ?array
+    {
+        $sectionFilter = $this->option('section');
+
+        if (! $sectionFilter) {
+            return $sections;
         }
 
-        // Summary
+        if (! isset($sections[$sectionFilter])) {
+            $this->components->error("Unknown section: {$sectionFilter}");
+            $this->components->info('Available sections: '.implode(', ', array_keys($sections)));
+
+            return null;
+        }
+
+        return [$sectionFilter => $sections[$sectionFilter]];
+    }
+
+    /**
+     * Persist state file and clear caches when --force is active.
+     */
+    protected function persistStateIfForced(bool $isForce, string $manifestVersion): void
+    {
+        if (! $isForce) {
+            return;
+        }
+
+        $this->state['package_version'] = $manifestVersion;
+        $this->state['last_upgraded'] = now()->toIso8601String();
+        $this->writeState();
+
+        // Clear cached version strings so they reflect the upgraded version
+        Cache::forget('aicl.version.framework');
+        Cache::forget('aicl.version.project');
+    }
+
+    /**
+     * Print the upgrade summary.
+     */
+    protected function printSummary(bool $isForce): void
+    {
         $this->newLine();
+        $parts = $this->buildSummaryParts($isForce);
+        $this->components->info('Summary: '.implode(', ', $parts));
+
+        if (! $isForce && ($this->summary['updated'] > 0 || $this->summary['removed'] > 0)) {
+            $this->newLine();
+            $this->components->info('Run with --force to apply changes.');
+        }
+
+        if ($isForce) {
+            $this->components->info('State saved to .aicl-state.json');
+        }
+    }
+
+    /**
+     * Build summary parts array from the counters.
+     *
+     * @return array<int, string>
+     */
+    protected function buildSummaryParts(bool $isForce): array
+    {
         $parts = [];
         if ($this->summary['updated'] > 0) {
             $parts[] = "{$this->summary['updated']} files ".($isForce ? 'updated' : 'to update');
@@ -126,18 +186,7 @@ class UpgradeCommand extends Command
             $parts[] = "{$this->summary['up_to_date']} up to date";
         }
 
-        $this->components->info('Summary: '.implode(', ', $parts));
-
-        if (! $isForce && ($this->summary['updated'] > 0 || $this->summary['removed'] > 0)) {
-            $this->newLine();
-            $this->components->info('Run with --force to apply changes.');
-        }
-
-        if ($isForce) {
-            $this->components->info('State saved to .aicl-state.json');
-        }
-
-        return self::SUCCESS;
+        return $parts;
     }
 
     /**
@@ -168,6 +217,8 @@ class UpgradeCommand extends Command
      * Handle 'overwrite' strategy: replace target with source from package stubs.
      *
      * @param array<string, string> $entry
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function handleOverwrite(string $sectionKey, array $entry, bool $isForce, bool $isFresh): void
     {
@@ -176,7 +227,7 @@ class UpgradeCommand extends Command
         $targetPath = $this->projectRoot.'/'.$target;
 
         if (! $this->files->exists($sourcePath)) {
-            $this->renderLine($target, '<fg=red>ERROR</> source missing', 'error');
+            $this->renderLine($target, '<fg=red>ERROR</> source missing');
 
             return;
         }
@@ -185,20 +236,50 @@ class UpgradeCommand extends Command
         $sourceHash = hash('sha256', $sourceContent);
 
         if (! $this->files->exists($targetPath)) {
-            // Target doesn't exist — needs creation
-            if ($isForce) {
-                $this->files->ensureDirectoryExists(dirname($targetPath));
-                $this->files->put($targetPath, $sourceContent);
-                $this->updateStateHash($sectionKey, $target, $sourceHash);
-                $this->renderLine($target, '<fg=green>created</>');
-            } else {
-                $this->renderLine($target, '<fg=yellow>would create</>');
-            }
-            $this->summary['updated']++;
+            $this->handleOverwriteNewTarget($sectionKey, $target, $targetPath, $sourceContent, $sourceHash, $isForce);
 
             return;
         }
 
+        $this->handleOverwriteExistingTarget($sectionKey, $target, $targetPath, $sourceContent, $sourceHash, $isForce);
+    }
+
+    /**
+     * Handle overwrite when target file does not yet exist.
+     */
+    protected function handleOverwriteNewTarget(
+        string $sectionKey,
+        string $target,
+        string $targetPath,
+        string $sourceContent,
+        string $sourceHash,
+        bool $isForce,
+    ): void {
+        if ($isForce) {
+            $this->files->ensureDirectoryExists(dirname($targetPath));
+            $this->files->put($targetPath, $sourceContent);
+            $this->updateStateHash($sectionKey, $target, $sourceHash);
+            $this->renderLine($target, '<fg=green>created</>');
+        }
+
+        if (! $isForce) {
+            $this->renderLine($target, '<fg=yellow>would create</>');
+        }
+
+        $this->summary['updated']++;
+    }
+
+    /**
+     * Handle overwrite when target file already exists.
+     */
+    protected function handleOverwriteExistingTarget(
+        string $sectionKey,
+        string $target,
+        string $targetPath,
+        string $sourceContent,
+        string $sourceHash,
+        bool $isForce,
+    ): void {
         $currentContent = $this->files->get($targetPath);
         $currentHash = hash('sha256', $currentContent);
 
@@ -218,22 +299,23 @@ class UpgradeCommand extends Command
             $this->showDiff($targetPath, $sourceContent);
         }
 
-        if ($isForce) {
-            $this->files->put($targetPath, $sourceContent);
-            $this->updateStateHash($sectionKey, $target, $sourceHash);
-
-            if ($userModified) {
-                $this->renderLine($target, '<fg=yellow;options=bold>MODIFIED by user — overwriting</>');
-            } else {
-                $this->renderLine($target, '<fg=green>updated</>');
-            }
-        } else {
+        if (! $isForce) {
             $label = $userModified
                 ? '<fg=yellow>would overwrite</> <fg=gray>(user-modified)</>'
                 : '<fg=yellow>would overwrite</>';
             $this->renderLine($target, $label);
+            $this->summary['updated']++;
+
+            return;
         }
 
+        $this->files->put($targetPath, $sourceContent);
+        $this->updateStateHash($sectionKey, $target, $sourceHash);
+
+        $statusLabel = $userModified
+            ? '<fg=yellow;options=bold>MODIFIED by user — overwriting</>'
+            : '<fg=green>updated</>';
+        $this->renderLine($target, $statusLabel);
         $this->summary['updated']++;
     }
 
@@ -248,40 +330,70 @@ class UpgradeCommand extends Command
         $reason = $entry['reason'];
         $targetPath = $this->projectRoot.'/'.$target;
 
-        $isDirectory = str_ends_with($target, '/');
+        if (str_ends_with($target, '/')) {
+            $this->handleEnsureAbsentDirectory($sectionKey, $target, $targetPath, $reason, $isForce);
 
-        if ($isDirectory) {
-            $dirPath = rtrim($targetPath, '/');
-            if (! $this->files->isDirectory($dirPath)) {
-                return; // Already absent — don't even mention it
-            }
-
-            $fileCount = count($this->files->allFiles($dirPath));
-
-            if ($isForce) {
-                $this->files->deleteDirectory($dirPath);
-                $this->updateStateRemoved($sectionKey, $target);
-                $this->renderLine($target, "<fg=red>removed</> ({$fileCount} files) — {$reason}");
-            } else {
-                $this->renderLine($target, "<fg=red>would remove</> ({$fileCount} files) — {$reason}");
-            }
-
-            $this->summary['removed'] += $fileCount;
-        } else {
-            if (! $this->files->exists($targetPath)) {
-                return; // Already absent
-            }
-
-            if ($isForce) {
-                $this->files->delete($targetPath);
-                $this->updateStateRemoved($sectionKey, $target);
-                $this->renderLine($target, "<fg=red>removed</> — {$reason}");
-            } else {
-                $this->renderLine($target, "<fg=red>would remove</> — {$reason}");
-            }
-
-            $this->summary['removed']++;
+            return;
         }
+
+        $this->handleEnsureAbsentFile($sectionKey, $target, $targetPath, $reason, $isForce);
+    }
+
+    /**
+     * Handle ensure_absent for a directory target.
+     */
+    protected function handleEnsureAbsentDirectory(
+        string $sectionKey,
+        string $target,
+        string $targetPath,
+        string $reason,
+        bool $isForce,
+    ): void {
+        $dirPath = rtrim($targetPath, '/');
+        if (! $this->files->isDirectory($dirPath)) {
+            return; // Already absent — don't even mention it
+        }
+
+        $fileCount = count($this->files->allFiles($dirPath));
+
+        if ($isForce) {
+            $this->files->deleteDirectory($dirPath);
+            $this->updateStateRemoved($sectionKey, $target);
+            $this->renderLine($target, "<fg=red>removed</> ({$fileCount} files) — {$reason}");
+        }
+
+        if (! $isForce) {
+            $this->renderLine($target, "<fg=red>would remove</> ({$fileCount} files) — {$reason}");
+        }
+
+        $this->summary['removed'] += $fileCount;
+    }
+
+    /**
+     * Handle ensure_absent for a file target.
+     */
+    protected function handleEnsureAbsentFile(
+        string $sectionKey,
+        string $target,
+        string $targetPath,
+        string $reason,
+        bool $isForce,
+    ): void {
+        if (! $this->files->exists($targetPath)) {
+            return; // Already absent
+        }
+
+        if ($isForce) {
+            $this->files->delete($targetPath);
+            $this->updateStateRemoved($sectionKey, $target);
+            $this->renderLine($target, "<fg=red>removed</> — {$reason}");
+        }
+
+        if (! $isForce) {
+            $this->renderLine($target, "<fg=red>would remove</> — {$reason}");
+        }
+
+        $this->summary['removed']++;
     }
 
     /**
@@ -314,15 +426,19 @@ class UpgradeCommand extends Command
             $this->files->put($targetPath, $sourceContent);
             $this->updateStateHash($sectionKey, $target, hash('sha256', $sourceContent));
             $this->renderLine($target, '<fg=green>created</>');
-        } else {
-            $this->renderLine($target, '<fg=yellow>would create</>');
+            $this->summary['updated']++;
+
+            return;
         }
 
+        $this->renderLine($target, '<fg=yellow>would create</>');
         $this->summary['updated']++;
     }
 
     /**
      * Render a formatted output line with aligned dots.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function renderLine(string $target, string $status, string $style = 'info'): void
     {

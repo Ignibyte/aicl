@@ -55,7 +55,7 @@ class ProcessPool implements Countable
     {
         $this->options = $options;
 
-        $this->output = $output ?: function () {
+        $this->output = $output !== null ? $output : function () {
             //
         };
     }
@@ -79,9 +79,11 @@ class ProcessPool implements Countable
             // @codeCoverageIgnoreStart — Horizon process management
             $this->scaleUp($processes);
             // @codeCoverageIgnoreEnd
-        } else {
-            $this->scaleDown($processes);
+
+            return;
         }
+
+        $this->scaleDown($processes);
     }
 
     /**
@@ -181,7 +183,7 @@ class ProcessPool implements Countable
     protected function createProcess()
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        $class = config('aicl-horizon.fast_termination')
+        $class = (bool) config('aicl-horizon.fast_termination')
             ? BackgroundProcess::class
             : Process::class;
 

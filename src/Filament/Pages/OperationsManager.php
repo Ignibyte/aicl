@@ -40,7 +40,12 @@ use Illuminate\Support\Facades\Queue;
 use Throwable;
 use UnitEnum;
 
-/** Filament page providing a unified operations dashboard for queues, schedules, notifications, and sessions. */
+/**
+ * Filament page providing a unified operations dashboard for queues, schedules, notifications, and sessions.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ */
 class OperationsManager extends Page implements HasActions, HasForms, HasTable
 {
     use InteractsWithActions;
@@ -125,28 +130,30 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
             'workload' => [],
         ];
 
-        if (config('aicl.features.horizon', true) && app()->bound(JobRepository::class)) {
-            $stats['pending'] = app(JobRepository::class)->countPending();
-            $stats['failed'] = max($failedCount, app(JobRepository::class)->countFailed());
-
-            if (app()->bound(WorkloadRepository::class)) {
-                $stats['workload'] = app(WorkloadRepository::class)->get();
-                $stats['total_processes'] = collect($stats['workload'])->sum('processes');
-            }
-
-            if (app()->bound(MetricsRepository::class)) {
-                $snapshots = app(MetricsRepository::class)->snapshotsForQueue('default');
-                if (! empty($snapshots)) {
-                    $latest = end($snapshots);
-                    $stats['jobs_per_minute'] = (float) ($latest->throughput ?? 0);
-                }
-            }
-        } else {
+        if (! config('aicl.features.horizon', true) || ! app()->bound(JobRepository::class)) {
             // @codeCoverageIgnoreStart — Filament Livewire rendering
             $stats['pending'] = $this->getQueueSize('default') + $this->getQueueSize('high') + $this->getQueueSize('low');
             $stats['pending_high'] = $this->getQueueSize('high');
             $stats['pending_low'] = $this->getQueueSize('low');
             // @codeCoverageIgnoreEnd
+
+            return $stats;
+        }
+
+        $stats['pending'] = app(JobRepository::class)->countPending();
+        $stats['failed'] = max($failedCount, app(JobRepository::class)->countFailed());
+
+        if (app()->bound(WorkloadRepository::class)) {
+            $stats['workload'] = app(WorkloadRepository::class)->get();
+            $stats['total_processes'] = collect($stats['workload'])->sum('processes');
+        }
+
+        if (app()->bound(MetricsRepository::class)) {
+            $snapshots = app(MetricsRepository::class)->snapshotsForQueue('default');
+            if (! empty($snapshots)) {
+                $latest = end($snapshots);
+                $stats['jobs_per_minute'] = (float) ($latest->throughput ?? 0);
+            }
         }
 
         return $stats;
@@ -359,20 +366,22 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
 
         $result = app(PresenceRegistry::class)->terminateSession($sessionId);
 
-        if ($result) {
-            Notification::make()
-                ->title('Session Terminated')
-                ->body('The session has been forcefully terminated.')
-                ->success()
-                ->send();
-        } else {
+        if (! $result) {
             Notification::make()
                 ->title('Session Not Found')
                 ->body('The session may have already expired.')
                 ->warning()
                 ->send();
             // @codeCoverageIgnoreEnd
+
+            return;
         }
+
+        Notification::make()
+            ->title('Session Terminated')
+            ->body('The session has been forcefully terminated.')
+            ->success()
+            ->send();
     }
 
     // ── Shared ───────────────────────────────────────────────
@@ -434,160 +443,192 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
         ];
     }
 
+    /**
+     * @return array<int, mixed>
+     */
+    private function getColumns(): array
+    {
+        return [
+            TextColumn::make('id')
+                ->label('ID')
+                ->sortable(),
+            TextColumn::make('job_name')
+                ->label('Job')
+                ->searchable(query: function ($query, string $search): void {
+                    $query->where('payload', 'like', "%{$search}%");
+                })
+                ->limit(40),
+            TextColumn::make('queue')
+                ->badge()
+                ->color('gray')
+                ->sortable(),
+            TextColumn::make('connection')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('exception_summary')
+                ->label('Exception')
+                ->limit(60)
+                ->tooltip(fn (FailedJob $record): string => $record->exception_summary)
+                ->wrap(),
+            TextColumn::make('failed_at')
+                ->label('Failed At')
+                ->dateTime()
+                ->sortable(),
+        ];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function getFilters(): array
+    {
+        return [
+            SelectFilter::make('queue')
+                ->options(fn () => FailedJob::query()
+                    ->distinct()
+                    ->pluck('queue', 'queue')
+                    ->toArray()),
+            SelectFilter::make('connection')
+                ->options(fn () => FailedJob::query()
+                    ->distinct()
+                    ->pluck('connection', 'connection')
+                    ->toArray()),
+        ];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function getRecordActions(): array
+    {
+        return [
+            ViewAction::make()
+                ->modalHeading(fn (FailedJob $record): string => "Failed Job: {$record->job_name}")
+                ->infolist([
+                    Section::make('Job Details')
+                        ->schema([
+                            TextEntry::make('id')
+                                ->label('ID'),
+                            TextEntry::make('uuid')
+                                ->label('UUID')
+                                ->copyable(),
+                            TextEntry::make('job_name')
+                                ->label('Job Name'),
+                            TextEntry::make('queue')
+                                ->badge()
+                                ->color('gray'),
+                            TextEntry::make('connection'),
+                            TextEntry::make('failed_at')
+                                ->label('Failed At')
+                                ->dateTime(),
+                        ])
+                        ->columns(3),
+                    Section::make('Exception')
+                        ->schema([
+                            TextEntry::make('exception')
+                                ->label('')
+                                ->columnSpanFull(),
+                        ])
+                        ->collapsible(),
+                    // @codeCoverageIgnoreStart — Filament closure tree: pcov cannot attribute coverage to lazy-evaluated closures
+                    Section::make('Payload')
+                        ->schema([
+                            TextEntry::make('payload')
+                                ->label('')
+                                ->columnSpanFull()
+                                ->formatStateUsing(function ($state): string {
+                                    if (is_array($state)) {
+                                        return (string) json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                    }
+
+                                    $decoded = json_decode($state, true);
+
+                                    return (string) json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                                }),
+                        ])
+                        ->collapsible()
+                        ->collapsed(),
+                    // @codeCoverageIgnoreEnd
+                ]),
+            TableRowAction::make('retry')
+                ->label('Retry')
+                ->icon('heroicon-o-arrow-path')
+                ->color('success')
+                ->requiresConfirmation()
+                ->action(function (FailedJob $record): void {
+                    Artisan::call('queue:retry', ['id' => [$record->uuid]]);
+
+                    Notification::make()
+                        ->success()
+                        ->title('Job Queued for Retry')
+                        ->body("Job {$record->uuid} has been queued for retry.")
+                        ->send();
+                }),
+            TableRowAction::make('delete')
+                ->label('Delete')
+                ->icon('heroicon-o-trash')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->action(function (FailedJob $record): void {
+                    Artisan::call('queue:forget', ['id' => $record->uuid]);
+
+                    Notification::make()
+                        ->success()
+                        ->title('Job Deleted')
+                        ->body("Failed job {$record->uuid} has been deleted.")
+                        ->send();
+                }),
+        ];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function getToolbarActions(): array
+    {
+        return [
+            BulkActionGroup::make([
+                BulkAction::make('retry')
+                    ->label('Retry Selected')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(function (Collection $records): void {
+                        $uuids = $records->pluck('uuid')->toArray();
+                        Artisan::call('queue:retry', ['id' => $uuids]);
+
+                        Notification::make()
+                            ->success()
+                            ->title('Jobs Queued for Retry')
+                            ->body(count($uuids).' jobs have been queued for retry.')
+                            ->send();
+                    })
+                    ->deselectRecordsAfterCompletion(),
+                DeleteBulkAction::make()
+                    ->action(function (Collection $records): void {
+                        foreach ($records as $record) {
+                            Artisan::call('queue:forget', ['id' => $record->uuid]);
+                        }
+
+                        Notification::make()
+                            ->success()
+                            ->title('Jobs Deleted')
+                            ->body($records->count().' failed jobs have been deleted.')
+                            ->send();
+                    }),
+            ]),
+        ];
+    }
+
     public function table(Table $table): Table
     {
         return $table
             ->query(FailedJob::query())
-            ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
-                TextColumn::make('job_name')
-                    ->label('Job')
-                    ->searchable(query: function ($query, string $search): void {
-                        $query->where('payload', 'like', "%{$search}%");
-                    })
-                    ->limit(40),
-                TextColumn::make('queue')
-                    ->badge()
-                    ->color('gray')
-                    ->sortable(),
-                TextColumn::make('connection')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('exception_summary')
-                    ->label('Exception')
-                    ->limit(60)
-                    ->tooltip(fn (FailedJob $record): string => $record->exception_summary)
-                    ->wrap(),
-                TextColumn::make('failed_at')
-                    ->label('Failed At')
-                    ->dateTime()
-                    ->sortable(),
-            ])
+            ->columns($this->getColumns())
             ->defaultSort('failed_at', 'desc')
-            ->filters([
-                SelectFilter::make('queue')
-                    ->options(fn () => FailedJob::query()
-                        ->distinct()
-                        ->pluck('queue', 'queue')
-                        ->toArray()),
-                SelectFilter::make('connection')
-                    ->options(fn () => FailedJob::query()
-                        ->distinct()
-                        ->pluck('connection', 'connection')
-                        ->toArray()),
-            ])
-            ->recordActions([
-                ViewAction::make()
-                    ->modalHeading(fn (FailedJob $record): string => "Failed Job: {$record->job_name}")
-                    ->infolist([
-                        Section::make('Job Details')
-                            ->schema([
-                                TextEntry::make('id')
-                                    ->label('ID'),
-                                TextEntry::make('uuid')
-                                    ->label('UUID')
-                                    ->copyable(),
-                                TextEntry::make('job_name')
-                                    ->label('Job Name'),
-                                TextEntry::make('queue')
-                                    ->badge()
-                                    ->color('gray'),
-                                TextEntry::make('connection'),
-                                TextEntry::make('failed_at')
-                                    ->label('Failed At')
-                                    ->dateTime(),
-                            ])
-                            ->columns(3),
-                        Section::make('Exception')
-                            ->schema([
-                                TextEntry::make('exception')
-                                    ->label('')
-                                    ->columnSpanFull(),
-                            ])
-                            ->collapsible(),
-                        // @codeCoverageIgnoreStart — Filament closure tree: pcov cannot attribute coverage to lazy-evaluated closures
-                        Section::make('Payload')
-                            ->schema([
-                                TextEntry::make('payload')
-                                    ->label('')
-                                    ->columnSpanFull()
-                                    ->formatStateUsing(function ($state): string {
-                                        if (is_array($state)) {
-                                            return (string) json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                        }
-
-                                        $decoded = json_decode($state, true);
-
-                                        return (string) json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                                    }),
-                            ])
-                            ->collapsible()
-                            ->collapsed(),
-                    ]),
-                TableRowAction::make('retry')
-                    ->label('Retry')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->action(function (FailedJob $record): void {
-                        Artisan::call('queue:retry', ['id' => [$record->uuid]]);
-
-                        Notification::make()
-                            ->success()
-                            ->title('Job Queued for Retry')
-                            ->body("Job {$record->uuid} has been queued for retry.")
-                            ->send();
-                    }),
-                TableRowAction::make('delete')
-                    ->label('Delete')
-                    ->icon('heroicon-o-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(function (FailedJob $record): void {
-                        Artisan::call('queue:forget', ['id' => $record->uuid]);
-
-                        Notification::make()
-                            ->success()
-                            ->title('Job Deleted')
-                            ->body("Failed job {$record->uuid} has been deleted.")
-                            ->send();
-                    }),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    BulkAction::make('retry')
-                        ->label('Retry Selected')
-                        ->icon('heroicon-o-arrow-path')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->action(function (Collection $records): void {
-                            $uuids = $records->pluck('uuid')->toArray();
-                            Artisan::call('queue:retry', ['id' => $uuids]);
-
-                            Notification::make()
-                                ->success()
-                                ->title('Jobs Queued for Retry')
-                                ->body(count($uuids).' jobs have been queued for retry.')
-                                ->send();
-                        })
-                        ->deselectRecordsAfterCompletion(),
-                    DeleteBulkAction::make()
-                        ->action(function (Collection $records): void {
-                            foreach ($records as $record) {
-                                Artisan::call('queue:forget', ['id' => $record->uuid]);
-                            }
-
-                            Notification::make()
-                                ->success()
-                                ->title('Jobs Deleted')
-                                ->body($records->count().' failed jobs have been deleted.')
-                                ->send();
-                        }),
-                ]),
-            ])
-            // @codeCoverageIgnoreEnd
+            ->filters($this->getFilters())
+            ->recordActions($this->getRecordActions())
+            ->toolbarActions($this->getToolbarActions())
             ->emptyStateHeading('No failed jobs')
             ->emptyStateDescription('All jobs have completed successfully.')
             ->emptyStateIcon('heroicon-o-check-circle');

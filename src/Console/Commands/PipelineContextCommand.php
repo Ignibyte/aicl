@@ -69,39 +69,57 @@ class PipelineContextCommand extends Command
 
         // If a specific phase is requested, extract just that section
         if ($phase) {
-            $section = $this->extractPhaseSection($content, (int) $phase);
-            if ($section) {
-                $this->line($section);
-            } else {
-                $this->components->warn("Phase {$phase} section not found in pipeline document.");
-            }
-
-            return self::SUCCESS;
+            return $this->outputPhaseSection($content, (int) $phase);
         }
 
         // If an agent is specified, extract all phases relevant to that agent
         if ($agent) {
-            $phases = $this->getAgentPhases($agent);
-            $found = false;
-
-            foreach ($phases as $p) {
-                $section = $this->extractPhaseSection($content, $p);
-                if ($section) {
-                    $this->line($section);
-                    $this->newLine();
-                    $found = true;
-                }
-            }
-
-            if (! $found) {
-                $this->components->warn("No relevant phase sections found for agent: {$agent}");
-            }
-
-            return self::SUCCESS;
+            return $this->outputAgentSections($content, $agent);
         }
 
         // No filters — output the full document (fallback)
         $this->line($content);
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Output a single phase section from the pipeline document.
+     */
+    private function outputPhaseSection(string $content, int $phase): int
+    {
+        $section = $this->extractPhaseSection($content, $phase);
+        if ($section) {
+            $this->line($section);
+
+            return self::SUCCESS;
+        }
+
+        $this->components->warn("Phase {$phase} section not found in pipeline document.");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Output all phase sections relevant to a given agent role.
+     */
+    private function outputAgentSections(string $content, string $agent): int
+    {
+        $phases = $this->getAgentPhases($agent);
+        $found = false;
+
+        foreach ($phases as $p) {
+            $section = $this->extractPhaseSection($content, $p);
+            if ($section) {
+                $this->line($section);
+                $this->newLine();
+                $found = true;
+            }
+        }
+
+        if (! $found) {
+            $this->components->warn("No relevant phase sections found for agent: {$agent}");
+        }
 
         return self::SUCCESS;
     }

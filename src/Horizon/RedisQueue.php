@@ -165,7 +165,7 @@ class RedisQueue extends BaseQueue
     {
         // @codeCoverageIgnoreStart — Horizon process management
         return tap(parent::pop($queue, $index), function ($result) use ($queue) {
-            if ($result) {
+            if ($result !== null) {
                 $this->event($this->getQueue($queue), new JobReserved($result->getReservedJob()));
             }
         });
@@ -229,7 +229,7 @@ class RedisQueue extends BaseQueue
      */
     protected function event($queue, $event)
     {
-        if ($this->container && $this->container->bound(Dispatcher::class)) {
+        if ($this->container !== null && $this->container->bound(Dispatcher::class)) {
             $queue = Str::replaceFirst('queues:', '', $queue);
 
             $this->container->make(Dispatcher::class)->dispatch(

@@ -43,6 +43,8 @@ abstract class BasePolicy
      *
      * @param User  $user   The authenticated user
      * @param Model $record The model instance being accessed
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function view(User $user, Model $record): bool
     {
@@ -64,6 +66,8 @@ abstract class BasePolicy
      *
      * @param User  $user   The authenticated user
      * @param Model $record The model instance being updated
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function update(User $user, Model $record): bool
     {
@@ -75,6 +79,8 @@ abstract class BasePolicy
      *
      * @param User  $user   The authenticated user
      * @param Model $record The model instance being deleted
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function delete(User $user, Model $record): bool
     {
@@ -86,6 +92,8 @@ abstract class BasePolicy
      *
      * @param User  $user   The authenticated user
      * @param Model $record The soft-deleted model instance
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function restore(User $user, Model $record): bool
     {
@@ -99,6 +107,8 @@ abstract class BasePolicy
      *
      * @param User  $user   The authenticated user
      * @param Model $record The model instance being force-deleted
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function forceDelete(User $user, Model $record): bool
     {
@@ -136,6 +146,8 @@ abstract class BasePolicy
      *
      * @param User  $user   The authenticated user
      * @param Model $record The model instance being replicated
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function replicate(User $user, Model $record): bool
     {

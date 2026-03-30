@@ -40,7 +40,7 @@ class Horizon
     public static function check($request)
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        return (static::$authUsing ?: function () {
+        return (static::$authUsing !== null ? static::$authUsing : function () {
             return app()->environment('local');
         })($request);
         // @codeCoverageIgnoreEnd
@@ -64,6 +64,8 @@ class Horizon
      * @param string $connection
      *
      * @throws Exception
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public static function use($connection)
     {
@@ -75,7 +77,8 @@ class Horizon
             // @codeCoverageIgnoreEnd
         }
 
-        $config['options']['prefix'] = config('aicl-horizon.prefix') ?: 'horizon:';
+        $configPrefix = config('aicl-horizon.prefix');
+        $config['options']['prefix'] = ($configPrefix !== null && $configPrefix !== '') ? $configPrefix : 'horizon:';
 
         config(['database.redis.horizon' => $config]);
     }

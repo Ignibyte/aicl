@@ -48,7 +48,7 @@ class TerminateCommand extends Command
      */
     public function handle(CacheFactory $cache, MasterSupervisorRepository $masters)
     {
-        if (config('aicl-horizon.fast_termination')) {
+        if ((bool) config('aicl-horizon.fast_termination')) {
             $cache->forever(
                 'aicl:horizon:terminate:wait', $this->option('wait')
             );

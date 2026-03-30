@@ -96,7 +96,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     {
         static $token;
 
-        if (! $token) {
+        if ($token === null) {
             $token = Str::random(4);
         }
 
@@ -110,9 +110,11 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
      */
     public static function basename()
     {
-        return static::$nameResolver
+        $hostname = gethostname();
+
+        return static::$nameResolver !== null
             ? call_user_func(static::$nameResolver)
-            : Str::slug(gethostname() ?: 'unknown');
+            : Str::slug($hostname !== false ? $hostname : 'unknown');
     }
 
     /**
@@ -157,6 +159,8 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
      * Terminate this master supervisor and all of its supervisors.
      *
      * @param int $status
+     *
+     * @SuppressWarnings(PHPMD.CountInLoopExpression)
      */
     public function terminate($status = 0)
     {
@@ -190,7 +194,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
             sleep(1);
         }
 
-        if (config('aicl-horizon.fast_termination')) {
+        if ((bool) config('aicl-horizon.fast_termination')) {
             app(CacheFactory::class)->forget('aicl:horizon:terminate:wait');
         }
 
@@ -285,7 +289,9 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
      */
     public function pid()
     {
-        return getmypid() ?: 0;
+        $pid = getmypid();
+
+        return $pid !== false ? $pid : 0;
     }
 
     /**
@@ -317,7 +323,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
      */
     public static function commandQueueFor($name = null)
     {
-        return $name ? 'master:'.$name : static::commandQueue();
+        return $name !== null ? 'master:'.$name : static::commandQueue();
     }
 
     /**
@@ -359,6 +365,8 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
      * Exit the PHP process.
      *
      * @param int $status
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression)
      */
     protected function exitProcess($status = 0)
     {

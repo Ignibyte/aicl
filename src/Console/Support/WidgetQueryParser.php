@@ -56,10 +56,12 @@ class WidgetQueryParser
 
             if ($function === 'count') {
                 $query .= '->count()';
-            } else {
-                $fieldName = $field !== '' && $field !== '*' ? "'{$field}'" : "'id'";
-                $query .= "->{$function}({$fieldName})";
+
+                return $query;
             }
+
+            $fieldName = $field !== '' && $field !== '*' ? "'{$field}'" : "'id'";
+            $query .= "->{$function}({$fieldName})";
 
             return $query;
         }
@@ -162,21 +164,18 @@ class WidgetQueryParser
      */
     protected function resolveValue(string $field, string $value): string
     {
-        // Special keyword: "now"
-        if (strtolower($value) === 'now') {
+        $lowerValue = strtolower($value);
+
+        // Special keywords
+        if ($lowerValue === 'now') {
             return 'now()';
         }
-
-        // Special keyword: "true" / "false"
-        if (strtolower($value) === 'true') {
+        if ($lowerValue === 'true') {
             return 'true';
         }
-
-        if (strtolower($value) === 'false') {
+        if ($lowerValue === 'false') {
             return 'false';
         }
-
-        // Numeric
         if (is_numeric($value)) {
             return $value;
         }
@@ -189,16 +188,31 @@ class WidgetQueryParser
         }
 
         // Check if it matches a known enum value
+        $enumMatch = $this->resolveEnumValue($value);
+        if ($enumMatch !== null) {
+            return $enumMatch;
+        }
+
+        // Default: string literal
+        return "'{$value}'";
+    }
+
+    /**
+     * Resolve a value against known enum cases, returning the enum reference or null.
+     */
+    protected function resolveEnumValue(string $value): ?string
+    {
+        $lowerValue = strtolower($value);
+
         foreach ($this->enums as $enumName => $cases) {
             foreach ($cases as $case) {
-                if (strtolower($case['case']) === strtolower($value)) {
+                if (strtolower($case['case']) === $lowerValue) {
                     return "\\App\\Enums\\{$enumName}::{$case['case']}->value";
                 }
             }
         }
 
-        // Default: string literal
-        return "'{$value}'";
+        return null;
     }
 
     /**

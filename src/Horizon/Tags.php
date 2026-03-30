@@ -33,10 +33,14 @@ class Tags
      * @param mixed $job
      *
      * @return array<int, string>
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public static function for($job)
     {
-        if ($tags = static::extractExplicitTags($job)) {
+        $tags = static::extractExplicitTags($job);
+
+        if ($tags !== []) {
             return $tags;
         }
 

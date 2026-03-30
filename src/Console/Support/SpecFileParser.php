@@ -23,6 +23,11 @@ use InvalidArgumentException;
  * - ## Observer Rules structured subsections (optional)
  * - ## Report Layout structured subsections (optional)
  */
+/**
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.ExcessiveClassLength)
+ */
 class SpecFileParser
 {
     /**
@@ -224,6 +229,21 @@ class SpecFileParser
         $type = $typeParts[0];
         $typeArgument = $typeParts[1] ?? null;
 
+        $this->validateFieldType($name, $type, $typeArgument);
+
+        // Parse modifiers — pipe-separated in spec files (per Amendment #3)
+        $modifiers = $this->parseModifiers($modifiersStr);
+
+        return $this->buildFieldDefinition($name, $type, $typeArgument, $modifiers);
+    }
+
+    /**
+     * Validate the field type and its argument.
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function validateFieldType(string $name, string $type, ?string $typeArgument): void
+    {
         if (! in_array($type, self::SUPPORTED_TYPES, true)) {
             throw new InvalidArgumentException(
                 "Unknown field type: '{$type}' for field '{$name}'. Supported: ".implode(', ', self::SUPPORTED_TYPES)
@@ -238,7 +258,16 @@ class SpecFileParser
             );
         }
 
-        // Validate type argument
+        $this->validateTypeArgument($name, $type, $typeArgument);
+    }
+
+    /**
+     * Validate the format of a type argument (enum class name or foreignId table name).
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function validateTypeArgument(string $name, string $type, ?string $typeArgument): void
+    {
         if ($type === 'enum' && $typeArgument !== null && ! preg_match('/^[A-Z][a-zA-Z0-9]+$/', $typeArgument)) {
             throw new InvalidArgumentException(
                 "Enum class name '{$typeArgument}' for field '{$name}' must be PascalCase."
@@ -250,20 +279,19 @@ class SpecFileParser
                 "Table name '{$typeArgument}' for field '{$name}' must be snake_case."
             );
         }
+    }
 
-        // Parse modifiers — pipe-separated in spec files (per Amendment #3)
-        $modifiers = $this->parseModifiers($modifiersStr);
-
+    /**
+     * Build a FieldDefinition from parsed type, argument, and modifiers.
+     *
+     * @param array<int, string> $modifiers
+     */
+    protected function buildFieldDefinition(string $name, string $type, ?string $typeArgument, array $modifiers): FieldDefinition
+    {
         $nullable = in_array('nullable', $modifiers, true);
         $unique = in_array('unique', $modifiers, true);
         $indexed = in_array('index', $modifiers, true);
-        $default = null;
-
-        foreach ($modifiers as $modifier) {
-            if (preg_match('/^default\((.+)\)$/', $modifier, $matches)) {
-                $default = $matches[1];
-            }
-        }
+        $default = $this->extractDefaultModifier($modifiers);
 
         // Apply type-specific defaults (same as FieldParser)
         if (in_array($type, ['text', 'date', 'datetime', 'json'], true) && ! $nullable) {
@@ -283,6 +311,22 @@ class SpecFileParser
             default: $default,
             indexed: $indexed,
         );
+    }
+
+    /**
+     * Extract the default value from a modifiers list.
+     *
+     * @param array<int, string> $modifiers
+     */
+    protected function extractDefaultModifier(array $modifiers): ?string
+    {
+        foreach ($modifiers as $modifier) {
+            if (preg_match('/^default\((.+)\)$/', $modifier, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -329,33 +373,7 @@ class SpecFileParser
                 continue;
             }
 
-            $tableContent = $lines[1] ?? '';
-            $rows = $this->parseMarkdownTable($tableContent);
-
-            $cases = [];
-
-            foreach ($rows as $row) {
-                $case = trim($row['case'] ?? '');
-                $label = trim($row['label'] ?? '');
-
-                if ($case === '' || $label === '') {
-                    continue;
-                }
-
-                $entry = ['case' => $case, 'label' => $label];
-
-                $color = trim($row['color'] ?? '');
-                if ($color !== '') {
-                    $entry['color'] = $color;
-                }
-
-                $icon = trim($row['icon'] ?? '');
-                if ($icon !== '') {
-                    $entry['icon'] = $icon;
-                }
-
-                $cases[] = $entry;
-            }
+            $cases = $this->parseEnumCases($lines[1] ?? '');
 
             if (! empty($cases)) {
                 $enums[$enumName] = $cases;
@@ -363,6 +381,42 @@ class SpecFileParser
         }
 
         return $enums;
+    }
+
+    /**
+     * Parse enum case rows from a table content string.
+     *
+     * @return array<int, array{case: string, label: string, color?: string, icon?: string}>
+     */
+    protected function parseEnumCases(string $tableContent): array
+    {
+        $rows = $this->parseMarkdownTable($tableContent);
+        $cases = [];
+
+        foreach ($rows as $row) {
+            $case = trim($row['case'] ?? '');
+            $label = trim($row['label'] ?? '');
+
+            if ($case === '' || $label === '') {
+                continue;
+            }
+
+            $entry = ['case' => $case, 'label' => $label];
+
+            $color = trim($row['color'] ?? '');
+            if ($color !== '') {
+                $entry['color'] = $color;
+            }
+
+            $icon = trim($row['icon'] ?? '');
+            if ($icon !== '') {
+                $entry['icon'] = $icon;
+            }
+
+            $cases[] = $entry;
+        }
+
+        return $cases;
     }
 
     /**
@@ -385,12 +439,7 @@ class SpecFileParser
         $content = $sections['States'];
 
         // Extract fenced code block content
-        if (preg_match('/```(?:states)?\s*\n(.*?)```/s', $content, $matches)) {
-            $transitionText = trim($matches[1]);
-        } else {
-            // Try without fenced block (plain lines with arrows)
-            $transitionText = trim($content);
-        }
+        $transitionText = $this->extractTransitionText($content);
 
         if ($transitionText === '') {
             // @codeCoverageIgnoreStart — Untestable in unit context
@@ -398,6 +447,29 @@ class SpecFileParser
             // @codeCoverageIgnoreEnd
         }
 
+        $parsed = $this->parseTransitionLines($transitionText);
+        $states = array_keys($parsed['allStates']);
+
+        // Check for explicit default
+        $default = $states[0] ?? '';
+        if (preg_match('/Default:\s*`?([a-z_]+)`?/i', $content, $defaultMatch)) {
+            $default = trim($defaultMatch[1]);
+        }
+
+        $result['states'] = $states;
+        $result['default'] = $default;
+        $result['transitions'] = $parsed['transitions'];
+
+        return $result;
+    }
+
+    /**
+     * Parse transition arrow lines into states and transitions.
+     *
+     * @return array{allStates: array<string, true>, transitions: array<string, array<int, string>>}
+     */
+    protected function parseTransitionLines(string $transitionText): array
+    {
         $allStates = [];
         $transitions = [];
 
@@ -431,19 +503,7 @@ class SpecFileParser
             }
         }
 
-        $states = array_keys($allStates);
-
-        // Check for explicit default
-        $default = $states[0] ?? '';
-        if (preg_match('/Default:\s*`?([a-z_]+)`?/i', $content, $defaultMatch)) {
-            $default = trim($defaultMatch[1]);
-        }
-
-        $result['states'] = $states;
-        $result['default'] = $default;
-        $result['transitions'] = $transitions;
-
-        return $result;
+        return ['allStates' => $allStates, 'transitions' => $transitions];
     }
 
     /**
@@ -575,113 +635,175 @@ class SpecFileParser
         $subsections = MarkdownTableParser::splitSections($sections['Widgets'], 3);
         $widgets = [];
 
-        // StatsOverview
-        if (isset($subsections['StatsOverview'])) {
-            $rows = MarkdownTableParser::parseMarkdownTable($subsections['StatsOverview']);
-            $metrics = [];
-
-            foreach ($rows as $row) {
-                $label = trim($row['metric'] ?? '');
-                $query = trim($row['query'] ?? '');
-                $color = trim($row['color'] ?? 'primary');
-                $conditionColor = trim($row['condition color'] ?? '');
-
-                if ($label === '' || $query === '') {
-                    continue;
-                }
-
-                $metrics[] = new MetricDefinition(
-                    label: $label,
-                    query: $query,
-                    color: $color,
-                    conditionColor: $conditionColor !== '' ? $conditionColor : null,
-                );
-            }
-
-            if (! empty($metrics)) {
-                $widgets[] = new WidgetSpec(
-                    type: 'stats',
-                    name: 'StatsOverview',
-                    metrics: $metrics,
-                );
-            }
-        }
-
-        // Chart
-        if (isset($subsections['Chart'])) {
-            $rows = MarkdownTableParser::parseMarkdownTable($subsections['Chart']);
-
-            foreach ($rows as $row) {
-                $chartType = trim($row['type'] ?? 'doughnut');
-                $groupBy = trim($row['group by'] ?? $row['groupby'] ?? '');
-                $colorsStr = trim($row['colors'] ?? '');
-
-                $colors = [];
-                if ($colorsStr !== '') {
-                    foreach (explode(',', $colorsStr) as $pair) {
-                        $pair = trim($pair);
-                        if (str_contains($pair, ':')) {
-                            [$key, $value] = array_map('trim', explode(':', $pair, 2));
-                            $colors[$key] = $value;
-                        }
-                    }
-                }
-
-                $widgets[] = new WidgetSpec(
-                    type: 'chart',
-                    name: 'Chart',
-                    chartType: $chartType,
-                    groupBy: $groupBy !== '' ? $groupBy : null,
-                    colors: $colors,
-                );
-            }
-        }
-
-        // Table
-        if (isset($subsections['Table'])) {
-            $rows = MarkdownTableParser::parseMarkdownTable($subsections['Table']);
-
-            foreach ($rows as $row) {
-                $widgetName = trim($row['name'] ?? '');
-                $query = trim($row['query'] ?? '');
-                $columnsStr = trim($row['columns'] ?? '');
-
-                if ($widgetName === '') {
-                    continue;
-                }
-
-                $columns = [];
-                if ($columnsStr !== '') {
-                    foreach (explode(',', $columnsStr) as $colDef) {
-                        $colDef = trim($colDef);
-                        if ($colDef === '') {
-                            continue;
-                        }
-
-                        if (str_contains($colDef, ':')) {
-                            [$colName, $colFormat] = array_map('trim', explode(':', $colDef, 2));
-                        } else {
-                            $colName = $colDef;
-                            $colFormat = '';
-                        }
-
-                        $columns[] = new ColumnDefinition(
-                            name: $colName,
-                            format: $colFormat,
-                        );
-                    }
-                }
-
-                $widgets[] = new WidgetSpec(
-                    type: 'table',
-                    name: $widgetName,
-                    query: $query !== '' ? $query : null,
-                    columns: $columns,
-                );
-            }
-        }
+        $this->parseStatsOverviewWidget($subsections, $widgets);
+        $this->parseChartWidgets($subsections, $widgets);
+        $this->parseTableWidgets($subsections, $widgets);
 
         return ! empty($widgets) ? $widgets : null;
+    }
+
+    /**
+     * Parse a StatsOverview widget subsection.
+     *
+     * @param array<string, string>  $subsections
+     * @param array<int, WidgetSpec> $widgets
+     */
+    protected function parseStatsOverviewWidget(array $subsections, array &$widgets): void
+    {
+        if (! isset($subsections['StatsOverview'])) {
+            return;
+        }
+
+        $rows = MarkdownTableParser::parseMarkdownTable($subsections['StatsOverview']);
+        $metrics = [];
+
+        foreach ($rows as $row) {
+            $label = trim($row['metric'] ?? '');
+            $query = trim($row['query'] ?? '');
+            $color = trim($row['color'] ?? 'primary');
+            $conditionColor = trim($row['condition color'] ?? '');
+
+            if ($label === '' || $query === '') {
+                continue;
+            }
+
+            $metrics[] = new MetricDefinition(
+                label: $label,
+                query: $query,
+                color: $color,
+                conditionColor: $conditionColor !== '' ? $conditionColor : null,
+            );
+        }
+
+        if (! empty($metrics)) {
+            $widgets[] = new WidgetSpec(
+                type: 'stats',
+                name: 'StatsOverview',
+                metrics: $metrics,
+            );
+        }
+    }
+
+    /**
+     * Parse Chart widget subsections.
+     *
+     * @param array<string, string>  $subsections
+     * @param array<int, WidgetSpec> $widgets
+     */
+    protected function parseChartWidgets(array $subsections, array &$widgets): void
+    {
+        if (! isset($subsections['Chart'])) {
+            return;
+        }
+
+        $rows = MarkdownTableParser::parseMarkdownTable($subsections['Chart']);
+
+        foreach ($rows as $row) {
+            $chartType = trim($row['type'] ?? 'doughnut');
+            $groupBy = trim($row['group by'] ?? $row['groupby'] ?? '');
+            $colorsStr = trim($row['colors'] ?? '');
+
+            $colors = $this->parseColorPairs($colorsStr);
+
+            $widgets[] = new WidgetSpec(
+                type: 'chart',
+                name: 'Chart',
+                chartType: $chartType,
+                groupBy: $groupBy !== '' ? $groupBy : null,
+                colors: $colors,
+            );
+        }
+    }
+
+    /**
+     * Parse comma-separated color pairs (key:value format).
+     *
+     * @return array<string, string>
+     */
+    protected function parseColorPairs(string $colorsStr): array
+    {
+        $colors = [];
+
+        if ($colorsStr === '') {
+            return $colors;
+        }
+
+        foreach (explode(',', $colorsStr) as $pair) {
+            $pair = trim($pair);
+            if (str_contains($pair, ':')) {
+                [$key, $value] = array_map('trim', explode(':', $pair, 2));
+                $colors[$key] = $value;
+            }
+        }
+
+        return $colors;
+    }
+
+    /**
+     * Parse Table widget subsections.
+     *
+     * @param array<string, string>  $subsections
+     * @param array<int, WidgetSpec> $widgets
+     */
+    protected function parseTableWidgets(array $subsections, array &$widgets): void
+    {
+        if (! isset($subsections['Table'])) {
+            return;
+        }
+
+        $rows = MarkdownTableParser::parseMarkdownTable($subsections['Table']);
+
+        foreach ($rows as $row) {
+            $widgetName = trim($row['name'] ?? '');
+            $query = trim($row['query'] ?? '');
+            $columnsStr = trim($row['columns'] ?? '');
+
+            if ($widgetName === '') {
+                continue;
+            }
+
+            $columns = $this->parseColumnDefinitions($columnsStr);
+
+            $widgets[] = new WidgetSpec(
+                type: 'table',
+                name: $widgetName,
+                query: $query !== '' ? $query : null,
+                columns: $columns,
+            );
+        }
+    }
+
+    /**
+     * Parse comma-separated column definitions into ColumnDefinition objects.
+     *
+     * @return array<int, ColumnDefinition>
+     */
+    protected function parseColumnDefinitions(string $columnsStr): array
+    {
+        $columns = [];
+
+        if ($columnsStr === '') {
+            return $columns;
+        }
+
+        foreach (explode(',', $columnsStr) as $colDef) {
+            $colDef = trim($colDef);
+            if ($colDef === '') {
+                continue;
+            }
+
+            $colFormat = '';
+            if (str_contains($colDef, ':')) {
+                [$colDef, $colFormat] = array_map('trim', explode(':', $colDef, 2));
+            }
+
+            $columns[] = new ColumnDefinition(
+                name: $colDef,
+                format: $colFormat,
+            );
+        }
+
+        return $columns;
     }
 
     /**
@@ -707,49 +829,61 @@ class SpecFileParser
                 continue;
             }
 
-            $rows = MarkdownTableParser::parseMarkdownTable($content);
+            $notifSpec = $this->parseNotificationSubsection($sectionName, $content);
 
-            if (empty($rows)) {
-                continue;
+            if ($notifSpec !== null) {
+                $notifications[] = $notifSpec;
             }
-
-            // Convert key-value rows into an associative map
-            $data = [];
-
-            foreach ($rows as $row) {
-                $field = trim($row['field'] ?? '');
-                $value = trim($row['value'] ?? '');
-
-                if ($field !== '' && $value !== '') {
-                    $data[strtolower($field)] = $value;
-                }
-            }
-
-            $trigger = $data['trigger'] ?? '';
-            $title = $data['title'] ?? '';
-
-            if ($trigger === '' || $title === '') {
-                continue;
-            }
-
-            $channels = ['database'];
-            if (isset($data['channels'])) {
-                $channels = array_map('trim', explode(',', $data['channels']));
-            }
-
-            $notifications[] = new NotificationSpec(
-                name: $sectionName,
-                trigger: $trigger,
-                title: $title,
-                body: $data['body'] ?? '',
-                icon: $data['icon'] ?? 'heroicon-o-bell',
-                color: $data['color'] ?? 'primary',
-                recipient: $data['recipient'] ?? 'owner',
-                channels: $channels,
-            );
         }
 
         return ! empty($notifications) ? $notifications : null;
+    }
+
+    /**
+     * Parse a single notification subsection into a NotificationSpec.
+     */
+    protected function parseNotificationSubsection(string $sectionName, string $content): ?NotificationSpec
+    {
+        $rows = MarkdownTableParser::parseMarkdownTable($content);
+
+        if (empty($rows)) {
+            return null;
+        }
+
+        // Convert key-value rows into an associative map
+        $data = [];
+
+        foreach ($rows as $row) {
+            $field = trim($row['field'] ?? '');
+            $value = trim($row['value'] ?? '');
+
+            if ($field !== '' && $value !== '') {
+                $data[strtolower($field)] = $value;
+            }
+        }
+
+        $trigger = $data['trigger'] ?? '';
+        $title = $data['title'] ?? '';
+
+        if ($trigger === '' || $title === '') {
+            return null;
+        }
+
+        $channels = ['database'];
+        if (isset($data['channels'])) {
+            $channels = array_map('trim', explode(',', $data['channels']));
+        }
+
+        return new NotificationSpec(
+            name: $sectionName,
+            trigger: $trigger,
+            title: $title,
+            body: $data['body'] ?? '',
+            icon: $data['icon'] ?? 'heroicon-o-bell',
+            color: $data['color'] ?? 'primary',
+            recipient: $data['recipient'] ?? 'owner',
+            channels: $channels,
+        );
     }
 
     /**
@@ -773,58 +907,42 @@ class SpecFileParser
         $rules = [];
 
         foreach ($subsections as $sectionName => $content) {
-            if ($sectionName === '_header' || $sectionName === '_name') {
-                continue;
-            }
-
-            $rows = MarkdownTableParser::parseMarkdownTable($content);
-
-            if (empty($rows)) {
-                continue;
-            }
-
-            $event = $this->resolveObserverEvent($sectionName);
-
-            if ($event === null) {
-                continue;
-            }
-
-            foreach ($rows as $row) {
-                if ($event === 'updated') {
-                    // On Update table: | Watch Field | Action | Details |
-                    $watchField = trim($row['watch field'] ?? $row['watch_field'] ?? '');
-                    $action = strtolower(trim($row['action'] ?? ''));
-                    $details = trim($row['details'] ?? '');
-
-                    if ($action === '' || $details === '') {
-                        continue;
-                    }
-
-                    $rules[] = new ObserverRuleSpec(
-                        event: $event,
-                        action: $action,
-                        details: $details,
-                        watchField: $watchField !== '' ? $watchField : null,
-                    );
-                } else {
-                    // On Create / On Delete table: | Action | Details |
-                    $action = strtolower(trim($row['action'] ?? ''));
-                    $details = trim($row['details'] ?? '');
-
-                    if ($action === '' || $details === '') {
-                        continue;
-                    }
-
-                    $rules[] = new ObserverRuleSpec(
-                        event: $event,
-                        action: $action,
-                        details: $details,
-                    );
-                }
-            }
+            $this->parseObserverSubsection($sectionName, $content, $rules);
         }
 
         return ! empty($rules) ? $rules : null;
+    }
+
+    /**
+     * Parse a single observer rule subsection and append rules.
+     *
+     * @param array<int, ObserverRuleSpec> $rules
+     */
+    protected function parseObserverSubsection(string $sectionName, string $content, array &$rules): void
+    {
+        if ($sectionName === '_header' || $sectionName === '_name') {
+            return;
+        }
+
+        $rows = MarkdownTableParser::parseMarkdownTable($content);
+
+        if (empty($rows)) {
+            return;
+        }
+
+        $event = $this->resolveObserverEvent($sectionName);
+
+        if ($event === null) {
+            return;
+        }
+
+        foreach ($rows as $row) {
+            $rule = $this->parseObserverRow($event, $row);
+
+            if ($rule !== null) {
+                $rules[] = $rule;
+            }
+        }
     }
 
     /**
@@ -840,57 +958,8 @@ class SpecFileParser
 
         $subsections = MarkdownTableParser::splitSections($sections['Report Layout'], 3);
 
-        $singleReport = [];
-        $listReport = [];
-
-        // Parse ### Single Report
-        if (isset($subsections['Single Report'])) {
-            $rows = MarkdownTableParser::parseMarkdownTable($subsections['Single Report']);
-
-            foreach ($rows as $row) {
-                $section = trim($row['section'] ?? '');
-                $type = strtolower(trim($row['type'] ?? ''));
-                $fields = trim($row['fields'] ?? '');
-
-                if ($section === '' || $type === '' || $fields === '') {
-                    continue;
-                }
-
-                $parsedFields = array_map(
-                    fn (string $f) => ReportFieldSpec::parse($f),
-                    array_filter(array_map('trim', explode(',', $fields)))
-                );
-
-                $singleReport[] = new ReportSectionSpec(
-                    section: $section,
-                    type: $type,
-                    fields: $fields,
-                    parsedFields: $parsedFields,
-                );
-            }
-        }
-
-        // Parse ### List Report
-        if (isset($subsections['List Report'])) {
-            $rows = MarkdownTableParser::parseMarkdownTable($subsections['List Report']);
-
-            foreach ($rows as $row) {
-                $column = trim($row['column'] ?? '');
-                $format = trim($row['format'] ?? '');
-
-                if ($column === '' || $format === '') {
-                    continue;
-                }
-
-                $width = trim($row['width'] ?? '');
-
-                $listReport[] = new ReportColumnSpec(
-                    column: $column,
-                    format: $format,
-                    width: $width,
-                );
-            }
-        }
+        $singleReport = $this->parseSingleReportSections($subsections);
+        $listReport = $this->parseListReportColumns($subsections);
 
         if (empty($singleReport) && empty($listReport)) {
             return null;
@@ -900,6 +969,145 @@ class SpecFileParser
             singleReport: $singleReport,
             listReport: $listReport,
         );
+    }
+
+    /**
+     * Parse ### Single Report subsection rows.
+     *
+     * @param array<string, string> $subsections
+     *
+     * @return array<int, ReportSectionSpec>
+     */
+    protected function parseSingleReportSections(array $subsections): array
+    {
+        if (! isset($subsections['Single Report'])) {
+            return [];
+        }
+
+        $rows = MarkdownTableParser::parseMarkdownTable($subsections['Single Report']);
+        $sections = [];
+
+        foreach ($rows as $row) {
+            $section = trim($row['section'] ?? '');
+            $type = strtolower(trim($row['type'] ?? ''));
+            $fields = trim($row['fields'] ?? '');
+
+            if ($section === '' || $type === '' || $fields === '') {
+                continue;
+            }
+
+            $parsedFields = array_map(
+                fn (string $f) => ReportFieldSpec::parse($f),
+                array_filter(array_map('trim', explode(',', $fields)))
+            );
+
+            $sections[] = new ReportSectionSpec(
+                section: $section,
+                type: $type,
+                fields: $fields,
+                parsedFields: $parsedFields,
+            );
+        }
+
+        return $sections;
+    }
+
+    /**
+     * Parse ### List Report subsection rows.
+     *
+     * @param array<string, string> $subsections
+     *
+     * @return array<int, ReportColumnSpec>
+     */
+    protected function parseListReportColumns(array $subsections): array
+    {
+        if (! isset($subsections['List Report'])) {
+            return [];
+        }
+
+        $rows = MarkdownTableParser::parseMarkdownTable($subsections['List Report']);
+        $columns = [];
+
+        foreach ($rows as $row) {
+            $column = trim($row['column'] ?? '');
+            $format = trim($row['format'] ?? '');
+
+            if ($column === '' || $format === '') {
+                continue;
+            }
+
+            $width = trim($row['width'] ?? '');
+
+            $columns[] = new ReportColumnSpec(
+                column: $column,
+                format: $format,
+                width: $width,
+            );
+        }
+
+        return $columns;
+    }
+
+    /**
+     * Parse a single observer rule row for a given event.
+     *
+     * @param array<string, string> $row
+     */
+    protected function parseObserverRow(string $event, array $row): ?ObserverRuleSpec
+    {
+        if ($event === 'updated') {
+            return $this->parseUpdateObserverRow($event, $row);
+        }
+
+        // On Create / On Delete table: | Action | Details |
+        $action = strtolower(trim($row['action'] ?? ''));
+        $details = trim($row['details'] ?? '');
+
+        if ($action === '' || $details === '') {
+            return null;
+        }
+
+        return new ObserverRuleSpec(
+            event: $event,
+            action: $action,
+            details: $details,
+        );
+    }
+
+    /**
+     * Parse an 'updated' event observer row with watch field.
+     *
+     * @param array<string, string> $row
+     */
+    protected function parseUpdateObserverRow(string $event, array $row): ?ObserverRuleSpec
+    {
+        $watchField = trim($row['watch field'] ?? $row['watch_field'] ?? '');
+        $action = strtolower(trim($row['action'] ?? ''));
+        $details = trim($row['details'] ?? '');
+
+        if ($action === '' || $details === '') {
+            return null;
+        }
+
+        return new ObserverRuleSpec(
+            event: $event,
+            action: $action,
+            details: $details,
+            watchField: $watchField !== '' ? $watchField : null,
+        );
+    }
+
+    /**
+     * Extract transition text from fenced code block or plain content.
+     */
+    protected function extractTransitionText(string $content): string
+    {
+        if (preg_match('/```(?:states)?\s*\n(.*?)```/s', $content, $matches)) {
+            return trim($matches[1]);
+        }
+
+        // Try without fenced block (plain lines with arrows)
+        return trim($content);
     }
 
     /**

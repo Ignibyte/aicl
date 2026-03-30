@@ -36,7 +36,9 @@ class AiConversationExporter extends Exporter
     {
         $body = 'Your AI conversation export has completed and '.number_format($export->successful_rows).' '.str('row')->plural($export->successful_rows).' exported.';
 
-        if ($failedRowsCount = $export->getFailedRowsCount()) {
+        $failedRowsCount = $export->getFailedRowsCount();
+
+        if ($failedRowsCount) {
             $body .= ' '.number_format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to export.';
         }
 

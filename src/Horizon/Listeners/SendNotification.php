@@ -21,14 +21,14 @@ class SendNotification
     {
         $notification = $event->toNotification();
 
-        if (! app(Lock::class)->get('notification:'.$notification->signature(), 300)) {
+        if (app(Lock::class)->get('notification:'.$notification->signature(), 300) !== true) {
             return;
         }
 
         // Route to admin email configured in the application
         $adminEmail = config('aicl.notifications.admin_email', config('mail.from.address'));
 
-        if ($adminEmail) {
+        if ($adminEmail !== null && $adminEmail !== '') {
             Notification::route('mail', $adminEmail)
                 ->notify($notification);
         }

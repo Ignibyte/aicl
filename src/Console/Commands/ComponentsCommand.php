@@ -7,6 +7,7 @@ namespace Aicl\Console\Commands;
 use Aicl\Components\ComponentDefinition;
 use Aicl\Components\ComponentRegistry;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 /**
  * CLI for the component registry: list, show, validate, recommend, cache, clear.
@@ -42,11 +43,13 @@ class ComponentsCommand extends Command
     {
         $components = $registry->all();
 
-        if ($category = $this->option('category')) {
+        $category = $this->option('category');
+        if ($category) {
             $components = $registry->forCategory($category);
         }
 
-        if ($context = $this->option('context')) {
+        $context = $this->option('context');
+        if ($context) {
             $components = $registry->forContext($context);
         }
 
@@ -107,6 +110,17 @@ class ComponentsCommand extends Command
             return self::SUCCESS;
         }
 
+        $this->printComponentDetails($component);
+        $this->printComponentSections($component);
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Print the core details of a component.
+     */
+    private function printComponentDetails(ComponentDefinition $component): void
+    {
         $this->info($component->name);
         $this->line("  Tag: {$component->tag}");
         $this->line("  Category: {$component->category}");
@@ -139,8 +153,13 @@ class ComponentsCommand extends Command
                 $this->line("    Note: {$component->filamentEquivalent['note']}");
             }
         }
+    }
 
-        // Props
+    /**
+     * Print component props, slots, and variants sections.
+     */
+    private function printComponentSections(ComponentDefinition $component): void
+    {
         if (count($component->props) > 0) {
             $this->newLine();
             $this->info('  Props:');
@@ -157,7 +176,6 @@ class ComponentsCommand extends Command
             $this->table(['Name', 'Type', 'Required', 'Default', 'Description'], $propRows);
         }
 
-        // Slots
         if (count($component->slots) > 0) {
             $this->newLine();
             $this->info('  Slots:');
@@ -166,7 +184,6 @@ class ComponentsCommand extends Command
             }
         }
 
-        // Variants
         if (count($component->variants) > 0) {
             $this->newLine();
             $this->info('  Variants:');
@@ -174,8 +191,6 @@ class ComponentsCommand extends Command
                 $this->line("    {$name}: ".($variant['description'] ?? 'No description'));
             }
         }
-
-        return self::SUCCESS;
     }
 
     private function handleValidate(ComponentRegistry $registry): int
@@ -187,7 +202,7 @@ class ComponentsCommand extends Command
         $this->info("Validating {$components->count()} component manifests...");
         $this->newLine();
 
-        foreach ($components as $tag => $component) {
+        foreach ($components as $component) {
             $this->line("  ✓ {$component->tag} ({$component->source})");
         }
 
@@ -272,7 +287,29 @@ class ComponentsCommand extends Command
         $grouped = $components->groupBy('category');
         $order = ['metric', 'data', 'collection', 'action', 'status', 'timeline', 'layout', 'feedback', 'utility'];
 
-        // Build tree content for both console and file output
+        $markdown = $this->buildTreeMarkdown($components, $grouped, $order);
+
+        // Write to file
+        $docsPath = dirname(__DIR__, 3).'/resources/docs/component-decision-tree.md';
+        $this->ensureDirectoryExists(dirname($docsPath));
+        file_put_contents($docsPath, $markdown);
+
+        // Console output (compact tree view)
+        $this->printTreeConsoleOutput($components, $grouped, $order);
+        $this->info("Decision tree written to: {$docsPath}");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Build the full Markdown content for the decision tree document.
+     *
+     * @param Collection<string, ComponentDefinition>                  $components
+     * @param Collection<string, Collection<int, ComponentDefinition>> $grouped
+     * @param array<int, string>                                       $order
+     */
+    private function buildTreeMarkdown($components, $grouped, array $order): string
+    {
         $lines = [];
         $lines[] = '# AICL Component Decision Tree';
         $lines[] = '';
@@ -281,6 +318,22 @@ class ComponentsCommand extends Command
         $lines[] = '> Components: '.$components->count();
         $lines[] = '';
 
+        $this->buildCategoryMarkdown($grouped, $order, $lines);
+        $this->buildCompositionHierarchy($components, $lines);
+        $this->buildContextCrosswalk($components, $lines);
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Build markdown for each category section.
+     *
+     * @param Collection<string, Collection<int, ComponentDefinition>> $grouped
+     * @param array<int, string>                                       $order
+     * @param array<int, string>                                       $lines
+     */
+    private function buildCategoryMarkdown($grouped, array $order, array &$lines): void
+    {
         foreach ($order as $category) {
             if (! isset($grouped[$category])) {
                 continue;
@@ -311,8 +364,16 @@ class ComponentsCommand extends Command
                 $lines[] = '';
             }
         }
+    }
 
-        // Add composition hierarchy
+    /**
+     * Build the composition hierarchy markdown section.
+     *
+     * @param Collection<string, ComponentDefinition> $components
+     * @param array<int, string>                      $lines
+     */
+    private function buildCompositionHierarchy($components, array &$lines): void
+    {
         $lines[] = '## Composition Hierarchy';
         $lines[] = '';
         $lines[] = 'Components define which parents they can be nested in via `composable_in`:';
@@ -328,37 +389,41 @@ class ComponentsCommand extends Command
             $lines[] = "- **`{$parent}`** accepts: ".implode(', ', array_map(fn ($t) => "`{$t}`", $children));
         }
         $lines[] = '';
+    }
 
-        // Add context crosswalk
+    /**
+     * Build the context crosswalk markdown table.
+     *
+     * @param Collection<string, ComponentDefinition> $components
+     * @param array<int, string>                      $lines
+     */
+    private function buildContextCrosswalk($components, array &$lines): void
+    {
         $lines[] = '## Context Crosswalk';
         $lines[] = '';
         $lines[] = '| Component | blade | livewire | filament-widget | filament-form | filament-table | email | pdf |';
         $lines[] = '|-----------|:-----:|:--------:|:---------------:|:-------------:|:--------------:|:-----:|:---:|';
+        $contexts = ['blade', 'livewire', 'filament-widget', 'filament-form', 'filament-table', 'email', 'pdf'];
+
         foreach ($components as $c) {
-            $contexts = ['blade', 'livewire', 'filament-widget', 'filament-form', 'filament-table', 'email', 'pdf'];
             $row = "`{$c->tag}`";
             foreach ($contexts as $ctx) {
-                if ($c->isExcludedFrom($ctx)) {
-                    $row .= ' | -';
-                } elseif ($c->supportsContext($ctx)) {
-                    $row .= ' | Y';
-                } else {
-                    $row .= ' | -';
-                }
+                $row .= $c->supportsContext($ctx) && ! $c->isExcludedFrom($ctx) ? ' | Y' : ' | -';
             }
             $lines[] = $row.' |';
         }
         $lines[] = '';
+    }
 
-        $markdown = implode("\n", $lines);
-
-        // Write to file
-        $docsPath = dirname(__DIR__, 3).'/resources/docs/component-decision-tree.md';
-        $docsDir = dirname($docsPath);
-        $this->ensureDirectoryExists($docsDir);
-        file_put_contents($docsPath, $markdown);
-
-        // Console output (compact tree view)
+    /**
+     * Print the compact tree view to the console.
+     *
+     * @param Collection<string, ComponentDefinition>                  $components
+     * @param Collection<string, Collection<int, ComponentDefinition>> $grouped
+     * @param array<int, string>                                       $order
+     */
+    private function printTreeConsoleOutput($components, $grouped, array $order): void
+    {
         $this->info('AICL Component Decision Tree');
         $this->line("(Auto-generated from {$components->count()} component.json manifests)");
         $this->newLine();
@@ -381,10 +446,6 @@ class ComponentsCommand extends Command
             });
             $this->newLine();
         }
-
-        $this->info("Decision tree written to: {$docsPath}");
-
-        return self::SUCCESS;
     }
 
     /** @codeCoverageIgnore Reason: external-service -- Directory creation only runs when docs dir is missing */
@@ -408,9 +469,11 @@ class ComponentsCommand extends Command
     {
         if ($registry->clearCache()) {
             $this->info('Component registry cache cleared.');
-        } else {
-            $this->warn('No cache file found.');
+
+            return self::SUCCESS;
         }
+
+        $this->warn('No cache file found.');
 
         return self::SUCCESS;
     }

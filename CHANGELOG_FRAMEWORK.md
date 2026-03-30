@@ -10,9 +10,22 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.17.0`
+Current version: `1.17.1`
 
 ---
+
+## [1.17.1] - 2026-03-30
+
+### Changed
+
+- **P9 config tuning** — composer-unused.php exclusions (laravel/octane, blade-fontawesome → 0 false positives), phpmd.xml short variable exceptions (+9 closure params), LongVariable threshold 20→25 for Filament framework properties
+- **P2 Console refactoring** — 93 PHPMD violations → 0 across 18 files (SpecFileParser, ValidateSpecCommand, UpgradeCommand, ComponentsCommand, RemoveEntityCommand, ViewGenerator, plus 12 more). Major method extractions to reduce cyclomatic complexity.
+- **P3 Horizon refactoring** — 44 PHPMD violations → 0 (suppress ported Laravel Horizon class sizes, exit expressions, contract params; convert 4 else→early return). 61 PHPStan strict-rules → 0 (empty()→explicit, boolean conditions, short ternary) across 25 files.
+- **P4 Filament+Policies+Observers** — 38 PHPMD violations → 0. Extract table()/configure() into private methods. Suppress unused contract params on BasePolicy (6), RolePolicy (6), BaseObserver (12).
+
+### Fixed
+
+- **PHPMD method ordering** — PHP_Depend counts private methods positioned after a caller as part of the caller's LOC. Private helpers must appear before the methods that call them.
 
 ## [1.17.0] - 2026-03-30
 

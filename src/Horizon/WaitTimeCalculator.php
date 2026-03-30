@@ -103,7 +103,7 @@ class WaitTimeCalculator
             ->unique()
             ->values();
 
-        return $queue ? $queues->intersect([$queue]) : $queues;
+        return ($queue !== null && $queue !== '') ? $queues->intersect([$queue]) : $queues;
     }
 
     /**
@@ -132,7 +132,7 @@ class WaitTimeCalculator
      */
     public function calculateTimeToClear($connection, $queue, $totalProcesses)
     {
-        $timeToClear = ! Str::contains($queue ?? '', ',')
+        $timeToClear = Str::contains($queue ?? '', ',') === false
             ? $this->timeToClearFor($connection, $queue)
             : collect(explode(',', $queue))->sum(function ($queueName) use ($connection) {
                 return $this->timeToClearFor($connection, $queueName);

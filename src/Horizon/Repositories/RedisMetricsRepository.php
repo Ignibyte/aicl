@@ -46,7 +46,7 @@ class RedisMetricsRepository implements MetricsRepository
         $classes = (array) $this->connection()->smembers('measured_jobs');
 
         return collect($classes)
-            ->map(fn ($class) => preg_match('/job:(.*)$/', $class, $matches) ? $matches[1] : $class)
+            ->map(fn ($class) => preg_match('/job:(.*)$/', $class, $matches) === 1 ? $matches[1] : $class)
             ->sort()
             ->values()
             ->all();
@@ -62,7 +62,7 @@ class RedisMetricsRepository implements MetricsRepository
         $queues = (array) $this->connection()->smembers('measured_queues');
 
         return collect($queues)
-            ->map(fn ($class) => preg_match('/queue:(.*)$/', $class, $matches) ? $matches[1] : $class)
+            ->map(fn ($class) => preg_match('/queue:(.*)$/', $class, $matches) === 1 ? $matches[1] : $class)
             ->sort()
             ->values()
             ->all();
@@ -177,6 +177,8 @@ class RedisMetricsRepository implements MetricsRepository
      * Get the queue that has the longest runtime.
      *
      * @return int
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public function queueWithMaximumRuntime()
     {
@@ -195,6 +197,8 @@ class RedisMetricsRepository implements MetricsRepository
      * Get the queue that has the most throughput.
      *
      * @return int
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public function queueWithMaximumThroughput()
     {
@@ -332,11 +336,11 @@ class RedisMetricsRepository implements MetricsRepository
     private function persistToDatabase(array $rows): void
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        if (empty($rows)) {
+        if ($rows === []) {
             return;
         }
 
-        if (! config('aicl-horizon.metrics.persist_to_database', true)) {
+        if ((bool) config('aicl-horizon.metrics.persist_to_database', true) === false) {
             return;
         }
 
@@ -445,8 +449,10 @@ class RedisMetricsRepository implements MetricsRepository
     protected function minutesSinceLastSnapshot()
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        $lastSnapshotAt = (int) ($this->connection()->get('last_snapshot_at')
-            ?: $this->storeSnapshotTimestamp());
+        $lastSnapshot = $this->connection()->get('last_snapshot_at');
+        $lastSnapshotAt = (int) (($lastSnapshot !== null && $lastSnapshot !== false && $lastSnapshot !== '')
+            ? $lastSnapshot
+            : $this->storeSnapshotTimestamp());
 
         return max(
             (CarbonImmutable::now()->getTimestamp() - $lastSnapshotAt) / 60, 1

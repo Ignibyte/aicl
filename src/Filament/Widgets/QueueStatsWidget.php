@@ -23,9 +23,12 @@ class QueueStatsWidget extends StatsOverviewWidget
     /** Cache TTL for queue stats (seconds). */
     private const CACHE_TTL = 30;
 
-    protected function getStats(): array
+    /**
+     * @return array{failed_count: int, last_failed_at: string|null, last_failed_name: string|null, last_failed_today: bool}
+     */
+    private function getCachedFailedJobStats(): array
     {
-        $cached = Cache::remember('aicl:widget:queue-stats', self::CACHE_TTL, function (): array {
+        return Cache::remember('aicl:widget:queue-stats', self::CACHE_TTL, function (): array {
             $failedCount = FailedJob::count();
             $lastFailed = FailedJob::latest('failed_at')->first();
 
@@ -36,47 +39,31 @@ class QueueStatsWidget extends StatsOverviewWidget
                 'last_failed_today' => $lastFailed?->failed_at?->isToday() ?? false,
             ];
         });
+    }
 
+    private function getPendingStats(): Stat
+    {
         // Queue sizes are cheap Redis calls — no caching needed
         $pendingDefault = $this->getQueueSize('default');
         $pendingHigh = $this->getQueueSize('high');
         $pendingLow = $this->getQueueSize('low');
         $totalPending = $pendingDefault + $pendingHigh + $pendingLow;
 
-        $failedCount = $cached['failed_count'];
-        $lastFailedAt = $cached['last_failed_at']
-            ? Carbon::parse($cached['last_failed_at'])->diffForHumans()
-            : 'Never';
+        return Stat::make('Pending Jobs', $totalPending)
+            ->description($pendingHigh > 0 ? "{$pendingHigh} high priority" : 'Queue is processing')
+            ->descriptionIcon($totalPending > 100 ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-clock')
+            ->color($totalPending > 100 ? 'warning' : ($totalPending > 0 ? 'primary' : 'success'));
+    }
 
-        $stats = [
-            Stat::make('Pending Jobs', $totalPending)
-                ->description($pendingHigh > 0 ? "{$pendingHigh} high priority" : 'Queue is processing')
-                ->descriptionIcon($totalPending > 100 ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-clock')
-                ->color($totalPending > 100 ? 'warning' : ($totalPending > 0 ? 'primary' : 'success')),
+    private function getHorizonThroughputStat(): Stat
+    {
+        $metrics = app(MetricsRepository::class);
+        $jobsPerMinute = $this->getJobsPerMinute($metrics);
 
-            Stat::make('Failed Jobs', $failedCount)
-                ->description($failedCount > 0 ? 'Requires attention' : 'All jobs successful')
-                ->descriptionIcon($failedCount > 0 ? 'heroicon-o-exclamation-circle' : 'heroicon-o-check-circle')
-                ->color($failedCount > 0 ? 'danger' : 'success'),
-
-            Stat::make('Last Failure', $lastFailedAt)
-                ->description($cached['last_failed_name'] ?? 'No failures recorded')
-                ->descriptionIcon('heroicon-o-clock')
-                ->color($cached['last_failed_today'] ? 'warning' : 'gray'),
-        ];
-
-        // Add Horizon metrics when available
-        if (config('aicl.features.horizon', true) && app()->bound(MetricsRepository::class)) {
-            $metrics = app(MetricsRepository::class);
-
-            $jobsPerMinute = $this->getJobsPerMinute($metrics);
-            $stats[] = Stat::make('Jobs / Min', number_format($jobsPerMinute, 1))
-                ->description('Throughput')
-                ->descriptionIcon('heroicon-o-bolt')
-                ->color($jobsPerMinute > 0 ? 'success' : 'gray');
-        }
-
-        return $stats;
+        return Stat::make('Jobs / Min', number_format($jobsPerMinute, 1))
+            ->description('Throughput')
+            ->descriptionIcon('heroicon-o-bolt')
+            ->color($jobsPerMinute > 0 ? 'success' : 'gray');
     }
 
     protected function getQueueSize(string $queue): int
@@ -102,5 +89,36 @@ class QueueStatsWidget extends StatsOverviewWidget
         $latest = end($snapshots);
 
         return (float) ($latest->throughput ?? 0);
+    }
+
+    protected function getStats(): array
+    {
+        $cached = $this->getCachedFailedJobStats();
+        $pendingStats = $this->getPendingStats();
+
+        $failedCount = $cached['failed_count'];
+        $lastFailedAt = $cached['last_failed_at']
+            ? Carbon::parse($cached['last_failed_at'])->diffForHumans()
+            : 'Never';
+
+        $stats = [
+            $pendingStats,
+
+            Stat::make('Failed Jobs', $failedCount)
+                ->description($failedCount > 0 ? 'Requires attention' : 'All jobs successful')
+                ->descriptionIcon($failedCount > 0 ? 'heroicon-o-exclamation-circle' : 'heroicon-o-check-circle')
+                ->color($failedCount > 0 ? 'danger' : 'success'),
+
+            Stat::make('Last Failure', $lastFailedAt)
+                ->description($cached['last_failed_name'] ?? 'No failures recorded')
+                ->descriptionIcon('heroicon-o-clock')
+                ->color($cached['last_failed_today'] ? 'warning' : 'gray'),
+        ];
+
+        if (config('aicl.features.horizon', true) && app()->bound(MetricsRepository::class)) {
+            $stats[] = $this->getHorizonThroughputStat();
+        }
+
+        return $stats;
     }
 }

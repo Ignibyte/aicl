@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Model;
  * service providers:
  *
  *     Project::observe(ProjectObserver::class);
+ *
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 abstract class BaseObserver
 {

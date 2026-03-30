@@ -15,6 +15,9 @@ use Illuminate\Support\Str;
  */
 class EntityGeneratorContext
 {
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList) -- Immutable DTO carrying all generator state; splitting would fragment the contract
+     */
     public function __construct(
         public readonly string $name,
         public readonly string $tableName,

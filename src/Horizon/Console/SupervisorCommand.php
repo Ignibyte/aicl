@@ -92,10 +92,12 @@ class SupervisorCommand extends Command
      * Start the given supervisor.
      *
      * @param Supervisor $supervisor
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function start($supervisor)
     {
-        if ($supervisor->options->nice) {
+        if ($supervisor->options->nice !== 0) {
             proc_nice($supervisor->options->nice);
         }
 
@@ -162,7 +164,9 @@ class SupervisorCommand extends Command
      */
     protected function getQueue($connection)
     {
-        return $this->option('queue') ?: app('config')->get(
+        $queue = $this->option('queue');
+
+        return ($queue !== null && $queue !== '') ? $queue : (string) app('config')->get(
             "queue.connections.{$connection}.queue", 'default'
         );
     }

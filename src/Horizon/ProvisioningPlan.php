@@ -113,6 +113,9 @@ class ProvisioningPlan
      * Deploy a provisioning plan to the current machine.
      *
      * @param string $environment
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
     public function deploy($environment)
     {
@@ -121,7 +124,7 @@ class ProvisioningPlan
             return Str::is($name, $environment);
         });
 
-        if (empty($supervisors)) {
+        if ($supervisors === null || $supervisors === []) {
             return;
         }
 

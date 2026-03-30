@@ -26,6 +26,8 @@ class EntitySpec
      * @param array<int, NotificationSpec>|null                                                            $notificationSpecs Structured notification definitions (null = use legacy notificationHints)
      * @param array<int, ObserverRuleSpec>|null                                                            $observerRules     Structured observer rules (null = use default observer generation)
      * @param ReportLayoutSpec|null                                                                        $reportLayout      Structured report layout (null = use default PDF generation)
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList) -- Value object representing a full entity spec; splitting would obscure the data contract
      */
     public function __construct(
         public string $name,
@@ -155,35 +157,42 @@ class EntitySpec
             return '';
         }
 
-        $segments = [];
-
-        foreach ($this->fields as $field) {
-            $parts = [$field->name, $field->type];
-
-            if ($field->typeArgument !== null) {
-                $parts[] = $field->typeArgument;
-            }
-
-            if ($field->nullable && ! in_array($field->type, ['text', 'date', 'datetime', 'json'], true)) {
-                $parts[] = 'nullable';
-            }
-
-            if ($field->unique) {
-                $parts[] = 'unique';
-            }
-
-            if ($field->indexed) {
-                $parts[] = 'index';
-            }
-
-            if ($field->default !== null && ! ($field->type === 'boolean' && $field->default === 'true')) {
-                $parts[] = "default({$field->default})";
-            }
-
-            $segments[] = implode(':', $parts);
-        }
+        $segments = array_map(
+            fn (FieldDefinition $field): string => $this->fieldToSegment($field),
+            $this->fields,
+        );
 
         return implode(',', $segments);
+    }
+
+    /**
+     * Convert a single FieldDefinition to its CLI segment representation.
+     */
+    private function fieldToSegment(FieldDefinition $field): string
+    {
+        $parts = [$field->name, $field->type];
+
+        if ($field->typeArgument !== null) {
+            $parts[] = $field->typeArgument;
+        }
+
+        if ($field->nullable && ! in_array($field->type, ['text', 'date', 'datetime', 'json'], true)) {
+            $parts[] = 'nullable';
+        }
+
+        if ($field->unique) {
+            $parts[] = 'unique';
+        }
+
+        if ($field->indexed) {
+            $parts[] = 'index';
+        }
+
+        if ($field->default !== null && ! ($field->type === 'boolean' && $field->default === 'true')) {
+            $parts[] = "default({$field->default})";
+        }
+
+        return implode(':', $parts);
     }
 
     /**

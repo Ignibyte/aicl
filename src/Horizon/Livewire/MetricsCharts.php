@@ -50,19 +50,17 @@ class MetricsCharts extends Component
             // @codeCoverageIgnoreStart — Horizon process management
             $snapshots = $this->getSnapshotsForRange();
             // @codeCoverageIgnoreEnd
-        } else {
+        } elseif ($this->view === 'queues' && $this->selectedQueue !== '') {
             // Live mode: fall back to Redis snapshots
-            if ($this->view === 'queues' && $this->selectedQueue) {
-                $snapshots = $this->formatRedisSnapshots(
-                    $metrics->snapshotsForQueue($this->selectedQueue)
-                );
-                // @codeCoverageIgnoreStart — Horizon process management
-            } elseif ($this->view === 'jobs' && $this->selectedJob) {
-                $snapshots = $this->formatRedisSnapshots(
-                    $metrics->snapshotsForJob($this->selectedJob)
-                );
-                // @codeCoverageIgnoreEnd
-            }
+            $snapshots = $this->formatRedisSnapshots(
+                $metrics->snapshotsForQueue($this->selectedQueue)
+            );
+            // @codeCoverageIgnoreStart — Horizon process management
+        } elseif ($this->view === 'jobs' && $this->selectedJob !== '') {
+            $snapshots = $this->formatRedisSnapshots(
+                $metrics->snapshotsForJob($this->selectedJob)
+            );
+            // @codeCoverageIgnoreEnd
         }
 
         return view('aicl::horizon.livewire.metrics-charts', [
@@ -86,7 +84,7 @@ class MetricsCharts extends Component
         $type = $this->view === 'queues' ? 'queue' : 'job';
         $name = $this->view === 'queues' ? $this->selectedQueue : $this->selectedJob;
 
-        if (empty($name)) {
+        if ($name === '') {
             return [];
         }
 
@@ -105,6 +103,8 @@ class MetricsCharts extends Component
      * @param array<int, QueueMetricSnapshot> $snapshots
      *
      * @return array<int, QueueMetricSnapshot>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function thinDataPoints(array $snapshots, int $minutesBack): array
     {

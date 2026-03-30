@@ -30,6 +30,9 @@ class RolePolicy
         return $authUser->can('ViewAny:Role');
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function view(AuthUser $authUser, Role $role): bool
     {
         // @codeCoverageIgnoreStart — Authorization policy
@@ -44,6 +47,9 @@ class RolePolicy
         // @codeCoverageIgnoreEnd
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function update(AuthUser $authUser, Role $role): bool
     {
         // @codeCoverageIgnoreStart — Authorization policy
@@ -51,6 +57,9 @@ class RolePolicy
         // @codeCoverageIgnoreEnd
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function delete(AuthUser $authUser, Role $role): bool
     {
         // @codeCoverageIgnoreStart — Authorization policy
@@ -58,6 +67,9 @@ class RolePolicy
         // @codeCoverageIgnoreEnd
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function restore(AuthUser $authUser, Role $role): bool
     {
         // @codeCoverageIgnoreStart — Authorization policy
@@ -65,6 +77,9 @@ class RolePolicy
         // @codeCoverageIgnoreEnd
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function forceDelete(AuthUser $authUser, Role $role): bool
     {
         // @codeCoverageIgnoreStart — Authorization policy
@@ -86,6 +101,9 @@ class RolePolicy
         // @codeCoverageIgnoreEnd
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function replicate(AuthUser $authUser, Role $role): bool
     {
         // @codeCoverageIgnoreStart — Authorization policy

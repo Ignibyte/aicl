@@ -45,7 +45,15 @@ class BroadcastEventGenerator extends BaseGenerator
     protected function buildBroadcastEventContent(string $name, string $className, string $snakeName, string $action): string
     {
         if ($action === 'deleted') {
-            return <<<PHP
+            return $this->buildDeletedEventContent($className, $snakeName);
+        }
+
+        return $this->buildMutationEventContent($name, $className, $snakeName, $action);
+    }
+
+    protected function buildDeletedEventContent(string $className, string $snakeName): string
+    {
+        return <<<PHP
 <?php
 
 declare(strict_types=1);
@@ -72,7 +80,7 @@ class {$className} extends BaseBroadcastEvent
 
     public static function eventType(): string
     {
-        return '{$snakeName}.{$action}';
+        return '{$snakeName}.deleted';
     }
 
     /**
@@ -83,7 +91,7 @@ class {$className} extends BaseBroadcastEvent
         return [
             'id' => \$this->entityId,
             'type' => \$this->entityType,
-            'action' => '{$action}',
+            'action' => 'deleted',
         ];
     }
 
@@ -101,8 +109,10 @@ class {$className} extends BaseBroadcastEvent
     }
 }
 PHP;
-        }
+    }
 
+    protected function buildMutationEventContent(string $name, string $className, string $snakeName, string $action): string
+    {
         return <<<PHP
 <?php
 

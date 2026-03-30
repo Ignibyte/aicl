@@ -18,15 +18,17 @@ class MigrationGenerator extends BaseGenerator
 
     public function generate(): array
     {
-        $name = $this->ctx->name;
         $tableName = $this->ctx->tableName;
         $timestamp = now()->format('Y_m_d_His');
         $filename = "{$timestamp}_create_{$tableName}_table.php";
 
         if ($this->ctx->smartMode) {
-            $columns = $this->buildSmartMigrationColumns($name, $tableName);
-        } else {
-            $columns = <<<'COLS'
+            $columns = $this->buildSmartMigrationColumns();
+
+            return $this->writeMigration($tableName, $columns, $filename);
+        }
+
+        $columns = <<<'COLS'
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
@@ -35,8 +37,17 @@ class MigrationGenerator extends BaseGenerator
             $table->timestamps();
             $table->softDeletes();
 COLS;
-        }
 
+        return $this->writeMigration($tableName, $columns, $filename);
+    }
+
+    /**
+     * Write the migration file to disk and return the relative path.
+     *
+     * @return array<int, string>
+     */
+    protected function writeMigration(string $tableName, string $columns, string $filename): array
+    {
         $content = <<<PHP
 <?php
 
@@ -68,7 +79,7 @@ PHP;
         return ["database/migrations/{$filename}"];
     }
 
-    protected function buildSmartMigrationColumns(string $name, string $tableName): string
+    protected function buildSmartMigrationColumns(): string
     {
         $lines = [];
         $lines[] = '            $table->id();';

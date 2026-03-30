@@ -96,7 +96,7 @@ class RedisSupervisorRepository implements SupervisorRepository
             ->map(function ($record) {
                 $record = array_values($record);
 
-                return ! $record[0] ? null : (object) [
+                return ($record[0] === null || $record[0] === false || $record[0] === '') ? null : (object) [
                     'name' => $record[0],
                     'master' => $record[1],
                     'pid' => $record[2],
@@ -117,8 +117,10 @@ class RedisSupervisorRepository implements SupervisorRepository
     public function longestActiveTimeout()
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        return collect($this->all())
-            ->max(fn ($supervisor) => $supervisor->options['timeout']) ?: 0;
+        $maxTimeout = collect($this->all())
+            ->max(fn ($supervisor) => $supervisor->options['timeout']);
+
+        return $maxTimeout !== null ? $maxTimeout : 0;
         // @codeCoverageIgnoreEnd
     }
 
@@ -163,7 +165,7 @@ class RedisSupervisorRepository implements SupervisorRepository
         // @codeCoverageIgnoreStart — Horizon process management
         $names = (array) $names;
 
-        if (empty($names)) {
+        if ($names === []) {
             return;
         }
 

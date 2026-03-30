@@ -36,7 +36,7 @@ class ListCommand extends Command
     {
         $masters = $masters->all();
 
-        if (empty($masters)) {
+        if ($masters === null || $masters === []) {
             return $this->components->info('No machines are running.');
         }
 
@@ -52,7 +52,7 @@ class ListCommand extends Command
             return [
                 $master->name,
                 $master->pid,
-                $supervisors ? collect($supervisors)->map(function (string $supervisor) {
+                ($supervisors !== null && $supervisors !== []) ? collect($supervisors)->map(function (string $supervisor) {
                     return explode(':', $supervisor, 2)[1];
                 })->implode(', ') : 'None',
                 $master->status,

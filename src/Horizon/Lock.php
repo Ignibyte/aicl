@@ -66,6 +66,8 @@ class Lock
      * @param int    $seconds
      *
      * @return bool
+     *
+     * @SuppressWarnings(PHPMD.BooleanGetMethodName)
      */
     public function get($key, $seconds = 60)
     {

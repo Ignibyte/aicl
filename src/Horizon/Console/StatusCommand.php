@@ -32,10 +32,15 @@ class StatusCommand extends Command
      * Execute the console command.
      *
      * @return int
+     *
+     * @SuppressWarnings(PHPMD.LongVariable)
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public function handle(MasterSupervisorRepository $masterSupervisorRepository)
     {
-        if (! $masters = $masterSupervisorRepository->all()) {
+        $masters = $masterSupervisorRepository->all();
+
+        if ($masters === null || $masters === []) {
             $this->components->error('Horizon is inactive.');
 
             return 2;

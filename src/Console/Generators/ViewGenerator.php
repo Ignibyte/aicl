@@ -54,11 +54,6 @@ class ViewGenerator extends BaseGenerator
     {
         $title = Str::headline($name);
         $pluralTitle = Str::headline(Str::plural($name));
-        $displayField = $this->ctx->getDisplayField();
-
-        // Build columns from fields
-        $columns = $this->buildTableColumns();
-        $columnsJson = json_encode($columns, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         $hasStatus = $this->hasStatusField();
         $statusFilter = $hasStatus ? $this->buildStatusFilterHtml($snake) : '';
@@ -121,7 +116,6 @@ BLADE;
         $plural = Str::plural($snake);
         $displayField = $this->ctx->getDisplayField();
 
-        $metadataItems = $this->buildMetadataItems($snake);
         $hasStatus = $this->hasStatusField();
         $statusBadge = $hasStatus
             ? "\n            <x-aicl-status-badge :status=\"\${$snake}->status\" />"
@@ -186,9 +180,9 @@ BLADE;
         return "resources/views/{$snake}/show.blade.php";
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     private function generateCardComponent(string $viewDir, string $name, string $snake): string
     {
-        $title = Str::headline($name);
         $plural = Str::plural($snake);
         $displayField = $this->ctx->getDisplayField();
 
@@ -228,6 +222,7 @@ BLADE;
         return "resources/views/{$snake}/components/{$snake}-card.blade.php";
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     private function generateFiltersComponent(string $viewDir, string $name, string $snake): string
     {
         $plural = Str::plural($snake);
@@ -236,7 +231,6 @@ BLADE;
         $filterInputs = '';
         foreach ($filterFields as $field) {
             if ($field->isEnum() || $field->name === 'status') {
-                $enumClass = Str::studly($field->name);
                 $filterInputs .= <<<BLADE
 
             <x-aicl-combobox
@@ -294,8 +288,6 @@ BLADE;
 
     private function generateViewController(string $name, string $snake, string $plural): string
     {
-        $pluralStudly = Str::pluralStudly($name);
-        $displayField = $this->ctx->getDisplayField();
         $columns = $this->buildTableColumns();
         $columnsPhp = $this->buildColumnsPhpArray($columns);
         $metadataPhp = $this->buildMetadataPhpArray($snake);
@@ -353,6 +345,7 @@ PHP;
         return "app/Http/Controllers/{$name}ViewController.php";
     }
 
+    /** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
     private function generateWebRoutes(string $name, string $snake, string $plural): string
     {
         $routesFile = base_path('routes/web.php');
@@ -442,15 +435,7 @@ PHP;
             if ($field->isForeignId()) {
                 continue;
             }
-            if ($field->type === 'datetime' || $field->type === 'date') {
-                $items[] = "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name}?->format('M j, Y')]";
-            } elseif ($field->type === 'boolean') {
-                $items[] = "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name} ? 'Yes' : 'No']";
-            } elseif ($field->isEnum()) {
-                $items[] = "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name}?->value]";
-            } else {
-                $items[] = "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name}]";
-            }
+            $items[] = $this->buildMetadataItemForField($field, $snake);
         }
 
         $items[] = "['label' => 'Created', 'value' => \${$snake}->created_at->format('M j, Y')]";
@@ -464,6 +449,23 @@ PHP;
         $items = $this->buildMetadataItems($snake);
 
         return "\$metadata = {$items};";
+    }
+
+    private function buildMetadataItemForField(FieldDefinition $field, string $snake): string
+    {
+        if ($field->type === 'datetime' || $field->type === 'date') {
+            return "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name}?->format('M j, Y')]";
+        }
+
+        if ($field->type === 'boolean') {
+            return "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name} ? 'Yes' : 'No']";
+        }
+
+        if ($field->isEnum()) {
+            return "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name}?->value]";
+        }
+
+        return "['label' => '{$field->label()}', 'value' => \${$snake}->{$field->name}]";
     }
 
     private function hasStatusField(): bool

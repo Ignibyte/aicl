@@ -23,6 +23,8 @@ class RetryFailedJob
 
     /**
      * Execute the job.
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public function handle(Queue $queue, JobRepository $jobs)
     {
@@ -49,13 +51,15 @@ class RetryFailedJob
     {
         $payload = json_decode($payload, true);
 
-        return json_encode(array_merge($payload, [
+        $encoded = json_encode(array_merge($payload, [
             'id' => $id,
             'uuid' => $id,
             'attempts' => 0,
             'retry_of' => $this->id,
             'retryUntil' => $this->prepareNewTimeout($payload),
-        ])) ?: '{}';
+        ]));
+
+        return ($encoded !== false && $encoded !== '') ? $encoded : '{}';
     }
 
     /**
@@ -71,7 +75,7 @@ class RetryFailedJob
 
         $pushedAt = $payload['pushedAt'] ?? microtime(true);
 
-        return $retryUntil
+        return $retryUntil !== null
             ? CarbonImmutable::now()->addSeconds(ceil($retryUntil - $pushedAt))->getTimestamp()
             : null;
     }

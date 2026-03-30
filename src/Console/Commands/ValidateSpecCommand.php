@@ -6,6 +6,7 @@ namespace Aicl\Console\Commands;
 
 use Aicl\Console\Support\EntitySpec;
 use Aicl\Console\Support\NotificationSpec;
+use Aicl\Console\Support\ObserverRuleSpec;
 use Aicl\Console\Support\SpecFileParser;
 use Aicl\Console\Support\SpecValidation;
 use Aicl\Console\Support\WidgetSpec;
@@ -15,6 +16,9 @@ use InvalidArgumentException;
 
 /**
  * ValidateSpecCommand.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
  */
 class ValidateSpecCommand extends Command
 {
@@ -60,17 +64,42 @@ class ValidateSpecCommand extends Command
         $this->newLine();
 
         // Parse the spec file
-        $parser = new SpecFileParser;
+        $spec = $this->parseSpecFile($specPath);
 
-        try {
-            $spec = $parser->parse($specPath);
-        } catch (InvalidArgumentException $e) {
-            $this->components->error("Parse error: {$e->getMessage()}");
-
+        if ($spec === null) {
             return self::FAILURE;
         }
 
-        // Run validation checks
+        // Run all validation checks
+        $this->runAllValidations($specPath, $spec);
+
+        // Report results
+        $this->newLine();
+
+        return $this->reportResults($spec);
+    }
+
+    /**
+     * Parse the spec file, returning null on failure.
+     */
+    protected function parseSpecFile(string $specPath): ?EntitySpec
+    {
+        $parser = new SpecFileParser;
+
+        try {
+            return $parser->parse($specPath);
+        } catch (InvalidArgumentException $e) {
+            $this->components->error("Parse error: {$e->getMessage()}");
+
+            return null;
+        }
+    }
+
+    /**
+     * Run all validation checks against the spec.
+     */
+    protected function runAllValidations(string $specPath, EntitySpec $spec): void
+    {
         $this->validateDescription($spec);
         $this->validateFields($spec);
         $this->validateEnumDefinitions($spec);
@@ -84,10 +113,13 @@ class ValidateSpecCommand extends Command
         $this->validateNotificationSpecs($spec);
         $this->validateObserverRules($spec);
         $this->validateReportLayout($spec);
+    }
 
-        // Report results
-        $this->newLine();
-
+    /**
+     * Report validation results and return exit code.
+     */
+    protected function reportResults(EntitySpec $spec): int
+    {
         if (! empty($this->warnings)) {
             $this->components->warn('Warnings:');
 
@@ -110,31 +142,45 @@ class ValidateSpecCommand extends Command
             return self::FAILURE;
         }
 
-        $fieldCount = count($spec->fields);
-        $stateCount = count($spec->states);
-        $relCount = count($spec->relationships);
-        $enumCount = count($spec->enums);
+        $this->printSpecSummary($spec);
 
+        return self::SUCCESS;
+    }
+
+    /**
+     * Print the validated spec summary.
+     */
+    protected function printSpecSummary(EntitySpec $spec): void
+    {
         $widgetCount = $spec->widgetSpecs !== null ? count($spec->widgetSpecs) : 0;
         $notifCount = $spec->notificationSpecs !== null ? count($spec->notificationSpecs) : 0;
         $observerRuleCount = $spec->observerRules !== null ? count($spec->observerRules) : 0;
-
-        $this->components->info("Spec '{$spec->name}' is valid!");
-        $this->components->twoColumnDetail('Fields', (string) $fieldCount);
-        $this->components->twoColumnDetail('States', $stateCount > 0 ? (string) $stateCount : 'None');
-        $this->components->twoColumnDetail('Relationships', $relCount > 0 ? (string) $relCount : 'None');
-        $this->components->twoColumnDetail('Enums', $enumCount > 0 ? (string) $enumCount : 'None');
-        $this->components->twoColumnDetail('Widgets', $widgetCount > 0 ? (string) $widgetCount : (! empty($spec->widgetHints) ? 'Legacy hints' : 'None'));
-        $this->components->twoColumnDetail('Notifications', $notifCount > 0 ? (string) $notifCount : (! empty($spec->notificationHints) ? 'Legacy hints' : 'None'));
-        $this->components->twoColumnDetail('Observer Rules', $observerRuleCount > 0 ? (string) $observerRuleCount : 'None');
-
         $reportSections = $spec->reportLayout !== null
             ? count($spec->reportLayout->singleReport) + count($spec->reportLayout->listReport)
             : 0;
-        $this->components->twoColumnDetail('Report Layout', $reportSections > 0 ? "{$reportSections} sections/columns" : 'None');
-        $this->components->twoColumnDetail('Warnings', ! empty($this->warnings) ? (string) count($this->warnings) : 'None');
 
-        return self::SUCCESS;
+        $widgetLabel = $this->countLabel($widgetCount, ! empty($spec->widgetHints) ? 'Legacy hints' : 'None');
+        $notifLabel = $this->countLabel($notifCount, ! empty($spec->notificationHints) ? 'Legacy hints' : 'None');
+        $reportLabel = $reportSections > 0 ? "{$reportSections} sections/columns" : 'None';
+
+        $this->components->info("Spec '{$spec->name}' is valid!");
+        $this->components->twoColumnDetail('Fields', (string) count($spec->fields));
+        $this->components->twoColumnDetail('States', $this->countLabel(count($spec->states)));
+        $this->components->twoColumnDetail('Relationships', $this->countLabel(count($spec->relationships)));
+        $this->components->twoColumnDetail('Enums', $this->countLabel(count($spec->enums)));
+        $this->components->twoColumnDetail('Widgets', $widgetLabel);
+        $this->components->twoColumnDetail('Notifications', $notifLabel);
+        $this->components->twoColumnDetail('Observer Rules', $this->countLabel($observerRuleCount));
+        $this->components->twoColumnDetail('Report Layout', $reportLabel);
+        $this->components->twoColumnDetail('Warnings', $this->countLabel(count($this->warnings)));
+    }
+
+    /**
+     * Format a count as string, returning the fallback when zero.
+     */
+    protected function countLabel(int $count, string $fallback = 'None'): string
+    {
+        return $count > 0 ? (string) $count : $fallback;
     }
 
     protected function resolveSpecPath(string $input): ?string
@@ -216,38 +262,48 @@ class ValidateSpecCommand extends Command
 
         // Validate enum case format
         foreach ($spec->enums as $enumName => $cases) {
-            if (empty($cases)) {
+            $this->validateEnumCases($enumName, $cases);
+        }
+    }
+
+    /**
+     * Validate cases within a single enum definition.
+     *
+     * @param array<int, array{case: string, label: string}> $cases
+     */
+    protected function validateEnumCases(string $enumName, array $cases): void
+    {
+        if (empty($cases)) {
+            // @codeCoverageIgnoreStart — Artisan command
+            $this->errors[] = "Enum '{$enumName}' must have at least one case.";
+
+            return;
+            // @codeCoverageIgnoreEnd
+        }
+
+        $caseNames = [];
+
+        foreach ($cases as $case) {
+            $caseName = $case['case'];
+
+            if ($caseName === '') {
                 // @codeCoverageIgnoreStart — Artisan command
-                $this->errors[] = "Enum '{$enumName}' must have at least one case.";
+                $this->errors[] = "Enum '{$enumName}' has a case with empty name.";
 
                 continue;
                 // @codeCoverageIgnoreEnd
             }
 
-            $caseNames = [];
+            if (in_array($caseName, $caseNames, true)) {
+                $this->errors[] = "Enum '{$enumName}' has duplicate case: '{$caseName}'.";
+            }
 
-            foreach ($cases as $case) {
-                $caseName = $case['case'];
+            $caseNames[] = $caseName;
 
-                if ($caseName === '') {
-                    // @codeCoverageIgnoreStart — Artisan command
-                    $this->errors[] = "Enum '{$enumName}' has a case with empty name.";
-
-                    continue;
-                    // @codeCoverageIgnoreEnd
-                }
-
-                if (in_array($caseName, $caseNames, true)) {
-                    $this->errors[] = "Enum '{$enumName}' has duplicate case: '{$caseName}'.";
-                }
-
-                $caseNames[] = $caseName;
-
-                if ($case['label'] === '') {
-                    // @codeCoverageIgnoreStart — Artisan command
-                    $this->errors[] = "Enum '{$enumName}' case '{$caseName}' is missing a label.";
-                    // @codeCoverageIgnoreEnd
-                }
+            if ($case['label'] === '') {
+                // @codeCoverageIgnoreStart — Artisan command
+                $this->errors[] = "Enum '{$enumName}' case '{$caseName}' is missing a label.";
+                // @codeCoverageIgnoreEnd
             }
         }
     }
@@ -263,7 +319,21 @@ class ValidateSpecCommand extends Command
             $this->errors[] = "Default state '{$spec->defaultState}' is not in the states list.";
         }
 
-        // Check all transition states are defined
+        $this->validateStateTransitions($spec);
+
+        // Check state name format
+        foreach ($spec->states as $state) {
+            if (! $this->isSnakeCase($state)) {
+                $this->errors[] = "State name '{$state}' must be snake_case.";
+            }
+        }
+    }
+
+    /**
+     * Validate that all transition source and target states are defined.
+     */
+    protected function validateStateTransitions(EntitySpec $spec): void
+    {
         foreach ($spec->stateTransitions as $from => $toList) {
             if (! in_array($from, $spec->states, true)) {
                 // @codeCoverageIgnoreStart — Artisan command
@@ -277,13 +347,6 @@ class ValidateSpecCommand extends Command
                     $this->errors[] = "Transition target state '{$to}' is not in the states list.";
                     // @codeCoverageIgnoreEnd
                 }
-            }
-        }
-
-        // Check state name format
-        foreach ($spec->states as $state) {
-            if (! $this->isSnakeCase($state)) {
-                $this->errors[] = "State name '{$state}' must be snake_case.";
             }
         }
     }
@@ -494,23 +557,52 @@ class ValidateSpecCommand extends Command
             $this->errors[] = "Notification name '{$notifSpec->name}' must be PascalCase.";
         }
 
-        // Validate trigger type
+        $this->validateNotificationTrigger($notifSpec, $fieldNames, $validTriggerTypes);
+        $this->validateNotificationContent($notifSpec, $validChannels, $validColors);
+
+        // Validate template variables reference valid fields
+        $this->validateTemplateVariables($notifSpec, $spec);
+    }
+
+    /**
+     * Validate notification trigger type and watched field.
+     *
+     * @param array<int, string> $fieldNames
+     * @param array<int, string> $validTriggerTypes
+     */
+    protected function validateNotificationTrigger(
+        NotificationSpec $notifSpec,
+        array $fieldNames,
+        array $validTriggerTypes,
+    ): void {
         $triggerType = $notifSpec->triggerType();
 
         if (! in_array($triggerType, $validTriggerTypes, true)) {
             $this->errors[] = "Notification '{$notifSpec->name}' has unknown trigger type: '{$triggerType}'.";
         }
 
-        // Validate watched field exists for field_change triggers
-        if ($triggerType === 'field_change') {
-            $watchedField = $notifSpec->watchedField();
-
-            if ($watchedField !== null && ! in_array($watchedField, $fieldNames, true)) {
-                $this->warnings[] = "Notification '{$notifSpec->name}' watches field '{$watchedField}' which is not in the fields list.";
-            }
+        if ($triggerType !== 'field_change') {
+            return;
         }
 
-        // Validate title and body are not empty
+        $watchedField = $notifSpec->watchedField();
+
+        if ($watchedField !== null && ! in_array($watchedField, $fieldNames, true)) {
+            $this->warnings[] = "Notification '{$notifSpec->name}' watches field '{$watchedField}' which is not in the fields list.";
+        }
+    }
+
+    /**
+     * Validate notification content: title, body, channels, and color.
+     *
+     * @param array<int, string> $validChannels
+     * @param array<int, string> $validColors
+     */
+    protected function validateNotificationContent(
+        NotificationSpec $notifSpec,
+        array $validChannels,
+        array $validColors,
+    ): void {
         if (trim($notifSpec->title) === '') {
             // @codeCoverageIgnoreStart — Artisan command
             $this->errors[] = "Notification '{$notifSpec->name}' has an empty title.";
@@ -521,20 +613,15 @@ class ValidateSpecCommand extends Command
             $this->errors[] = "Notification '{$notifSpec->name}' has an empty body.";
         }
 
-        // Validate channels
         foreach ($notifSpec->channels as $channel) {
             if (! in_array($channel, $validChannels, true)) {
                 $this->warnings[] = "Notification '{$notifSpec->name}' uses unknown channel '{$channel}'.";
             }
         }
 
-        // Validate static color (dynamic colors like "new.status.color" are fine)
         if (! $notifSpec->hasDynamicColor() && ! in_array($notifSpec->color, $validColors, true)) {
             $this->warnings[] = "Notification '{$notifSpec->name}' uses unknown color '{$notifSpec->color}'.";
         }
-
-        // Validate template variables reference valid fields
-        $this->validateTemplateVariables($notifSpec, $spec);
     }
 
     protected function validateTemplateVariables(NotificationSpec $notifSpec, EntitySpec $spec): void
@@ -579,40 +666,58 @@ class ValidateSpecCommand extends Command
         $fieldNames = array_unique($fieldNames);
 
         foreach ($spec->observerRules as $rule) {
-            // Validate event
-            if (! in_array($rule->event, $validEvents, true)) {
-                // @codeCoverageIgnoreStart — Artisan command
-                $this->errors[] = "Observer rule has unknown event: '{$rule->event}'.";
-                // @codeCoverageIgnoreEnd
-            }
+            $this->validateSingleObserverRule($rule, $fieldNames, $validEvents, $validActions);
+        }
+    }
 
-            // Validate action
-            if (! in_array($rule->action, $validActions, true)) {
-                $this->errors[] = "Observer rule has unknown action: '{$rule->action}'. Supported: log, notify.";
-            }
+    /**
+     * Validate a single observer rule.
+     *
+     * @param array<int, string> $fieldNames
+     * @param array<int, string> $validEvents
+     * @param array<int, string> $validActions
+     */
+    protected function validateSingleObserverRule(
+        ObserverRuleSpec $rule,
+        array $fieldNames,
+        array $validEvents,
+        array $validActions,
+    ): void {
+        if (! in_array($rule->event, $validEvents, true)) {
+            // @codeCoverageIgnoreStart — Artisan command
+            $this->errors[] = "Observer rule has unknown event: '{$rule->event}'.";
+            // @codeCoverageIgnoreEnd
+        }
 
-            // Validate watch field for update rules
-            if ($rule->event === 'updated' && $rule->watchField !== null) {
-                if (! in_array($rule->watchField, $fieldNames, true)) {
-                    $this->warnings[] = "Observer rule watches field '{$rule->watchField}' which is not in the fields list.";
-                }
-            }
+        if (! in_array($rule->action, $validActions, true)) {
+            $this->errors[] = "Observer rule has unknown action: '{$rule->action}'. Supported: log, notify.";
+        }
 
-            // Validate notify details
-            if ($rule->isNotify()) {
-                $parsed = $rule->parseNotifyDetails();
+        if ($rule->event === 'updated' && $rule->watchField !== null
+            && ! in_array($rule->watchField, $fieldNames, true)) {
+            $this->warnings[] = "Observer rule watches field '{$rule->watchField}' which is not in the fields list.";
+        }
 
-                if ($parsed['class'] === '') {
-                    $this->errors[] = "Observer notify rule is missing notification class name. Format: 'recipient: ClassName'.";
-                }
-            }
+        $this->validateObserverRuleDetails($rule);
+    }
 
-            // Validate log details are not empty
-            if ($rule->isLog() && trim($rule->details) === '') {
-                // @codeCoverageIgnoreStart — Artisan command
-                $this->errors[] = 'Observer log rule has empty details.';
-                // @codeCoverageIgnoreEnd
+    /**
+     * Validate the details of a notify or log observer rule.
+     */
+    protected function validateObserverRuleDetails(ObserverRuleSpec $rule): void
+    {
+        if ($rule->isNotify()) {
+            $parsed = $rule->parseNotifyDetails();
+
+            if ($parsed['class'] === '') {
+                $this->errors[] = "Observer notify rule is missing notification class name. Format: 'recipient: ClassName'.";
             }
+        }
+
+        if ($rule->isLog() && trim($rule->details) === '') {
+            // @codeCoverageIgnoreStart — Artisan command
+            $this->errors[] = 'Observer log rule has empty details.';
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -631,10 +736,20 @@ class ValidateSpecCommand extends Command
 
         $fieldNames = array_unique($fieldNames);
 
-        $validSectionTypes = ['title', 'badges', 'info-grid', 'card', 'timeline'];
-        $validFormats = ['text', 'text:bold', 'date', 'currency', 'percent', 'badge'];
+        $this->validateSingleReportSections($spec, $fieldNames, $relationNames);
+        $this->validateListReportColumns($spec, $fieldNames, $relationNames);
+    }
 
-        // Validate single report sections
+    /**
+     * Validate single report sections within the report layout.
+     *
+     * @param array<int, string> $fieldNames
+     * @param array<int, string> $relationNames
+     */
+    protected function validateSingleReportSections(EntitySpec $spec, array $fieldNames, array $relationNames): void
+    {
+        $validSectionTypes = ['title', 'badges', 'info-grid', 'card', 'timeline'];
+
         foreach ($spec->reportLayout->singleReport as $section) {
             if (! in_array($section->type, $validSectionTypes, true)) {
                 $this->warnings[] = "Report section '{$section->section}' has unknown type: '{$section->type}'.";
@@ -649,17 +764,27 @@ class ValidateSpecCommand extends Command
                     if (! in_array($field->relationshipName(), $relationNames, true)) {
                         $this->warnings[] = "Report section '{$section->section}' references relationship '{$field->relationshipName()}' not in relationships list.";
                     }
-                } elseif ($section->type !== 'timeline') {
-                    $baseField = $field->field;
 
-                    if (! in_array($baseField, $fieldNames, true)) {
-                        $this->warnings[] = "Report section '{$section->section}' references field '{$baseField}' not in fields list.";
-                    }
+                    continue;
+                }
+
+                if ($section->type !== 'timeline' && ! in_array($field->field, $fieldNames, true)) {
+                    $this->warnings[] = "Report section '{$section->section}' references field '{$field->field}' not in fields list.";
                 }
             }
         }
+    }
 
-        // Validate list report columns
+    /**
+     * Validate list report columns within the report layout.
+     *
+     * @param array<int, string> $fieldNames
+     * @param array<int, string> $relationNames
+     */
+    protected function validateListReportColumns(EntitySpec $spec, array $fieldNames, array $relationNames): void
+    {
+        $validFormats = ['text', 'text:bold', 'date', 'currency', 'percent', 'badge'];
+
         foreach ($spec->reportLayout->listReport as $col) {
             if (! in_array($col->format, $validFormats, true)) {
                 $this->warnings[] = "List report column '{$col->column}' has unknown format: '{$col->format}'.";
@@ -669,7 +794,11 @@ class ValidateSpecCommand extends Command
                 if (! in_array($col->relationshipName(), $relationNames, true)) {
                     $this->warnings[] = "List report column '{$col->column}' references relationship '{$col->relationshipName()}' not in relationships list.";
                 }
-            } elseif (! in_array($col->column, $fieldNames, true)) {
+
+                continue;
+            }
+
+            if (! in_array($col->column, $fieldNames, true)) {
                 $this->warnings[] = "List report column '{$col->column}' not in fields list.";
             }
         }

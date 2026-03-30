@@ -36,7 +36,7 @@ class SupervisorsCommand extends Command
     {
         $supervisors = $supervisors->all();
 
-        if (empty($supervisors)) {
+        if ($supervisors === null || $supervisors === []) {
             return $this->components->info('No supervisors are running.');
         }
 

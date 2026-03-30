@@ -34,7 +34,7 @@ class StoreMonitoredTags
     {
         $monitoring = $this->tags->monitored($event->payload->tags());
 
-        if (! empty($monitoring)) {
+        if ($monitoring !== []) {
             $this->tags->add($event->payload->id(), $monitoring);
         }
     }

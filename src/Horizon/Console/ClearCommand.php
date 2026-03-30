@@ -62,8 +62,9 @@ class ClearCommand extends Command
         /** @var array<string, array<string, mixed>> $defaults */
         $defaults = (array) app('config')->get('horizon.defaults');
 
-        $connection = $this->argument('connection')
-            ?: Arr::first($defaults)['connection'] ?? 'redis';
+        $connection = $this->argument('connection') !== null && $this->argument('connection') !== ''
+            ? $this->argument('connection')
+            : (Arr::first($defaults)['connection'] ?? 'redis');
 
         if (method_exists($jobRepository, 'purge')) {
             $jobRepository->purge($queue = $this->getQueue($connection));
@@ -85,7 +86,9 @@ class ClearCommand extends Command
      */
     protected function getQueue($connection)
     {
-        return $this->option('queue') ?: app('config')->get(
+        $queue = $this->option('queue');
+
+        return ($queue !== null && $queue !== '') ? $queue : (string) app('config')->get(
             "queue.connections.{$connection}.queue",
             'default'
         );

@@ -45,7 +45,8 @@ class UpdateJobMetrics
             return;
         }
 
-        $time = $this->watch->check($id = $event->payload->id()) ?: 0;
+        $elapsed = $this->watch->check($id = $event->payload->id());
+        $time = $elapsed !== null ? $elapsed : 0;
 
         $this->metrics->incrementQueue(
             $event->job->getQueue(), $time

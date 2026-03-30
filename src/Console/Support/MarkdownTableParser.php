@@ -85,12 +85,18 @@ class MarkdownTableParser
                 $sections[$currentSection] = implode("\n", $currentContent);
                 $currentSection = trim($matches[1]);
                 $currentContent = [];
-            } elseif (preg_match('/^# (.+)$/', $line, $matches) && $currentSection === '_header') {
+
+                continue;
+            }
+
+            if (preg_match('/^# (.+)$/', $line, $matches) && $currentSection === '_header') {
                 $sections['_name'] = trim($matches[1]);
                 $currentContent = [];
-            } else {
-                $currentContent[] = $line;
+
+                continue;
             }
+
+            $currentContent[] = $line;
         }
 
         $sections[$currentSection] = implode("\n", $currentContent);

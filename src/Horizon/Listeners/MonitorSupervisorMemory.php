@@ -14,6 +14,8 @@ class MonitorSupervisorMemory
 {
     /**
      * Handle the event.
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public function handle(SupervisorLooped $event)
     {

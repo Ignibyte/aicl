@@ -60,7 +60,7 @@ class SupervisorProcess extends WorkerProcess
         $this->options = $options;
         $this->name = $options->name;
 
-        $this->output = $output ?: function () {
+        $this->output = $output !== null ? $output : function () {
             //
             // @codeCoverageIgnoreStart — Horizon process management
         };

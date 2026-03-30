@@ -112,6 +112,9 @@ class FieldParser
         }
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter) -- $name kept for consistent validator signature and future error context
+     */
     protected function validateType(string $type, string $name): void
     {
         if (! in_array($type, self::SUPPORTED_TYPES, true)) {
@@ -151,19 +154,9 @@ class FieldParser
         $indexed = false;
 
         foreach ($modifiers as $modifier) {
-            if ($modifier === 'nullable') {
-                $nullable = true;
-            } elseif ($modifier === 'unique') {
-                $unique = true;
-            } elseif ($modifier === 'index') {
-                $indexed = true;
-            } elseif (preg_match('/^default\((.+)\)$/', $modifier, $matches)) {
-                $default = $matches[1];
-            } else {
-                throw new InvalidArgumentException(
-                    "Unknown modifier: '{$modifier}'. Supported: nullable, unique, default(value), index"
-                );
-            }
+            [$nullable, $unique, $indexed, $default] = $this->applyModifier(
+                $modifier, $nullable, $unique, $indexed, $default,
+            );
         }
 
         // Apply type-specific defaults per design doc
@@ -183,6 +176,36 @@ class FieldParser
             unique: $unique,
             default: $default,
             indexed: $indexed,
+        );
+    }
+
+    /**
+     * Apply a single modifier to the field definition state.
+     *
+     * @return array{bool, bool, bool, ?string}
+     */
+    protected function applyModifier(
+        string $modifier,
+        bool $nullable,
+        bool $unique,
+        bool $indexed,
+        ?string $default,
+    ): array {
+        if ($modifier === 'nullable') {
+            return [true, $unique, $indexed, $default];
+        }
+        if ($modifier === 'unique') {
+            return [$nullable, true, $indexed, $default];
+        }
+        if ($modifier === 'index') {
+            return [$nullable, $unique, true, $default];
+        }
+        if (preg_match('/^default\((.+)\)$/', $modifier, $matches)) {
+            return [$nullable, $unique, $indexed, $matches[1]];
+        }
+
+        throw new InvalidArgumentException(
+            "Unknown modifier: '{$modifier}'. Supported: nullable, unique, default(value), index"
         );
     }
 }

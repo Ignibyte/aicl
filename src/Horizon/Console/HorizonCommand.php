@@ -35,6 +35,8 @@ class HorizonCommand extends Command
 
     /**
      * Execute the console command.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function handle(MasterSupervisorRepository $masters)
     {
@@ -48,7 +50,7 @@ class HorizonCommand extends Command
             return $this->components->error('Predis client is not installed. Run: composer require predis/predis');
         }
 
-        if ($masters->find(MasterSupervisor::name())) {
+        if ($masters->find(MasterSupervisor::name()) !== null) {
             return $this->components->warn('A master supervisor is already running on this machine.');
         }
 

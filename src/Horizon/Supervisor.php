@@ -18,9 +18,13 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Collection;
 use Throwable;
 
-/** Manages a pool of queue worker processes with auto-scaling, pause, and restart capabilities. */
 /**
+ * Manages a pool of queue worker processes with auto-scaling, pause, and restart capabilities.
+ *
  * @codeCoverageIgnore Horizon process management
+ *
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class Supervisor implements Pausable, Restartable, Terminable
 {
@@ -229,8 +233,8 @@ class Supervisor implements Pausable, Restartable, Terminable
      */
     protected function shouldWait()
     {
-        return ! config('aicl-horizon.fast_termination') ||
-            app(CacheFactory::class)->get('aicl:horizon:terminate:wait');
+        return (bool) config('aicl-horizon.fast_termination') === false ||
+            (bool) app(CacheFactory::class)->get('aicl:horizon:terminate:wait');
     }
 
     /**
@@ -321,8 +325,9 @@ class Supervisor implements Pausable, Restartable, Terminable
      */
     protected function autoScale()
     {
-        $this->lastAutoScaled = $this->lastAutoScaled ?:
-            CarbonImmutable::now()->subSeconds($this->options->balanceCooldown + 1);
+        $this->lastAutoScaled = $this->lastAutoScaled !== null
+            ? $this->lastAutoScaled
+            : CarbonImmutable::now()->subSeconds($this->options->balanceCooldown + 1);
 
         if (CarbonImmutable::now()->subSeconds($this->options->balanceCooldown)->gte($this->lastAutoScaled)) {
             $this->lastAutoScaled = CarbonImmutable::now();
@@ -406,7 +411,9 @@ class Supervisor implements Pausable, Restartable, Terminable
      */
     public function pid()
     {
-        return getmypid() ?: 0;
+        $pid = getmypid();
+
+        return $pid !== false ? $pid : 0;
     }
 
     /**
@@ -468,6 +475,8 @@ class Supervisor implements Pausable, Restartable, Terminable
      * Exit the PHP process.
      *
      * @param int $status
+     *
+     * @SuppressWarnings(PHPMD.ExitExpression)
      */
     protected function exitProcess($status = 0)
     {

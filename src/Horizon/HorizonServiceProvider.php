@@ -11,7 +11,11 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
-/** Registers Horizon queue monitoring services, events, commands, and Livewire components. */
+/**
+ * Registers Horizon queue monitoring services, events, commands, and Livewire components.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class HorizonServiceProvider extends ServiceProvider
 {
     use EventMap, ServiceBindings;

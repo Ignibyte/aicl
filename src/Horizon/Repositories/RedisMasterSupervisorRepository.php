@@ -104,7 +104,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
 
                 $record = array_values($record);
 
-                return ! $record[0] ? null : (object) [
+                return ($record[0] === null || $record[0] === false || $record[0] === '') ? null : (object) [
                     'name' => $record[0],
                     'environment' => $record[4],
                     'pid' => $record[1],
@@ -149,11 +149,15 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
      * Remove the master supervisor information from storage.
      *
      * @param string $name
+     *
+     * @SuppressWarnings(PHPMD.IfStatementAssignment)
      */
     public function forget($name)
     {
         // @codeCoverageIgnoreStart — Horizon process management
-        if (! $master = $this->find($name)) {
+        $master = $this->find($name);
+
+        if ($master === null) {
             return;
         }
 
