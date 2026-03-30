@@ -15,8 +15,7 @@ class RetryFailedJob
     /**
      * Create a new job instance.
      *
-     * @param  string  $id  The job ID.
-     * @return void
+     * @param string $id The job ID.
      */
     public function __construct(
         public $id,
@@ -24,8 +23,6 @@ class RetryFailedJob
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(Queue $queue, JobRepository $jobs)
     {
@@ -43,8 +40,9 @@ class RetryFailedJob
     /**
      * Prepare the payload for queueing.
      *
-     * @param  string  $id
-     * @param  string  $payload
+     * @param string $id
+     * @param string $payload
+     *
      * @return string
      */
     protected function preparePayload($id, $payload)
@@ -63,7 +61,8 @@ class RetryFailedJob
     /**
      * Prepare the timeout.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return int|null
      */
     protected function prepareNewTimeout($payload)

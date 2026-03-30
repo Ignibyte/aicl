@@ -34,7 +34,7 @@ class PresenceRegistry
     /**
      * Store or update a session's presence data in the cache.
      *
-     * @param  array<string, mixed>  $meta
+     * @param array<string, mixed> $meta
      */
     public function touch(string $sessionId, int $userId, array $meta): void
     {
@@ -77,12 +77,14 @@ class PresenceRegistry
         foreach ($sessionIds as $i => $sessionId) {
             $data = $results[$cacheKeys[$i]] ?? null;
 
-            if ($data !== null) {
-                $sessions->push($data);
-            } else {
+            if ($data === null) {
                 $staleIds[] = $sessionId;
                 // @codeCoverageIgnoreEnd
+
+                continue;
             }
+
+            $sessions->push($data);
         }
 
         // Clean up stale entries
@@ -183,11 +185,13 @@ class PresenceRegistry
 
         if (empty($index)) {
             Cache::forget('presence:session_index');
-        } else {
-            $ttlSeconds = (int) config('session.lifetime', 120) * 60 + 300;
-            Cache::put('presence:session_index', $index, $ttlSeconds);
-            // @codeCoverageIgnoreEnd
+
+            return;
         }
+
+        $ttlSeconds = (int) config('session.lifetime', 120) * 60 + 300;
+        Cache::put('presence:session_index', $index, $ttlSeconds);
+        // @codeCoverageIgnoreEnd
     }
 
     /**

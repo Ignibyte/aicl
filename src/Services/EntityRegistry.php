@@ -8,12 +8,15 @@ use Aicl\Contracts\HasEntityLifecycle;
 use Aicl\Mcp\AiclMcpServer;
 use Aicl\Swoole\Concurrent;
 use Aicl\Traits\HasStandardScopes;
+use FilesystemIterator;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionClass;
 
 /**
@@ -208,11 +211,13 @@ class EntityRegistry
     {
         if ((new self)->supportsTagging()) {
             Cache::tags(self::CACHE_TAGS)->flush();
-        } else {
-            // @codeCoverageIgnoreStart — Service integration
-            Cache::forget(self::CACHE_KEY);
-            // @codeCoverageIgnoreEnd
+
+            return;
         }
+
+        // @codeCoverageIgnoreStart — Service integration
+        Cache::forget(self::CACHE_KEY);
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -238,8 +243,8 @@ class EntityRegistry
 
         $entities = collect();
 
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($modelsPath, \FilesystemIterator::SKIP_DOTS)
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($modelsPath, FilesystemIterator::SKIP_DOTS)
         );
 
         foreach ($files as $file) {

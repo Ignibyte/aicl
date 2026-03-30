@@ -4,7 +4,7 @@
  * Features: focus trap, body scroll lock, return focus on close,
  * reduced-motion support via CSS transitions.
  */
-window.aiclModal = function ({ closeable, closeOnEscape, closeOnClickOutside, trapFocus }) {
+window.aiclModal = function ({ closeable, closeOnEscape: _closeOnEscape, closeOnClickOutside: _closeOnClickOutside, trapFocus }) {
     return {
         isOpen: false,
         _previouslyFocused: null,

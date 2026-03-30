@@ -29,8 +29,6 @@ class UpdateJobMetrics
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(MetricsRepository $metrics, Stopwatch $watch)
     {
@@ -40,8 +38,6 @@ class UpdateJobMetrics
 
     /**
      * Stop gathering metrics for a job.
-     *
-     * @return void
      */
     public function handle(JobDeleted $event)
     {

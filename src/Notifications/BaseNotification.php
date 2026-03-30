@@ -38,6 +38,8 @@ abstract class BaseNotification extends Notification implements ShouldQueue
      * Get the notification's delivery channels.
      *
      * @return array<int, string>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function via(object $notifiable): array
     {

@@ -36,10 +36,9 @@ class LongWaitDetected
     /**
      * Create a new event instance.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @param  int  $seconds
-     * @return void
+     * @param string $connection
+     * @param string $queue
+     * @param int    $seconds
      */
     public function __construct($connection, $queue, $seconds)
     {

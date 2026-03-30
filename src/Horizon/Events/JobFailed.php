@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aicl\Horizon\Events;
 
+use Exception;
 use Illuminate\Queue\Jobs\Job;
 
 /**
@@ -14,7 +15,7 @@ class JobFailed extends RedisEvent
     /**
      * The exception that caused the failure.
      *
-     * @var \Exception
+     * @var Exception
      */
     public $exception;
 
@@ -28,10 +29,9 @@ class JobFailed extends RedisEvent
     /**
      * Create a new event instance.
      *
-     * @param  \Exception  $exception
-     * @param  Job  $job
-     * @param  string  $payload
-     * @return void
+     * @param Exception $exception
+     * @param Job       $job
+     * @param string    $payload
      */
     public function __construct($exception, $job, $payload)
     {

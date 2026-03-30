@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\Factory;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use stdClass;
 
 /**
  * WaitTimeCalculator.
@@ -39,8 +40,6 @@ class WaitTimeCalculator
 
     /**
      * Create a new calculator instance.
-     *
-     * @return void
      */
     public function __construct(
         QueueFactory $queue,
@@ -55,7 +54,8 @@ class WaitTimeCalculator
     /**
      * Calculate the time to clear a given queue in seconds.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return float
      */
     public function calculateFor($queue)
@@ -66,7 +66,8 @@ class WaitTimeCalculator
     /**
      * Calculate the time to clear per queue in seconds.
      *
-     * @param  string|null  $queue
+     * @param string|null $queue
+     *
      * @return array<string, float>
      */
     public function calculate($queue = null)
@@ -90,8 +91,9 @@ class WaitTimeCalculator
     /**
      * Get all of the queue names.
      *
-     * @param  Collection<int, \stdClass>  $supervisors
-     * @param  string|null  $queue
+     * @param Collection<int, stdClass> $supervisors
+     * @param string|null               $queue
+     *
      * @return Collection<int, mixed>
      */
     protected function queueNames($supervisors, $queue = null)
@@ -107,8 +109,9 @@ class WaitTimeCalculator
     /**
      * Get the total process count for a given queue.
      *
-     * @param  Collection<int, \stdClass>  $allSupervisors
-     * @param  string  $queue
+     * @param Collection<int, stdClass> $allSupervisors
+     * @param string                    $queue
+     *
      * @return int
      */
     protected function totalProcessesFor($allSupervisors, $queue)
@@ -121,9 +124,10 @@ class WaitTimeCalculator
     /**
      * Calculate the time to clear for the given queue in seconds distributed over the given amount of processes.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @param  int  $totalProcesses
+     * @param string $connection
+     * @param string $queue
+     * @param int    $totalProcesses
+     *
      * @return float
      */
     public function calculateTimeToClear($connection, $queue, $totalProcesses)
@@ -142,8 +146,9 @@ class WaitTimeCalculator
     /**
      * Get the total time to clear (in milliseconds) for a given queue.
      *
-     * @param  string  $connection
-     * @param  string  $queue
+     * @param string $connection
+     * @param string $queue
+     *
      * @return float
      */
     protected function timeToClearFor($connection, $queue)

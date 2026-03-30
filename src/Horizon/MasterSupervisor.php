@@ -72,8 +72,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Create a new master supervisor instance.
-     *
-     * @return void
      */
     public function __construct(?string $environment = null)
     {
@@ -119,8 +117,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Use the given callback to resolve master supervisor names.
-     *
-     * @return void
      */
     public static function determineNameUsing(Closure $callback)
     {
@@ -129,8 +125,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Terminate all current supervisors and start fresh ones.
-     *
-     * @return void
      */
     public function restart()
     {
@@ -141,8 +135,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Pause the supervisors.
-     *
-     * @return void
      */
     public function pause()
     {
@@ -153,8 +145,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Instruct the supervisors to continue working.
-     *
-     * @return void
      */
     public function continue()
     {
@@ -166,8 +156,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     /**
      * Terminate this master supervisor and all of its supervisors.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     public function terminate($status = 0)
     {
@@ -210,8 +199,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Monitor the worker processes.
-     *
-     * @return void
      */
     public function monitor()
     {
@@ -231,8 +218,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     /**
      * Ensure that this is the only master supervisor running for this machine.
      *
-     * @return void
-     *
      * @throws Exception
      */
     public function ensureNoOtherMasterSupervisors()
@@ -244,8 +229,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Perform a monitor loop.
-     *
-     * @return void
      */
     public function loop()
     {
@@ -268,8 +251,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Handle any pending commands for the master supervisor.
-     *
-     * @return void
      */
     protected function processPendingCommands()
     {
@@ -281,8 +262,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * "Monitor" all of the supervisors.
-     *
-     * @return void
      */
     protected function monitorSupervisors()
     {
@@ -293,8 +272,6 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
 
     /**
      * Persist information about the master supervisor instance.
-     *
-     * @return void
      */
     public function persist()
     {
@@ -334,7 +311,8 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     /**
      * Get the name of the command queue for the given master supervisor.
      *
-     * @param  string|null  $name
+     * @param string|null $name
+     *
      * @return string
      */
     public static function commandQueueFor($name = null)
@@ -357,9 +335,8 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     /**
      * Handle the given output.
      *
-     * @param  string  $type
-     * @param  string  $line
-     * @return void
+     * @param string $type
+     * @param string $line
      */
     public function output($type, $line)
     {
@@ -371,8 +348,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     /**
      * Shutdown the supervisor.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     protected function exit($status = 0)
     {
@@ -382,8 +358,7 @@ class MasterSupervisor implements Pausable, Restartable, Terminable
     /**
      * Exit the PHP process.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     protected function exitProcess($status = 0)
     {

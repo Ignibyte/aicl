@@ -4,7 +4,7 @@
  * Features: body scroll lock, focus trap, keyboard close,
  * reduced-motion support via CSS transitions.
  */
-window.aiclDrawer = function ({ closeable, position }) {
+window.aiclDrawer = function ({ closeable, position: _position }) {
     return {
         isOpen: false,
         _previouslyFocused: null,

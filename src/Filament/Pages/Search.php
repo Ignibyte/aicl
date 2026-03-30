@@ -11,6 +11,7 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -128,7 +129,7 @@ class Search extends Page
 
         try {
             return app(SearchService::class)->getEntityTypes();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return ['' => 'All Types'];
         }
     }

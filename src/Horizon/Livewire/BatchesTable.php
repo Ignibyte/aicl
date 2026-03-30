@@ -7,6 +7,7 @@ namespace Aicl\Horizon\Livewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Throwable;
 
 /**
  * BatchesTable.
@@ -38,7 +39,7 @@ class BatchesTable extends Component
 
                     return $batch;
                 });
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // job_batches table may not exist
         }
 

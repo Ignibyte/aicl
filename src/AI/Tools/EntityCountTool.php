@@ -103,7 +103,8 @@ class EntityCountTool extends BaseTool
     }
 
     /**
-     * @param  Collection<int, mixed>  $allTypes
+     * @param Collection<int, mixed> $allTypes
+     *
      * @return array<string, int>|string
      */
     private function simpleCounts(Collection $allTypes, ?string $entityType): array|string

@@ -18,15 +18,15 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Append-only record of a persisted domain event.
  *
- * @property string $id
- * @property string $event_type
- * @property string $actor_type
- * @property int|null $actor_id
- * @property string|null $entity_type
- * @property string|null $entity_id
- * @property array<string, mixed> $payload
- * @property array<string, mixed> $metadata
- * @property \Illuminate\Support\Carbon $occurred_at
+ * @property string                          $id
+ * @property string                          $event_type
+ * @property string                          $actor_type
+ * @property int|null                        $actor_id
+ * @property string|null                     $entity_type
+ * @property string|null                     $entity_id
+ * @property array<string, mixed>            $payload
+ * @property array<string, mixed>            $metadata
+ * @property \Illuminate\Support\Carbon      $occurred_at
  * @property \Illuminate\Support\Carbon|null $created_at
  */
 class DomainEventRecord extends Model
@@ -79,7 +79,8 @@ class DomainEventRecord extends Model
     /**
      * Scope to events for a specific entity.
      *
-     * @param  Builder<DomainEventRecord>  $query
+     * @param Builder<DomainEventRecord> $query
+     *
      * @return Builder<DomainEventRecord>
      */
     public function scopeForEntity(Builder $query, Model $entity): Builder
@@ -99,7 +100,8 @@ class DomainEventRecord extends Model
      *   'order.*'         → WHERE event_type LIKE 'order.%'
      *   '*.escalated'     → WHERE event_type LIKE '%.escalated'
      *
-     * @param  Builder<DomainEventRecord>  $query
+     * @param Builder<DomainEventRecord> $query
+     *
      * @return Builder<DomainEventRecord>
      */
     public function scopeOfType(Builder $query, string $type): Builder
@@ -118,7 +120,8 @@ class DomainEventRecord extends Model
     /**
      * Scope to events that occurred on or after a given date.
      *
-     * @param  Builder<DomainEventRecord>  $query
+     * @param Builder<DomainEventRecord> $query
+     *
      * @return Builder<DomainEventRecord>
      */
     public function scopeSince(Builder $query, Carbon $date): Builder
@@ -131,7 +134,8 @@ class DomainEventRecord extends Model
     /**
      * Scope to events that occurred within a date range.
      *
-     * @param  Builder<DomainEventRecord>  $query
+     * @param Builder<DomainEventRecord> $query
+     *
      * @return Builder<DomainEventRecord>
      */
     public function scopeBetween(Builder $query, Carbon $start, Carbon $end): Builder
@@ -144,7 +148,8 @@ class DomainEventRecord extends Model
     /**
      * Scope to events by a specific actor type and optionally a specific actor.
      *
-     * @param  Builder<DomainEventRecord>  $query
+     * @param Builder<DomainEventRecord> $query
+     *
      * @return Builder<DomainEventRecord>
      */
     public function scopeByActor(Builder $query, ActorType $type, ?int $id = null): Builder
@@ -163,7 +168,8 @@ class DomainEventRecord extends Model
     /**
      * Scope that returns all events for an entity, ordered by most recent first.
      *
-     * @param  Builder<DomainEventRecord>  $query
+     * @param Builder<DomainEventRecord> $query
+     *
      * @return Builder<DomainEventRecord>
      */
     public function scopeTimeline(Builder $query, Model $entity): Builder

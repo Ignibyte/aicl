@@ -40,10 +40,9 @@ class ProvisioningPlan
     /**
      * Create a new provisioning plan instance.
      *
-     * @param  string  $master
-     * @param  array<string, array<string, mixed>>  $plan
-     * @param  array<string, mixed>  $defaults
-     * @return void
+     * @param string                              $master
+     * @param array<string, array<string, mixed>> $plan
+     * @param array<string, mixed>                $defaults
      */
     public function __construct($master, array $plan, array $defaults = [])
     {
@@ -56,7 +55,8 @@ class ProvisioningPlan
     /**
      * Get the current provisioning plan.
      *
-     * @param  string  $master
+     * @param string $master
+     *
      * @return static
      *
      * @codeCoverageIgnore Reason: horizon-process -- Provisioning requires Horizon config and master
@@ -71,8 +71,9 @@ class ProvisioningPlan
     /**
      * Apply the default supervisor options to each environment.
      *
-     * @param  array<string, array<string, mixed>>  $plan
-     * @param  array<string, mixed>  $defaults
+     * @param array<string, array<string, mixed>> $plan
+     * @param array<string, mixed>                $defaults
+     *
      * @return array<string, array<string, mixed>>
      */
     protected function applyDefaultOptions(array $plan, array $defaults = [])
@@ -97,7 +98,8 @@ class ProvisioningPlan
     /**
      * Determine if the provisioning plan has a given environment.
      *
-     * @param  string  $environment
+     * @param string $environment
+     *
      * @return bool
      */
     public function hasEnvironment($environment)
@@ -110,8 +112,7 @@ class ProvisioningPlan
     /**
      * Deploy a provisioning plan to the current machine.
      *
-     * @param  string  $environment
-     * @return void
+     * @param string $environment
      */
     public function deploy($environment)
     {
@@ -136,8 +137,6 @@ class ProvisioningPlan
 
     /**
      * Add a supervisor with the given options.
-     *
-     * @return void
      */
     protected function add(SupervisorOptions $options)
     {
@@ -153,8 +152,9 @@ class ProvisioningPlan
     /**
      * Get the SupervisorOptions for a given environment and supervisor.
      *
-     * @param  string  $environment
-     * @param  string  $supervisor
+     * @param string $environment
+     * @param string $supervisor
+     *
      * @return mixed
      */
     public function optionsFor($environment, $supervisor)
@@ -185,8 +185,9 @@ class ProvisioningPlan
     /**
      * Convert the given array of options into a SupervisorOptions instance.
      *
-     * @param  string  $supervisor
-     * @param  array<string, mixed>  $options
+     * @param string               $supervisor
+     * @param array<string, mixed> $options
+     *
      * @return SupervisorOptions
      */
     protected function convert($supervisor, $options)

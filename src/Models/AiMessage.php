@@ -19,14 +19,14 @@ use Illuminate\Support\Carbon;
  * Individual message within an AI conversation.
  * Stores the role (user/assistant/system), content, and token usage.
  *
- * @property string $id
- * @property string $ai_conversation_id
- * @property AiMessageRole $role
- * @property string $content
- * @property int|null $token_count
+ * @property string                    $id
+ * @property string                    $ai_conversation_id
+ * @property AiMessageRole             $role
+ * @property string                    $content
+ * @property int|null                  $token_count
  * @property array<string, mixed>|null $metadata
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property Carbon                    $created_at
+ * @property Carbon                    $updated_at
  */
 class AiMessage extends Model
 {

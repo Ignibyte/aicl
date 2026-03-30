@@ -13,10 +13,10 @@ namespace Aicl\Console\Support;
 class ReportSectionSpec
 {
     /**
-     * @param  string  $section  Section label (e.g., 'Header', 'Details', 'Description', 'Tags', 'Activity')
-     * @param  string  $type  Display type (e.g., 'title', 'badges', 'info-grid', 'card', 'timeline')
-     * @param  string  $fields  Raw fields string (e.g., 'status, priority' or 'invoice_number, owner.name, due_date:date')
-     * @param  array<int, ReportFieldSpec>  $parsedFields  Parsed individual field references
+     * @param string                      $section      Section label (e.g., 'Header', 'Details', 'Description', 'Tags', 'Activity')
+     * @param string                      $type         Display type (e.g., 'title', 'badges', 'info-grid', 'card', 'timeline')
+     * @param string                      $fields       Raw fields string (e.g., 'status, priority' or 'invoice_number, owner.name, due_date:date')
+     * @param array<int, ReportFieldSpec> $parsedFields Parsed individual field references
      */
     public function __construct(
         public string $section,

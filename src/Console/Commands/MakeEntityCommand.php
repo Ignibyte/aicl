@@ -399,7 +399,7 @@ class MakeEntityCommand extends Command
     /**
      * Build an EntityGeneratorContext DTO from current command state.
      *
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
      */
     protected function buildContext(
         string $name,
@@ -438,7 +438,8 @@ class MakeEntityCommand extends Command
      * Centralizes the file-generation loop used by both interactive and spec-based scaffolding paths.
      * Uses extracted generator classes where available, falls back to internal methods for the rest.
      *
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
+     *
      * @return array<int, string> List of generated file paths (relative to base_path)
      */
     protected function scaffoldEntityFiles(
@@ -576,7 +577,7 @@ class MakeEntityCommand extends Command
     /**
      * Run Pint formatting on generated PHP files.
      *
-     * @param  array<int, string>  $files  Relative file paths from scaffolding
+     * @param array<int, string> $files Relative file paths from scaffolding
      */
     protected function runCleanup(array $files): void
     {
@@ -793,8 +794,9 @@ class MakeEntityCommand extends Command
     /**
      * Remove fields that are already declared by the base class schema.
      *
-     * @param  array<int, FieldDefinition>  $fields
-     * @param  array<int, string>  $errors
+     * @param array<int, FieldDefinition> $fields
+     * @param array<int, string>          $errors
+     *
      * @return array<int, FieldDefinition>
      */
     protected function deduplicateBaseFields(array $fields, array &$errors): array
@@ -884,7 +886,7 @@ class MakeEntityCommand extends Command
     }
 
     /**
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
      */
     protected function generateModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
@@ -896,7 +898,7 @@ class MakeEntityCommand extends Command
     }
 
     /**
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
      */
     protected function generateLegacyModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
@@ -922,7 +924,7 @@ class MakeEntityCommand extends Command
             $modelImport = 'use Illuminate\\Database\\Eloquent\\Model;';
         }
 
-        $hasStandardScopes = in_array('HasStandardScopes', $traits);
+        $hasStandardScopes = in_array('HasStandardScopes', $traits, true);
         $searchableColumnsMethod = $hasStandardScopes ? <<<'SEARCH'
 
     /**
@@ -951,6 +953,8 @@ AICONTEXT : '';
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Models;
 
 {$importsStr}
@@ -959,6 +963,7 @@ use Illuminate\\Database\\Eloquent\\Factories\\HasFactory;
 {$modelImport}
 use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;{$softDeletesImport}
 
+/** {$name} Eloquent model. */
 class {$name} extends {$extendsClass}{$implementsStr}
 {
     /** @use HasFactory<{$name}Factory> */
@@ -1005,7 +1010,7 @@ PHP;
     }
 
     /**
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
      */
     protected function generateSmartModel(string $name, string $tableName, array $traits, bool $aiContext = false): string
     {
@@ -1024,7 +1029,7 @@ PHP;
         // Relationship imports from --relationships
         foreach ($this->relationships as $rel) {
             $import = "use Illuminate\\Database\\Eloquent\\Relations\\{$rel->eloquentType()};";
-            if (! in_array($import, $relationImports)) {
+            if (! in_array($import, $relationImports, true)) {
                 $relationImports[] = $import;
             }
         }
@@ -1140,7 +1145,7 @@ PHP;
         }
 
         // Searchable columns (always on child — child-specific columns)
-        $hasStandardScopes = in_array('HasStandardScopes', $traits);
+        $hasStandardScopes = in_array('HasStandardScopes', $traits, true);
         $searchableColumnsMethod = '';
         if ($hasStandardScopes) {
             $stringFields = array_filter($this->fields ?? [], fn (FieldDefinition $f): bool => $f->type === 'string');
@@ -1195,7 +1200,7 @@ PHP;
                 $modelName = $field->relatedModelName();
                 if ($modelName !== 'User' || $baseHasOwnerId) {
                     $import = "use App\\Models\\{$modelName};";
-                    if (! in_array($import, $modelImports)) {
+                    if (! in_array($import, $modelImports, true)) {
                         $modelImports[] = $import;
                     }
                 }
@@ -1240,10 +1245,13 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Models;
 
 {$importsStr}
 
+/** {$name} Eloquent model. */
 class {$name} extends {$extendsClass}{$implementsStr}
 {
     /** @use HasFactory<{$name}Factory> */
@@ -1315,6 +1323,8 @@ COLS;
 
         $content = <<<PHP
 <?php
+
+declare(strict_types=1);
         // @codeCoverageIgnoreEnd
 
 use Illuminate\\Database\\Migrations\\Migration;
@@ -1439,6 +1449,8 @@ PHP;
         $content = <<<'PHP'
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Models\__NAME__;
@@ -1499,7 +1511,7 @@ PHP;
                 if ($baseField->isForeignKey()) {
                     $modelName = $baseField->relatedModelName();
                     $import = "use App\\Models\\{$modelName};";
-                    if (! in_array($import, $imports)) {
+                    if (! in_array($import, $imports, true)) {
                         $imports[] = $import;
                     }
                 }
@@ -1529,7 +1541,7 @@ PHP;
             if ($field->isForeignKey()) {
                 $modelName = $field->relatedModelName();
                 $import = "use App\\Models\\{$modelName};";
-                if (! in_array($import, $imports)) {
+                if (! in_array($import, $imports, true)) {
                     $imports[] = $import;
                 }
             }
@@ -1584,6 +1596,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace Database\\Factories;
 
 {$importsStr}
@@ -1633,12 +1647,15 @@ PHP;
         $content = <<<'PHP'
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\__NAME__;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/** Database seeder for __NAME__ records. */
 class __NAME__Seeder extends Seeder
 {
     public function run(): void
@@ -1666,6 +1683,8 @@ PHP;
         $content = <<<'PHP'
         // @codeCoverageIgnoreEnd
 <?php
+
+declare(strict_types=1);
 
 namespace App\Policies;
 
@@ -1743,6 +1762,8 @@ PHP;
     {
         $content = <<<'PHP'
 <?php
+
+declare(strict_types=1);
 
 namespace App\Observers;
 
@@ -1925,6 +1946,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Observers;
 
 {$importsStr}
@@ -2101,6 +2124,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Observers;
 
 {$importsStr}
@@ -2134,7 +2159,7 @@ PHP;
     /**
      * Build the method body for a created() or deleted() observer method from rules.
      *
-     * @param  array<int, ObserverRuleSpec>  $rules
+     * @param array<int, ObserverRuleSpec> $rules
      */
     protected function buildObserverMethodBody(
         string $name,
@@ -2311,6 +2336,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Observers;
 
 use Aicl\\Observers\\BaseObserver;
@@ -2403,6 +2430,8 @@ PHP;
         if ($action === 'deleted') {
             return <<<PHP
 <?php
+
+declare(strict_types=1);
         // @codeCoverageIgnoreEnd
 
 namespace App\Events;
@@ -2412,6 +2441,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Database\Eloquent\Model;
 
         // @codeCoverageIgnoreStart — Artisan command
+/** Domain event for {$name} lifecycle. */
 class {$className} extends BaseBroadcastEvent
         // @codeCoverageIgnoreEnd
 {
@@ -2467,6 +2497,8 @@ PHP;
 
         return <<<PHP
 <?php
+
+declare(strict_types=1);
         // @codeCoverageIgnoreEnd
 
 namespace App\Events;
@@ -2476,6 +2508,7 @@ use Aicl\Broadcasting\BaseBroadcastEvent;
 use App\Models\\{$name};
 use Illuminate\Database\Eloquent\Model;
 
+/** Domain event for {$name} lifecycle. */
 class {$className} extends BaseBroadcastEvent
 {
     public function __construct(
@@ -2517,7 +2550,8 @@ PHP;
     }
 
     /**
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
+     *
      * @return array<int, string>
      */
     protected function generateFilamentResource(string $name, array $traits = []): array
@@ -2534,6 +2568,8 @@ PHP;
         // Resource class
         $content = <<<PHP
 <?php
+
+declare(strict_types=1);
 
 namespace App\\Filament\\Resources\\{$pluralName};
 
@@ -2554,6 +2590,7 @@ use Filament\\Support\\Icons\\Heroicon;
 use Filament\\Tables\\Table;
 use UnitEnum;
 
+/** Filament admin resource for {$name} entity. */
 class {$name}Resource extends Resource
 {
     protected static ?string \$model = {$name}::class;
@@ -2651,10 +2688,13 @@ PHP;
         $formContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Resources\\{$pluralName}\\Schemas;
 
 {$smartFormImports}
 
+/** Filament form schema for {$name}. */
 class {$name}Form
 {
     public static function configure(Schema \$schema): Schema
@@ -2700,10 +2740,13 @@ PHP;
         $infolistContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Resources\\{$pluralName}\\Schemas;
 
 {$smartInfolistImports}
 
+/** Filament infolist schema for {$name}. */
 class {$name}Infolist
 {
     public static function configure(Schema \$schema): Schema
@@ -2757,6 +2800,8 @@ PHP;
         $tableContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Resources\\{$pluralName}\\Tables;
 
 use App\\Filament\\Exporters\\{$name}Exporter;
@@ -2769,6 +2814,7 @@ use Filament\\Actions\\ViewAction;
 {$smartTableImports}
 use Filament\\Tables\\Table;
 
+/** Filament table definition for {$pluralName}. */
 class {$pluralName}Table
 {
     public static function configure(Table \$table): Table
@@ -2807,12 +2853,15 @@ PHP;
         $listContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Resources\\{$pluralName}\\Pages;
 
 use App\\Filament\\Resources\\{$pluralName}\\{$name}Resource;
 use Filament\\Actions\\CreateAction;
 use Filament\\Resources\\Pages\\ListRecords;
 
+/** Filament resource page. */
 class List{$pluralName} extends ListRecords
 {
     protected static string \$resource = {$name}Resource::class;
@@ -2833,11 +2882,14 @@ PHP;
         $createContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Resources\\{$pluralName}\\Pages;
 
 use App\\Filament\\Resources\\{$pluralName}\\{$name}Resource;
 use Filament\\Resources\\Pages\\CreateRecord;
 
+/** Filament resource page. */
 class Create{$name} extends CreateRecord
 {
     protected static string \$resource = {$name}Resource::class;
@@ -2851,12 +2903,15 @@ PHP;
         $viewContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Resources\\{$pluralName}\\Pages;
 
 use App\\Filament\\Resources\\{$pluralName}\\{$name}Resource;
 use Filament\\Actions\\EditAction;
 use Filament\\Resources\\Pages\\ViewRecord;
 
+/** Filament resource page. */
 class View{$name} extends ViewRecord
 {
     protected static string \$resource = {$name}Resource::class;
@@ -2879,6 +2934,8 @@ PHP;
         $editContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Resources\\{$pluralName}\\Pages;
 
 use App\\Filament\\Resources\\{$pluralName}\\{$name}Resource;
@@ -2886,6 +2943,7 @@ use Filament\\Actions\\DeleteAction;
 use Filament\\Actions\\ViewAction;
 use Filament\\Resources\\Pages\\EditRecord;
 
+/** Filament resource page. */
 class Edit{$name} extends EditRecord
 {
     protected static string \$resource = {$name}Resource::class;
@@ -2925,6 +2983,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Exporters;
 
 use App\\Models\\{$name};
@@ -2932,6 +2992,7 @@ use Filament\\Actions\\Exports\\ExportColumn;
 use Filament\\Actions\\Exports\\Exporter;
 use Filament\\Actions\\Exports\\Models\\Export;
 
+/** Filament CSV/XLSX exporter for {$name} records. */
 class {$name}Exporter extends Exporter
 {
     protected static ?string \$model = {$name}::class;
@@ -2974,6 +3035,8 @@ PHP;
         $controllerContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Http\\Controllers\\Api;
 
 use Aicl\\Traits\\PaginatesApiRequests;
@@ -2987,6 +3050,7 @@ use Illuminate\\Http\\Request;
 use Illuminate\\Http\\Resources\\Json\\AnonymousResourceCollection;
 use Illuminate\\Support\\Facades\\Gate;
 
+/** API controller for {$name} entity. */
 class {$name}Controller extends Controller
 {
     use PaginatesApiRequests;
@@ -3087,11 +3151,14 @@ PHP;
         $storeRequestContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Http\\Requests;
 
 use App\\Models\\{$name};
 use Illuminate\\Foundation\\Http\\FormRequest;{$ruleImport}{$enumImports}
 
+/** Form request validation for creating {$name} records. */
 class Store{$name}Request extends FormRequest
 {
     public function authorize(): bool
@@ -3127,10 +3194,13 @@ PHP;
         $updateRequestContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Http\\Requests;
 
 use Illuminate\\Foundation\\Http\\FormRequest;{$ruleImport}{$enumImports}
 
+/** Form request validation for updating {$name} records. */
 class Update{$name}Request extends FormRequest
 {
     public function authorize(): bool
@@ -3182,6 +3252,8 @@ PHP;
         $resourceContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Http\\Resources;
 
 use Illuminate\\Http\\Request;
@@ -3212,7 +3284,7 @@ PHP;
     }
 
     /**
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
      */
     protected function generateTest(string $name, array $traits): string
     {
@@ -3224,13 +3296,13 @@ PHP;
     }
 
     /**
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
      */
     protected function generateLegacyTest(string $name, array $traits): string
     {
-        $hasAuditTrail = in_array('HasAuditTrail', $traits);
-        $hasEntityEvents = in_array('HasEntityEvents', $traits);
-        $hasStandardScopes = in_array('HasStandardScopes', $traits);
+        $hasAuditTrail = in_array('HasAuditTrail', $traits, true);
+        $hasEntityEvents = in_array('HasEntityEvents', $traits, true);
+        $hasStandardScopes = in_array('HasStandardScopes', $traits, true);
 
         $auditTests = $hasAuditTrail ? <<<'PHP'
 
@@ -3289,6 +3361,8 @@ PHP : '';
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\\Feature\\Entities;
 
 use App\\Models\\{$name};
@@ -3299,6 +3373,7 @@ use Spatie\\Permission\\Models\\Role;
 use Spatie\\Permission\\PermissionRegistrar;
 use Tests\\TestCase;
 
+/** Feature tests for {$name} entity. */
 class {$name}Test extends TestCase
 {
     use DatabaseTransactions;
@@ -3383,13 +3458,13 @@ PHP;
     }
 
     /**
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
      */
     protected function generateSmartTest(string $name, array $traits): string
     {
-        $hasAuditTrail = in_array('HasAuditTrail', $traits);
-        $hasEntityEvents = in_array('HasEntityEvents', $traits);
-        $hasStandardScopes = in_array('HasStandardScopes', $traits);
+        $hasAuditTrail = in_array('HasAuditTrail', $traits, true);
+        $hasEntityEvents = in_array('HasEntityEvents', $traits, true);
+        $hasStandardScopes = in_array('HasStandardScopes', $traits, true);
 
         $snakeName = Str::snake($name);
         $tableName = Str::snake(Str::pluralStudly($name));
@@ -3589,12 +3664,14 @@ PHP;
             'use Tests\\TestCase;',
         ];
         $extraImports = array_unique($extraImports);
-        $extraImports = array_filter($extraImports, fn ($import) => ! in_array($import, $baseImports));
+        $extraImports = array_filter($extraImports, fn ($import) => ! in_array($import, $baseImports, true));
         sort($extraImports);
         $importStr = ! empty($extraImports) ? "\n".implode("\n", $extraImports) : '';
 
         $content = <<<PHP
 <?php
+
+declare(strict_types=1);
 
 namespace Tests\\Feature\\Entities;
 
@@ -3606,6 +3683,7 @@ use Spatie\\Permission\\Models\\Role;
 use Spatie\\Permission\\PermissionRegistrar;
 use Tests\\TestCase;{$importStr}
 
+/** Feature tests for {$name} entity. */
 class {$name}Test extends TestCase
 {
     use DatabaseTransactions;
@@ -3691,7 +3769,8 @@ PHP;
      *
      * Handles HasAiContext injection, base class deduplication, and trait-to-contract mapping.
      *
-     * @param  array<int, string>  $traits
+     * @param array<int, string> $traits
+     *
      * @return array{traitImports: array<int, string>, traitUses: array<int, string>, interfaces: array<int, string>, interfaceImports: array<int, string>}
      */
     protected function resolveTraitsAndInterfaces(array $traits, bool $aiContext): array
@@ -3741,25 +3820,25 @@ PHP;
     }
 
     /**
-     * @param  array<int, string>  $interfaces
-     * @param  array<int, string>  $imports
+     * @param array<int, string> $interfaces
+     * @param array<int, string> $imports
      */
     protected function addInterface(array &$interfaces, array &$imports, string $interface): void
     {
-        if (! in_array($interface, $interfaces)) {
+        if (! in_array($interface, $interfaces, true)) {
             $interfaces[] = $interface;
             $imports[] = "use Aicl\\Contracts\\{$interface};";
         }
     }
 
     /**
-     * @param  array<int, string>  $interfaces
-     * @param  array<int, string>  $imports
+     * @param array<int, string> $interfaces
+     * @param array<int, string> $imports
      */
     protected function addExternalInterface(array &$interfaces, array &$imports, string $interface, string $fqcn): void
     {
         // @codeCoverageIgnoreStart — Artisan command
-        if (! in_array($interface, $interfaces)) {
+        if (! in_array($interface, $interfaces, true)) {
             $interfaces[] = $interface;
             $imports[] = "use {$fqcn};";
             // @codeCoverageIgnoreEnd
@@ -4386,6 +4465,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Enums;
 
 enum {$enumName}: string
@@ -4427,7 +4508,7 @@ PHP;
     /**
      * Generate an enum class from rich spec file data.
      *
-     * @param  array<int, array{case: string, label: string, color?: string, icon?: string}>  $cases
+     * @param array<int, array{case: string, label: string, color?: string, icon?: string}> $cases
      */
     protected function generateEnumFromSpec(string $enumName, array $cases): string
     {
@@ -4488,7 +4569,7 @@ PHP;
             $methods .= '    }';
         }
 
-        $content = "<?php\n\nnamespace App\\Enums;\n\nenum {$enumName}: string\n{\n{$casesStr}\n\n{$methods}\n}\n";
+        $content = "<?php\n\ndeclare(strict_types=1);\n\nnamespace App\\Enums;\n\nenum {$enumName}: string\n{\n{$casesStr}\n\n{$methods}\n}\n";
 
         $dir = app_path('Enums');
         $this->ensureDirectoryExists($dir);
@@ -4533,12 +4614,15 @@ PHP;
         $abstractContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\States;
 
 {$stateImportsStr}
 use Spatie\\ModelStates\\State;
 use Spatie\\ModelStates\\StateConfig;
 
+/** Base state class for {$name} state machine. */
 abstract class {$name}State extends State
         // @codeCoverageIgnoreEnd
 {
@@ -4578,10 +4662,13 @@ PHP;
             $concreteContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\States\\{$name};
 
 use App\\States\\{$name}State;
 
+/** State definition. */
 class {$className} extends {$name}State
 {
     public function label(): string
@@ -4696,6 +4783,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Widgets;
 
 use App\\Models\\{$name};
@@ -4703,6 +4792,7 @@ use Filament\\Widgets\\StatsOverviewWidget;
 use Filament\\Widgets\\StatsOverviewWidget\\Stat;
 use Livewire\\Attributes\\On;
 
+/** Dashboard widget. */
 class {$name}StatsOverview extends StatsOverviewWidget
 {
     protected static ?int \$sort = {$sort};
@@ -4793,12 +4883,15 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Widgets;
 
 use App\\Models\\{$name};
 use Filament\\Widgets\\ChartWidget;
 use Livewire\\Attributes\\On;{$stateImports}
 
+/** Dashboard widget. */
 class {$name}ByStatusChart extends ChartWidget
 {
     protected ?string \$heading = '{$pluralName} by Status';
@@ -4875,6 +4968,8 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Widgets;
 
 use App\\Models\\{$name};
@@ -4883,6 +4978,7 @@ use Filament\\Tables\\Table;
 use Filament\\Widgets\\TableWidget;
 use Livewire\\Attributes\\On;
 
+/** Dashboard widget. */
 class {$widgetClassName} extends TableWidget
 {
     protected static ?int \$sort = {$sort};
@@ -4980,6 +5076,8 @@ PHP;
         $statsContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Widgets;
 
 use App\\Models\\{$name};
@@ -4987,6 +5085,7 @@ use Filament\\Widgets\\StatsOverviewWidget;
 use Filament\\Widgets\\StatsOverviewWidget\\Stat;
 use Livewire\\Attributes\\On;
 
+/** Dashboard widget. */
 class {$name}StatsOverview extends StatsOverviewWidget
 {
     protected static ?int \$sort = 1;
@@ -5030,12 +5129,15 @@ PHP;
             $chartContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Widgets;
 
 use App\\Models\\{$name};
 use Filament\\Widgets\\ChartWidget;
 use Livewire\\Attributes\\On;
 
+/** Dashboard widget. */
 class {$name}ByStatusChart extends ChartWidget
 {
     protected ?string \$heading = '{$pluralName} by Status';
@@ -5094,6 +5196,8 @@ PHP;
         $tableWidgetContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Filament\\Widgets;
 
 use App\\Models\\{$name};
@@ -5102,6 +5206,7 @@ use Filament\\Tables\\Table;
 use Filament\\Widgets\\TableWidget;
 use Livewire\\Attributes\\On;
 
+/** Dashboard widget. */
 class {$widgetName} extends TableWidget
 {
     protected static ?int \$sort = 3;
@@ -5225,10 +5330,13 @@ PHP;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Notifications;
 
 {$importsStr}
 
+/** Notification for {$name} events. */
 class {$className} extends BaseNotification
 {
     public function __construct(
@@ -5237,6 +5345,8 @@ class {$className} extends BaseNotification
 
     /**
      * @return array<string, mixed>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function toDatabase(object \$notifiable): array
     {
@@ -5283,12 +5393,15 @@ PHP;
         $assignedContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Notifications;
 
 use Aicl\\Notifications\\BaseNotification;
 use App\\Models\\{$name};
 use App\\Models\\User;
 
+/** Notification for {$name} events. */
 class {$name}AssignedNotification extends BaseNotification
 {
     public function __construct(
@@ -5298,6 +5411,8 @@ class {$name}AssignedNotification extends BaseNotification
 
     /**
      * @return array<string, mixed>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function toDatabase(object \$notifiable): array
     {
@@ -5331,6 +5446,8 @@ PHP;
             $statusContent = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Notifications;
 
 use Aicl\\Notifications\\BaseNotification;
@@ -5338,6 +5455,7 @@ use App\\Models\\{$name};
 use App\\Models\\User;
 use App\\States\\{$name}State;
 
+/** Notification for {$name} events. */
 class {$name}StatusChangedNotification extends BaseNotification
 {
     public function __construct(
@@ -5349,6 +5467,8 @@ class {$name}StatusChangedNotification extends BaseNotification
 
     /**
      * @return array<string, mixed>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function toDatabase(object \$notifiable): array
     {
@@ -5906,7 +6026,7 @@ BLADE;
     }
 
     /**
-     * @param  array<string, string>  $rules
+     * @param array<string, string> $rules
      */
     protected function formatRulesArray(array $rules): string
     {

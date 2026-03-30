@@ -19,8 +19,7 @@ class MasterSupervisorDeployed
     /**
      * Create a new event instance.
      *
-     * @param  string  $master
-     * @return void
+     * @param string $master
      */
     public function __construct($master)
     {

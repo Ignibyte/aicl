@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Aicl\Mcp\AiclMcpServer;
 use Illuminate\Support\Facades\Route;
 use Laravel\Mcp\Facades\Mcp;

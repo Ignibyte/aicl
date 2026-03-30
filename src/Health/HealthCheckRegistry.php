@@ -7,6 +7,7 @@ namespace Aicl\Health;
 use Aicl\Health\Contracts\ServiceHealthCheck;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 /**
  * HealthCheckRegistry.
@@ -27,7 +28,7 @@ class HealthCheckRegistry
     /**
      * Register a health check class.
      *
-     * @param  class-string<ServiceHealthCheck>  $checkClass
+     * @param class-string<ServiceHealthCheck> $checkClass
      */
     public function register(string $checkClass): void
     {
@@ -39,7 +40,7 @@ class HealthCheckRegistry
     /**
      * Register multiple health check classes.
      *
-     * @param  array<class-string<ServiceHealthCheck>>  $checkClasses
+     * @param array<class-string<ServiceHealthCheck>> $checkClasses
      */
     public function registerMany(array $checkClasses): void
     {
@@ -63,7 +64,7 @@ class HealthCheckRegistry
             $results[] = ['order' => $check->order(), 'result' => $check->check()];
         }
 
-        usort($results, fn (array $a, array $b): int => $a['order'] <=> $b['order']);
+        usort($results, fn (array $checkA, array $checkB): int => $checkA['order'] <=> $checkB['order']);
 
         return array_map(fn (array $item): ServiceCheckResult => $item['result'], $results);
     }
@@ -80,7 +81,7 @@ class HealthCheckRegistry
         try {
             // @codeCoverageIgnoreStart — Untestable in unit context
             return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn (): array => $this->runAll());
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return $this->runAll();
             // @codeCoverageIgnoreEnd
         }
@@ -100,7 +101,7 @@ class HealthCheckRegistry
 
         try {
             Cache::put(self::CACHE_KEY, $results, self::CACHE_TTL);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Cache unavailable — results still returned
         }
 

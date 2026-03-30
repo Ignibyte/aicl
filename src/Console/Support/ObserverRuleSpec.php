@@ -13,10 +13,10 @@ namespace Aicl\Console\Support;
 class ObserverRuleSpec
 {
     /**
-     * @param  string  $event  Lifecycle event: 'created', 'updated', 'deleted'
-     * @param  string  $action  Action type: 'log' or 'notify'
-     * @param  string  $details  Action details (log message template or notification recipient:class)
-     * @param  string|null  $watchField  For 'updated' event: field to watch via isDirty() (null for created/deleted)
+     * @param string      $event      Lifecycle event: 'created', 'updated', 'deleted'
+     * @param string      $action     Action type: 'log' or 'notify'
+     * @param string      $details    Action details (log message template or notification recipient:class)
+     * @param string|null $watchField For 'updated' event: field to watch via isDirty() (null for created/deleted)
      */
     public function __construct(
         public string $event,

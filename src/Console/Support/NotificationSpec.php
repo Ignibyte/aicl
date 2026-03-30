@@ -10,7 +10,7 @@ namespace Aicl\Console\Support;
 class NotificationSpec
 {
     /**
-     * @param  array<int, string>  $channels
+     * @param array<int, string> $channels
      */
     public function __construct(
         public string $name,

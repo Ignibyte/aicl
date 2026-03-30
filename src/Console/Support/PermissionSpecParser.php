@@ -54,10 +54,11 @@ class PermissionSpecParser
     /**
      * Parse ## Roles table.
      *
-     * @param  array<string, string>  $sections
-     * @return array<int, RoleSpec>
+     * @param array<string, string> $sections
      *
      * @throws InvalidArgumentException
+     *
+     * @return array<int, RoleSpec>
      */
     protected function parseRoles(array $sections): array
     {
@@ -99,8 +100,9 @@ class PermissionSpecParser
      * The table has dynamic columns: Entity + one column per role.
      * `*` expands to all standard CRUD actions.
      *
-     * @param  array<string, string>  $sections
-     * @param  array<int, RoleSpec>  $roles
+     * @param array<string, string> $sections
+     * @param array<int, RoleSpec>  $roles
+     *
      * @return array<string, array<string, array<int, string>>>
      */
     protected function parseMatrix(array $sections, array $roles): array
@@ -144,7 +146,8 @@ class PermissionSpecParser
     /**
      * Parse ## Custom Permissions table.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, CustomPermissionSpec>
      */
     protected function parseCustomPermissions(array $sections): array

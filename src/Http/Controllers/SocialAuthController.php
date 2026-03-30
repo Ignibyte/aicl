@@ -7,6 +7,7 @@ namespace Aicl\Http\Controllers;
 use Aicl\Auth\SamlAttributeMapper;
 use Aicl\Services\Exceptions\SocialAuthException;
 use Aicl\Services\SocialAuthService;
+use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -43,7 +44,7 @@ class SocialAuthController
 
         try {
             $socialUser = Socialite::driver($provider)->user();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->route('filament.admin.auth.login')
                 ->withErrors(['email' => 'Unable to authenticate with '.ucfirst($provider).'. Please try again.']);
         }
@@ -85,7 +86,7 @@ class SocialAuthController
 
         try {
             $socialUser = $this->samlDriver()->stateless()->user();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return redirect()->route('filament.admin.auth.login')
                 ->withErrors(['email' => 'SAML authentication failed. Please try again.']);
         }
@@ -130,7 +131,7 @@ class SocialAuthController
         // @codeCoverageIgnoreStart — Untestable in unit context
         $enabled = config('aicl.social_providers', $this->enabledProviders);
 
-        if (! in_array($provider, $enabled)) {
+        if (! in_array($provider, $enabled, true)) {
             abort(404, 'Social provider not found or not enabled.');
             // @codeCoverageIgnoreEnd
         }

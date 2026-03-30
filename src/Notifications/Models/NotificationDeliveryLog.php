@@ -13,19 +13,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property string $id
- * @property string $notification_log_id
- * @property string $channel_id
- * @property DeliveryStatus $status
- * @property int $attempt_count
+ * @property string                    $id
+ * @property string                    $notification_log_id
+ * @property string                    $channel_id
+ * @property DeliveryStatus            $status
+ * @property int                       $attempt_count
  * @property array<string, mixed>|null $payload
  * @property array<string, mixed>|null $response
- * @property string|null $error_message
- * @property Carbon|null $sent_at
- * @property Carbon|null $delivered_at
- * @property Carbon|null $failed_at
- * @property Carbon|null $next_retry_at
- * @property Carbon|null $created_at
+ * @property string|null               $error_message
+ * @property Carbon|null               $sent_at
+ * @property Carbon|null               $delivered_at
+ * @property Carbon|null               $failed_at
+ * @property Carbon|null               $next_retry_at
+ * @property Carbon|null               $created_at
  */
 class NotificationDeliveryLog extends Model
 {
@@ -97,7 +97,8 @@ class NotificationDeliveryLog extends Model
     }
 
     /**
-     * @param  Builder<NotificationDeliveryLog>  $query
+     * @param Builder<NotificationDeliveryLog> $query
+     *
      * @return Builder<NotificationDeliveryLog>
      */
     public function scopePending(Builder $query): Builder
@@ -108,7 +109,8 @@ class NotificationDeliveryLog extends Model
     }
 
     /**
-     * @param  Builder<NotificationDeliveryLog>  $query
+     * @param Builder<NotificationDeliveryLog> $query
+     *
      * @return Builder<NotificationDeliveryLog>
      */
     public function scopeFailed(Builder $query): Builder
@@ -119,7 +121,8 @@ class NotificationDeliveryLog extends Model
     /**
      * Retryable: failed, next_retry_at in the past, under max attempts.
      *
-     * @param  Builder<NotificationDeliveryLog>  $query
+     * @param Builder<NotificationDeliveryLog> $query
+     *
      * @return Builder<NotificationDeliveryLog>
      */
     public function scopeRetryable(Builder $query): Builder
@@ -136,7 +139,8 @@ class NotificationDeliveryLog extends Model
     }
 
     /**
-     * @param  Builder<NotificationDeliveryLog>  $query
+     * @param Builder<NotificationDeliveryLog> $query
+     *
      * @return Builder<NotificationDeliveryLog>
      */
     public function scopeForChannel(Builder $query, NotificationChannel $channel): Builder

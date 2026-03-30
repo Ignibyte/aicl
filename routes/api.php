@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Aicl\Http\Controllers\Api\AiAgentController;
 use Aicl\Http\Controllers\Api\AiChatController;
 use Aicl\Http\Controllers\Api\AiConversationController;

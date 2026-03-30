@@ -12,8 +12,8 @@ namespace Aicl\Console\Support;
 class ReportLayoutSpec
 {
     /**
-     * @param  array<int, ReportSectionSpec>  $singleReport  Sections for the single-record PDF report
-     * @param  array<int, ReportColumnSpec>  $listReport  Columns for the list/table PDF report
+     * @param array<int, ReportSectionSpec> $singleReport Sections for the single-record PDF report
+     * @param array<int, ReportColumnSpec>  $listReport   Columns for the list/table PDF report
      */
     public function __construct(
         public array $singleReport = [],

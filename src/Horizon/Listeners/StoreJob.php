@@ -21,8 +21,6 @@ class StoreJob
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(JobRepository $jobs)
     {
@@ -31,8 +29,6 @@ class StoreJob
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(JobPending $event)
     {

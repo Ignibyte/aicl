@@ -6,6 +6,7 @@ namespace Aicl\Horizon\Console;
 
 use Aicl\Horizon\Contracts\MasterSupervisorRepository;
 use Illuminate\Console\Command;
+use stdClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 /**
@@ -30,8 +31,6 @@ class ListCommand extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle(MasterSupervisorRepository $masters)
     {
@@ -43,10 +42,10 @@ class ListCommand extends Command
 
         $this->output->writeln('');
 
-        /** @var array<int, \stdClass> $masters */
+        /** @var array<int, stdClass> $masters */
         $this->table([
             'Name', 'PID', 'Supervisors', 'Status',
-        ], collect($masters)->map(function (\stdClass $master) {
+        ], collect($masters)->map(function (stdClass $master) {
             /** @var array<int, string>|null $supervisors */
             $supervisors = $master->supervisors;
 

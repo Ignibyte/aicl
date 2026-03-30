@@ -20,8 +20,6 @@ trait ListensForSignals
 
     /**
      * Listen for incoming process signals.
-     *
-     * @return void
      */
     protected function listenForSignals()
     {
@@ -46,8 +44,6 @@ trait ListensForSignals
 
     /**
      * Process the pending signals.
-     *
-     * @return void
      */
     protected function processPendingSignals()
     {

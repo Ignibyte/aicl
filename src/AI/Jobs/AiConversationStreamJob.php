@@ -16,6 +16,7 @@ use Aicl\AI\Tools\BaseTool;
 use Aicl\Enums\AiMessageRole;
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
+use Generator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -26,6 +27,8 @@ use NeuronAI\Agent;
 use NeuronAI\AgentInterface;
 use NeuronAI\Chat\Messages\ToolCallMessage;
 use NeuronAI\Providers\AIProviderInterface;
+use Throwable;
+use TypeError;
 
 /** Queued job that streams AI conversation responses via WebSocket broadcast events. */
 class AiConversationStreamJob implements ShouldQueue
@@ -107,7 +110,7 @@ class AiConversationStreamJob implements ShouldQueue
                             try {
                                 $resultStr = $t->getResult();
                                 $rawResult = json_decode($resultStr, true) ?? $resultStr;
-                            } catch (\TypeError) {
+                            } catch (TypeError) {
                                 $rawResult = null;
                             }
 
@@ -194,7 +197,7 @@ class AiConversationStreamJob implements ShouldQueue
                 CompactConversationJob::dispatch($conversation->id);
                 // @codeCoverageIgnoreEnd
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('AI conversation stream failed', [
                 'stream_id' => $this->streamId,
                 'conversation_id' => $this->conversationId,
@@ -244,7 +247,7 @@ class AiConversationStreamJob implements ShouldQueue
      *
      * @return array<string, int>
      */
-    private function extractUsage(\Generator $generator): array
+    private function extractUsage(Generator $generator): array
     {
         /** @var object|null $response */
         $response = $generator->getReturn();
@@ -341,7 +344,7 @@ class AiConversationStreamJob implements ShouldQueue
      * The $decremented flag prevents double-decrement in the normal
      * exception path where finally already ran.
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         $this->decrementConcurrentCount($this->userId);
 

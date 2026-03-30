@@ -29,7 +29,7 @@ class PdfGenerator
     /**
      * Set the paper size.
      *
-     * @param  string  $paper  Paper size identifier (e.g. 'a4', 'letter', 'legal')
+     * @param string $paper Paper size identifier (e.g. 'a4', 'letter', 'legal')
      */
     public function paper(string $paper): static
     {
@@ -41,7 +41,7 @@ class PdfGenerator
     /**
      * Set the page orientation.
      *
-     * @param  string  $orientation  Either 'portrait' or 'landscape'
+     * @param string $orientation Either 'portrait' or 'landscape'
      */
     public function orientation(string $orientation): static
     {
@@ -73,8 +73,9 @@ class PdfGenerator
     /**
      * Generate PDF content as a raw string.
      *
-     * @param  string  $view  Blade view name
-     * @param  array<string, mixed>  $data  View data
+     * @param string               $view Blade view name
+     * @param array<string, mixed> $data View data
+     *
      * @return string Raw PDF binary content
      */
     public function generate(string $view, array $data = []): string
@@ -90,9 +91,9 @@ class PdfGenerator
     /**
      * Generate a PDF and return a download response.
      *
-     * @param  string  $view  Blade view name
-     * @param  array<string, mixed>  $data  View data
-     * @param  string  $filename  Download filename (e.g. 'report.pdf')
+     * @param string               $view     Blade view name
+     * @param array<string, mixed> $data     View data
+     * @param string               $filename Download filename (e.g. 'report.pdf')
      */
     public function download(string $view, array $data, string $filename): Response
     {
@@ -107,8 +108,8 @@ class PdfGenerator
     /**
      * Generate a PDF and return an inline stream response (displays in browser).
      *
-     * @param  string  $view  Blade view name
-     * @param  array<string, mixed>  $data  View data
+     * @param string               $view Blade view name
+     * @param array<string, mixed> $data View data
      */
     public function stream(string $view, array $data = []): Response
     {
@@ -123,10 +124,11 @@ class PdfGenerator
     /**
      * Generate a PDF and save it to disk.
      *
-     * @param  string  $view  Blade view name
-     * @param  array<string, mixed>  $data  View data
-     * @param  string  $path  Storage path for the file
-     * @param  string|null  $disk  Storage disk name, or null for default disk
+     * @param string               $view Blade view name
+     * @param array<string, mixed> $data View data
+     * @param string               $path Storage path for the file
+     * @param string|null          $disk Storage disk name, or null for default disk
+     *
      * @return bool Whether the file was saved successfully
      */
     public function save(string $view, array $data, string $path, ?string $disk = null): bool

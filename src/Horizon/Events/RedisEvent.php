@@ -35,8 +35,7 @@ class RedisEvent
     /**
      * Create a new event instance.
      *
-     * @param  string  $payload
-     * @return void
+     * @param string $payload
      */
     public function __construct($payload)
     {
@@ -46,7 +45,8 @@ class RedisEvent
     /**
      * Set the connection name.
      *
-     * @param  string  $connectionName
+     * @param string $connectionName
+     *
      * @return $this
      */
     public function connection($connectionName)
@@ -59,7 +59,8 @@ class RedisEvent
     /**
      * Set the queue name.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return $this
      */
     public function queue($queue)

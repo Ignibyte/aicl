@@ -33,7 +33,8 @@ class Horizon
     /**
      * Determine if the given request can access the Horizon dashboard.
      *
-     * @param  Request  $request
+     * @param Request $request
+     *
      * @return bool
      */
     public static function check($request)
@@ -60,8 +61,7 @@ class Horizon
     /**
      * Configure the Redis databases that will store Horizon data.
      *
-     * @param  string  $connection
-     * @return void
+     * @param string $connection
      *
      * @throws Exception
      */

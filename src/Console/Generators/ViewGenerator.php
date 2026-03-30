@@ -303,12 +303,15 @@ BLADE;
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\\{$name};
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** View controller for {$name}. */
 class {$name}ViewController extends Controller
 {
     public function index(Request \$request): View
@@ -401,7 +404,7 @@ PHP;
             $columns[] = [
                 'key' => $field->name,
                 'label' => $field->label(),
-                'sortable' => in_array($field->type, ['string', 'integer', 'float', 'date', 'datetime', 'boolean', 'enum']),
+                'sortable' => in_array($field->type, ['string', 'integer', 'float', 'date', 'datetime', 'boolean', 'enum'], true),
             ];
         }
 
@@ -411,7 +414,7 @@ PHP;
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $columns
+     * @param array<int, array<string, mixed>> $columns
      */
     private function buildColumnsPhpArray(array $columns): string
     {
@@ -433,7 +436,7 @@ PHP;
 
         $items = [];
         foreach ($this->ctx->fields as $field) {
-            if (in_array($field->name, ['description', 'body', 'content'])) {
+            if (in_array($field->name, ['description', 'body', 'content'], true)) {
                 continue;
             }
             if ($field->isForeignId()) {

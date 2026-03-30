@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * CompactConversationJob.
@@ -49,7 +50,7 @@ class CompactConversationJob implements ShouldQueue
 
         try {
             $service->compact($conversation);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Conversation compaction failed', [
                 'conversation_id' => $this->conversationId,
                 'error' => $e->getMessage(),

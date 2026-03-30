@@ -14,8 +14,7 @@ class MonitorTag
     /**
      * Create a new job instance.
      *
-     * @param  string  $tag  The tag to monitor.
-     * @return void
+     * @param string $tag The tag to monitor.
      */
     public function __construct(
         public $tag,
@@ -23,8 +22,6 @@ class MonitorTag
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(TagRepository $tags)
     {

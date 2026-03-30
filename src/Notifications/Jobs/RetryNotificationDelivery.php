@@ -96,15 +96,17 @@ class RetryNotificationDelivery implements ShouldQueue
                 'next_retry_at' => now()->addSeconds($delay),
             ]);
             static::dispatch($this->deliveryLogId)->delay($delay);
-        } else {
-            $log->update([
-                'status' => DeliveryStatus::Failed,
-                'failed_at' => now(),
-                'attempt_count' => $attempt,
-                'error_message' => $result->error,
-                'response' => $result->response,
-            ]);
+
+            return;
         }
+
+        $log->update([
+            'status' => DeliveryStatus::Failed,
+            'failed_at' => now(),
+            'attempt_count' => $attempt,
+            'error_message' => $result->error,
+            'response' => $result->response,
+        ]);
     }
 
     /**

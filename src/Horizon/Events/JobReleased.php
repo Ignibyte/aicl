@@ -19,9 +19,8 @@ class JobReleased extends RedisEvent
     /**
      * Create a new event instance.
      *
-     * @param  string  $payload
-     * @param  int  $delay
-     * @return void
+     * @param string $payload
+     * @param int    $delay
      */
     public function __construct($payload, $delay = 0)
     {

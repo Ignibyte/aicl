@@ -26,7 +26,7 @@ class DriverRegistry
     /**
      * Register a driver class for a channel type.
      *
-     * @param  class-string<NotificationChannelDriver>  $driverClass
+     * @param class-string<NotificationChannelDriver> $driverClass
      */
     public function register(ChannelType $type, string $driverClass): void
     {

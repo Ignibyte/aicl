@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
+use RuntimeException;
 
 /**
  * Service for managing AI assistant chat conversations.
@@ -32,18 +33,18 @@ class AiChatService
     /**
      * Verify that a user has role-based access to a conversation's agent.
      *
-     * @throws \RuntimeException If the user does not have access
+     * @throws RuntimeException If the user does not have access
      */
     public function authorizeAccess(AiConversation $conversation, ?User $user): void
     {
         $agent = $conversation->agent;
 
         if (! $agent) {
-            throw new \RuntimeException('AI agent not found.');
+            throw new RuntimeException('AI agent not found.');
         }
 
         if (! $agent->isAccessibleByUser($user)) {
-            throw new \RuntimeException('You do not have access to this AI agent.');
+            throw new RuntimeException('You do not have access to this AI agent.');
         }
     }
 
@@ -53,21 +54,21 @@ class AiChatService
      * Creates the user's AiMessage, enforces concurrent stream limits,
      * and dispatches the conversation stream job.
      *
-     * @return array{stream_id: string, channel: string, message_id: string}
+     * @throws RuntimeException If the agent is not available or concurrent limit exceeded
      *
-     * @throws \RuntimeException If the agent is not available or concurrent limit exceeded
+     * @return array{stream_id: string, channel: string, message_id: string}
      */
     public function sendMessage(AiConversation $conversation, string $content, ?User $user = null): array
     {
         $agent = $conversation->agent;
 
         if (! $agent || ! $agent->is_active || ! $agent->is_configured) {
-            throw new \RuntimeException('AI agent is not available or not configured.');
+            throw new RuntimeException('AI agent is not available or not configured.');
         }
 
         // Enforce role-based access
         if ($user && ! $agent->isAccessibleByUser($user)) {
-            throw new \RuntimeException('You do not have access to this AI agent.');
+            throw new RuntimeException('You do not have access to this AI agent.');
         }
 
         // Create user message
@@ -94,7 +95,7 @@ class AiChatService
         if ($newCount > $maxConcurrent) {
             Cache::decrement($countKey);
 
-            throw new \RuntimeException('Too many concurrent AI streams. Please wait for a current stream to finish.');
+            throw new RuntimeException('Too many concurrent AI streams. Please wait for a current stream to finish.');
         }
 
         // Dispatch conversation stream job

@@ -12,8 +12,8 @@ use Illuminate\Support\Collection;
 class SearchResultCollection
 {
     /**
-     * @param  Collection<int, SearchResult>  $results
-     * @param  array<string, int>  $facets  Entity type → count
+     * @param Collection<int, SearchResult> $results
+     * @param array<string, int>            $facets  Entity type → count
      */
     public function __construct(
         public readonly Collection $results,

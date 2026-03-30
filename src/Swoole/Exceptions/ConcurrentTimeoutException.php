@@ -14,8 +14,8 @@ class ConcurrentTimeoutException extends ConcurrentException
     /**
      * Create a timeout exception with optional partial results.
      *
-     * @param  array<string|int, mixed>  $results  Results that completed before timeout
-     * @param  array<string|int, Throwable>  $exceptions  Exceptions that occurred before timeout
+     * @param array<string|int, mixed>     $results    Results that completed before timeout
+     * @param array<string|int, Throwable> $exceptions Exceptions that occurred before timeout
      */
     public static function after(float $seconds, array $results = [], array $exceptions = []): self
     {

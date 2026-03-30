@@ -22,7 +22,7 @@ class FieldDefinition
     /**
      * Create a FieldDefinition from a base schema column declaration.
      *
-     * @param  array{name: string, type: string, modifiers?: array<string>, argument?: string}  $column
+     * @param array{name: string, type: string, modifiers?: array<string>, argument?: string} $column
      */
     public static function fromBaseSchema(array $column): self
     {
@@ -79,7 +79,7 @@ class FieldDefinition
     /**
      * Get a human-readable label for this field.
      * Converts snake_case to Title Case, stripping _id suffix.
-     * e.g., assigned_user_id → Assigned User, category_name → Category Name
+     * e.g., assigned_user_id → Assigned User, category_name → Category Name.
      */
     public function label(): string
     {
@@ -99,7 +99,7 @@ class FieldDefinition
     /**
      * Get the relationship method name for a foreignId field.
      * Strips _id suffix and converts to camelCase.
-     * e.g., assigned_to → assignedTo, category_id → category, owner_id → owner
+     * e.g., assigned_to → assignedTo, category_id → category, owner_id → owner.
      */
     public function relationshipMethodName(): ?string
     {
@@ -114,7 +114,7 @@ class FieldDefinition
 
     /**
      * Get the related model class name for a foreignId field.
-     * Derives from the table name: users → User, categories → Category
+     * Derives from the table name: users → User, categories → Category.
      */
     public function relatedModelName(): ?string
     {

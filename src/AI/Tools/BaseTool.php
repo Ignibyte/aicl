@@ -65,7 +65,7 @@ abstract class BaseTool extends Tool implements AiTool
     /**
      * Inject the authenticated user ID for auth-required tools.
      *
-     * @param  int  $userId  The user's primary key
+     * @param int $userId The user's primary key
      */
     public function setAuthenticatedUser(int $userId): static
     {

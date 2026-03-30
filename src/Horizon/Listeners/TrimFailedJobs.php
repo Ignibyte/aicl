@@ -29,8 +29,6 @@ class TrimFailedJobs
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(MasterSupervisorLooped $event)
     {

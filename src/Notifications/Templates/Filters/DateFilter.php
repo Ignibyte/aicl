@@ -6,6 +6,7 @@ namespace Aicl\Notifications\Templates\Filters;
 
 use Aicl\Notifications\Templates\Contracts\TemplateFilter;
 use Carbon\Carbon;
+use Throwable;
 
 /**
  * DateFilter.
@@ -22,7 +23,7 @@ class DateFilter implements TemplateFilter
 
         try {
             return Carbon::parse($value)->format($format);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return $value;
         }
     }

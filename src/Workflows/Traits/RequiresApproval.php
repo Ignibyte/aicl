@@ -68,7 +68,7 @@ trait RequiresApproval
      * Approve this model.
      *
      * @throws AuthorizationException If user lacks permission
-     * @throws ApprovalException If model is not pending
+     * @throws ApprovalException      If model is not pending
      */
     public function approve(User $approver, ?string $comment = null): self
     {
@@ -94,7 +94,7 @@ trait RequiresApproval
      * Reject this model.
      *
      * @throws AuthorizationException If user lacks permission
-     * @throws ApprovalException If model is not pending
+     * @throws ApprovalException      If model is not pending
      */
     public function reject(User $rejector, string $reason): self
     {
@@ -120,7 +120,7 @@ trait RequiresApproval
      * Revoke a previous approval.
      *
      * @throws AuthorizationException If user lacks permission
-     * @throws ApprovalException If model is not approved
+     * @throws ApprovalException      If model is not approved
      */
     public function revokeApproval(User $revoker, string $reason): self
     {

@@ -27,8 +27,8 @@ class NormalizeResponseMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  Request  $request  The incoming HTTP request
-     * @param  Closure  $next  The next middleware in the pipeline
+     * @param Request $request The incoming HTTP request
+     * @param Closure $next    The next middleware in the pipeline
      */
     public function handle(Request $request, Closure $next): Response
     {

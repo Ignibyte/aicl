@@ -16,9 +16,6 @@ use Illuminate\Foundation\Auth\User;
  */
 class UserPolicy extends BasePolicy
 {
-    /**
-     * {@inheritdoc}
-     */
     protected function permissionPrefix(): string
     {
         return 'User';

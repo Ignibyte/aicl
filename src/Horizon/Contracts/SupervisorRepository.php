@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aicl\Horizon\Contracts;
 
 use Aicl\Horizon\Supervisor;
+use stdClass;
 
 /**
  * SupervisorRepository.
@@ -21,23 +22,25 @@ interface SupervisorRepository
     /**
      * Get information on all of the supervisors.
      *
-     * @return array<int, \stdClass>
+     * @return array<int, stdClass>
      */
     public function all();
 
     /**
      * Get information on a supervisor by name.
      *
-     * @param  string  $name
-     * @return \stdClass|null
+     * @param string $name
+     *
+     * @return stdClass|null
      */
     public function find($name);
 
     /**
      * Get information on the given supervisors.
      *
-     * @param  array<int, string>  $names
-     * @return array<int, \stdClass>
+     * @param array<int, string> $names
+     *
+     * @return array<int, stdClass>
      */
     public function get(array $names);
 
@@ -50,23 +53,18 @@ interface SupervisorRepository
 
     /**
      * Update the information about the given supervisor process.
-     *
-     * @return void
      */
     public function update(Supervisor $supervisor);
 
     /**
      * Remove the supervisor information from storage.
      *
-     * @param  array<int, string>|string  $names
-     * @return void
+     * @param array<int, string>|string $names
      */
     public function forget($names);
 
     /**
      * Remove expired supervisors from storage.
-     *
-     * @return void
      */
     public function flushExpired();
 }

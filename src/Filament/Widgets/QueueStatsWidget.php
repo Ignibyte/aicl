@@ -11,6 +11,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
+use Throwable;
 
 /**
  * @codeCoverageIgnore Filament Livewire rendering
@@ -82,7 +83,7 @@ class QueueStatsWidget extends StatsOverviewWidget
     {
         try {
             return Queue::size($queue);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 0;
         }
     }

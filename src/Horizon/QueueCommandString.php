@@ -47,7 +47,8 @@ class QueueCommandString
     /**
      * Get the additional option string for the command.
      *
-     * @param  bool  $paused
+     * @param bool $paused
+     *
      * @return string
      */
     public static function toOptionsString(SupervisorOptions $options, $paused = false)

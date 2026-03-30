@@ -399,7 +399,7 @@ class ValidateSpecCommand extends Command
     }
 
     /**
-     * @param  array<int, string>  $validColors
+     * @param array<int, string> $validColors
      */
     protected function validateStatsWidget(WidgetSpec $widget, array $validColors): void
     {
@@ -417,8 +417,8 @@ class ValidateSpecCommand extends Command
     }
 
     /**
-     * @param  array<int, string>  $stateAndEnumFields
-     * @param  array<int, string>  $validColors
+     * @param array<int, string> $stateAndEnumFields
+     * @param array<int, string> $validColors
      */
     protected function validateChartWidget(WidgetSpec $widget, array $stateAndEnumFields, array $validColors): void
     {
@@ -434,7 +434,7 @@ class ValidateSpecCommand extends Command
     }
 
     /**
-     * @param  array<int, string>  $fieldNames
+     * @param array<int, string> $fieldNames
      */
     protected function validateTableWidget(WidgetSpec $widget, array $fieldNames): void
     {
@@ -476,10 +476,10 @@ class ValidateSpecCommand extends Command
     }
 
     /**
-     * @param  array<int, string>  $fieldNames
-     * @param  array<int, string>  $validTriggerTypes
-     * @param  array<int, string>  $validChannels
-     * @param  array<int, string>  $validColors
+     * @param array<int, string> $fieldNames
+     * @param array<int, string> $validTriggerTypes
+     * @param array<int, string> $validChannels
+     * @param array<int, string> $validColors
      */
     protected function validateSingleNotificationSpec(
         NotificationSpec $notifSpec,

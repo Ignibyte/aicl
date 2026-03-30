@@ -10,6 +10,7 @@ use Aicl\Models\AiConversation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use RuntimeException;
 
 /**
  * AiChatController.
@@ -30,7 +31,7 @@ class AiChatController extends Controller
             );
 
             return response()->json($result);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $statusCode = str_contains($e->getMessage(), 'concurrent') ? 429 : 422;
 
             return response()->json([

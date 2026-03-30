@@ -8,7 +8,9 @@ use Aicl\Models\ScheduleHistory;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
+use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -34,60 +36,9 @@ class ScheduleHistoryTable extends TableWidget
 
         return $table
             ->query($query)
-            ->columns([
-                TextColumn::make('command')
-                    ->searchable()
-                    ->limit(40),
-                TextColumn::make('expression')
-                    ->label('Schedule'),
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        // @codeCoverageIgnoreStart — Filament Livewire rendering
-                        'success' => 'success',
-                        'failed' => 'danger',
-                        'running' => 'info',
-                        'skipped' => 'gray',
-                        default => 'gray',
-                        // @codeCoverageIgnoreEnd
-                    }),
-                TextColumn::make('duration_ms')
-                    ->label('Duration')
-                    ->formatStateUsing(function (?int $state): string {
-                        // @codeCoverageIgnoreStart — Filament Livewire rendering
-                        if ($state === null) {
-                            return '—';
-                        }
-
-                        if ($state >= 1000) {
-                            return number_format($state / 1000, 1).'s';
-                        }
-
-                        return "{$state}ms";
-                        // @codeCoverageIgnoreEnd
-                    }),
-                TextColumn::make('started_at')
-                    ->label('Started')
-                    ->since()
-                    ->sortable()
-                    ->tooltip(fn (ScheduleHistory $record): string => $record->started_at->format('Y-m-d H:i:s')),
-            ])
+            ->columns($this->getColumns())
             ->defaultSort('started_at', 'desc')
-            ->filters([
-                SelectFilter::make('status')
-                    ->options([
-                        'success' => 'Success',
-                        'failed' => 'Failed',
-                        'running' => 'Running',
-                        'skipped' => 'Skipped',
-                    ]),
-                SelectFilter::make('command')
-                    ->options(fn (): array => ScheduleHistory::query()
-                        ->distinct()
-                        ->pluck('command', 'command')
-                        ->toArray())
-                    ->searchable(),
-            ])
+            ->filters($this->getFilters())
             ->recordActions([
                 ViewAction::make()
                     ->modalHeading(fn (ScheduleHistory $record): string => "Task: {$record->command}")
@@ -153,5 +104,76 @@ class ScheduleHistoryTable extends TableWidget
                 : 'Schedule history will appear here as tasks are executed.')
             ->emptyStateIcon($this->failedOnly ? 'heroicon-o-check-circle' : 'heroicon-o-calendar')
             ->paginated([10, 25, 50, 100]);
+    }
+
+    /**
+     * Column definitions for the schedule history table.
+     *
+     * @return array<int, Column>
+     */
+    private function getColumns(): array
+    {
+        return [
+            TextColumn::make('command')
+                ->searchable()
+                ->limit(40),
+            TextColumn::make('expression')
+                ->label('Schedule'),
+            TextColumn::make('status')
+                ->badge()
+                ->color(fn (string $state): string => match ($state) {
+                    // @codeCoverageIgnoreStart — Filament Livewire rendering
+                    'success' => 'success',
+                    'failed' => 'danger',
+                    'running' => 'info',
+                    'skipped' => 'gray',
+                    default => 'gray',
+                    // @codeCoverageIgnoreEnd
+                }),
+            TextColumn::make('duration_ms')
+                ->label('Duration')
+                ->formatStateUsing(function (?int $state): string {
+                    // @codeCoverageIgnoreStart — Filament Livewire rendering
+                    if ($state === null) {
+                        return '—';
+                    }
+
+                    if ($state >= 1000) {
+                        return number_format($state / 1000, 1).'s';
+                    }
+
+                    return "{$state}ms";
+                    // @codeCoverageIgnoreEnd
+                }),
+            TextColumn::make('started_at')
+                ->label('Started')
+                ->since()
+                ->sortable()
+                ->tooltip(fn (ScheduleHistory $record): string => $record->started_at->format('Y-m-d H:i:s')),
+        ];
+    }
+
+    /**
+     * Filter definitions for the schedule history table.
+     *
+     * @return array<int, BaseFilter>
+     */
+    private function getFilters(): array
+    {
+        return [
+            SelectFilter::make('status')
+                ->options([
+                    'success' => 'Success',
+                    'failed' => 'Failed',
+                    'running' => 'Running',
+                    'skipped' => 'Skipped',
+                ]),
+            SelectFilter::make('command')
+                ->options(fn (): array => ScheduleHistory::query()
+                    ->distinct()
+                    ->pluck('command', 'command')
+                    ->toArray())
+                ->searchable(),
+        ];
     }
 }

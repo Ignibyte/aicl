@@ -6,6 +6,7 @@ namespace Aicl\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use SplFileObject;
 
 /**
  * LogParser.
@@ -140,7 +141,7 @@ class LogParser
             return collect();
         }
 
-        $file = new \SplFileObject($path, 'r');
+        $file = new SplFileObject($path, 'r');
         $file->seek(PHP_INT_MAX);
         $totalLines = $file->key();
 
@@ -231,8 +232,9 @@ class LogParser
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = 0;
         $size = $bytes;
+        $unitCount = count($units);
 
-        while ($size >= 1024 && $i < count($units) - 1) {
+        while ($size >= 1024 && $i < $unitCount - 1) {
             $size /= 1024;
             $i++;
         }

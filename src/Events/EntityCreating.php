@@ -20,7 +20,7 @@ class EntityCreating
     use SerializesModels;
 
     /**
-     * @param  Model  $entity  The entity model about to be created
+     * @param Model $entity The entity model about to be created
      */
     public function __construct(
         public Model $entity,

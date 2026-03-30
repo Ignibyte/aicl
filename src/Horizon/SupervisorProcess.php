@@ -9,6 +9,7 @@ use Aicl\Horizon\Contracts\SupervisorRepository;
 use Aicl\Horizon\MasterSupervisorCommands\AddSupervisor;
 use Aicl\Horizon\SupervisorCommands\Terminate;
 use Closure;
+use Override;
 use Symfony\Component\Process\Process;
 
 /**
@@ -51,8 +52,7 @@ class SupervisorProcess extends WorkerProcess
     /**
      * Create a new supervisor process instance.
      *
-     * @param  Process  $process
-     * @return void
+     * @param Process $process
      */
     /** @codeCoverageIgnore Reason: horizon-process -- Constructor output closure requires process context */
     public function __construct(SupervisorOptions $options, $process, ?Closure $output = null)
@@ -73,10 +73,8 @@ class SupervisorProcess extends WorkerProcess
      * Evaluate the current state of the process.
      *
      * @codeCoverageIgnore Reason: horizon-process -- Process monitoring requires OS process control and real workers
-     *
-     * @return void
      */
-    #[\Override]
+    #[Override]
     public function monitor()
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -118,7 +116,7 @@ class SupervisorProcess extends WorkerProcess
         // we will not attempt to restart it. Otherwise, we will need to provision
         // it back out based on the latest provisioning information we have now.
         // @codeCoverageIgnoreStart — Horizon process management
-        if (in_array($exitCode, $this->dontRestartOn)) {
+        if (in_array($exitCode, $this->dontRestartOn, true)) {
             return;
         }
 
@@ -128,8 +126,6 @@ class SupervisorProcess extends WorkerProcess
 
     /**
      * Re-provision this supervisor process based on the provisioning plan.
-     *
-     * @return void
      */
     protected function reprovision()
     {
@@ -149,8 +145,7 @@ class SupervisorProcess extends WorkerProcess
     /**
      * Terminate the supervisor with the given status.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     public function terminateWithStatus($status)
     {
@@ -163,8 +158,6 @@ class SupervisorProcess extends WorkerProcess
 
     /**
      * Mark the process as "dead".
-     *
-     * @return void
      */
     protected function markAsDead()
     {

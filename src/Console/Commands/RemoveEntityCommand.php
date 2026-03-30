@@ -168,13 +168,13 @@ class RemoveEntityCommand extends Command
         // Also check for single PDF view files (some entities use flat files instead of directories)
         $pdfGlob = resource_path("views/pdf/{$snake}*.blade.php");
         foreach (glob($pdfGlob) ?: [] as $file) {
-            if (! in_array($file, $this->filesToDelete)) {
+            if (! in_array($file, $this->filesToDelete, true)) {
                 $this->filesToDelete[] = $file;
             }
         }
         $pdfPluralGlob = resource_path("views/pdf/{$snakePlural}*.blade.php");
         foreach (glob($pdfPluralGlob) ?: [] as $file) {
-            if (! in_array($file, $this->filesToDelete)) {
+            if (! in_array($file, $this->filesToDelete, true)) {
                 // @codeCoverageIgnoreStart — Artisan command
                 $this->filesToDelete[] = $file;
                 // @codeCoverageIgnoreEnd

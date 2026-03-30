@@ -143,7 +143,7 @@ class UpgradeCommand extends Command
     /**
      * Process a single manifest section.
      *
-     * @param  array{label: string, entries: list<array<string, string>>}  $section
+     * @param array{label: string, entries: list<array<string, string>>} $section
      */
     protected function processSection(string $key, array $section, bool $isForce, bool $isFresh): void
     {
@@ -167,7 +167,7 @@ class UpgradeCommand extends Command
     /**
      * Handle 'overwrite' strategy: replace target with source from package stubs.
      *
-     * @param  array<string, string>  $entry
+     * @param array<string, string> $entry
      */
     protected function handleOverwrite(string $sectionKey, array $entry, bool $isForce, bool $isFresh): void
     {
@@ -240,7 +240,7 @@ class UpgradeCommand extends Command
     /**
      * Handle 'ensure_absent' strategy: delete target if it exists.
      *
-     * @param  array<string, string>  $entry
+     * @param array<string, string> $entry
      */
     protected function handleEnsureAbsent(string $sectionKey, array $entry, bool $isForce): void
     {
@@ -287,7 +287,7 @@ class UpgradeCommand extends Command
     /**
      * Handle 'ensure_present' strategy: copy source if target is missing.
      *
-     * @param  array<string, string>  $entry
+     * @param array<string, string> $entry
      */
     protected function handleEnsurePresent(string $sectionKey, array $entry, bool $isForce): void
     {
@@ -474,7 +474,7 @@ class UpgradeCommand extends Command
             $this->state['applied'][$section]['removed'] = [];
         }
 
-        if (! in_array($target, $this->state['applied'][$section]['removed'])) {
+        if (! in_array($target, $this->state['applied'][$section]['removed'], true)) {
             $this->state['applied'][$section]['removed'][] = $target;
         }
     }

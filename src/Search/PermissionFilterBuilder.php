@@ -14,7 +14,8 @@ class PermissionFilterBuilder
     /**
      * Build ES bool.filter clauses for permission-based result filtering.
      *
-     * @param  array<string, array<string, mixed>>  $entityConfigs  All registered entity configs
+     * @param array<string, array<string, mixed>> $entityConfigs All registered entity configs
+     *
      * @return array<int, array<string, mixed>> ES filter clauses
      */
     public function buildFilters(Authenticatable $user, array $entityConfigs): array

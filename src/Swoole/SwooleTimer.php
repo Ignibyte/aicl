@@ -58,10 +58,11 @@ final class SwooleTimer
     /**
      * Register a recurring timer that dispatches a job at fixed intervals.
      *
-     * @param  string  $key  Unique timer name for management
-     * @param  int  $seconds  Interval between executions
-     * @param  string|object  $job  Job class name or instance to dispatch
-     * @param  array<mixed>  $data  Data passed to job constructor (when $job is a string)
+     * @param string        $key     Unique timer name for management
+     * @param int           $seconds Interval between executions
+     * @param string|object $job     Job class name or instance to dispatch
+     * @param array<mixed>  $data    Data passed to job constructor (when $job is a string)
+     *
      * @return bool True if registered, false if Swoole unavailable
      */
     public static function every(string $key, int $seconds, string|object $job, array $data = []): bool
@@ -85,10 +86,11 @@ final class SwooleTimer
     /**
      * Register a one-shot timer that dispatches a job after a delay.
      *
-     * @param  string  $key  Unique timer name for management
-     * @param  int  $seconds  Delay before execution
-     * @param  string|object  $job  Job class name or instance to dispatch
-     * @param  array<mixed>  $data  Data passed to job constructor (when $job is a string)
+     * @param string        $key     Unique timer name for management
+     * @param int           $seconds Delay before execution
+     * @param string|object $job     Job class name or instance to dispatch
+     * @param array<mixed>  $data    Data passed to job constructor (when $job is a string)
+     *
      * @return bool True if registered, false if Swoole unavailable
      */
     public static function after(string $key, int $seconds, string|object $job, array $data = []): bool
@@ -233,18 +235,20 @@ final class SwooleTimer
                 $callback = self::buildCallback($jobClass, $jobData);
                 $timerId = Timer::tick($seconds * 1000, $callback);
                 self::$timerIds[$timerKey] = $timerId;
-            } else {
-                $callback = function () use ($timerKey, $jobClass, $jobData): void {
-                    $innerCallback = static::buildCallback($jobClass, $jobData);
-                    $innerCallback();
 
-                    unset(static::$timerIds[$timerKey]);
-                    static::removeTimerFromRedis($timerKey);
-                };
-
-                $timerId = Timer::after($seconds * 1000, $callback);
-                self::$timerIds[$timerKey] = $timerId;
+                continue;
             }
+
+            $callback = function () use ($timerKey, $jobClass, $jobData): void {
+                $innerCallback = static::buildCallback($jobClass, $jobData);
+                $innerCallback();
+
+                unset(static::$timerIds[$timerKey]);
+                static::removeTimerFromRedis($timerKey);
+            };
+
+            $timerId = Timer::after($seconds * 1000, $callback);
+            self::$timerIds[$timerKey] = $timerId;
         }
     }
 
@@ -271,7 +275,7 @@ final class SwooleTimer
     /**
      * Inject a custom Redis resolver for testing.
      *
-     * @param  (Closure(): Connection)|null  $resolver
+     * @param (Closure(): Connection)|null $resolver
      */
     public static function useRedis(?Closure $resolver): void
     {
@@ -292,7 +296,7 @@ final class SwooleTimer
      * The closure receives ($job, $data) where $job is the class name
      * or object, and $data is the constructor arguments.
      *
-     * @param  (Closure(string|object, array<mixed>): void)|null  $dispatcher
+     * @param (Closure(string|object, array<mixed>): void)|null $dispatcher
      */
     public static function useDispatcher(?Closure $dispatcher): void
     {
@@ -312,8 +316,8 @@ final class SwooleTimer
     /**
      * Build a dispatch callback for a job.
      *
-     * @param  string|object  $job  Job class name or instance
-     * @param  array<mixed>  $data  Constructor arguments (when $job is a string)
+     * @param string|object $job  Job class name or instance
+     * @param array<mixed>  $data Constructor arguments (when $job is a string)
      *
      * @codeCoverageIgnore Callback closures execute inside Swoole Timer context only
      */
@@ -328,16 +332,18 @@ final class SwooleTimer
 
             if (is_string($job)) {
                 dispatch(new $job(...$data));
-            } else {
-                dispatch($job);
+
+                return;
             }
+
+            dispatch($job);
         };
     }
 
     /**
      * Store a timer definition in Redis.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     private static function persistTimer(
         string $key,

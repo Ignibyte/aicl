@@ -20,8 +20,6 @@ class SupervisorLooped
 
     /**
      * Create a new event instance.
-     *
-     * @return void
      */
     public function __construct(Supervisor $supervisor)
     {

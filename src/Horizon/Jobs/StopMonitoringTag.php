@@ -15,8 +15,7 @@ class StopMonitoringTag
     /**
      * Create a new job instance.
      *
-     * @param  string  $tag  The tag to stop monitoring.
-     * @return void
+     * @param string $tag The tag to stop monitoring.
      */
     public function __construct(
         public $tag,
@@ -24,8 +23,6 @@ class StopMonitoringTag
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(JobRepository $jobs, TagRepository $tags)
     {

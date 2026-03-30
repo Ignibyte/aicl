@@ -73,8 +73,8 @@ class CrudWorkflowPrompt extends Prompt
     /**
      * Build workflow instructions for the given operation.
      *
-     * @param  array<int, string>  $fillable
-     * @param  array<string, string>  $casts
+     * @param array<int, string>    $fillable
+     * @param array<string, string> $casts
      */
     protected function buildInstructions(
         string $label,

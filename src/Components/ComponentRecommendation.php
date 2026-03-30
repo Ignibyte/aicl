@@ -13,7 +13,7 @@ namespace Aicl\Components;
 class ComponentRecommendation
 {
     /**
-     * @param  array<string, mixed>  $suggestedProps
+     * @param array<string, mixed> $suggestedProps
      */
     public function __construct(
         public readonly string $tag,

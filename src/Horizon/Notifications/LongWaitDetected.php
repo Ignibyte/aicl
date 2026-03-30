@@ -40,10 +40,9 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
     /**
      * Create a new notification instance.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @param  int  $seconds
-     * @return void
+     * @param string $connection
+     * @param string $queue
+     * @param int    $seconds
      */
     public function __construct($connection, $queue, $seconds)
     {
@@ -55,7 +54,8 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
     /**
      * Get the notification's delivery channels.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
+     *
      * @return array<int, string>
      */
     public function via($notifiable)
@@ -66,7 +66,8 @@ class LongWaitDetected extends Notification implements LongWaitDetectedNotificat
     /**
      * Get the mail representation of the notification.
      *
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
+     *
      * @return MailMessage
      */
     public function toMail($notifiable)

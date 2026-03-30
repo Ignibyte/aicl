@@ -83,7 +83,7 @@ class WebhookDriver implements NotificationChannelDriver
     }
 
     /**
-     * @param  array<string, mixed>  $config
+     * @param array<string, mixed> $config
      */
     protected function buildRequest(array $config): PendingRequest
     {

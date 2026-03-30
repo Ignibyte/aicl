@@ -77,7 +77,9 @@ abstract class BaseBroadcastEvent implements ShouldBroadcast
     {
         $channels = [new PrivateChannel('dashboard')];
 
-        if ($entity = $this->getEntity()) {
+        $entity = $this->getEntity();
+
+        if ($entity !== null) {
             if ($entity->exists) {
                 $type = strtolower(class_basename($entity));
                 $channels[] = new PrivateChannel("{$type}s.{$entity->getKey()}");

@@ -9,6 +9,7 @@ use Aicl\Events\EntityDeleted;
 use Aicl\Events\EntityUpdated;
 use Aicl\Models\NotificationLog;
 use App\Models\User;
+use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\DatabaseNotification;
@@ -35,7 +36,7 @@ class EntityEventNotificationListener implements ShouldQueue
      * Prevents 108K+ failed jobs when bulk deletes or imports remove
      * entities before their queued notification jobs execute.
      */
-    public bool $deleteWhenMissingModels = true;
+    public bool $deleteMissing = true;
 
     /**
      * Handle entity created events.
@@ -93,6 +94,8 @@ class EntityEventNotificationListener implements ShouldQueue
 
     /**
      * Create database notifications for all relevant users except the actor.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function createNotifications(
         ?Model $entity,
@@ -195,7 +198,7 @@ class EntityEventNotificationListener implements ShouldQueue
      *
      * Falls back to "ClassName #ID" if neither name nor title attributes exist.
      *
-     * @param  Model  $entity  The entity instance
+     * @param Model $entity The entity instance
      */
     protected function getEntityName(Model $entity): string
     {
@@ -213,9 +216,10 @@ class EntityEventNotificationListener implements ShouldQueue
     /**
      * Generate the notification title based on the action type.
      *
-     * @param  string  $entityType  The entity class basename
-     * @param  string  $entityName  The entity display name
-     * @param  string  $action  The lifecycle action (created, updated, deleted)
+     * @param string $entityType The entity class basename
+     * @param string $action     The lifecycle action (created, updated, deleted)
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function getTitle(string $entityType, string $entityName, string $action): string
     {
@@ -232,10 +236,10 @@ class EntityEventNotificationListener implements ShouldQueue
     /**
      * Generate the notification body message describing who did what.
      *
-     * @param  string  $entityType  The entity class basename
-     * @param  string  $entityName  The entity display name
-     * @param  string  $action  The lifecycle action
-     * @param  string  $actorName  Name of the user who performed the action
+     * @param string $entityType The entity class basename
+     * @param string $entityName The entity display name
+     * @param string $action     The lifecycle action
+     * @param string $actorName  Name of the user who performed the action
      */
     protected function getBody(string $entityType, string $entityName, string $action, string $actorName): string
     {
@@ -252,7 +256,8 @@ class EntityEventNotificationListener implements ShouldQueue
     /**
      * Map an action to its corresponding Heroicon name.
      *
-     * @param  string  $action  The lifecycle action
+     * @param string $action The lifecycle action
+     *
      * @return string Heroicon component name
      */
     protected function getIcon(string $action): string
@@ -270,7 +275,8 @@ class EntityEventNotificationListener implements ShouldQueue
     /**
      * Map an action to its corresponding Filament notification color.
      *
-     * @param  string  $action  The lifecycle action
+     * @param string $action The lifecycle action
+     *
      * @return string Filament color name
      */
     protected function getColor(string $action): string
@@ -288,8 +294,9 @@ class EntityEventNotificationListener implements ShouldQueue
     /**
      * Build the Filament admin URL for viewing the entity.
      *
-     * @param  Model  $entity  The entity model
-     * @param  string  $entityType  The entity class basename
+     * @param Model  $entity     The entity model
+     * @param string $entityType The entity class basename
+     *
      * @return string|null The route URL, or null if the route does not exist
      */
     protected function getEntityUrl(Model $entity, string $entityType): ?string
@@ -299,7 +306,7 @@ class EntityEventNotificationListener implements ShouldQueue
 
         try {
             return route("filament.admin.resources.{$slug}.view", ['record' => $entity]);
-        } catch (\Exception) {
+        } catch (Exception) {
             return null;
             // @codeCoverageIgnoreEnd
         }

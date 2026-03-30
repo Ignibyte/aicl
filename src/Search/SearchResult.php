@@ -10,7 +10,7 @@ namespace Aicl\Search;
 class SearchResult
 {
     /**
-     * @param  array<string, mixed>  $meta
+     * @param array<string, mixed> $meta
      */
     public function __construct(
         public readonly string $entityType,
@@ -24,7 +24,7 @@ class SearchResult
     ) {}
 
     /**
-     * @param  array<string, mixed>  $hit  Raw ES hit
+     * @param array<string, mixed> $hit Raw ES hit
      */
     public static function fromEsHit(array $hit): self
     {

@@ -65,7 +65,8 @@ class TeamsDriver implements NotificationChannelDriver
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     protected function buildAdaptiveCard(array $payload): array

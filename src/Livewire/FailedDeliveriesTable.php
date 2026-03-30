@@ -6,6 +6,7 @@ namespace Aicl\Livewire;
 
 use Aicl\Notifications\Enums\DeliveryStatus;
 use Aicl\Notifications\Models\NotificationDeliveryLog;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -46,7 +47,7 @@ class FailedDeliveriesTable extends TableWidget
                 TextColumn::make('channel.type')
                     ->label('Type')
                     ->badge()
-                    ->formatStateUsing(fn ($state): string => $state instanceof \BackedEnum ? (string) $state->value : (string) $state)
+                    ->formatStateUsing(fn ($state): string => $state instanceof BackedEnum ? (string) $state->value : (string) $state)
                     ->color('gray'),
                 TextColumn::make('error_message')
                     ->label('Error')

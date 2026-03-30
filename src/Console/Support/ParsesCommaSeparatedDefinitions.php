@@ -17,9 +17,9 @@ trait ParsesCommaSeparatedDefinitions
     /**
      * Parse a comma-separated definition string into definition objects.
      *
-     * @return array<int, mixed>
-     *
      * @throws InvalidArgumentException
+     *
+     * @return array<int, mixed>
      */
     public function parse(string $definitionString): array
     {
@@ -58,10 +58,11 @@ trait ParsesCommaSeparatedDefinitions
     /**
      * Parse a single segment into a definition object.
      *
-     * @param  array<int, string>  $seenNames  Previously seen names for duplicate detection
-     * @return object A definition object with a public $name property
+     * @param array<int, string> $seenNames Previously seen names for duplicate detection
      *
      * @throws InvalidArgumentException
+     *
+     * @return object A definition object with a public $name property
      */
     abstract protected function parseSegment(string $segment, array $seenNames): object;
 }

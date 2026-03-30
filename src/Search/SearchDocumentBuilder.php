@@ -16,17 +16,15 @@ class SearchDocumentBuilder
     /**
      * Build an ES document from a model and its search config.
      *
-     * @param  array<string, mixed>  $entityConfig
+     * @param array<string, mixed> $entityConfig
+     *
      * @return array<string, mixed>
      */
     public function build(Model $model, array $entityConfig): array
     {
         $fields = $entityConfig['fields'] ?? [];
         $labelField = $entityConfig['label'] ?? $fields[0] ?? 'id';
-        $subtitleField = $entityConfig['subtitle'] ?? ($fields[1] ?? null);
-
         $title = $this->resolveFieldValue($model, $labelField);
-        $subtitle = $subtitleField ? $this->resolveFieldValue($model, $subtitleField) : null;
 
         $bodyParts = [];
         foreach ($fields as $field) {

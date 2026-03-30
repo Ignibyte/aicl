@@ -11,6 +11,8 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Resource;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
+use Throwable;
 
 /**
  * EntitySchemaResource.
@@ -125,7 +127,7 @@ class EntitySchemaResource extends Resource
             }
 
             $returnType = $method->getReturnType();
-            if (! $returnType instanceof \ReflectionNamedType) {
+            if (! $returnType instanceof ReflectionNamedType) {
                 continue;
             }
 
@@ -161,7 +163,7 @@ class EntitySchemaResource extends Resource
             $states = $this->modelClass::getStates();
 
             return array_values(array_map(fn ($state): string => (string) $state, $states));
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
             // @codeCoverageIgnoreEnd
         }

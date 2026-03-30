@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Local Configuration Overrides
+ * Local Configuration Overrides.
  *
  * This is the single source of truth for instance-specific configuration.
  * Copy this file to config/local.php and customize for your environment.

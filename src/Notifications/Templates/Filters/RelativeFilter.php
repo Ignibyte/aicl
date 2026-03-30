@@ -6,6 +6,7 @@ namespace Aicl\Notifications\Templates\Filters;
 
 use Aicl\Notifications\Templates\Contracts\TemplateFilter;
 use Carbon\Carbon;
+use Throwable;
 
 /**
  * RelativeFilter.
@@ -20,7 +21,7 @@ class RelativeFilter implements TemplateFilter
 
         try {
             return Carbon::parse($value)->diffForHumans();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return $value;
         }
     }

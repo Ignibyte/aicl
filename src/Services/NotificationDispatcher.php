@@ -45,10 +45,10 @@ use Throwable;
 class NotificationDispatcher
 {
     /**
-     * @param  DriverRegistry  $driverRegistry  Registry of external channel drivers
-     * @param  ChannelRateLimiter  $rateLimiter  Per-channel rate limiter
-     * @param  NotificationChannelResolver|null  $channelResolver  Optional resolver for dynamic channel selection
-     * @param  NotificationRecipientResolver|null  $recipientResolver  Optional resolver for dynamic recipients
+     * @param DriverRegistry                     $driverRegistry    Registry of external channel drivers
+     * @param ChannelRateLimiter                 $rateLimiter       Per-channel rate limiter
+     * @param NotificationChannelResolver|null   $channelResolver   Optional resolver for dynamic channel selection
+     * @param NotificationRecipientResolver|null $recipientResolver Optional resolver for dynamic recipients
      */
     public function __construct(
         protected DriverRegistry $driverRegistry,
@@ -124,7 +124,8 @@ class NotificationDispatcher
     /**
      * Send a notification to many notifiables and log each.
      *
-     * @param  Collection<int, Model>  $notifiables
+     * @param Collection<int, Model> $notifiables
+     *
      * @return Collection<int, NotificationLog>
      */
     public function sendToMany(
@@ -151,11 +152,11 @@ class NotificationDispatcher
         $renderer = app(MessageTemplateRenderer::class);
         $template = $renderer->resolveTemplate($channel, get_class($notification));
 
+        $payload = $rawPayload;
+
         if ($template) {
             $context = $this->buildTemplateContext($notification, $notifiable, $channel, $rawPayload);
             $payload = $renderer->renderForChannel($template, $context, $channel->type);
-        } else {
-            $payload = $rawPayload;
         }
 
         $deliveryLog = NotificationDeliveryLog::create([
@@ -206,7 +207,8 @@ class NotificationDispatcher
     /**
      * Initialize channel status as pending for all channels.
      *
-     * @param  array<int, string>  $channels
+     * @param array<int, string> $channels
+     *
      * @return array<string, string>
      */
     protected function initChannelStatus(array $channels): array
@@ -223,7 +225,8 @@ class NotificationDispatcher
     /**
      * Build the template rendering context from notification components.
      *
-     * @param  array<string, mixed>  $rawPayload
+     * @param array<string, mixed> $rawPayload
+     *
      * @return array<string, mixed>
      */
     protected function buildTemplateContext(

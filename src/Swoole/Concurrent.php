@@ -36,12 +36,13 @@ final class Concurrent
      * callables execute as lightweight coroutines within the same worker.
      * Falls back to sequential execution when not in a Swoole coroutine context.
      *
-     * @param  array<string|int, callable(): mixed>  $callables
-     * @param  float|null  $timeout  Maximum seconds to wait (null = no timeout)
-     * @return array<string|int, mixed> Results keyed by input keys
+     * @param array<string|int, callable(): mixed> $callables
+     * @param float|null                           $timeout   Maximum seconds to wait (null = no timeout)
      *
-     * @throws ConcurrentException If one or more callables threw exceptions
+     * @throws ConcurrentException        If one or more callables threw exceptions
      * @throws ConcurrentTimeoutException If timeout expires before all complete
+     *
+     * @return array<string|int, mixed> Results keyed by input keys
      */
     public static function run(array $callables, ?float $timeout = null): array
     {
@@ -66,14 +67,15 @@ final class Concurrent
      * @template TValue
      * @template TResult
      *
-     * @param  array<TKey, TValue>  $items
-     * @param  Closure(TValue, TKey): TResult  $fn
-     * @param  int  $concurrency  Max simultaneous coroutines (minimum 1)
-     * @param  float|null  $timeout  Maximum seconds to wait (null = no timeout)
-     * @return array<TKey, TResult> Results keyed by input keys (order preserved)
+     * @param array<TKey, TValue>            $items
+     * @param Closure(TValue, TKey): TResult $fn
+     * @param int                            $concurrency Max simultaneous coroutines (minimum 1)
+     * @param float|null                     $timeout     Maximum seconds to wait (null = no timeout)
      *
-     * @throws ConcurrentException If one or more items threw exceptions
+     * @throws ConcurrentException        If one or more items threw exceptions
      * @throws ConcurrentTimeoutException If timeout expires before all complete
+     *
+     * @return array<TKey, TResult> Results keyed by input keys (order preserved)
      */
     public static function map(array $items, Closure $fn, int $concurrency = 10, ?float $timeout = null): array
     {
@@ -96,13 +98,14 @@ final class Concurrent
      * coroutines are NOT cancelled — they complete naturally but their
      * results are discarded.
      *
-     * @param  array<string|int, callable(): mixed>  $callables
-     * @param  float|null  $timeout  Maximum seconds to wait (null = no timeout)
-     * @return mixed The result of the first callable to succeed
+     * @param array<string|int, callable(): mixed> $callables
+     * @param float|null                           $timeout   Maximum seconds to wait (null = no timeout)
      *
-     * @throws InvalidArgumentException If callables array is empty
-     * @throws ConcurrentException If ALL callables threw exceptions
+     * @throws InvalidArgumentException   If callables array is empty
+     * @throws ConcurrentException        If ALL callables threw exceptions
      * @throws ConcurrentTimeoutException If timeout expires before any succeeds
+     *
+     * @return mixed The result of the first callable to succeed
      */
     public static function race(array $callables, ?float $timeout = null): mixed
     {
@@ -132,10 +135,11 @@ final class Concurrent
     /**
      * Execute callables as Swoole coroutines using WaitGroup for synchronization.
      *
-     * @param  array<string|int, callable(): mixed>  $callables
-     * @return array<string|int, mixed>
+     * @param array<string|int, callable(): mixed> $callables
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
+     *
+     * @return array<string|int, mixed>
      *
      * @codeCoverageIgnore Requires Swoole coroutine runtime — sequential fallback is tested
      */
@@ -184,11 +188,12 @@ final class Concurrent
      * @template TValue
      * @template TResult
      *
-     * @param  array<TKey, TValue>  $items
-     * @param  Closure(TValue, TKey): TResult  $fn
-     * @return array<TKey, TResult>
+     * @param array<TKey, TValue>            $items
+     * @param Closure(TValue, TKey): TResult $fn
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
+     *
+     * @return array<TKey, TResult>
      *
      * @codeCoverageIgnore Requires Swoole coroutine runtime — sequential fallback is tested
      */
@@ -238,7 +243,7 @@ final class Concurrent
     /**
      * Race callables using a Channel(1) — only the first successful push is accepted.
      *
-     * @param  array<string|int, callable(): mixed>  $callables
+     * @param array<string|int, callable(): mixed> $callables
      *
      * @throws ConcurrentException|ConcurrentTimeoutException
      *
@@ -289,10 +294,11 @@ final class Concurrent
     /**
      * Sequential fallback for run() when Swoole is unavailable.
      *
-     * @param  array<string|int, callable(): mixed>  $callables
-     * @return array<string|int, mixed>
+     * @param array<string|int, callable(): mixed> $callables
      *
      * @throws ConcurrentException
+     *
+     * @return array<string|int, mixed>
      */
     private static function runSequential(array $callables): array
     {
@@ -324,11 +330,12 @@ final class Concurrent
      * @template TValue
      * @template TResult
      *
-     * @param  array<TKey, TValue>  $items
-     * @param  Closure(TValue, TKey): TResult  $fn
-     * @return array<TKey, TResult>
+     * @param array<TKey, TValue>            $items
+     * @param Closure(TValue, TKey): TResult $fn
      *
      * @throws ConcurrentException
+     *
+     * @return array<TKey, TResult>
      */
     private static function mapSequential(array $items, Closure $fn): array
     {
@@ -355,7 +362,7 @@ final class Concurrent
      *
      * Executes callables one by one, returning the first successful result.
      *
-     * @param  array<string|int, callable(): mixed>  $callables
+     * @param array<string|int, callable(): mixed> $callables
      *
      * @throws ConcurrentException
      */
@@ -377,7 +384,7 @@ final class Concurrent
     /**
      * Validate that all values in the array are callable.
      *
-     * @param  array<string|int, mixed>  $callables
+     * @param array<string|int, mixed> $callables
      *
      * @throws InvalidArgumentException
      */

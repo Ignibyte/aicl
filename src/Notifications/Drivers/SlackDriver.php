@@ -68,8 +68,9 @@ class SlackDriver implements NotificationChannelDriver
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $config
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $config
+     *
      * @return array<string, mixed>
      */
     protected function buildPayload(array $payload, array $config): array

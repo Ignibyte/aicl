@@ -10,11 +10,14 @@ use Aicl\Horizon\Events\JobPushed;
 use Aicl\Horizon\Events\JobReleased;
 use Aicl\Horizon\Events\JobReserved;
 use Aicl\Horizon\Events\JobsMigrated;
+use DateInterval;
+use DateTimeInterface;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Jobs\RedisJob;
 use Illuminate\Queue\RedisQueue as BaseQueue;
 use Illuminate\Support\Str;
+use Override;
 
 /** Redis queue driver with Horizon job lifecycle event dispatching. */
 class RedisQueue extends BaseQueue
@@ -29,7 +32,8 @@ class RedisQueue extends BaseQueue
     /**
      * Get the number of queue jobs that are ready to process.
      *
-     * @param  string|null  $queue
+     * @param string|null $queue
+     *
      * @return int
      */
     public function readyNow($queue = null)
@@ -40,12 +44,13 @@ class RedisQueue extends BaseQueue
     /**
      * Push a new job onto the queue.
      *
-     * @param  object|string  $job
-     * @param  mixed  $data
-     * @param  string|null  $queue
+     * @param object|string $job
+     * @param mixed         $data
+     * @param string|null   $queue
+     *
      * @return mixed
      */
-    #[\Override]
+    #[Override]
     public function push($job, $data = '', $queue = null)
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -66,12 +71,13 @@ class RedisQueue extends BaseQueue
     /**
      * Push a raw payload onto the queue.
      *
-     * @param  string  $payload
-     * @param  string|null  $queue
-     * @param  array<string, mixed>  $options
+     * @param string               $payload
+     * @param string|null          $queue
+     * @param array<string, mixed> $options
+     *
      * @return mixed
      */
-    #[\Override]
+    #[Override]
     public function pushRaw($payload, $queue = null, array $options = [])
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -90,12 +96,13 @@ class RedisQueue extends BaseQueue
     /**
      * Create a payload string from the given job and data.
      *
-     * @param  string  $job
-     * @param  string  $queue
-     * @param  mixed  $data
+     * @param string $job
+     * @param string $queue
+     * @param mixed  $data
+     *
      * @return array<string, mixed>
      */
-    #[\Override]
+    #[Override]
     protected function createPayloadArray($job, $queue, $data = '')
     {
         $payload = parent::createPayloadArray($job, $queue, $data);
@@ -108,13 +115,14 @@ class RedisQueue extends BaseQueue
     /**
      * Push a new job onto the queue after a delay.
      *
-     * @param  \DateTimeInterface|\DateInterval|int  $delay
-     * @param  string  $job
-     * @param  mixed  $data
-     * @param  string|null  $queue
+     * @param DateTimeInterface|DateInterval|int $delay
+     * @param string                             $job
+     * @param mixed                              $data
+     * @param string|null                        $queue
+     *
      * @return mixed
      */
-    #[\Override]
+    #[Override]
     public function later($delay, $job, $data = '', $queue = null)
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -147,11 +155,12 @@ class RedisQueue extends BaseQueue
     /**
      * Pop the next job off of the queue.
      *
-     * @param  string|null  $queue
-     * @param  int  $index
+     * @param string|null $queue
+     * @param int         $index
+     *
      * @return Job|null
      */
-    #[\Override]
+    #[Override]
     public function pop($queue = null, $index = 0)
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -166,11 +175,10 @@ class RedisQueue extends BaseQueue
     /**
      * Migrate the delayed jobs that are ready to the regular queue.
      *
-     * @param  string  $from
-     * @param  string  $to
-     * @return void
+     * @param string $from
+     * @param string $to
      */
-    #[\Override]
+    #[Override]
     public function migrateExpiredJobs($from, $to)
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -183,11 +191,10 @@ class RedisQueue extends BaseQueue
     /**
      * Delete a reserved job from the queue.
      *
-     * @param  string  $queue
-     * @param  RedisJob  $job
-     * @return void
+     * @param string   $queue
+     * @param RedisJob $job
      */
-    #[\Override]
+    #[Override]
     public function deleteReserved($queue, $job)
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -200,12 +207,11 @@ class RedisQueue extends BaseQueue
     /**
      * Delete a reserved job from the reserved queue and release it.
      *
-     * @param  string  $queue
-     * @param  RedisJob  $job
-     * @param  int  $delay
-     * @return void
+     * @param string   $queue
+     * @param RedisJob $job
+     * @param int      $delay
      */
-    #[\Override]
+    #[Override]
     public function deleteAndRelease($queue, $job, $delay)
     {
         // @codeCoverageIgnoreStart — Horizon process management
@@ -218,9 +224,8 @@ class RedisQueue extends BaseQueue
     /**
      * Fire the given event if a dispatcher is bound.
      *
-     * @param  string  $queue
-     * @param  mixed  $event
-     * @return void
+     * @param string $queue
+     * @param mixed  $event
      */
     protected function event($queue, $event)
     {

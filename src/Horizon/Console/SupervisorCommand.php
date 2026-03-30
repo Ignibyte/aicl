@@ -91,8 +91,7 @@ class SupervisorCommand extends Command
     /**
      * Start the given supervisor.
      *
-     * @param  Supervisor  $supervisor
-     * @return void
+     * @param Supervisor $supervisor
      */
     protected function start($supervisor)
     {
@@ -157,7 +156,8 @@ class SupervisorCommand extends Command
     /**
      * Get the queue name for the worker.
      *
-     * @param  string  $connection
+     * @param string $connection
+     *
      * @return string
      */
     protected function getQueue($connection)

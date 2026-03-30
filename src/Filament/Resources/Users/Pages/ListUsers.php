@@ -33,7 +33,8 @@ class ListUsers extends ListRecords
      * Eager load roles relationship to prevent N+1 queries
      * on the roles.name table column.
      *
-     * @param  Builder<User>  $query
+     * @param Builder<User> $query
+     *
      * @return Builder<User>
      */
     protected function modifyQueryUsing(Builder $query): Builder

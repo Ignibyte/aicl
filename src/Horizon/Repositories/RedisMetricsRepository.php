@@ -15,6 +15,8 @@ use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use stdClass;
+use Throwable;
 
 /** Redis-backed repository for storing and querying Horizon job and queue performance metrics. */
 class RedisMetricsRepository implements MetricsRepository
@@ -28,8 +30,6 @@ class RedisMetricsRepository implements MetricsRepository
 
     /**
      * Create a new repository instance.
-     *
-     * @return void
      */
     public function __construct(RedisFactory $redis)
     {
@@ -96,7 +96,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get the throughput for a given job.
      *
-     * @param  string  $job
+     * @param string $job
+     *
      * @return int
      */
     public function throughputForJob($job)
@@ -109,7 +110,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get the throughput for a given queue.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return int
      */
     public function throughputForQueue($queue)
@@ -122,7 +124,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get the throughput for a given key.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return int
      */
     protected function throughputFor($key)
@@ -135,7 +138,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get the average runtime for a given job in milliseconds.
      *
-     * @param  string  $job
+     * @param string $job
+     *
      * @return float
      */
     public function runtimeForJob($job)
@@ -148,7 +152,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get the average runtime for a given queue in milliseconds.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return float
      */
     public function runtimeForQueue($queue)
@@ -159,7 +164,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get the average runtime for a given key in milliseconds.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return float
      */
     protected function runtimeFor($key)
@@ -206,9 +212,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Increment the metrics information for a job.
      *
-     * @param  string  $job
-     * @param  float|null  $runtime
-     * @return void
+     * @param string     $job
+     * @param float|null $runtime
      */
     public function incrementJob($job, $runtime)
     {
@@ -222,9 +227,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Increment the metrics information for a queue.
      *
-     * @param  string  $queue
-     * @param  float|null  $runtime
-     * @return void
+     * @param string     $queue
+     * @param float|null $runtime
      */
     public function incrementQueue($queue, $runtime)
     {
@@ -238,8 +242,9 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get all of the snapshots for the given job.
      *
-     * @param  string  $job
-     * @return array<int, \stdClass>
+     * @param string $job
+     *
+     * @return array<int, stdClass>
      */
     public function snapshotsForJob($job)
     {
@@ -251,8 +256,9 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get all of the snapshots for the given queue.
      *
-     * @param  string  $queue
-     * @return array<int, \stdClass>
+     * @param string $queue
+     *
+     * @return array<int, stdClass>
      */
     public function snapshotsForQueue($queue)
     {
@@ -262,8 +268,9 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get all of the snapshots for the given key.
      *
-     * @param  string  $key
-     * @return array<int, \stdClass>
+     * @param string $key
+     *
+     * @return array<int, stdClass>
      */
     protected function snapshotsFor($key)
     {
@@ -275,8 +282,6 @@ class RedisMetricsRepository implements MetricsRepository
 
     /**
      * Store a snapshot of the metrics information.
-     *
-     * @return void
      */
     public function snapshot()
     {
@@ -322,7 +327,7 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Persist collected snapshot rows to the database.
      *
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array<string, mixed>> $rows
      */
     private function persistToDatabase(array $rows): void
     {
@@ -337,7 +342,7 @@ class RedisMetricsRepository implements MetricsRepository
 
         try {
             QueueMetricSnapshot::insert($rows);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Failed to persist queue metric snapshots to database.', [
                 'error' => $e->getMessage(),
                 'row_count' => count($rows),
@@ -349,7 +354,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Store a snapshot for the given job.
      *
-     * @param  string  $job
+     * @param string $job
+     *
      * @return array{throughput: mixed, runtime: mixed}|null
      */
     protected function storeSnapshotForJob($job)
@@ -376,7 +382,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Store a snapshot for the given queue.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return array{throughput: mixed, runtime: mixed, wait: float}|null
      */
     protected function storeSnapshotForQueue($queue)
@@ -408,7 +415,8 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Get the base snapshot data for a given key.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return array{throughput: mixed, runtime: mixed}
      */
     protected function baseSnapshotData($key)
@@ -475,8 +483,7 @@ class RedisMetricsRepository implements MetricsRepository
     /**
      * Clear the metrics for a key.
      *
-     * @param  string  $key
-     * @return void
+     * @param string $key
      */
     public function forget($key)
     {
@@ -487,8 +494,6 @@ class RedisMetricsRepository implements MetricsRepository
 
     /**
      * Delete all stored metrics information.
-     *
-     * @return void
      */
     public function clear()
     {

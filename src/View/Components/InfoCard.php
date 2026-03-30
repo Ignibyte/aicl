@@ -22,7 +22,7 @@ use Illuminate\View\View;
 class InfoCard extends Component
 {
     /**
-     * @param  array<string, string|null>  $items
+     * @param array<string, string|null> $items
      */
     public function __construct(
         public string $heading,

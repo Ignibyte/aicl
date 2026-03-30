@@ -13,15 +13,15 @@ namespace Aicl\Components;
 class ComponentDefinition
 {
     /**
-     * @param  array<int, string>  $context
-     * @param  array<int, string>  $notFor
-     * @param  array<string, mixed>  $props
-     * @param  array<string, mixed>  $slots
-     * @param  array<string, mixed>  $variants
-     * @param  array<int, string>  $composableIn
-     * @param  array<string, mixed>  $fieldSignals
-     * @param  array<string, mixed>|null  $filamentEquivalent
-     * @param  array<string, mixed>|null  $entityDisplay
+     * @param array<int, string>        $context
+     * @param array<int, string>        $notFor
+     * @param array<string, mixed>      $props
+     * @param array<string, mixed>      $slots
+     * @param array<string, mixed>      $variants
+     * @param array<int, string>        $composableIn
+     * @param array<string, mixed>      $fieldSignals
+     * @param array<string, mixed>|null $filamentEquivalent
+     * @param array<string, mixed>|null $entityDisplay
      */
     public function __construct(
         public readonly string $name,
@@ -48,7 +48,7 @@ class ComponentDefinition
     /**
      * Create a ComponentDefinition from a parsed component.json array.
      *
-     * @param  array<string, mixed>  $manifest
+     * @param array<string, mixed> $manifest
      */
     public static function fromManifest(array $manifest, string $class, string $template, ?string $jsModule, string $source): self
     {
@@ -144,7 +144,7 @@ class ComponentDefinition
     /**
      * Restore from cached array.
      *
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     public static function fromArray(array $data): self
     {

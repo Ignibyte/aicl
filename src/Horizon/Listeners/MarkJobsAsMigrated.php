@@ -21,8 +21,6 @@ class MarkJobsAsMigrated
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(JobRepository $jobs)
     {
@@ -31,8 +29,6 @@ class MarkJobsAsMigrated
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(JobsMigrated $event)
     {

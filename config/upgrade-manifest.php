@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * AICL Upgrade Manifest
+ * AICL Upgrade Manifest.
  *
  * Declares what files should exist (and not exist) in a properly
  * configured AICL project at this package version. The aicl:upgrade

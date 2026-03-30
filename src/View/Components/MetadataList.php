@@ -23,7 +23,7 @@ use Illuminate\View\View;
 class MetadataList extends Component
 {
     /**
-     * @param  array<string, string|null>  $items
+     * @param array<string, string|null> $items
      */
     public function __construct(
         public array $items = [],

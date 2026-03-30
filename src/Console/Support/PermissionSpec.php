@@ -20,9 +20,9 @@ class PermissionSpec
     ];
 
     /**
-     * @param  array<int, RoleSpec>  $roles  Role definitions
-     * @param  array<string, array<string, array<int, string>>>  $matrix  Entity => Role => Permissions[]
-     * @param  array<int, CustomPermissionSpec>  $customPermissions  Custom (non-entity) permissions
+     * @param array<int, RoleSpec>                             $roles             Role definitions
+     * @param array<string, array<string, array<int, string>>> $matrix            Entity => Role => Permissions[]
+     * @param array<int, CustomPermissionSpec>                 $customPermissions Custom (non-entity) permissions
      */
     public function __construct(
         public array $roles = [],

@@ -37,6 +37,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
+use Throwable;
 use UnitEnum;
 
 /** Filament page providing a unified operations dashboard for queues, schedules, notifications, and sessions. */
@@ -190,7 +191,7 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
             Artisan::call('schedule:list');
             $output = Artisan::output();
             // @codeCoverageIgnoreStart — Filament Livewire rendering
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
             // @codeCoverageIgnoreEnd
         }
@@ -597,7 +598,7 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
         try {
             return Queue::size($queue);
             // @codeCoverageIgnoreStart — Filament Livewire rendering
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 0;
             // @codeCoverageIgnoreEnd
         }

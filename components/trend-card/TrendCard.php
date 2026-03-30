@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -16,7 +18,7 @@ use Illuminate\View\View;
 class TrendCard extends Component
 {
     /**
-     * @param  array<int, int|float>  $data
+     * @param array<int, int|float> $data
      */
     public function __construct(
         public string $label,

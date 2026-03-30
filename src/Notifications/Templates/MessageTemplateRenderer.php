@@ -19,7 +19,7 @@ class MessageTemplateRenderer
 
     public function __construct(
         protected FilterRegistry $filterRegistry,
-        protected FormatAdapterRegistry $formatAdapterRegistry,
+        protected FormatAdapterRegistry $adapterRegistry,
         protected bool $escapeHtml = true,
     ) {}
 
@@ -34,8 +34,9 @@ class MessageTemplateRenderer
     /**
      * Render a template string with context variables and filters.
      *
-     * @param  string  $template  Template string with {{ variable | filter }} syntax
-     * @param  array<string, mixed>  $context  Context data keyed by prefix
+     * @param string               $template Template string with {{ variable | filter }} syntax
+     * @param array<string, mixed> $context  Context data keyed by prefix
+     *
      * @return string Rendered output
      */
     public function render(string $template, array $context): string
@@ -48,9 +49,10 @@ class MessageTemplateRenderer
     /**
      * Render a template array (title + body) with context, then format for a channel.
      *
-     * @param  array{title: string, body: string}  $templates  Template strings
-     * @param  array<string, mixed>  $context  Context data
-     * @param  ChannelType  $channelType  Target channel type for formatting
+     * @param array{title: string, body: string} $templates   Template strings
+     * @param array<string, mixed>               $context     Context data
+     * @param ChannelType                        $channelType Target channel type for formatting
+     *
      * @return array<string, mixed> Channel-formatted payload
      */
     public function renderForChannel(
@@ -66,8 +68,8 @@ class MessageTemplateRenderer
             'color' => $context['color'] ?? null,
         ];
 
-        if ($this->formatAdapterRegistry->has($channelType)) {
-            return $this->formatAdapterRegistry->resolve($channelType)->format($rendered, $context);
+        if ($this->adapterRegistry->has($channelType)) {
+            return $this->adapterRegistry->resolve($channelType)->format($rendered, $context);
         }
 
         return $rendered;
@@ -103,7 +105,7 @@ class MessageTemplateRenderer
     /**
      * Resolve a single {{ expression }} -- variable + filter chain.
      *
-     * @param  array<string, mixed>  $context
+     * @param array<string, mixed> $context
      */
     protected function resolveExpression(string $expression, array $context): string
     {
@@ -138,7 +140,7 @@ class MessageTemplateRenderer
     /**
      * Resolve a variable reference (e.g., 'model.title', 'user.name', 'app.name').
      *
-     * @param  array<string, mixed>  $context
+     * @param array<string, mixed> $context
      */
     protected function resolveVariable(string $reference, array $context): string
     {
@@ -164,18 +166,17 @@ class MessageTemplateRenderer
     /**
      * Apply a single filter expression (e.g., 'truncate:50', 'upper').
      *
-     * @param  array<string, mixed>  $context
+     * @param array<string, mixed> $context
      */
     protected function applyFilter(string $filterExpr, string $value, array $context): string
     {
         $colonPos = strpos($filterExpr, ':');
+        $filterName = $filterExpr;
+        $argument = null;
 
         if ($colonPos !== false) {
             $filterName = substr($filterExpr, 0, $colonPos);
             $argument = substr($filterExpr, $colonPos + 1);
-        } else {
-            $filterName = $filterExpr;
-            $argument = null;
         }
 
         if ($this->filterRegistry->has($filterName)) {

@@ -50,8 +50,6 @@ class ProcessPool implements Countable
 
     /**
      * Create a new process pool instance.
-     *
-     * @return void
      */
     public function __construct(SupervisorOptions $options, ?Closure $output = null)
     {
@@ -65,8 +63,7 @@ class ProcessPool implements Countable
     /**
      * Scale the process count.
      *
-     * @param  int  $processes
-     * @return void
+     * @param int $processes
      *
      * @codeCoverageIgnore Reason: horizon-process -- Process scaling requires running supervisors
      */
@@ -90,8 +87,7 @@ class ProcessPool implements Countable
     /**
      * Scale up to the given number of processes.
      *
-     * @param  int  $processes
-     * @return void
+     * @param int $processes
      */
     protected function scaleUp($processes)
     {
@@ -107,8 +103,7 @@ class ProcessPool implements Countable
     /**
      * Scale down to the given number of processes.
      *
-     * @param  int  $processes
-     * @return void
+     * @param int $processes
      */
     protected function scaleDown($processes)
     {
@@ -140,8 +135,6 @@ class ProcessPool implements Countable
 
     /**
      * Mark the given worker process for termination.
-     *
-     * @return void
      */
     public function markForTermination(WorkerProcess $process)
     {
@@ -153,8 +146,7 @@ class ProcessPool implements Countable
     /**
      * Remove the given number of processes from the process array.
      *
-     * @param  int  $count
-     * @return void
+     * @param int $count
      */
     protected function removeProcesses($count)
     {
@@ -201,8 +193,6 @@ class ProcessPool implements Countable
 
     /**
      * Evaluate the current state of all of the processes.
-     *
-     * @return void
      */
     public function monitor()
     {
@@ -211,8 +201,6 @@ class ProcessPool implements Countable
 
     /**
      * Terminate all current workers and start fresh ones.
-     *
-     * @return void
      */
     public function restart()
     {
@@ -227,8 +215,6 @@ class ProcessPool implements Countable
 
     /**
      * Pause all of the worker processes.
-     *
-     * @return void
      */
     public function pause()
     {
@@ -239,8 +225,6 @@ class ProcessPool implements Countable
 
     /**
      * Instruct all of the worker processes to continue working.
-     *
-     * @return void
      */
     public function continue()
     {
@@ -263,8 +247,6 @@ class ProcessPool implements Countable
 
     /**
      * Remove any non-running processes from the terminating process list.
-     *
-     * @return void
      */
     public function pruneTerminatingProcesses()
     {
@@ -277,8 +259,6 @@ class ProcessPool implements Countable
 
     /**
      * Stop any terminating processes that are hanging too long.
-     *
-     * @return void
      */
     protected function stopTerminatingProcessesThatAreHanging()
     {

@@ -31,7 +31,7 @@ class McpRegistry
     /**
      * Register a tool class.
      *
-     * @param  class-string<Tool>  $class
+     * @param class-string<Tool> $class
      */
     public function registerTool(string $class): void
     {
@@ -43,7 +43,7 @@ class McpRegistry
     /**
      * Register a resource class.
      *
-     * @param  class-string<\Laravel\Mcp\Server\Resource>  $class
+     * @param class-string<\Laravel\Mcp\Server\Resource> $class
      */
     public function registerResource(string $class): void
     {
@@ -55,7 +55,7 @@ class McpRegistry
     /**
      * Register a prompt class.
      *
-     * @param  class-string<Prompt>  $class
+     * @param class-string<Prompt> $class
      */
     public function registerPrompt(string $class): void
     {
@@ -67,7 +67,7 @@ class McpRegistry
     /**
      * Register multiple primitive classes at once.
      *
-     * @param  array{tools?: array<class-string<Tool>>, resources?: array<class-string<\Laravel\Mcp\Server\Resource>>, prompts?: array<class-string<Prompt>>}  $classes
+     * @param array{tools?: array<class-string<Tool>>, resources?: array<class-string<\Laravel\Mcp\Server\Resource>>, prompts?: array<class-string<Prompt>>} $classes
      */
     public function registerMany(array $classes): void
     {

@@ -102,6 +102,8 @@ class ScheduleEventSubscriber
     }
 
     /**
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
      * @return array<string, string>
      */
     public function subscribe(Dispatcher $events): array

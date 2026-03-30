@@ -18,7 +18,7 @@ class AiStreamCompleted implements ShouldBroadcastNow
     use InteractsWithSockets;
 
     /**
-     * @param  array<string, mixed>  $usage
+     * @param array<string, mixed> $usage
      */
     public function __construct(
         public string $streamId,

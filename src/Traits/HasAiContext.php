@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aicl\Traits;
 
+use BackedEnum;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -68,11 +70,11 @@ trait HasAiContext
         foreach ($fields as $field) {
             $value = $this->getAttribute($field);
 
-            if ($value instanceof \BackedEnum) {
+            if ($value instanceof BackedEnum) {
                 $value = $value->value;
             } elseif (is_object($value) && method_exists($value, '__toString')) {
                 $value = (string) $value;
-            } elseif ($value instanceof \DateTimeInterface) {
+            } elseif ($value instanceof DateTimeInterface) {
                 $value = $value->format('Y-m-d H:i:s');
             }
 
@@ -144,7 +146,7 @@ trait HasAiContext
 
         if ($this->getAttribute('status')) {
             $value = $this->getAttribute('status');
-            $meta['status'] = $value instanceof \BackedEnum ? $value->value : (string) $value;
+            $meta['status'] = $value instanceof BackedEnum ? $value->value : (string) $value;
         }
 
         if ($this->getAttribute('is_active') !== null) {

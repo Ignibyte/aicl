@@ -13,8 +13,6 @@ class Restart
 {
     /**
      * Process the command.
-     *
-     * @return void
      */
     public function process(Restartable $restartable)
     {

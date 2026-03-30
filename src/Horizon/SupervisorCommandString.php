@@ -44,8 +44,6 @@ class SupervisorCommandString
 
     /**
      * Reset the base command back to its default value.
-     *
-     * @return void
      */
     public static function reset()
     {

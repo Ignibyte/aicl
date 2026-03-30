@@ -26,7 +26,7 @@ class RelationshipParser
     /**
      * Parse a single relationship segment like "tasks:hasMany:Task".
      *
-     * @param  array<int, string>  $seenNames
+     * @param array<int, string> $seenNames
      */
     protected function parseSegment(string $segment, array $seenNames): RelationshipDefinition
     {
@@ -56,7 +56,7 @@ class RelationshipParser
     }
 
     /**
-     * @param  array<int, string>  $seenNames
+     * @param array<int, string> $seenNames
      */
     protected function validateName(string $name, array $seenNames): void
     {

@@ -6,6 +6,7 @@ namespace Aicl\Console\Commands;
 
 use Aicl\Components\ComponentRegistry;
 use Illuminate\Console\Command;
+use Throwable;
 
 /** Extracts targeted context from pipeline documents for a specific agent and phase. */
 class PipelineContextCommand extends Command
@@ -252,7 +253,7 @@ class PipelineContextCommand extends Command
         try {
             $registry = app(ComponentRegistry::class);
             // @codeCoverageIgnoreStart — Artisan command
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $this->components->warn('ComponentRegistry not available.');
 
             return;

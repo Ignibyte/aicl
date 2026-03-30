@@ -21,8 +21,6 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
 
     /**
      * Create a new command queue instance.
-     *
-     * @return void
      */
     public function __construct(RedisFactory $redis)
     {
@@ -32,10 +30,9 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
     /**
      * Push a command onto a given queue.
      *
-     * @param  string  $name
-     * @param  string  $command
-     * @param  array<string, mixed>  $options
-     * @return void
+     * @param string               $name
+     * @param string               $command
+     * @param array<string, mixed> $options
      */
     public function push($name, $command, array $options = [])
     {
@@ -48,7 +45,8 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
     /**
      * Get the pending commands for a given queue name.
      *
-     * @param  string  $name
+     * @param string $name
+     *
      * @return array<int, object>
      */
     public function pending($name)
@@ -78,8 +76,7 @@ class RedisHorizonCommandQueue implements HorizonCommandQueue
     /**
      * Flush the command queue for a given queue name.
      *
-     * @param  string  $name
-     * @return void
+     * @param string $name
      */
     public function flush($name)
     {

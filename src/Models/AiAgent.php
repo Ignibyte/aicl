@@ -29,29 +29,29 @@ use Spatie\ModelStates\HasStates;
  * Each agent has a provider, model, system prompt, and configuration
  * that controls how it responds in the floating chat widget.
  *
- * @property string $id
- * @property string $name
- * @property string $slug
- * @property string|null $description
- * @property AiProvider $provider
- * @property string $model
- * @property string|null $system_prompt
- * @property int $max_tokens
- * @property float $temperature
- * @property int $context_window
- * @property int $context_messages
- * @property bool $is_active
- * @property string|null $icon
- * @property string|null $color
- * @property int $sort_order
- * @property array<int, string>|null $suggested_prompts
+ * @property string                    $id
+ * @property string                    $name
+ * @property string                    $slug
+ * @property string|null               $description
+ * @property AiProvider                $provider
+ * @property string                    $model
+ * @property string|null               $system_prompt
+ * @property int                       $max_tokens
+ * @property float                     $temperature
+ * @property int                       $context_window
+ * @property int                       $context_messages
+ * @property bool                      $is_active
+ * @property string|null               $icon
+ * @property string|null               $color
+ * @property int                       $sort_order
+ * @property array<int, string>|null   $suggested_prompts
  * @property array<string, mixed>|null $capabilities
- * @property array<int, string>|null $visible_to_roles
- * @property int|null $max_requests_per_minute
- * @property AiAgentState $state
- * @property Carbon $created_at
- * @property Carbon $updated_at
- * @property Carbon|null $deleted_at
+ * @property array<int, string>|null   $visible_to_roles
+ * @property int|null                  $max_requests_per_minute
+ * @property AiAgentState              $state
+ * @property Carbon                    $created_at
+ * @property Carbon                    $updated_at
+ * @property Carbon|null               $deleted_at
  */
 class AiAgent extends Model
 {
@@ -132,7 +132,8 @@ class AiAgent extends Model
     /**
      * Agents that are both state=active AND is_active toggle on.
      *
-     * @param  Builder<self>  $query
+     * @param Builder<self> $query
+     *
      * @return Builder<self>
      */
     public function scopeForWidget(Builder $query): Builder
@@ -147,8 +148,9 @@ class AiAgent extends Model
     /**
      * Filter agents visible to a specific set of roles.
      *
-     * @param  Builder<self>  $query
-     * @param  array<string>  $userRoles
+     * @param Builder<self> $query
+     * @param array<string> $userRoles
+     *
      * @return Builder<self>
      */
     public function scopeVisibleToRoles(Builder $query, array $userRoles): Builder
@@ -196,7 +198,7 @@ class AiAgent extends Model
     /**
      * Check if a user (by their roles) can see this agent.
      *
-     * @param  array<string>  $userRoles
+     * @param array<string> $userRoles
      */
     public function isVisibleTo(array $userRoles): bool
     {

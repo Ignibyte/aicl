@@ -38,8 +38,6 @@ class ContinueCommand extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle(MasterSupervisorRepository $masters)
     {

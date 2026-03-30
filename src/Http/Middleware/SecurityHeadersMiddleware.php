@@ -7,6 +7,7 @@ namespace Aicl\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /**
  * Applies security headers to all responses (OWASP API8).
@@ -40,8 +41,9 @@ class SecurityHeadersMiddleware
     /**
      * Apply OWASP security headers to the response.
      *
-     * @param  Request  $request  The incoming HTTP request
-     * @param  Closure  $next  The next middleware in the pipeline
+     * @param Request $request The incoming HTTP request
+     * @param Closure $next    The next middleware in the pipeline
+     *
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -166,7 +168,7 @@ class SecurityHeadersMiddleware
             try {
                 self::$panelPath = filament()->getPanel()?->getPath() ?? 'admin';
                 // @codeCoverageIgnoreStart — Untestable in unit context
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // @codeCoverageIgnoreEnd
                 // Filament not booted yet — fall back to default
             }
@@ -215,7 +217,7 @@ class SecurityHeadersMiddleware
     }
 
     /**
-     * @param  array<string, list<string>>  $directives
+     * @param array<string, list<string>> $directives
      */
     protected function buildCspString(array $directives): string
     {

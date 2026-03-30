@@ -45,8 +45,6 @@ class WorkCommand extends BaseWorkCommand
 
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle()
     {

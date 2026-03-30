@@ -7,6 +7,7 @@ namespace Aicl\Swoole;
 use Aicl\Swoole\Cache\PermissionCacheManager;
 use Aicl\Swoole\Listeners\WarmSwooleCaches;
 use Closure;
+use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
@@ -66,10 +67,10 @@ final class SwooleCache
      * Must be called at boot time (service provider). Tables are created
      * by Octane before workers start via config/octane.php.
      *
-     * @param  string  $name  Table identifier (e.g., 'permissions')
-     * @param  int  $rows  Maximum row count (Swoole Table size)
-     * @param  int  $ttl  Default TTL in seconds for this table
-     * @param  int  $valueSize  Max bytes for the JSON value column
+     * @param string $name      Table identifier (e.g., 'permissions')
+     * @param int    $rows      Maximum row count (Swoole Table size)
+     * @param int    $ttl       Default TTL in seconds for this table
+     * @param int    $valueSize Max bytes for the JSON value column
      */
     public static function register(
         string $name,
@@ -92,10 +93,11 @@ final class SwooleCache
     /**
      * Store a value in a cache table with optional TTL override.
      *
-     * @param  string  $table  Registered table name
-     * @param  string  $key  Row key
-     * @param  mixed  $value  Value (JSON-serializable)
-     * @param  int|null  $ttl  TTL in seconds (null = use table default)
+     * @param string   $table Registered table name
+     * @param string   $key   Row key
+     * @param mixed    $value Value (JSON-serializable)
+     * @param int|null $ttl   TTL in seconds (null = use table default)
+     *
      * @return bool True if stored, false if unavailable or table full
      */
     public static function set(string $table, string $key, mixed $value, ?int $ttl = null): bool
@@ -192,7 +194,7 @@ final class SwooleCache
 
         // Swoole Table has no native flush — iterate and delete
         $keys = [];
-        foreach ($swooleTable as $key => $row) {
+        foreach (array_keys(iterator_to_array($swooleTable)) as $key) {
             $keys[] = $key;
         }
 
@@ -276,9 +278,9 @@ final class SwooleCache
      * When the given event fires, the resolver extracts the cache key(s)
      * to invalidate from the event instance.
      *
-     * @param  string  $table  Registered table name
-     * @param  string  $event  Fully-qualified event class name
-     * @param  Closure  $resolver  Receives event instance, returns string|array<string> of keys to forget
+     * @param string  $table    Registered table name
+     * @param string  $event    Fully-qualified event class name
+     * @param Closure $resolver Receives event instance, returns string|array<string> of keys to forget
      */
     public static function invalidateOn(string $table, string $event, Closure $resolver): void
     {
@@ -321,7 +323,7 @@ final class SwooleCache
             // @codeCoverageIgnoreStart — Swoole runtime
             return is_array($workerState->tables) && $workerState->tables !== [];
             // @codeCoverageIgnoreEnd
-        } catch (\Exception) {
+        } catch (Exception) {
             return false;
         }
         // @codeCoverageIgnoreEnd
@@ -379,7 +381,7 @@ final class SwooleCache
      *
      * When set, resolveTable() uses this resolver instead of Octane::table().
      *
-     * @param  (Closure(string): (Table|null))|null  $resolver
+     * @param (Closure(string): (Table|null))|null $resolver
      */
     public static function useResolver(?Closure $resolver): void
     {
@@ -389,7 +391,7 @@ final class SwooleCache
     /**
      * Inject a custom clock function for testing time-dependent behavior.
      *
-     * @param  (Closure(): int)|null  $clock  Returns Unix timestamp
+     * @param (Closure(): int)|null $clock Returns Unix timestamp
      */
     public static function useClock(?Closure $clock): void
     {
@@ -437,7 +439,7 @@ final class SwooleCache
         // @codeCoverageIgnoreStart — Octane::table() requires active Swoole worker
         try {
             return Octane::table($table);
-        } catch (\Exception) {
+        } catch (Exception) {
             return null;
         }
         // @codeCoverageIgnoreEnd

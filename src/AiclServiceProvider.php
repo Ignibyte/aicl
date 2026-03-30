@@ -112,6 +112,7 @@ use Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Saml2\Provider;
 use Spatie\Permission\Models\Role;
+use Throwable;
 
 /**
  * AICL framework service provider.
@@ -127,6 +128,8 @@ use Spatie\Permission\Models\Role;
  *   2. config/aicl-project.php (project-level overrides)
  *   3. packages/aicl/config/aicl.php (package defaults)
  *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
  * @see AiclPlugin  Filament panel plugin that registers pages, resources, and widgets
  * @see EntityRegistry  Central registry of all entity types
  */
@@ -135,7 +138,7 @@ class AiclServiceProvider extends ServiceProvider
     /**
      * Current package version, used by VersionService and the admin version badge.
      */
-    public const VERSION = '1.16.6';
+    public const VERSION = '1.17.0';
 
     /**
      * Register package services, singletons, and configuration.
@@ -152,10 +155,37 @@ class AiclServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/aicl-project.php', 'aicl-project');
 
         $this->mergeProjectConfigOverrides();
-
         $this->loadLocalConfig();
         $this->registerBoostTools();
 
+        $this->registerNotificationBindings();
+        $this->registerCoreBindings();
+        $this->registerAiToolRegistry();
+        $this->registerSamlMapper();
+
+        $this->registerTemplateEngine();
+        $this->configureScoutDriver();
+        $this->registerProviders();
+    }
+
+    /**
+     * Merge aicl-project config overrides into the main aicl config.
+     *
+     * @codeCoverageIgnore Reason: framework-bootstrap -- Only runs when aicl-project.php has overrides
+     */
+    private function mergeProjectConfigOverrides(): void
+    {
+        $projectConfig = config('aicl-project', []);
+        if (! empty($projectConfig)) {
+            config(['aicl' => array_replace_recursive(config('aicl', []), $projectConfig)]);
+        }
+    }
+
+    /**
+     * Register notification driver and dispatcher singletons.
+     */
+    private function registerNotificationBindings(): void
+    {
         $this->app->singleton(DriverRegistry::class, function ($app): DriverRegistry {
             // @codeCoverageIgnoreStart — Untestable in unit context
             $registry = new DriverRegistry($app);
@@ -184,7 +214,13 @@ class AiclServiceProvider extends ServiceProvider
         });
 
         $this->registerNotificationResolvers();
+    }
 
+    /**
+     * Register core infrastructure singletons.
+     */
+    private function registerCoreBindings(): void
+    {
         $this->app->singleton(HealthCheckRegistry::class, function ($app): HealthCheckRegistry {
             // @codeCoverageIgnoreStart — Untestable in unit context
             $registry = new HealthCheckRegistry($app);
@@ -209,7 +245,13 @@ class AiclServiceProvider extends ServiceProvider
         $this->app->singleton(McpRegistry::class);
         $this->app->singleton(ComponentDiscoveryService::class);
         $this->app->singleton(ComponentRegistry::class);
+    }
 
+    /**
+     * Register the AI tool registry singleton.
+     */
+    private function registerAiToolRegistry(): void
+    {
         $this->app->singleton(AI\AiToolRegistry::class, function ($app): AI\AiToolRegistry {
             $registry = new AI\AiToolRegistry($app);
 
@@ -231,8 +273,14 @@ class AiclServiceProvider extends ServiceProvider
 
             return $registry;
         });
+    }
 
-        $this->app->singleton(SamlAttributeMapper::class, function ($app): SamlAttributeMapper {
+    /**
+     * Register the SAML attribute mapper singleton.
+     */
+    private function registerSamlMapper(): void
+    {
+        $this->app->singleton(SamlAttributeMapper::class, function (): SamlAttributeMapper {
             $customClass = config('aicl.saml.mapper_class');
             if ($customClass && class_exists($customClass)) {
                 /** @var SamlAttributeMapper */
@@ -243,11 +291,13 @@ class AiclServiceProvider extends ServiceProvider
 
             return new SamlAttributeMapper;
         });
+    }
 
-        $this->registerTemplateEngine();
-
-        $this->configureScoutDriver();
-
+    /**
+     * Register conditional service providers (search, horizon).
+     */
+    private function registerProviders(): void
+    {
         if (config('aicl.search.enabled', false)) {
             // @codeCoverageIgnoreStart — Untestable in unit context
             $this->app->register(Providers\SearchServiceProvider::class);
@@ -259,37 +309,38 @@ class AiclServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Boot package services: routes, views, assets, middleware, listeners, and commands.
-     *
-     * Registers policies, observers, event listeners, Swoole cache managers,
-     * SwooleTimer jobs, rate limiters, publishable assets, Blade/Livewire
-     * components, routes (web, API, social, MCP, SAML), security and presence
-     * middleware, and Artisan console commands.
-     */
-    /**
-     * Merge aicl-project config overrides into the main aicl config.
-     *
-     * @codeCoverageIgnore Reason: framework-bootstrap -- Only runs when aicl-project.php has overrides
-     */
-    private function mergeProjectConfigOverrides(): void
-    {
-        $projectConfig = config('aicl-project', []);
-        if (! empty($projectConfig)) {
-            config(['aicl' => array_replace_recursive(config('aicl', []), $projectConfig)]);
-        }
-    }
-
     public function boot(): void
     {
-        // Force HTTPS URL generation when APP_URL uses https.
-        // This prevents mixed-content issues when nginx proxies HTTPS
-        // to Swoole/Octane over internal HTTP.
+        $this->bootUrlScheme();
+        $this->bootPassportScopes();
+        $this->bootPolicies();
+        $this->bootObservers();
+        $this->bootEvents();
+        $this->bootSwoole();
+        $this->bootRateLimiters();
+        $this->bootPublishables();
+        $this->bootLivewire();
+        $this->bootRoutes();
+        $this->registerSecurityMiddleware();
+        $this->registerPresenceMiddleware();
+        $this->bootCommands();
+    }
+
+    /**
+     * Force HTTPS URL generation when APP_URL uses https.
+     */
+    private function bootUrlScheme(): void
+    {
         if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
+    }
 
-        // Register Passport token scopes for API and MCP access control
+    /**
+     * Register Passport token scopes for API and MCP access control.
+     */
+    private function bootPassportScopes(): void
+    {
         if (class_exists(Passport::class)) {
             Passport::tokensCan([
                 'read' => 'Read — List and view entities',
@@ -299,16 +350,34 @@ class AiclServiceProvider extends ServiceProvider
                 'transitions' => 'Transitions — Change entity states',
             ]);
         }
+    }
 
+    /**
+     * Register model policies.
+     */
+    private function bootPolicies(): void
+    {
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(AiAgent::class, AiAgentPolicy::class);
         Gate::policy(AiConversation::class, AiConversationPolicy::class);
+    }
 
+    /**
+     * Register model observers.
+     */
+    private function bootObservers(): void
+    {
         AiAgent::observe(AiAgentObserver::class);
         AiConversation::observe(AiConversationObserver::class);
         AiMessage::observe(AiMessageObserver::class);
+    }
 
+    /**
+     * Register event listeners and domain event subscribers.
+     */
+    private function bootEvents(): void
+    {
         Event::listen(EntityCreated::class, [EntityEventNotificationListener::class, 'handleCreated']);
         Event::listen(EntityUpdated::class, [EntityEventNotificationListener::class, 'handleUpdated']);
         Event::listen(EntityDeleted::class, [EntityEventNotificationListener::class, 'handleDeleted']);
@@ -333,8 +402,13 @@ class AiclServiceProvider extends ServiceProvider
 
         // Register session lifecycle events for DomainEvent replay support
         SessionTerminated::register();
+    }
 
-        // Swoole/Octane cache wiring and listeners
+    /**
+     * Register Swoole cache managers, Octane listeners, and SwooleTimer jobs.
+     */
+    private function bootSwoole(): void
+    {
         Swoole\Cache\PermissionCacheManager::register();
         Swoole\Cache\NotificationBadgeCacheManager::register();
         Swoole\Cache\ServiceHealthCacheManager::register();
@@ -348,19 +422,31 @@ class AiclServiceProvider extends ServiceProvider
                 // @codeCoverageIgnoreStart — Untestable in unit context
                 Swoole\SwooleTimer::every('health-refresh', 300, Jobs\RefreshHealthChecksJob::class);
                 Swoole\SwooleTimer::every('delivery-cleanup', 3600, Jobs\CleanStaleDeliveriesJob::class);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // @codeCoverageIgnoreEnd
                 // Redis unavailable — timers will register on next Swoole worker boot via restore()
             }
         }
+    }
 
+    /**
+     * Configure API rate limiters.
+     */
+    private function bootRateLimiters(): void
+    {
         // AI assistant rate limiter
         $rateConfig = config('aicl.ai.rate_limit', ['max_attempts' => 10, 'decay_minutes' => 1]);
         RateLimiter::for('ai_assistant', fn (Request $request) => Limit::perMinutes(
             $rateConfig['decay_minutes'],
             $rateConfig['max_attempts'],
         )->by($request->user()?->id ?? $request->ip())); // @phpstan-ignore nullsafe.neverNull
+    }
 
+    /**
+     * Publish config/assets, load migrations, views, and Filament assets.
+     */
+    private function bootPublishables(): void
+    {
         $this->publishes([
             __DIR__.'/../config/aicl.php' => config_path('aicl.php'),
         ], 'aicl-config');
@@ -377,7 +463,13 @@ class AiclServiceProvider extends ServiceProvider
             Css::make('aicl-navigation-switcher', __DIR__.'/../resources/css/navigation-switcher.css'),
             Js::make('aicl-widgets', __DIR__.'/../resources/js/aicl-widgets.js'),
         ], package: 'aicl/aicl');
+    }
 
+    /**
+     * Register Livewire components and boot the SDC component registry.
+     */
+    private function bootLivewire(): void
+    {
         $this->bootComponentRegistry();
 
         // Register non-SDC utility view components (no component.json)
@@ -394,7 +486,13 @@ class AiclServiceProvider extends ServiceProvider
         // BatchesTable is always available (reads from job_batches DB table, not Horizon-dependent)
         Livewire::component('aicl::horizon-batches-table', Horizon\Livewire\BatchesTable::class);
         Livewire::component('toolbar-presence', Filament\Widgets\ToolbarPresence::class);
+    }
 
+    /**
+     * Load web, API, social, MCP, and SAML routes.
+     */
+    private function bootRoutes(): void
+    {
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
 
@@ -420,10 +518,13 @@ class AiclServiceProvider extends ServiceProvider
             });
             // @codeCoverageIgnoreEnd
         }
+    }
 
-        $this->registerSecurityMiddleware();
-        $this->registerPresenceMiddleware();
-
+    /**
+     * Register Artisan console commands.
+     */
+    private function bootCommands(): void
+    {
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Console\Commands\ComponentsCommand::class,

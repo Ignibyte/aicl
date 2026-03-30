@@ -23,7 +23,7 @@ class RolePolicy
     /**
      * Determine whether the user can view the roles index.
      *
-     * @param  AuthUser  $authUser  The authenticated user
+     * @param AuthUser $authUser The authenticated user
      */
     public function viewAny(AuthUser $authUser): bool
     {

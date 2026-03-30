@@ -21,8 +21,6 @@ class StartTimingJob
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(Stopwatch $watch)
     {
@@ -31,8 +29,6 @@ class StartTimingJob
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(JobReserved $event)
     {

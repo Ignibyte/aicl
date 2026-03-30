@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aicl\Filament\Actions;
 
 use Aicl\Services\PdfGenerator;
+use Closure;
 use Filament\Actions\Action;
 use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,11 +32,11 @@ class PdfAction extends Action
     /** @var string|null Custom Blade view for the PDF */
     protected ?string $pdfView = null;
 
-    /** @var string|\Closure|null Filename or closure that receives the record */
-    protected string|\Closure|null $pdfFilename = null;
+    /** @var string|Closure|null Filename or closure that receives the record */
+    protected string|Closure|null $pdfFilename = null;
 
-    /** @var \Closure|null Closure that returns view data from the record */
-    protected ?\Closure $dataCallback = null;
+    /** @var Closure|null Closure that returns view data from the record */
+    protected ?Closure $dataCallback = null;
 
     /** @var string Paper size (e.g. 'a4', 'letter') */
     protected string $paper = 'a4';
@@ -71,7 +72,7 @@ class PdfAction extends Action
     /**
      * Set the Blade view used to render the PDF.
      *
-     * @param  string  $view  Blade view name (e.g. 'pdf.invoice')
+     * @param string $view Blade view name (e.g. 'pdf.invoice')
      */
     public function pdfView(string $view): static
     {
@@ -83,9 +84,9 @@ class PdfAction extends Action
     /**
      * Set the download filename (static string or closure receiving the record).
      *
-     * @param  string|\Closure  $filename  Filename or closure(Model $record): string
+     * @param string|Closure $filename Filename or closure(Model $record): string
      */
-    public function filename(string|\Closure $filename): static
+    public function filename(string|Closure $filename): static
     {
         $this->pdfFilename = $filename;
 
@@ -95,9 +96,9 @@ class PdfAction extends Action
     /**
      * Set the data callback that provides view variables from the record.
      *
-     * @param  \Closure  $callback  Closure(Model $record): array<string, mixed>
+     * @param Closure $callback Closure(Model $record): array<string, mixed>
      */
-    public function pdfData(\Closure $callback): static
+    public function pdfData(Closure $callback): static
     {
         // @codeCoverageIgnoreStart — Filament Livewire rendering
         $this->dataCallback = $callback;
@@ -109,7 +110,7 @@ class PdfAction extends Action
     /**
      * Set the paper size for the PDF.
      *
-     * @param  string  $paper  Paper size identifier (e.g. 'a4', 'letter')
+     * @param string $paper Paper size identifier (e.g. 'a4', 'letter')
      */
     public function paper(string $paper): static
     {
@@ -121,7 +122,7 @@ class PdfAction extends Action
     /**
      * Set the page orientation for the PDF.
      *
-     * @param  string  $orientation  Either 'portrait' or 'landscape'
+     * @param string $orientation Either 'portrait' or 'landscape'
      */
     public function orientation(string $orientation): static
     {
@@ -143,7 +144,8 @@ class PdfAction extends Action
     /**
      * Generate and download the PDF for the given record.
      *
-     * @param  Model  $record  The entity record to generate a PDF for
+     * @param Model $record The entity record to generate a PDF for
+     *
      * @return Response Download response with the PDF content
      */
     protected function generatePdf(Model $record): Response
@@ -163,7 +165,8 @@ class PdfAction extends Action
     /**
      * Derive the default PDF view name from the model class.
      *
-     * @param  Model  $record  The entity record
+     * @param Model $record The entity record
+     *
      * @return string Blade view name (e.g. 'aicl::pdf.user-report')
      */
     protected function getDefaultPdfView(Model $record): string
@@ -178,14 +181,15 @@ class PdfAction extends Action
     /**
      * Resolve the PDF filename from the configured closure, string, or default.
      *
-     * @param  Model  $record  The entity record
+     * @param Model $record The entity record
+     *
      * @return string Filename with .pdf extension
      */
     protected function getPdfFilename(Model $record): string
     {
         // @codeCoverageIgnoreStart — Filament Livewire rendering
         if ($this->pdfFilename) {
-            if ($this->pdfFilename instanceof \Closure) {
+            if ($this->pdfFilename instanceof Closure) {
                 return ($this->pdfFilename)($record);
             }
 
@@ -202,7 +206,8 @@ class PdfAction extends Action
     /**
      * Resolve the view data from the configured callback or use defaults.
      *
-     * @param  Model  $record  The entity record
+     * @param Model $record The entity record
+     *
      * @return array<string, mixed> View data for the PDF template
      */
     protected function getPdfData(Model $record): array

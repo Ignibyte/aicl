@@ -12,6 +12,7 @@ use NeuronAI\Agent;
 use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
 use NeuronAI\Providers\AIProviderInterface;
+use RuntimeException;
 
 /**
  * Manages AI conversation compaction by summarizing old messages to reduce token usage.
@@ -25,24 +26,24 @@ class CompactionService
      * the conversation's AI provider for summarization, stores the result
      * as the conversation's summary, and transitions state to Summarized.
      *
-     * @throws \RuntimeException If the conversation cannot be compacted
+     * @throws RuntimeException If the conversation cannot be compacted
      */
     public function compact(AiConversation $conversation): void
     {
         if (! $conversation->is_compactable) {
-            throw new \RuntimeException('Conversation is not eligible for compaction.');
+            throw new RuntimeException('Conversation is not eligible for compaction.');
         }
 
         $agent = $conversation->agent;
 
         if (! $agent || ! $agent->is_configured) {
-            throw new \RuntimeException('AI agent is not available or not configured for compaction.');
+            throw new RuntimeException('AI agent is not available or not configured for compaction.');
         }
 
         $provider = AiProviderFactory::makeFromAgent($agent);
 
         if (! $provider) {
-            throw new \RuntimeException('AI provider not configured for compaction.'); // @codeCoverageIgnore
+            throw new RuntimeException('AI provider not configured for compaction.'); // @codeCoverageIgnore
         }
 
         // Load messages that will be summarized (everything except the most recent N)

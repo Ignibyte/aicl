@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aicl\Traits;
 
 use Aicl\Models\SocialAccount;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -28,7 +29,7 @@ trait HasSocialAccounts
     /**
      * Check if a social account exists for the given provider.
      *
-     * @param  string  $provider  Provider name (e.g. 'google', 'github')
+     * @param string $provider Provider name (e.g. 'google', 'github')
      */
     public function hasSocialAccount(string $provider): bool
     {
@@ -40,7 +41,7 @@ trait HasSocialAccounts
     /**
      * Get the social account for a specific provider, if linked.
      *
-     * @param  string  $provider  Provider name (e.g. 'google', 'github')
+     * @param string $provider Provider name (e.g. 'google', 'github')
      */
     public function getSocialAccount(string $provider): ?SocialAccount
     {
@@ -53,15 +54,16 @@ trait HasSocialAccounts
     /**
      * Link or update a social account for the given provider.
      *
-     * @param  string  $provider  Provider name (e.g. 'google', 'github')
-     * @param  string  $providerId  Unique identifier from the OAuth provider
-     * @param  string|null  $token  OAuth access token
-     * @param  string|null  $refreshToken  OAuth refresh token
-     * @param  \DateTimeInterface|null  $expiresAt  Token expiration time
-     * @param  string|null  $avatarUrl  URL to the user's avatar from the provider
+     * @param string                 $provider     Provider name (e.g. 'google', 'github')
+     * @param string                 $providerId   Unique identifier from the OAuth provider
+     * @param string|null            $token        OAuth access token
+     * @param string|null            $refreshToken OAuth refresh token
+     * @param DateTimeInterface|null $expiresAt    Token expiration time
+     * @param string|null            $avatarUrl    URL to the user's avatar from the provider
+     *
      * @return SocialAccount The created or updated social account
      */
-    public function linkSocialAccount(string $provider, string $providerId, ?string $token = null, ?string $refreshToken = null, ?\DateTimeInterface $expiresAt = null, ?string $avatarUrl = null): SocialAccount
+    public function linkSocialAccount(string $provider, string $providerId, ?string $token = null, ?string $refreshToken = null, ?DateTimeInterface $expiresAt = null, ?string $avatarUrl = null): SocialAccount
     {
         /** @var SocialAccount */
         // @codeCoverageIgnoreStart — Trait requiring integration context
@@ -93,7 +95,8 @@ trait HasSocialAccounts
     /**
      * Remove the social account link for a given provider.
      *
-     * @param  string  $provider  Provider name (e.g. 'google', 'github')
+     * @param string $provider Provider name (e.g. 'google', 'github')
+     *
      * @return bool Whether any rows were deleted
      */
     public function unlinkSocialAccount(string $provider): bool

@@ -23,8 +23,6 @@ class MarshalFailedEvent
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(Dispatcher $events)
     {
@@ -33,8 +31,6 @@ class MarshalFailedEvent
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(LaravelJobFailed $event)
     {

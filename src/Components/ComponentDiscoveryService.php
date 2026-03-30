@@ -31,9 +31,9 @@ class ComponentDiscoveryService
     /**
      * Scan a directory for component subdirectories containing component.json files.
      *
-     * @param  string  $directory  Absolute path to scan
-     * @param  string  $source  Source identifier: 'framework' or 'client'
-     * @param  string  $namespace  PHP namespace prefix for component classes
+     * @param string $directory Absolute path to scan
+     * @param string $source    Source identifier: 'framework' or 'client'
+     * @param string $namespace PHP namespace prefix for component classes
      */
     public function scan(string $directory, string $source = 'framework', string $namespace = 'Aicl\\View\\Components'): void
     {
@@ -132,7 +132,8 @@ class ComponentDiscoveryService
     /**
      * Validate a manifest against the v1 schema.
      *
-     * @param  array<string, mixed>  $manifest
+     * @param array<string, mixed> $manifest
+     *
      * @return array<string> List of validation errors
      */
     public function validateManifest(array $manifest, string $componentName = 'unknown'): array

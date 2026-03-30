@@ -38,8 +38,7 @@ class WorkerProcess
     /**
      * Create a new worker process instance.
      *
-     * @param  Process  $process
-     * @return void
+     * @param Process $process
      */
     public function __construct($process)
     {
@@ -66,8 +65,6 @@ class WorkerProcess
 
     /**
      * Pause the worker process.
-     *
-     * @return void
      */
     public function pause()
     {
@@ -76,8 +73,6 @@ class WorkerProcess
 
     /**
      * Instruct the worker process to continue working.
-     *
-     * @return void
      */
     public function continue()
     {
@@ -86,8 +81,6 @@ class WorkerProcess
 
     /**
      * Evaluate the current state of the process.
-     *
-     * @return void
      */
     public function monitor()
     {
@@ -102,8 +95,6 @@ class WorkerProcess
 
     /**
      * Restart the process.
-     *
-     * @return void
      */
     protected function restart()
     {
@@ -118,8 +109,6 @@ class WorkerProcess
 
     /**
      * Terminate the underlying process.
-     *
-     * @return void
      */
     public function terminate()
     {
@@ -128,8 +117,6 @@ class WorkerProcess
 
     /**
      * Stop the underlying process.
-     *
-     * @return void
      */
     public function stop()
     {
@@ -141,8 +128,7 @@ class WorkerProcess
     /**
      * Send a POSIX signal to the process.
      *
-     * @param  int  $signal
-     * @return void
+     * @param int $signal
      */
     protected function sendSignal($signal)
     {
@@ -157,8 +143,6 @@ class WorkerProcess
 
     /**
      * Begin the cool-down period for the process.
-     *
-     * @return void
      */
     protected function cooldown()
     {
@@ -207,7 +191,7 @@ class WorkerProcess
     /**
      * Pass on method calls to the underlying process.
      *
-     * @param  array<int, mixed>  $parameters
+     * @param array<int, mixed> $parameters
      */
     public function __call(string $method, array $parameters): mixed
     {

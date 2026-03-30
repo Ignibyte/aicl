@@ -46,6 +46,8 @@ class EnumGenerator extends BaseGenerator
         $content = <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\\Enums;
 
 enum {$enumName}: string
@@ -84,7 +86,7 @@ PHP;
     /**
      * Generate an enum class from rich spec file data.
      *
-     * @param  array<int, array{case: string, label: string, color?: string, icon?: string}>  $cases
+     * @param array<int, array{case: string, label: string, color?: string, icon?: string}> $cases
      */
     protected function generateEnumFromSpec(string $enumName, array $cases): string
     {
@@ -144,7 +146,7 @@ PHP;
             $methods .= '    }';
         }
 
-        $content = "<?php\n\nnamespace App\\Enums;\n\nenum {$enumName}: string\n{\n{$casesStr}\n\n{$methods}\n}\n";
+        $content = "<?php\n\ndeclare(strict_types=1);\n\nnamespace App\\Enums;\n\nenum {$enumName}: string\n{\n{$casesStr}\n\n{$methods}\n}\n";
 
         $dir = app_path('Enums');
         $this->ensureDirectoryExists($dir);

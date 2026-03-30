@@ -52,6 +52,8 @@ use Jeffgreco13\FilamentBreezy\BreezyCore;
  * @see AiclServiceProvider  Service provider that boots the underlying services
  *
  * @codeCoverageIgnore Reason: framework-bootstrap -- Filament plugin resolution requires panel context
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class AiclPlugin implements Plugin
 {
@@ -92,7 +94,9 @@ class AiclPlugin implements Plugin
      * and email verification. Disables Filament's built-in global search in favor
      * of the custom AICL search bar.
      *
-     * @param  Panel  $panel  The Filament panel being configured
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
+     * @param Panel $panel The Filament panel being configured
      */
     public function register(Panel $panel): void
     {
@@ -165,7 +169,9 @@ class AiclPlugin implements Plugin
      * the navigation switcher init script and toggle, extended favicon meta tags,
      * a version badge, and the AI assistant floating panel (for admin users when enabled).
      *
-     * @param  Panel  $panel  The Filament panel being booted
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     *
+     * @param Panel $panel The Filament panel being booted
      */
     public function boot(Panel $panel): void
     {

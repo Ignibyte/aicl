@@ -22,28 +22,13 @@ class QueueCheck implements ServiceHealthCheck
     {
         try {
             $failedThreshold = (int) config('aicl.health.failed_jobs_threshold', 10);
-            $details = [];
 
             // Use Horizon data when available, fall back to direct Redis
-            if (config('aicl.features.horizon', true) && app()->bound(JobRepository::class)) {
-                $details = $this->getHorizonDetails();
-            } else {
-                $details = $this->getDirectRedisDetails();
-            }
+            $useHorizon = config('aicl.features.horizon', true) && app()->bound(JobRepository::class);
+            $details = $useHorizon ? $this->getHorizonDetails() : $this->getDirectRedisDetails();
 
             // Check failed jobs count
-            $failedCount = 0;
-
-            try {
-                if (config('aicl.features.horizon', true) && app()->bound(JobRepository::class)) {
-                    $failedCount = app(JobRepository::class)->countFailed();
-                } else {
-                    $result = DB::selectOne('SELECT count(*) as count FROM failed_jobs');
-                    $failedCount = (int) ($result->count ?? 0);
-                }
-            } catch (Throwable) {
-                // failed_jobs table may not exist
-            }
+            $failedCount = $this->getFailedCount($useHorizon);
 
             $details['Failed Jobs'] = (string) $failedCount;
 
@@ -67,6 +52,25 @@ class QueueCheck implements ServiceHealthCheck
                 icon: 'heroicon-o-queue-list',
                 error: $e->getMessage(),
             );
+        }
+    }
+
+    /**
+     * Get the count of failed jobs using Horizon or direct DB fallback.
+     */
+    private function getFailedCount(bool $useHorizon): int
+    {
+        try {
+            if ($useHorizon) {
+                return app(JobRepository::class)->countFailed();
+            }
+
+            $result = DB::selectOne('SELECT count(*) as count FROM failed_jobs');
+
+            return (int) ($result->count ?? 0);
+        } catch (Throwable) {
+            // failed_jobs table may not exist
+            return 0;
         }
     }
 

@@ -20,7 +20,7 @@ class EntityUpdating
     use SerializesModels;
 
     /**
-     * @param  Model  $entity  The entity model about to be updated
+     * @param Model $entity The entity model about to be updated
      */
     public function __construct(
         public Model $entity,

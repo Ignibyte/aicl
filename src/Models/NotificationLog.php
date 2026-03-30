@@ -21,17 +21,17 @@ use Illuminate\Support\Carbon;
  * Tracks channel-level delivery status, supports read/unread state, and
  * provides scopes for filtering by user, type, and delivery status.
  *
- * @property string|null $type
- * @property string|null $notifiable_type
- * @property string|int|null $notifiable_id
- * @property string|null $sender_type
- * @property string|int|null $sender_id
- * @property array<int, string>|null $channels
+ * @property string|null                $type
+ * @property string|null                $notifiable_type
+ * @property string|int|null            $notifiable_id
+ * @property string|null                $sender_type
+ * @property string|int|null            $sender_id
+ * @property array<int, string>|null    $channels
  * @property array<string, string>|null $channel_status
- * @property array<string, mixed>|null $data
- * @property Carbon|null $read_at
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property array<string, mixed>|null  $data
+ * @property Carbon|null                $read_at
+ * @property Carbon|null                $created_at
+ * @property Carbon|null                $updated_at
  */
 class NotificationLog extends Model
 {
@@ -90,7 +90,8 @@ class NotificationLog extends Model
     /**
      * Scope to a specific user's notifications.
      *
-     * @param  Builder<NotificationLog>  $query
+     * @param Builder<NotificationLog> $query
+     *
      * @return Builder<NotificationLog>
      */
     public function scopeForUser(Builder $query, Model $user): Builder
@@ -105,7 +106,8 @@ class NotificationLog extends Model
     /**
      * Scope to a specific notification type.
      *
-     * @param  Builder<NotificationLog>  $query
+     * @param Builder<NotificationLog> $query
+     *
      * @return Builder<NotificationLog>
      */
     public function scopeOfType(Builder $query, string $type): Builder
@@ -118,7 +120,8 @@ class NotificationLog extends Model
     /**
      * Scope to unread notifications.
      *
-     * @param  Builder<NotificationLog>  $query
+     * @param Builder<NotificationLog> $query
+     *
      * @return Builder<NotificationLog>
      */
     public function scopeUnread(Builder $query): Builder
@@ -134,7 +137,8 @@ class NotificationLog extends Model
      * Uses PostgreSQL jsonb_each_text() for efficient JSONB value matching
      * instead of LIKE which forces full text pattern matching on the column.
      *
-     * @param  Builder<NotificationLog>  $query
+     * @param Builder<NotificationLog> $query
+     *
      * @return Builder<NotificationLog>
      */
     public function scopeFailed(Builder $query): Builder

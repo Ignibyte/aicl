@@ -61,7 +61,7 @@ class ToolSpecParser
     }
 
     /**
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
      *
      * @throws InvalidArgumentException
      */
@@ -81,7 +81,7 @@ class ToolSpecParser
     }
 
     /**
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
      */
     protected function parseDescription(array $sections): string
     {
@@ -95,10 +95,11 @@ class ToolSpecParser
     }
 
     /**
-     * @param  array<string, string>  $sections
-     * @return array{name: string, category: string, authRequired: bool, description: string}
+     * @param array<string, string> $sections
      *
      * @throws InvalidArgumentException
+     *
+     * @return array{name: string, category: string, authRequired: bool, description: string}
      */
     protected function parseToolInfo(array $sections): array
     {
@@ -138,7 +139,8 @@ class ToolSpecParser
     }
 
     /**
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, ToolParameterSpec>
      */
     protected function parseParameters(array $sections): array
@@ -173,7 +175,8 @@ class ToolSpecParser
     }
 
     /**
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, ToolReturnFieldSpec>
      */
     protected function parseReturns(array $sections): array

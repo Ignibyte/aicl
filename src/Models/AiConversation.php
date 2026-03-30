@@ -27,20 +27,20 @@ use Spatie\ModelStates\HasStates;
  * Represents a multi-turn conversation between a user and an AI agent.
  * Tracks message count, token usage, and supports compaction (summarization).
  *
- * @property string $id
- * @property string|null $title
- * @property int $user_id
- * @property string $ai_agent_id
- * @property int $message_count
- * @property int $token_count
- * @property string|null $summary
- * @property bool $is_pinned
- * @property string|null $context_page
- * @property Carbon|null $last_message_at
+ * @property string              $id
+ * @property string|null         $title
+ * @property int                 $user_id
+ * @property string              $ai_agent_id
+ * @property int                 $message_count
+ * @property int                 $token_count
+ * @property string|null         $summary
+ * @property bool                $is_pinned
+ * @property string|null         $context_page
+ * @property Carbon|null         $last_message_at
  * @property AiConversationState $state
- * @property Carbon $created_at
- * @property Carbon $updated_at
- * @property Carbon|null $deleted_at
+ * @property Carbon              $created_at
+ * @property Carbon              $updated_at
+ * @property Carbon|null         $deleted_at
  */
 class AiConversation extends Model
 {
@@ -119,7 +119,8 @@ class AiConversation extends Model
     /**
      * Conversations belonging to a specific user.
      *
-     * @param  Builder<self>  $query
+     * @param Builder<self> $query
+     *
      * @return Builder<self>
      */
     public function scopeForUser(Builder $query, User $user): Builder
@@ -130,7 +131,8 @@ class AiConversation extends Model
     /**
      * Active conversations only.
      *
-     * @param  Builder<self>  $query
+     * @param Builder<self> $query
+     *
      * @return Builder<self>
      */
     public function scopeActive(Builder $query): Builder
@@ -141,7 +143,8 @@ class AiConversation extends Model
     /**
      * Ordered by most recent message.
      *
-     * @param  Builder<self>  $query
+     * @param Builder<self> $query
+     *
      * @return Builder<self>
      */
     public function scopeRecent(Builder $query): Builder
@@ -152,7 +155,8 @@ class AiConversation extends Model
     /**
      * Pinned conversations first, then by updated_at.
      *
-     * @param  Builder<self>  $query
+     * @param Builder<self> $query
+     *
      * @return Builder<self>
      */
     public function scopePinned(Builder $query): Builder

@@ -29,10 +29,10 @@ class FieldSignalEngine
     /**
      * Match a single field definition to a component recommendation.
      *
-     * @param  string  $fieldName  Field name (e.g., 'starts_at')
-     * @param  string  $fieldType  Field type (e.g., 'datetime')
-     * @param  string  $context  Rendering context (e.g., 'blade')
-     * @param  array<string, string>  $allFields  All entity fields for multi-field pattern detection
+     * @param string                $fieldName Field name (e.g., 'starts_at')
+     * @param string                $fieldType Field type (e.g., 'datetime')
+     * @param string                $context   Rendering context (e.g., 'blade')
+     * @param array<string, string> $allFields All entity fields for multi-field pattern detection
      */
     public function match(string $fieldName, string $fieldType, string $context = 'blade', array $allFields = []): ?ComponentRecommendation
     {
@@ -61,7 +61,7 @@ class FieldSignalEngine
     /**
      * Match fields that require multi-field context.
      *
-     * @param  array<string, string>  $allFields
+     * @param array<string, string> $allFields
      */
     private function matchMultiField(string $fieldName, string $fieldType, array $allFields, string $context): ?ComponentRecommendation
     {
@@ -80,7 +80,7 @@ class FieldSignalEngine
         }
 
         // target + actual pair → KPI card
-        if ($this->isTargetField($fieldName) && in_array($fieldType, ['float', 'integer', 'decimal'])) {
+        if ($this->isTargetField($fieldName) && in_array($fieldType, ['float', 'integer', 'decimal'], true)) {
             $actualField = $this->findActualPair($fieldName, $allFields);
             if ($actualField !== null) {
                 return new ComponentRecommendation(
@@ -104,7 +104,7 @@ class FieldSignalEngine
         // Status enum/state → status badge
         $this->rules['status_enum'] = [
             'detect' => fn (string $name, string $type): bool => ($name === 'status' || str_ends_with($name, '_status'))
-                && in_array($type, ['enum', 'state']),
+                && in_array($type, ['enum', 'state'], true),
             'tag' => 'x-aicl-status-badge',
             'reason' => 'Status/state field detected — use status badge for visual indicator',
             'confidence' => 0.95,
@@ -115,7 +115,7 @@ class FieldSignalEngine
         // Progress field → progress card
         $this->rules['progress'] = [
             'detect' => fn (string $name, string $type): bool => $name === 'progress'
-                && in_array($type, ['integer', 'float']),
+                && in_array($type, ['integer', 'float'], true),
             'tag' => 'x-aicl-progress-card',
             'reason' => 'Progress percentage field detected — use progress card',
             'confidence' => 0.95,
@@ -126,7 +126,7 @@ class FieldSignalEngine
         // Count/aggregate → stat card
         $this->rules['count_aggregate'] = [
             'detect' => fn (string $name, string $type): bool => (str_ends_with($name, '_count') || str_starts_with($name, 'total_') || str_starts_with($name, 'num_'))
-                && in_array($type, ['integer', 'float']),
+                && in_array($type, ['integer', 'float'], true),
             'tag' => 'x-aicl-stat-card',
             'reason' => 'Count/aggregate field detected — use stat card for metric display',
             'confidence' => 0.9,
@@ -136,8 +136,8 @@ class FieldSignalEngine
 
         // Monetary field → stat card
         $this->rules['monetary'] = [
-            'detect' => fn (string $name, string $type): bool => in_array($name, ['budget', 'amount', 'price', 'cost', 'total', 'revenue', 'salary'])
-                && in_array($type, ['float', 'decimal', 'integer']),
+            'detect' => fn (string $name, string $type): bool => in_array($name, ['budget', 'amount', 'price', 'cost', 'total', 'revenue', 'salary'], true)
+                && in_array($type, ['float', 'decimal', 'integer'], true),
             'tag' => 'x-aicl-stat-card',
             'reason' => 'Monetary field detected — use stat card with currency formatting',
             'confidence' => 0.8,
@@ -159,7 +159,7 @@ class FieldSignalEngine
         // Single datetime → trend card context
         $this->rules['single_datetime'] = [
             'detect' => fn (string $name, string $type): bool => (str_ends_with($name, '_at') || str_ends_with($name, '_date'))
-                && in_array($type, ['datetime', 'date']),
+                && in_array($type, ['datetime', 'date'], true),
             'tag' => 'x-aicl-trend-card',
             'reason' => 'Temporal field detected — suitable for time-series trend display',
             'confidence' => 0.6,
@@ -171,9 +171,10 @@ class FieldSignalEngine
     /**
      * Recommend components for an entity's full field set.
      *
-     * @param  array<string, string>  $fields  Array of ['name' => 'type'] pairs
-     * @param  string  $context  Rendering context
-     * @param  string  $viewType  View type: index, show, card
+     * @param array<string, string> $fields   Array of ['name' => 'type'] pairs
+     * @param string                $context  Rendering context
+     * @param string                $viewType View type: index, show, card
+     *
      * @return array<ComponentRecommendation>
      */
     public function recommendForEntity(array $fields, string $context = 'blade', string $viewType = 'index'): array
@@ -205,7 +206,7 @@ class FieldSignalEngine
     }
 
     /**
-     * @param  array<string, string>  $allFields
+     * @param array<string, string> $allFields
      */
     private function findTemporalPair(string $name, array $allFields): ?string
     {
@@ -241,11 +242,11 @@ class FieldSignalEngine
 
     private function isTargetField(string $name): bool
     {
-        return in_array($name, ['target', 'goal', 'budget', 'quota', 'planned']);
+        return in_array($name, ['target', 'goal', 'budget', 'quota', 'planned'], true);
     }
 
     /**
-     * @param  array<string, string>  $allFields
+     * @param array<string, string> $allFields
      */
     private function findActualPair(string $name, array $allFields): ?string
     {

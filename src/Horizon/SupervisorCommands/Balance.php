@@ -14,8 +14,7 @@ class Balance
     /**
      * Process the command.
      *
-     * @param  array<string, int|float>  $options
-     * @return void
+     * @param array<string, int|float> $options
      */
     public function process(Supervisor $supervisor, array $options)
     {

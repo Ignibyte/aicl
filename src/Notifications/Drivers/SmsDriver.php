@@ -72,8 +72,8 @@ class SmsDriver implements NotificationChannelDriver
     }
 
     /**
-     * @param  array<string, mixed>  $config
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $payload
      */
     protected function sendViaTwilio(array $config, array $payload): DriverResult
     {

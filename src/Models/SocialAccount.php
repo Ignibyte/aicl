@@ -19,16 +19,16 @@ use Illuminate\Support\Carbon;
  * token fields are encrypted at rest. Used by the HasSocialAccounts trait
  * and SocialAuthController for OAuth login flows.
  *
- * @property int $id
- * @property int $user_id
- * @property string $provider
- * @property string $provider_id
+ * @property int         $id
+ * @property int         $user_id
+ * @property string      $provider
+ * @property string      $provider_id
  * @property string|null $avatar_url
  * @property string|null $token
  * @property string|null $refresh_token
  * @property Carbon|null $token_expires_at
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property Carbon      $created_at
+ * @property Carbon      $updated_at
  *
  * @see HasSocialAccounts  Trait for user-side social account management
  */

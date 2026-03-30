@@ -17,8 +17,8 @@ use Throwable;
 class ConcurrentException extends RuntimeException
 {
     /**
-     * @param  array<string|int, mixed>  $results  Successful results (keyed by input key)
-     * @param  array<string|int, Throwable>  $exceptions  Failed exceptions (keyed by input key)
+     * @param array<string|int, mixed>     $results    Successful results (keyed by input key)
+     * @param array<string|int, Throwable> $exceptions Failed exceptions (keyed by input key)
      */
     public function __construct(
         private array $results,

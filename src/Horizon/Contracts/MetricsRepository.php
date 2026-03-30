@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aicl\Horizon\Contracts;
 
+use stdClass;
+
 /**
  * MetricsRepository.
  */
@@ -40,7 +42,8 @@ interface MetricsRepository
     /**
      * Get the throughput for a given job.
      *
-     * @param  string  $job
+     * @param string $job
+     *
      * @return int
      */
     public function throughputForJob($job);
@@ -48,7 +51,8 @@ interface MetricsRepository
     /**
      * Get the throughput for a given queue.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return int
      */
     public function throughputForQueue($queue);
@@ -56,7 +60,8 @@ interface MetricsRepository
     /**
      * Get the average runtime for a given job in milliseconds.
      *
-     * @param  string  $job
+     * @param string $job
+     *
      * @return float
      */
     public function runtimeForJob($job);
@@ -64,7 +69,8 @@ interface MetricsRepository
     /**
      * Get the average runtime for a given queue in milliseconds.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return float
      */
     public function runtimeForQueue($queue);
@@ -86,41 +92,39 @@ interface MetricsRepository
     /**
      * Increment the metrics information for a job.
      *
-     * @param  string  $job
-     * @param  float|null  $runtime
-     * @return void
+     * @param string     $job
+     * @param float|null $runtime
      */
     public function incrementJob($job, $runtime);
 
     /**
      * Increment the metrics information for a queue.
      *
-     * @param  string  $queue
-     * @param  float|null  $runtime
-     * @return void
+     * @param string     $queue
+     * @param float|null $runtime
      */
     public function incrementQueue($queue, $runtime);
 
     /**
      * Get all of the snapshots for the given job.
      *
-     * @param  string  $job
-     * @return array<int, \stdClass>
+     * @param string $job
+     *
+     * @return array<int, stdClass>
      */
     public function snapshotsForJob($job);
 
     /**
      * Get all of the snapshots for the given queue.
      *
-     * @param  string  $queue
-     * @return array<int, \stdClass>
+     * @param string $queue
+     *
+     * @return array<int, stdClass>
      */
     public function snapshotsForQueue($queue);
 
     /**
      * Store a snapshot of the metrics information.
-     *
-     * @return void
      */
     public function snapshot();
 
@@ -134,15 +138,12 @@ interface MetricsRepository
     /**
      * Clear the metrics for a key.
      *
-     * @param  string  $key
-     * @return void
+     * @param string $key
      */
     public function forget($key);
 
     /**
      * Delete all stored metrics information.
-     *
-     * @return void
      */
     public function clear();
 }

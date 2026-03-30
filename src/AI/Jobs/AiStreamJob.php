@@ -10,6 +10,7 @@ use Aicl\AI\Events\AiStreamFailed;
 use Aicl\AI\Events\AiStreamStarted;
 use Aicl\AI\Events\AiTokenEvent;
 use Aicl\AI\Events\AiToolCallEvent;
+use Generator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -22,6 +23,7 @@ use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
 use NeuronAI\Chat\Messages\ToolCallMessage;
 use NeuronAI\Providers\AIProviderInterface;
+use Throwable;
 
 /** Queued job that streams standalone AI agent responses via WebSocket broadcast events. */
 class AiStreamJob implements ShouldQueue
@@ -37,7 +39,7 @@ class AiStreamJob implements ShouldQueue
     private bool $decremented = false;
 
     /**
-     * @param  array<string, mixed>  $context
+     * @param array<string, mixed> $context
      */
     public function __construct(
         public string $streamId,
@@ -113,7 +115,7 @@ class AiStreamJob implements ShouldQueue
                 'usage' => $usage,
             ]);
             // @codeCoverageIgnoreStart — Job processing
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('AI stream failed', [
                 'stream_id' => $this->streamId,
                 'user_id' => $this->userId,
@@ -175,7 +177,7 @@ class AiStreamJob implements ShouldQueue
      *
      * @return array<string, int>
      */
-    private function extractUsage(\Generator $generator): array
+    private function extractUsage(Generator $generator): array
     {
         /** @var object|null $response */
         $response = $generator->getReturn();
@@ -195,7 +197,7 @@ class AiStreamJob implements ShouldQueue
     /**
      * Handle permanent job failure (safety net for worker crashes).
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         $this->decrementConcurrentCount();
 

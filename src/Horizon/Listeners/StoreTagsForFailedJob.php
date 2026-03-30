@@ -21,8 +21,6 @@ class StoreTagsForFailedJob
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(TagRepository $tags)
     {
@@ -31,8 +29,6 @@ class StoreTagsForFailedJob
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(JobFailed $event)
     {

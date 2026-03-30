@@ -70,8 +70,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Create a new supervisor instance.
-     *
-     * @return void
      */
     public function __construct(SupervisorOptions $options)
     {
@@ -134,8 +132,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Scale the process count.
      *
-     * @param  int  $processes
-     * @return void
+     * @param int $processes
      */
     public function scale($processes)
     {
@@ -151,8 +148,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Balance the process pool at the given scales.
      *
-     * @param  array<string, int|float>  $balance
-     * @return void
+     * @param array<string, int|float> $balance
      */
     public function balance(array $balance)
     {
@@ -169,8 +165,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Terminate all current workers and start fresh ones.
-     *
-     * @return void
      */
     public function restart()
     {
@@ -181,8 +175,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Pause all of the worker processes.
-     *
-     * @return void
      */
     public function pause()
     {
@@ -193,8 +185,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Instruct all of the worker processes to continue working.
-     *
-     * @return void
      */
     public function continue()
     {
@@ -206,8 +196,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Terminate this supervisor process and all of its workers.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     public function terminate($status = 0)
     {
@@ -246,8 +235,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Monitor the worker processes.
-     *
-     * @return void
      */
     public function monitor()
     {
@@ -267,8 +254,6 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Ensure no other supervisors are running with the same name.
      *
-     * @return void
-     *
      * @throws Exception
      */
     public function ensureNoDuplicateSupervisors()
@@ -280,8 +265,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Perform a monitor loop.
-     *
-     * @return void
      */
     public function loop()
     {
@@ -314,8 +297,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Ensure the parent process is still running.
-     *
-     * @return void
      */
     protected function ensureParentIsRunning()
     {
@@ -326,8 +307,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Handle any pending commands for the supervisor.
-     *
-     * @return void
      */
     protected function processPendingCommands()
     {
@@ -339,8 +318,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Run the auto-scaling routine for the supervisor.
-     *
-     * @return void
      */
     protected function autoScale()
     {
@@ -356,8 +333,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Persist information about this supervisor instance.
-     *
-     * @return void
      */
     public function persist()
     {
@@ -378,8 +353,6 @@ class Supervisor implements Pausable, Restartable, Terminable
 
     /**
      * Prune any terminating processes that have finished terminating.
-     *
-     * @return void
      */
     public function pruneTerminatingProcesses()
     {
@@ -471,9 +444,8 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Handle the given output.
      *
-     * @param  string  $type
-     * @param  string  $line
-     * @return void
+     * @param string $type
+     * @param string $line
      */
     public function output($type, $line)
     {
@@ -485,8 +457,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Shutdown the supervisor.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     protected function exit($status = 0)
     {
@@ -496,8 +467,7 @@ class Supervisor implements Pausable, Restartable, Terminable
     /**
      * Exit the PHP process.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     protected function exitProcess($status = 0)
     {

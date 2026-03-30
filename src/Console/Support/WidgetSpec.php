@@ -10,10 +10,10 @@ namespace Aicl\Console\Support;
 class WidgetSpec
 {
     /**
-     * @param  'stats'|'chart'|'table'  $type
-     * @param  array<int, MetricDefinition>  $metrics  For stats widgets
-     * @param  array<string, string>  $colors  For chart widgets: state/value => color mapping
-     * @param  array<int, ColumnDefinition>  $columns  For table widgets
+     * @param 'stats'|'chart'|'table'      $type
+     * @param array<int, MetricDefinition> $metrics For stats widgets
+     * @param array<string, string>        $colors  For chart widgets: state/value => color mapping
+     * @param array<int, ColumnDefinition> $columns For table widgets
      */
     public function __construct(
         public string $type,

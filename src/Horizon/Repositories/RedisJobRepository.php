@@ -8,11 +8,13 @@ use Aicl\Horizon\Contracts\JobRepository;
 use Aicl\Horizon\JobPayload;
 use Aicl\Horizon\LuaScripts;
 use Carbon\CarbonImmutable;
+use Exception;
 use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use stdClass;
 
 /** Redis-backed repository for storing and querying Horizon job records. */
 class RedisJobRepository implements JobRepository
@@ -79,8 +81,6 @@ class RedisJobRepository implements JobRepository
 
     /**
      * Create a new repository instance.
-     *
-     * @return void
      */
     public function __construct(RedisFactory $redis)
     {
@@ -132,8 +132,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Get a chunk of recent jobs.
      *
-     * @param  string|null  $afterIndex
-     * @return Collection<int, \stdClass>
+     * @param string|null $afterIndex
+     *
+     * @return Collection<int, stdClass>
      */
     public function getRecent($afterIndex = null)
     {
@@ -143,8 +144,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Get a chunk of failed jobs.
      *
-     * @param  string|null  $afterIndex
-     * @return Collection<int, \stdClass>
+     * @param string|null $afterIndex
+     *
+     * @return Collection<int, stdClass>
      */
     public function getFailed($afterIndex = null)
     {
@@ -156,8 +158,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Get a chunk of pending jobs.
      *
-     * @param  string|null  $afterIndex
-     * @return Collection<int, \stdClass>
+     * @param string|null $afterIndex
+     *
+     * @return Collection<int, stdClass>
      */
     public function getPending($afterIndex = null)
     {
@@ -167,8 +170,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Get a chunk of completed jobs.
      *
-     * @param  string|null  $afterIndex
-     * @return Collection<int, \stdClass>
+     * @param string|null $afterIndex
+     *
+     * @return Collection<int, stdClass>
      */
     public function getCompleted($afterIndex = null)
     {
@@ -178,8 +182,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Get a chunk of silenced jobs.
      *
-     * @param  string|null  $afterIndex
-     * @return Collection<int, \stdClass>
+     * @param string|null $afterIndex
+     *
+     * @return Collection<int, stdClass>
      */
     public function getSilenced($afterIndex = null)
     {
@@ -259,9 +264,10 @@ class RedisJobRepository implements JobRepository
     /**
      * Get a chunk of jobs from the given type set.
      *
-     * @param  string  $type
-     * @param  string|null  $afterIndex
-     * @return Collection<int, \stdClass>
+     * @param string      $type
+     * @param string|null $afterIndex
+     *
+     * @return Collection<int, stdClass>
      */
     protected function getJobsByType($type, $afterIndex)
     {
@@ -275,7 +281,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Get the number of jobs in a given type set.
      *
-     * @param  string  $type
+     * @param string $type
+     *
      * @return int
      */
     protected function countJobsByType($type)
@@ -290,7 +297,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Get the number of minutes to count for a given type set.
      *
-     * @param  string  $type
+     * @param string $type
+     *
      * @return int
      */
     protected function minutesForType($type)
@@ -310,9 +318,10 @@ class RedisJobRepository implements JobRepository
     /**
      * Retrieve the jobs with the given IDs.
      *
-     * @param  array<int, string>  $ids
-     * @param  mixed  $indexFrom
-     * @return Collection<int, \stdClass>
+     * @param array<int, string> $ids
+     * @param mixed              $indexFrom
+     *
+     * @return Collection<int, stdClass>
      */
     public function getJobs(array $ids, $indexFrom = 0)
     {
@@ -337,9 +346,10 @@ class RedisJobRepository implements JobRepository
     /**
      * Index the given jobs from the given index.
      *
-     * @param  Collection<int, mixed>  $jobs
-     * @param  int  $indexFrom
-     * @return Collection<int, \stdClass>
+     * @param Collection<int, mixed> $jobs
+     * @param int                    $indexFrom
+     *
+     * @return Collection<int, stdClass>
      */
     protected function indexJobs($jobs, $indexFrom)
     {
@@ -359,9 +369,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Insert the job into storage.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @return void
+     * @param string $connection
+     * @param string $queue
      */
     public function pushed($connection, $queue, JobPayload $payload)
     {
@@ -393,9 +402,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Mark the job as reserved.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @return void
+     * @param string $connection
+     * @param string $queue
      */
     public function reserved($connection, $queue, JobPayload $payload)
     {
@@ -416,10 +424,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Mark the job as released / pending.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @param  int  $delay
-     * @return void
+     * @param string $connection
+     * @param string $queue
+     * @param int    $delay
      */
     public function released($connection, $queue, JobPayload $payload, $delay = 0)
     {
@@ -438,9 +445,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Mark the job as completed and monitored.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @return void
+     * @param string $connection
+     * @param string $queue
      */
     public function remember($connection, $queue, JobPayload $payload)
     {
@@ -470,10 +476,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Mark the given jobs as released / pending.
      *
-     * @param  string  $connection
-     * @param  string  $queue
-     * @param  Collection<int, JobPayload>  $payloads
-     * @return void
+     * @param string                      $connection
+     * @param string                      $queue
+     * @param Collection<int, JobPayload> $payloads
      */
     public function migrated($connection, $queue, Collection $payloads)
     {
@@ -496,9 +501,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Handle the storage of a completed job.
      *
-     * @param  bool  $failed
-     * @param  bool  $silenced
-     * @return void
+     * @param bool $failed
+     * @param bool $silenced
      */
     public function completed(JobPayload $payload, $failed = false, $silenced = false)
     {
@@ -526,8 +530,7 @@ class RedisJobRepository implements JobRepository
     /**
      * Update the retry status of a job's parent.
      *
-     * @param  bool  $failed
-     * @return void
+     * @param bool $failed
      */
     protected function updateRetryInformationOnParent(JobPayload $payload, $failed)
     {
@@ -553,8 +556,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Update the retry status of a job in a retry array.
      *
-     * @param  array<int, array<string, mixed>>  $retries
-     * @param  bool  $failed
+     * @param array<int, array<string, mixed>> $retries
+     * @param bool                             $failed
+     *
      * @return array<int, array<string, mixed>>
      */
     protected function updateRetryStatus(JobPayload $payload, $retries, $failed)
@@ -573,8 +577,7 @@ class RedisJobRepository implements JobRepository
     /**
      * Delete the given monitored jobs by IDs.
      *
-     * @param  array<int, string>  $ids
-     * @return void
+     * @param array<int, string> $ids
      */
     public function deleteMonitored(array $ids)
     {
@@ -589,8 +592,6 @@ class RedisJobRepository implements JobRepository
 
     /**
      * Trim the recent job list.
-     *
-     * @return void
      */
     public function trimRecentJobs()
     {
@@ -631,8 +632,6 @@ class RedisJobRepository implements JobRepository
 
     /**
      * Trim the failed job list.
-     *
-     * @return void
      */
     public function trimFailedJobs()
     {
@@ -645,8 +644,6 @@ class RedisJobRepository implements JobRepository
 
     /**
      * Trim the monitored job list.
-     *
-     * @return void
      */
     public function trimMonitoredJobs()
     {
@@ -660,8 +657,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Find a failed job by ID.
      *
-     * @param  string  $id
-     * @return \stdClass|null
+     * @param string $id
+     *
+     * @return stdClass|null
      */
     public function findFailed($id)
     {
@@ -683,10 +681,9 @@ class RedisJobRepository implements JobRepository
     /**
      * Mark the job as failed.
      *
-     * @param  \Exception  $exception
-     * @param  string  $connection
-     * @param  string  $queue
-     * @return void
+     * @param Exception $exception
+     * @param string    $connection
+     * @param string    $queue
      */
     public function failed($exception, $connection, $queue, JobPayload $payload)
     {
@@ -724,9 +721,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Store the look-up references for a job.
      *
-     * @param  mixed  $pipe
-     * @param  string  $key
-     * @return void
+     * @param mixed  $pipe
+     * @param string $key
      */
     protected function storeJobReference($pipe, $key, JobPayload $payload)
     {
@@ -738,9 +734,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Remove the look-up references for a job.
      *
-     * @param  mixed  $pipe
-     * @param  string  $key
-     * @return void
+     * @param mixed  $pipe
+     * @param string $key
      */
     protected function removeJobReference($pipe, $key, JobPayload $payload)
     {
@@ -752,9 +747,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Store the retry job ID on the original job record.
      *
-     * @param  string  $id
-     * @param  string  $retryId
-     * @return void
+     * @param string $id
+     * @param string $retryId
      */
     public function storeRetryReference($id, $retryId)
     {
@@ -774,7 +768,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Delete a failed job by ID.
      *
-     * @param  string  $id
+     * @param string $id
+     *
      * @return int
      */
     public function deleteFailed($id)
@@ -789,7 +784,8 @@ class RedisJobRepository implements JobRepository
     /**
      * Delete pending and reserved jobs for a queue.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return int
      */
     public function purge($queue)

@@ -6,11 +6,13 @@ namespace Aicl\Filament\Pages;
 
 use Aicl\Mcp\AiclMcpServer;
 use Aicl\Services\EntityRegistry;
+use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Mcp\Facades\Mcp;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -33,7 +35,7 @@ class ApiTokens extends Page
 
     protected static ?string $slug = 'api-tokens';
 
-    protected static string|\BackedEnum|null $navigationIcon = null;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'System';
 
@@ -169,7 +171,7 @@ class ApiTokens extends Page
     /**
      * Revoke an existing Passport token by ID.
      *
-     * @param  string  $tokenId  The Passport token UUID
+     * @param string $tokenId The Passport token UUID
      */
     public function revokeToken(string $tokenId): void
     {
@@ -232,7 +234,7 @@ class ApiTokens extends Page
 
             return $registry->allTypes()->count() * 6; // 6 tools per entity (approx)
             // @codeCoverageIgnoreStart — Filament Livewire rendering
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return 0;
             // @codeCoverageIgnoreEnd
         }
@@ -273,7 +275,7 @@ class ApiTokens extends Page
     /**
      * Apply a predefined scope preset to the selected scopes.
      *
-     * @param  string  $preset  The preset name (e.g. 'Full Access', 'Read Only')
+     * @param string $preset The preset name (e.g. 'Full Access', 'Read Only')
      */
     public function applyScopePreset(string $preset): void
     {

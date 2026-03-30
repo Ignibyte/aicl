@@ -31,8 +31,6 @@ class SnapshotCommand extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle(Lock $lock, MetricsRepository $metrics)
     {

@@ -21,7 +21,7 @@ class SystemProcessCounter
     /**
      * Get the number of Horizon workers for a given supervisor.
      *
-     * @param  string  $name
+     * @param string $name
      *
      * @codeCoverageIgnore Reason: horizon-process -- Process counting requires /proc or exec access
      *

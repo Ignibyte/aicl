@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Aicl\Http\Controllers\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 

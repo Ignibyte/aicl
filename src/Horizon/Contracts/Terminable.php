@@ -12,8 +12,7 @@ interface Terminable
     /**
      * Terminate the process.
      *
-     * @param  int  $status
-     * @return void
+     * @param int $status
      */
     public function terminate($status = 0);
 }

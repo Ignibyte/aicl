@@ -45,6 +45,8 @@ class DomainEventSubscriber
      * Uses a wildcard listener with instanceof check to catch ALL
      * DomainEvent subclasses. Laravel dispatches object events by their
      * concrete class name, so a parent class mapping won't match subclasses.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function subscribe(Dispatcher $events): void
     {

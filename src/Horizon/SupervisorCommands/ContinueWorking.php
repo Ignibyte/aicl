@@ -13,8 +13,6 @@ class ContinueWorking
 {
     /**
      * Process the command.
-     *
-     * @return void
      */
     public function process(Pausable $pausable)
     {

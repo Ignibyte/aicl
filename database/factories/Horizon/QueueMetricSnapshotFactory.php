@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Database\Factories\Horizon;
 
 use Aicl\Horizon\Models\QueueMetricSnapshot;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -58,7 +61,7 @@ class QueueMetricSnapshotFactory extends Factory
     /**
      * Set the recorded_at to a specific time.
      */
-    public function recordedAt(\DateTimeInterface $dateTime): static
+    public function recordedAt(DateTimeInterface $dateTime): static
     {
         return $this->state(fn () => [
             'recorded_at' => $dateTime,

@@ -22,6 +22,8 @@ class WarmSwooleCaches
      * Swoole Tables are shared memory — the first worker to warm writes
      * the data, subsequent workers see it immediately. Warm is idempotent
      * (overwrites with same data).
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function handle(WorkerStarting $event): void
     {

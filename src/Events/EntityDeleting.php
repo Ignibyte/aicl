@@ -20,7 +20,7 @@ class EntityDeleting
     use SerializesModels;
 
     /**
-     * @param  Model  $entity  The entity model about to be deleted
+     * @param Model $entity The entity model about to be deleted
      */
     public function __construct(
         public Model $entity,

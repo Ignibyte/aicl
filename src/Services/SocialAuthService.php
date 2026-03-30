@@ -157,7 +157,7 @@ class SocialAuthService
     /**
      * Find an existing user by email, or create a new one.
      *
-     * @param  array{name: string, email: string, email_verified: bool}  $attributes
+     * @param array{name: string, email: string, email_verified: bool} $attributes
      */
     public function findOrCreateUser(array $attributes): User
     {
@@ -187,7 +187,7 @@ class SocialAuthService
     /**
      * Link a social account to a user.
      *
-     * @param  array{token?: string|null, refresh_token?: string|null, expires_in?: int|null, avatar_url?: string|null}  $tokenData
+     * @param array{token?: string|null, refresh_token?: string|null, expires_in?: int|null, avatar_url?: string|null} $tokenData
      */
     public function linkSocialAccount(
         User $user,
@@ -239,8 +239,10 @@ class SocialAuthService
                     $user->assignRole($role);
                 }
             }
-        } else {
-            $user->syncRoles($roles);
+
+            return;
         }
+
+        $user->syncRoles($roles);
     }
 }

@@ -8,6 +8,8 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use UnitEnum;
 
 /** Filament page that provides an in-panel browser for architecture documentation files. */
@@ -78,9 +80,9 @@ class DocumentBrowser extends Page
                 continue;
             }
 
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($fullPath, \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::LEAVES_ONLY,
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($fullPath, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::LEAVES_ONLY,
             );
 
             foreach ($iterator as $file) {

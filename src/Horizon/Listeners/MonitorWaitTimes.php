@@ -30,8 +30,6 @@ class MonitorWaitTimes
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(MetricsRepository $metrics)
     {
@@ -40,8 +38,6 @@ class MonitorWaitTimes
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle()
     {

@@ -182,8 +182,8 @@ class SamlAttributeMapper
     /**
      * Search raw attributes for the first matching alias with a non-null value.
      *
-     * @param  array<string, mixed>  $rawAttributes
-     * @param  list<string>  $aliases
+     * @param array<string, mixed> $rawAttributes
+     * @param list<string>         $aliases
      */
     protected function findAttributeValue(array $rawAttributes, array $aliases): mixed
     {

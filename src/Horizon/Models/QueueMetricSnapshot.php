@@ -12,13 +12,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
- * @property string $type
- * @property string $name
- * @property float $throughput
- * @property float $runtime
+ * @property int        $id
+ * @property string     $type
+ * @property string     $name
+ * @property float      $throughput
+ * @property float      $runtime
  * @property float|null $wait
- * @property Carbon $recorded_at
+ * @property Carbon     $recorded_at
  *
  * @codeCoverageIgnore Horizon process management
  */
@@ -56,7 +56,8 @@ class QueueMetricSnapshot extends Model
     /**
      * Scope to filter by type (queue or job).
      *
-     * @param  Builder<QueueMetricSnapshot>  $query
+     * @param Builder<QueueMetricSnapshot> $query
+     *
      * @return Builder<QueueMetricSnapshot>
      */
     public function scopeOfType(Builder $query, string $type): Builder
@@ -67,7 +68,8 @@ class QueueMetricSnapshot extends Model
     /**
      * Scope to filter for a specific queue.
      *
-     * @param  Builder<QueueMetricSnapshot>  $query
+     * @param Builder<QueueMetricSnapshot> $query
+     *
      * @return Builder<QueueMetricSnapshot>
      */
     public function scopeForQueue(Builder $query, string $name): Builder
@@ -78,7 +80,8 @@ class QueueMetricSnapshot extends Model
     /**
      * Scope to filter for a specific job.
      *
-     * @param  Builder<QueueMetricSnapshot>  $query
+     * @param Builder<QueueMetricSnapshot> $query
+     *
      * @return Builder<QueueMetricSnapshot>
      */
     public function scopeForJob(Builder $query, string $name): Builder
@@ -89,7 +92,8 @@ class QueueMetricSnapshot extends Model
     /**
      * Scope to filter by time range (minutes back from now).
      *
-     * @param  Builder<QueueMetricSnapshot>  $query
+     * @param Builder<QueueMetricSnapshot> $query
+     *
      * @return Builder<QueueMetricSnapshot>
      */
     public function scopeForRange(Builder $query, int $minutesBack): Builder

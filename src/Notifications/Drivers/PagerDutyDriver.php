@@ -71,8 +71,9 @@ class PagerDutyDriver implements NotificationChannelDriver
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $config
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $config
+     *
      * @return array<string, mixed>
      */
     protected function buildPayload(array $payload, array $config, string $routingKey): array
@@ -95,8 +96,8 @@ class PagerDutyDriver implements NotificationChannelDriver
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $config
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $config
      */
     protected function mapSeverity(array $payload, array $config): string
     {

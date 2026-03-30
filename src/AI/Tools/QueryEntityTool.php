@@ -160,7 +160,7 @@ class QueryEntityTool extends BaseTool
      * Only allows filtering on columns that exist in the model's fillable
      * attributes or the table schema, excluding sensitive columns.
      *
-     * @param  Builder<Model>  $query
+     * @param Builder<Model> $query
      */
     private function applyFilters(mixed $query, string $filters): void
     {

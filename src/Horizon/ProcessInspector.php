@@ -22,8 +22,6 @@ class ProcessInspector
 
     /**
      * Create a new process inspector instance.
-     *
-     * @return void
      */
     public function __construct(Exec $exec)
     {

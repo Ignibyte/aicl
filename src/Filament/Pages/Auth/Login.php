@@ -98,7 +98,8 @@ class Login extends BaseLogin
     /**
      * Map a social provider name to a Heroicon identifier.
      *
-     * @param  string  $provider  The provider key (e.g. 'google', 'github')
+     * @param string $provider The provider key (e.g. 'google', 'github')
+     *
      * @return string Heroicon component name
      */
     protected function getProviderIcon(string $provider): string
@@ -119,7 +120,8 @@ class Login extends BaseLogin
     /**
      * Map a social provider name to a Filament color string.
      *
-     * @param  string  $provider  The provider key (e.g. 'google', 'github')
+     * @param string $provider The provider key (e.g. 'google', 'github')
+     *
      * @return string Filament color name (e.g. 'danger', 'info', 'gray')
      */
     protected function getProviderColor(string $provider): string

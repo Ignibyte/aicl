@@ -100,7 +100,7 @@ class AiAssistantController extends Controller
             return null;
         }
 
-        if (! in_array(HasAiContext::class, class_uses_recursive($resolvedClass))) {
+        if (! in_array(HasAiContext::class, class_uses_recursive($resolvedClass), true)) {
             return null;
         }
 

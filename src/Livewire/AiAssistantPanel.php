@@ -8,11 +8,13 @@ use Aicl\AI\AiChatService;
 use Aicl\Enums\AiMessageRole;
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
+use Aicl\Models\AiMessage;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use RuntimeException;
 
 /**
  * AiAssistantPanel.
@@ -81,7 +83,7 @@ class AiAssistantPanel extends Component
             $result = $chatService->sendMessage($conversation, $message, $user);
 
             return $result;
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return ['error' => $e->getMessage()];
             // @codeCoverageIgnoreEnd
         }
@@ -251,60 +253,71 @@ class AiAssistantPanel extends Component
         return $conversation->messages()
             ->orderBy('created_at')
             ->get()
-            ->map(function ($msg) use ($agentName): array {
-                $content = $msg->content;
-                $tools = [];
-
-                // Extract tool call JSON from persisted assistant content
-                if ($msg->role === AiMessageRole::Assistant && $content) {
-                    $extracted = $this->extractToolCalls($content);
-                    $content = $extracted['content'];
-                    $tools = $extracted['tools'];
-                }
-
-                // Merge structured tool render data from metadata (for replay)
-                $metadata = $msg->metadata ?? [];
-                $toolResults = $metadata['tool_results'] ?? [];
-
-                if (! empty($toolResults)) {
-                    // Enrich tool entries with render data from metadata
-                    /** @var array<int, array<string, mixed>> $toolResults */
-                    $renderByName = collect($toolResults)->keyBy('name');
-
-                    $tools = collect($tools)->map(function (array $tool) use ($renderByName): array {
-                        $stored = $renderByName->get($tool['name']);
-
-                        if ($stored && isset($stored['render'])) {
-                            $tool['render'] = $stored['render'];
-                        }
-
-                        return $tool;
-                    })->toArray();
-
-                    // Add any tools from metadata not found via JSON extraction
-                    foreach ($toolResults as $tr) {
-                        $exists = collect($tools)->contains(fn (array $t): bool => $t['name'] === $tr['name']);
-
-                        if (! $exists) {
-                            $tools[] = [
-                                'name' => $tr['name'],
-                                'render' => $tr['render'] ?? null,
-                            ];
-                            // @codeCoverageIgnoreEnd
-                        }
-                    }
-                }
-
-                // @codeCoverageIgnoreStart — Filament Livewire rendering
-                return [
-                    'role' => $msg->role->value,
-                    'content' => $content,
-                    'tools' => $tools,
-                    'timestamp' => $msg->created_at->format('g:i A'),
-                    'agent_name' => $msg->role->value === 'assistant' ? $agentName : null,
-                ];
-            })
+            ->map(fn ($msg): array => $this->transformMessage($msg, $agentName))
             ->toArray();
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Transform a single message model into the display array format.
+     *
+     * Extracts tool call JSON from persisted assistant content and merges
+     * structured tool render data from message metadata for replay.
+     *
+     * @return array{role: string, content: string, tools: array<int, array{name: string}>, timestamp: string, agent_name: string|null}
+     */
+    private function transformMessage(AiMessage $msg, string $agentName): array
+    {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
+        $content = $msg->content;
+        $tools = [];
+
+        // Extract tool call JSON from persisted assistant content
+        if ($msg->role === AiMessageRole::Assistant && $content) {
+            $extracted = $this->extractToolCalls($content);
+            $content = $extracted['content'];
+            $tools = $extracted['tools'];
+        }
+
+        // Merge structured tool render data from metadata (for replay)
+        $metadata = $msg->metadata ?? [];
+        $toolResults = $metadata['tool_results'] ?? [];
+
+        if (! empty($toolResults)) {
+            // Enrich tool entries with render data from metadata
+            /** @var array<int, array<string, mixed>> $toolResults */
+            $renderByName = collect($toolResults)->keyBy('name');
+
+            $tools = collect($tools)->map(function (array $tool) use ($renderByName): array {
+                $stored = $renderByName->get($tool['name']);
+
+                if ($stored && isset($stored['render'])) {
+                    $tool['render'] = $stored['render'];
+                }
+
+                return $tool;
+            })->toArray();
+
+            // Add any tools from metadata not found via JSON extraction
+            foreach ($toolResults as $tr) {
+                $exists = collect($tools)->contains(fn (array $t): bool => $t['name'] === $tr['name']);
+
+                if (! $exists) {
+                    $tools[] = [
+                        'name' => $tr['name'],
+                        'render' => $tr['render'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        return [
+            'role' => $msg->role->value,
+            'content' => $content,
+            'tools' => $tools,
+            'timestamp' => $msg->created_at->format('g:i A'),
+            'agent_name' => $msg->role->value === 'assistant' ? $agentName : null,
+        ];
         // @codeCoverageIgnoreEnd
     }
 
@@ -367,6 +380,8 @@ class AiAssistantPanel extends Component
      *
      * Tracks bracket depth and string boundaries to correctly
      * handle nested objects and escaped characters.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function findJsonArrayEnd(string $text): int|false
     {

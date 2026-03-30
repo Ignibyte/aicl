@@ -12,6 +12,7 @@ use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Arr;
+use stdClass;
 
 /**
  * Redis-backed repository for Horizon master supervisor state.
@@ -30,8 +31,6 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
 
     /**
      * Create a new repository instance.
-     *
-     * @return void
      */
     public function __construct(RedisFactory $redis)
     {
@@ -57,7 +56,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     /**
      * Get information on all of the supervisors.
      *
-     * @return array<int, \stdClass>
+     * @return array<int, stdClass>
      */
     public function all()
     {
@@ -69,8 +68,9 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     /**
      * Get information on a master supervisor by name.
      *
-     * @param  string  $name
-     * @return \stdClass|null
+     * @param string $name
+     *
+     * @return stdClass|null
      */
     public function find($name)
     {
@@ -82,8 +82,9 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     /**
      * Get information on the given master supervisors.
      *
-     * @param  array<int, string>  $names
-     * @return array<int, \stdClass>
+     * @param array<int, string> $names
+     *
+     * @return array<int, stdClass>
      */
     public function get(array $names)
     {
@@ -118,8 +119,6 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
 
     /**
      * Update the information about the given master supervisor.
-     *
-     * @return void
      */
     public function update(MasterSupervisor $master)
     {
@@ -149,8 +148,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
     /**
      * Remove the master supervisor information from storage.
      *
-     * @param  string  $name
-     * @return void
+     * @param string $name
      */
     public function forget($name)
     {
@@ -171,8 +169,6 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
 
     /**
      * Remove expired master supervisors from storage.
-     *
-     * @return void
      */
     public function flushExpired()
     {

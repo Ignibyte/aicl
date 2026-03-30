@@ -21,9 +21,8 @@ class JobDeleted extends RedisEvent
     /**
      * Create a new event instance.
      *
-     * @param  Job  $job
-     * @param  string  $payload
-     * @return void
+     * @param Job    $job
+     * @param string $payload
      */
     public function __construct($job, $payload)
     {

@@ -11,6 +11,7 @@ use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
 use Illuminate\Support\Arr;
+use stdClass;
 
 /**
  * Redis-backed repository for Horizon supervisor state.
@@ -29,8 +30,6 @@ class RedisSupervisorRepository implements SupervisorRepository
 
     /**
      * Create a new repository instance.
-     *
-     * @return void
      */
     public function __construct(RedisFactory $redis)
     {
@@ -55,7 +54,7 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Get information on all of the supervisors.
      *
-     * @return array<int, \stdClass>
+     * @return array<int, stdClass>
      */
     public function all()
     {
@@ -65,8 +64,9 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Get information on a supervisor by name.
      *
-     * @param  string  $name
-     * @return \stdClass|null
+     * @param string $name
+     *
+     * @return stdClass|null
      */
     public function find($name)
     {
@@ -78,8 +78,9 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Get information on the given supervisors.
      *
-     * @param  array<int, string>  $names
-     * @return array<int, \stdClass>
+     * @param array<int, string> $names
+     *
+     * @return array<int, stdClass>
      */
     public function get(array $names)
     {
@@ -123,8 +124,6 @@ class RedisSupervisorRepository implements SupervisorRepository
 
     /**
      * Update the information about the given supervisor process.
-     *
-     * @return void
      */
     public function update(Supervisor $supervisor)
     {
@@ -157,8 +156,7 @@ class RedisSupervisorRepository implements SupervisorRepository
     /**
      * Remove the supervisor information from storage.
      *
-     * @param  array<int, string>|string  $names
-     * @return void
+     * @param array<int, string>|string $names
      */
     public function forget($names)
     {
@@ -179,8 +177,6 @@ class RedisSupervisorRepository implements SupervisorRepository
 
     /**
      * Remove expired supervisors from storage.
-     *
-     * @return void
      */
     public function flushExpired()
     {

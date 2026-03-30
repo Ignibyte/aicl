@@ -44,7 +44,7 @@ class RlmBridge
         $validator = new EntityValidator($entityName);
         $results = $validator->validate();
 
-        $passed = count(array_filter($results, fn ($r) => $r->passed));
+        $passed = count(array_filter($results, fn ($result) => $result->passed));
         $total = count($results);
 
         return [

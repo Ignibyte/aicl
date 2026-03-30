@@ -27,7 +27,7 @@ class EmailDriver implements NotificationChannelDriver
         $subject = $subjectPrefix ? "{$subjectPrefix} {$title}" : $title;
 
         try {
-            $message = Mail::raw($body, function ($mail) use ($to, $from, $subject): void {
+            Mail::raw($body, function ($mail) use ($to, $from, $subject): void {
                 $mail->to($to)->subject($subject);
 
                 if ($from) {
@@ -47,7 +47,9 @@ class EmailDriver implements NotificationChannelDriver
 
         if (empty($config['to'])) {
             $errors['to'] = 'At least one recipient email address is required.';
-        } else {
+        }
+
+        if (! empty($config['to'])) {
             $recipients = (array) $config['to'];
             foreach ($recipients as $email) {
                 if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {

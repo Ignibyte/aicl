@@ -14,8 +14,6 @@ class MonitorSupervisorMemory
 {
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(SupervisorLooped $event)
     {

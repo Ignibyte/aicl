@@ -85,7 +85,7 @@ class RedisCheck implements ServiceHealthCheck
     /**
      * Count total keys across all Redis databases from the Keyspace info section.
      *
-     * @param  array<string, mixed>  $keyspace
+     * @param array<string, mixed> $keyspace
      */
     protected function countTotalKeys(array $keyspace): int
     {

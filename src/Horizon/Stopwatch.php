@@ -19,8 +19,7 @@ class Stopwatch
     /**
      * Start a new timer.
      *
-     * @param  string  $key
-     * @return void
+     * @param string $key
      */
     public function start($key)
     {
@@ -30,7 +29,8 @@ class Stopwatch
     /**
      * Check a given timer and get the elapsed time in milliseconds.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return float|null
      */
     public function check($key)
@@ -43,8 +43,7 @@ class Stopwatch
     /**
      * Forget a given timer.
      *
-     * @param  string  $key
-     * @return void
+     * @param string $key
      */
     public function forget($key)
     {

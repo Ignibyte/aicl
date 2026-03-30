@@ -8,6 +8,7 @@ use Aicl\Horizon\Contracts\MetricsRepository;
 use Aicl\Horizon\Models\QueueMetricSnapshot;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use stdClass;
 
 /**
  * MetricsCharts.
@@ -101,7 +102,8 @@ class MetricsCharts extends Component
     /**
      * Thin data points for long-range views by taking every Nth point.
      *
-     * @param  array<int, QueueMetricSnapshot>  $snapshots
+     * @param array<int, QueueMetricSnapshot> $snapshots
+     *
      * @return array<int, QueueMetricSnapshot>
      */
     protected function thinDataPoints(array $snapshots, int $minutesBack): array
@@ -130,7 +132,8 @@ class MetricsCharts extends Component
     /**
      * Format Redis snapshot data for display.
      *
-     * @param  array<int, \stdClass>  $snapshots
+     * @param array<int, stdClass> $snapshots
+     *
      * @return array<int, array{time: string, throughput: float, runtime: float}>
      */
     protected function formatRedisSnapshots(array $snapshots): array
@@ -149,7 +152,8 @@ class MetricsCharts extends Component
     /**
      * Format database snapshot data for display.
      *
-     * @param  array<int, QueueMetricSnapshot>  $snapshots
+     * @param array<int, QueueMetricSnapshot> $snapshots
+     *
      * @return array<int, array{time: string, throughput: float, runtime: float}>
      */
     protected function formatDatabaseSnapshots(array $snapshots): array

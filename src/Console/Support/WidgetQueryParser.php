@@ -20,8 +20,8 @@ use Illuminate\Support\Str;
 class WidgetQueryParser
 {
     /**
-     * @param  array<int, string>  $states  State names for the entity
-     * @param  array<string, array<int, array{case: string, label: string}>>  $enums  Enum definitions
+     * @param array<int, string>                                            $states State names for the entity
+     * @param array<string, array<int, array{case: string, label: string}>> $enums  Enum definitions
      */
     public function __construct(
         protected string $modelName,

@@ -124,7 +124,7 @@ class SpecFileParser
     }
 
     /**
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
      *
      * @throws InvalidArgumentException
      */
@@ -144,7 +144,7 @@ class SpecFileParser
     }
 
     /**
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
      */
     protected function parseDescription(array $sections): string
     {
@@ -158,10 +158,11 @@ class SpecFileParser
     }
 
     /**
-     * @param  array<string, string>  $sections
-     * @return array<int, FieldDefinition>
+     * @param array<string, string> $sections
      *
      * @throws InvalidArgumentException
+     *
+     * @return array<int, FieldDefinition>
      */
     protected function parseFields(array $sections): array
     {
@@ -198,7 +199,7 @@ class SpecFileParser
     }
 
     /**
-     * @param  array<int, string>  $seenNames
+     * @param array<int, string> $seenNames
      *
      * @throws InvalidArgumentException
      */
@@ -304,7 +305,8 @@ class SpecFileParser
     /**
      * Parse the ## Enums section into rich enum definitions.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<string, array<int, array{case: string, label: string, color?: string, icon?: string}>>
      */
     protected function parseEnums(array $sections): array
@@ -366,7 +368,8 @@ class SpecFileParser
     /**
      * Parse the ## States section.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array{states: array<int, string>, default: string, transitions: array<string, array<int, string>>}
      *
      * @codeCoverageIgnore Reason: external-service -- State parser deep branch for empty transition text
@@ -446,7 +449,8 @@ class SpecFileParser
     /**
      * Parse the ## Relationships section.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, RelationshipDefinition>
      */
     protected function parseRelationships(array $sections): array
@@ -482,7 +486,8 @@ class SpecFileParser
     /**
      * Parse the ## Traits section.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, string>
      */
     protected function parseTraits(array $sections): array
@@ -497,7 +502,8 @@ class SpecFileParser
     /**
      * Parse the ## Options section.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<string, mixed>
      */
     protected function parseOptions(array $sections): array
@@ -556,7 +562,8 @@ class SpecFileParser
      *
      * Returns null if no structured Widgets section exists (legacy Widget Hints fallback).
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, WidgetSpec>|null
      */
     protected function parseWidgets(array $sections): ?array
@@ -682,7 +689,8 @@ class SpecFileParser
      *
      * Returns null if no structured Notifications section exists (legacy Notification Hints fallback).
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, NotificationSpec>|null
      */
     protected function parseNotifications(array $sections): ?array
@@ -751,7 +759,8 @@ class SpecFileParser
      *   ### On Create / ### On Delete: | Action | Details |
      *   ### On Update: | Watch Field | Action | Details |
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, ObserverRuleSpec>|null
      */
     protected function parseObserverRules(array $sections): ?array
@@ -821,7 +830,7 @@ class SpecFileParser
     /**
      * Parse ## Report Layout with ### Single Report and ### List Report subsections.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
      */
     protected function parseReportLayout(array $sections): ?ReportLayoutSpec
     {
@@ -909,7 +918,8 @@ class SpecFileParser
     /**
      * Parse a bullet list section into an array of strings.
      *
-     * @param  array<string, string>  $sections
+     * @param array<string, string> $sections
+     *
      * @return array<int, string>
      */
     protected function parseBulletList(array $sections, string $sectionName): array

@@ -24,7 +24,8 @@ use Illuminate\Database\Eloquent\Model;
 trait HasStandardScopes
 {
     /**
-     * @param  Builder<Model>  $query
+     * @param Builder<Model> $query
+     *
      * @return Builder<Model>
      */
     public function scopeActive(Builder $query): Builder
@@ -35,7 +36,8 @@ trait HasStandardScopes
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param Builder<Model> $query
+     *
      * @return Builder<Model>
      */
     public function scopeInactive(Builder $query): Builder
@@ -46,7 +48,8 @@ trait HasStandardScopes
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param Builder<Model> $query
+     *
      * @return Builder<Model>
      */
     public function scopeRecent(Builder $query, int $days = 30): Builder
@@ -57,7 +60,8 @@ trait HasStandardScopes
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param Builder<Model> $query
+     *
      * @return Builder<Model>
      */
     public function scopeByUser(Builder $query, int|Model $user): Builder
@@ -74,7 +78,8 @@ trait HasStandardScopes
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param Builder<Model> $query
+     *
      * @return Builder<Model>
      */
     public function scopeSearch(Builder $query, string $term): Builder

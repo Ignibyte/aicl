@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * Model for Laravel's built-in failed_jobs table.
  *
- * @property int $id
+ * @property int    $id
  * @property string $uuid
  * @property string $connection
  * @property string $queue

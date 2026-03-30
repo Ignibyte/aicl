@@ -18,8 +18,6 @@ class HorizonServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap any application services.
-     *
-     * @return void
      */
     public function boot()
     {
@@ -30,8 +28,6 @@ class HorizonServiceProvider extends ServiceProvider
 
     /**
      * Register the Horizon job events.
-     *
-     * @return void
      */
     protected function registerEvents()
     {
@@ -46,8 +42,6 @@ class HorizonServiceProvider extends ServiceProvider
 
     /**
      * Register the Horizon Artisan commands.
-     *
-     * @return void
      */
     protected function registerCommands()
     {
@@ -81,8 +75,6 @@ class HorizonServiceProvider extends ServiceProvider
 
     /**
      * Register any application services.
-     *
-     * @return void
      */
     public function register()
     {
@@ -97,8 +89,6 @@ class HorizonServiceProvider extends ServiceProvider
 
     /**
      * Setup the configuration for Horizon.
-     *
-     * @return void
      */
     protected function configure()
     {
@@ -111,8 +101,6 @@ class HorizonServiceProvider extends ServiceProvider
 
     /**
      * Register Horizon's services in the container.
-     *
-     * @return void
      */
     protected function registerServices()
     {
@@ -125,8 +113,6 @@ class HorizonServiceProvider extends ServiceProvider
 
     /**
      * Register the custom queue connectors for Horizon.
-     *
-     * @return void
      */
     protected function registerQueueConnectors()
     {

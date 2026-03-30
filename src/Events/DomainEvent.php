@@ -44,10 +44,12 @@ abstract class DomainEvent
             // @codeCoverageIgnoreStart — Event infrastructure
             $this->actorType = $actorType;
             $this->actorId = $actorId;
+
             // @codeCoverageIgnoreEnd
-        } else {
-            $this->resolveActor();
+            return;
         }
+
+        $this->resolveActor();
     }
 
     public function getEventType(): string
@@ -165,14 +167,20 @@ abstract class DomainEvent
         if (auth()->check()) {
             $this->actorType = ActorType::User;
             $this->actorId = (int) auth()->id();
-        } elseif (app()->runningInConsole()) {
-            $this->actorType = ActorType::System;
-            $this->actorId = null;
-        } else {
-            // @codeCoverageIgnoreStart — Event infrastructure
-            $this->actorType = ActorType::System;
-            $this->actorId = null;
-            // @codeCoverageIgnoreEnd
+
+            return;
         }
+
+        if (app()->runningInConsole()) {
+            $this->actorType = ActorType::System;
+            $this->actorId = null;
+
+            return;
+        }
+
+        // @codeCoverageIgnoreStart — Event infrastructure
+        $this->actorType = ActorType::System;
+        $this->actorId = null;
+        // @codeCoverageIgnoreEnd
     }
 }

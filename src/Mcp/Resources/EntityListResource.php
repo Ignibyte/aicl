@@ -68,7 +68,8 @@ class EntityListResource extends Resource implements HasUriTemplate
     /**
      * Format an entity registry entry for the resource response.
      *
-     * @param  array{class: class-string, table: string, label: string, base_class: class-string|null, columns: array<string, bool>}  $entry
+     * @param array{class: class-string, table: string, label: string, base_class: class-string|null, columns: array<string, bool>} $entry
+     *
      * @return array<string, mixed>
      */
     protected function formatEntry(array $entry): array

@@ -10,7 +10,7 @@ use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Support\Collection;
 
 /** Dynamically adjusts worker process counts based on queue workload metrics. * @codeCoverageIgnore Reason: horizon-process -- Process scaling requires running supervisors
-
+ *
  */
 class AutoScaler
 {
@@ -30,8 +30,6 @@ class AutoScaler
 
     /**
      * Create a new auto-scaler instance.
-     *
-     * @return void
      */
     public function __construct(QueueFactory $queue, MetricsRepository $metrics)
     {
@@ -41,8 +39,6 @@ class AutoScaler
 
     /**
      * Balance the workers on the given supervisor.
-     *
-     * @return void
      */
     public function scale(Supervisor $supervisor)
     {
@@ -80,7 +76,8 @@ class AutoScaler
     /**
      * Get the times in milliseconds needed to clear the queues.
      *
-     * @param  Collection<string, ProcessPool>  $pools
+     * @param Collection<string, ProcessPool> $pools
+     *
      * @return Collection<string, array{size: mixed, time: int}>
      */
     protected function timeToClearPerQueue(Supervisor $supervisor, Collection $pools)
@@ -105,7 +102,8 @@ class AutoScaler
     /**
      * Get the number of workers needed per queue for proper balance.
      *
-     * @param  Collection<string, array{size: mixed, time: int}>  $queues
+     * @param Collection<string, array{size: mixed, time: int}> $queues
+     *
      * @return Collection<string, float|int>
      */
     protected function numberOfWorkersPerQueue(Supervisor $supervisor, Collection $queues)
@@ -146,9 +144,8 @@ class AutoScaler
     /**
      * Scale the given pool to the recommended number of workers.
      *
-     * @param  ProcessPool  $pool
-     * @param  float  $workers
-     * @return void
+     * @param ProcessPool $pool
+     * @param float       $workers
      */
     protected function scalePool(Supervisor $supervisor, $pool, $workers)
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Database\Seeders;
 
 use Aicl\Enums\AiProvider;

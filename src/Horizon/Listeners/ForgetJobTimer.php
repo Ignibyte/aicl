@@ -22,8 +22,6 @@ class ForgetJobTimer
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(Stopwatch $watch)
     {
@@ -33,8 +31,7 @@ class ForgetJobTimer
     /**
      * Handle the event.
      *
-     * @param  JobExceptionOccurred|JobFailed  $event
-     * @return void
+     * @param JobExceptionOccurred|JobFailed $event
      */
     public function handle($event)
     {

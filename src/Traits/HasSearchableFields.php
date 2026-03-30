@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aicl\Traits;
 
+use BackedEnum;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
@@ -39,9 +41,9 @@ trait HasSearchableFields
             // Handle enum/state values
             if (is_object($value) && method_exists($value, '__toString')) {
                 $value = (string) $value;
-            } elseif ($value instanceof \BackedEnum) {
+            } elseif ($value instanceof BackedEnum) {
                 $value = $value->value;
-            } elseif ($value instanceof \DateTimeInterface) {
+            } elseif ($value instanceof DateTimeInterface) {
                 $value = $value->format('Y-m-d H:i:s');
             }
 

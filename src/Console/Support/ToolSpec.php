@@ -12,14 +12,14 @@ namespace Aicl\Console\Support;
 class ToolSpec
 {
     /**
-     * @param  string  $className  PascalCase class name (e.g., 'ProjectSummary')
-     * @param  string  $description  Human-readable description paragraph
-     * @param  string  $name  Snake_case tool name for the LLM (e.g., 'project_summary')
-     * @param  string  $category  Tool category for UI grouping (e.g., 'queries', 'system')
-     * @param  bool  $authRequired  Whether the tool requires authentication
-     * @param  string  $toolDescription  LLM-facing description explaining when to use the tool
-     * @param  array<int, ToolParameterSpec>  $parameters  Input parameters
-     * @param  array<int, ToolReturnFieldSpec>  $returns  Return field definitions
+     * @param string                          $className       PascalCase class name (e.g., 'ProjectSummary')
+     * @param string                          $description     Human-readable description paragraph
+     * @param string                          $name            Snake_case tool name for the LLM (e.g., 'project_summary')
+     * @param string                          $category        Tool category for UI grouping (e.g., 'queries', 'system')
+     * @param bool                            $authRequired    Whether the tool requires authentication
+     * @param string                          $toolDescription LLM-facing description explaining when to use the tool
+     * @param array<int, ToolParameterSpec>   $parameters      Input parameters
+     * @param array<int, ToolReturnFieldSpec> $returns         Return field definitions
      */
     public function __construct(
         public string $className,

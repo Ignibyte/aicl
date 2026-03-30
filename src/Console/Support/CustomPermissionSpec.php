@@ -13,7 +13,7 @@ namespace Aicl\Console\Support;
 class CustomPermissionSpec
 {
     /**
-     * @param  array<int, string>  $roles  Role names that have this permission
+     * @param array<int, string> $roles Role names that have this permission
      */
     public function __construct(
         public string $permission,

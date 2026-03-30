@@ -178,27 +178,27 @@ class SupervisorOptions
     /**
      * Create a new worker options instance.
      *
-     * @param  string  $name
-     * @param  string  $connection
-     * @param  string|null  $queue
-     * @param  string  $workersName
-     * @param  string  $balance
-     * @param  int  $backoff
-     * @param  int  $maxTime
-     * @param  int  $maxJobs
-     * @param  int  $maxProcesses
-     * @param  int  $minProcesses
-     * @param  int  $memory
-     * @param  int  $timeout
-     * @param  int  $sleep
-     * @param  int  $maxTries
-     * @param  bool  $force
-     * @param  int  $nice
-     * @param  int  $balanceCooldown
-     * @param  int  $balanceMaxShift
-     * @param  int  $parentId
-     * @param  int  $rest
-     * @param  string|null  $autoScalingStrategy
+     * @param string      $name
+     * @param string      $connection
+     * @param string|null $queue
+     * @param string      $workersName
+     * @param string      $balance
+     * @param int         $backoff
+     * @param int         $maxTime
+     * @param int         $maxJobs
+     * @param int         $maxProcesses
+     * @param int         $minProcesses
+     * @param int         $memory
+     * @param int         $timeout
+     * @param int         $sleep
+     * @param int         $maxTries
+     * @param bool        $force
+     * @param int         $nice
+     * @param int         $balanceCooldown
+     * @param int         $balanceMaxShift
+     * @param int         $parentId
+     * @param int         $rest
+     * @param string|null $autoScalingStrategy
      */
     public function __construct(
         $name,
@@ -249,7 +249,8 @@ class SupervisorOptions
     /**
      * Create a fresh options instance with the given queue.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return static
      */
     public function withQueue($queue)
@@ -266,7 +267,7 @@ class SupervisorOptions
      */
     public function balancing()
     {
-        return in_array($this->balance, ['simple', 'auto']);
+        return in_array($this->balance, ['simple', 'auto'], true);
     }
 
     /**
@@ -360,7 +361,8 @@ class SupervisorOptions
     /**
      * Create a new options instance from the given array.
      *
-     * @param  array<string, mixed>  $array
+     * @param array<string, mixed> $array
+     *
      * @return static
      */
     public static function fromArray(array $array)

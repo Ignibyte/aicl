@@ -11,6 +11,7 @@ use Illuminate\Events\CallQueuedListener;
 use Illuminate\Mail\SendQueuedMailable;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Arr;
+use ReturnTypeWillChange;
 
 /**
  * @implements ArrayAccess<string, mixed>
@@ -34,8 +35,7 @@ class JobPayload implements ArrayAccess
     /**
      * Create a new raw job payload instance.
      *
-     * @param  string  $value
-     * @return void
+     * @param string $value
      */
     public function __construct($value)
     {
@@ -97,7 +97,8 @@ class JobPayload implements ArrayAccess
     /**
      * Prepare the payload for storage on the queue by adding tags, etc.
      *
-     * @param  mixed  $job
+     * @param mixed $job
+     *
      * @return $this
      */
     public function prepare($job)
@@ -115,7 +116,8 @@ class JobPayload implements ArrayAccess
     /**
      * Get the "type" of job being queued.
      *
-     * @param  mixed  $job
+     * @param mixed $job
+     *
      * @return string
      */
     protected function determineType($job)
@@ -134,7 +136,8 @@ class JobPayload implements ArrayAccess
     /**
      * Get the appropriate tags for the job.
      *
-     * @param  mixed  $job
+     * @param mixed $job
+     *
      * @return array<int, string>
      */
     protected function determineTags($job)
@@ -150,8 +153,9 @@ class JobPayload implements ArrayAccess
     /**
      * Determine if the underlying job class should be silenced.
      *
-     * @param  mixed  $job
-     * @param  array<int, string>  $tags
+     * @param mixed              $job
+     * @param array<int, string> $tags
+     *
      * @return bool
      */
     protected function shouldBeSilenced($job, array $tags = [])
@@ -166,7 +170,7 @@ class JobPayload implements ArrayAccess
         /** @var string $jobClass */
         $jobClass = is_string($underlyingJob) ? $underlyingJob : get_class($underlyingJob);
 
-        return in_array($jobClass, config('aicl-horizon.silenced', [])) ||
+        return in_array($jobClass, config('aicl-horizon.silenced', []), true) ||
             is_a($jobClass, Silenced::class, true) ||
             count(array_intersect($tags, config('aicl-horizon.silenced_tags', []))) > 0;
         // @codeCoverageIgnoreEnd
@@ -175,7 +179,8 @@ class JobPayload implements ArrayAccess
     /**
      * Get the underlying queued job.
      *
-     * @param  mixed  $job
+     * @param mixed $job
+     *
      * @return mixed
      */
     protected function underlyingJob($job)
@@ -194,7 +199,8 @@ class JobPayload implements ArrayAccess
     /**
      * Set the given key / value pairs on the payload.
      *
-     * @param  array<string, mixed>  $values
+     * @param array<string, mixed> $values
+     *
      * @return $this
      */
     public function set(array $values)
@@ -229,7 +235,7 @@ class JobPayload implements ArrayAccess
     /**
      * Determine if the given offset exists.
      *
-     * @param  string  $offset
+     * @param string $offset
      */
     public function offsetExists($offset): bool
     {
@@ -239,10 +245,11 @@ class JobPayload implements ArrayAccess
     /**
      * Get the value at the current offset.
      *
-     * @param  string  $offset
+     * @param string $offset
+     *
      * @return mixed
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->decoded[$offset];
@@ -251,8 +258,8 @@ class JobPayload implements ArrayAccess
     /**
      * Set the value at the current offset.
      *
-     * @param  string  $offset
-     * @param  mixed  $value
+     * @param string $offset
+     * @param mixed  $value
      */
     public function offsetSet($offset, $value): void
     {
@@ -262,7 +269,7 @@ class JobPayload implements ArrayAccess
     /**
      * Unset the value at the current offset.
      *
-     * @param  string  $offset
+     * @param string $offset
      */
     public function offsetUnset($offset): void
     {

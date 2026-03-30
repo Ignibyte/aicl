@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\View\Components;
 
 use Illuminate\View\Component;
@@ -22,7 +24,7 @@ use Illuminate\View\View;
 class Timeline extends Component
 {
     /**
-     * @param  array<int, array{date: string, title: string, description?: string, color?: string, icon?: string}>  $entries
+     * @param array<int, array{date: string, title: string, description?: string, color?: string, icon?: string}> $entries
      */
     public function __construct(
         public array $entries = [],

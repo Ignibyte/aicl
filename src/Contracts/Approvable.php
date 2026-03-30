@@ -25,24 +25,24 @@ interface Approvable
     /**
      * Submit this model for approval.
      *
-     * @param  User|null  $requester  The user requesting approval (defaults to current user)
-     * @param  string|null  $comment  Optional comment with the request
+     * @param User|null   $requester The user requesting approval (defaults to current user)
+     * @param string|null $comment   Optional comment with the request
      */
     public function requestApproval(?User $requester = null, ?string $comment = null): self;
 
     /**
      * Approve this model.
      *
-     * @param  User  $approver  The user granting approval
-     * @param  string|null  $comment  Optional comment
+     * @param User        $approver The user granting approval
+     * @param string|null $comment  Optional comment
      */
     public function approve(User $approver, ?string $comment = null): self;
 
     /**
      * Reject this model's approval request.
      *
-     * @param  User  $rejector  The user rejecting the request
-     * @param  string  $reason  Rejection reason (required)
+     * @param User   $rejector The user rejecting the request
+     * @param string $reason   Rejection reason (required)
      */
     public function reject(User $rejector, string $reason): self;
 

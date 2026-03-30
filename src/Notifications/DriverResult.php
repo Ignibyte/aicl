@@ -10,7 +10,7 @@ namespace Aicl\Notifications;
 final class DriverResult
 {
     /**
-     * @param  array<string, mixed>|null  $response
+     * @param array<string, mixed>|null $response
      */
     public function __construct(
         public readonly bool $success,
@@ -21,7 +21,7 @@ final class DriverResult
     ) {}
 
     /**
-     * @param  array<string, mixed>|null  $response
+     * @param array<string, mixed>|null $response
      */
     public static function success(?string $messageId = null, ?array $response = null): static
     {
@@ -33,7 +33,7 @@ final class DriverResult
     }
 
     /**
-     * @param  array<string, mixed>|null  $response
+     * @param array<string, mixed>|null $response
      */
     public static function failure(string $error, bool $retryable = true, ?array $response = null): static
     {

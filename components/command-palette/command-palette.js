@@ -4,7 +4,7 @@
  * Features: Cmd+K/Ctrl+K global shortcut, keyboard navigation,
  * grouped results, optional async search, focus trap.
  */
-window.aiclCommandPalette = function ({ items, groups, searchEndpoint }) {
+window.aiclCommandPalette = function ({ items, groups, searchEndpoint: _searchEndpoint }) {
     return {
         isOpen: false,
         query: '',

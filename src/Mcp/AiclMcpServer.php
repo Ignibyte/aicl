@@ -15,6 +15,7 @@ use Aicl\Mcp\Tools\ShowEntityTool;
 use Aicl\Mcp\Tools\TransitionEntityTool;
 use Aicl\Mcp\Tools\UpdateEntityTool;
 use Aicl\Services\EntityRegistry;
+use FilesystemIterator;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -22,6 +23,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Resource;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 /**
  * AICL Model Context Protocol (MCP) server.
@@ -239,8 +242,8 @@ class AiclMcpServer extends Server
     /**
      * Scan a directory for classes extending the given base class and add them to the target array.
      *
-     * @param  class-string  $baseClass
-     * @param  array<int, mixed>  $target
+     * @param class-string      $baseClass
+     * @param array<int, mixed> $target
      */
     protected function discoverCustomPrimitives(string $path, string $namespace, string $baseClass, array &$target): void
     {
@@ -248,8 +251,8 @@ class AiclMcpServer extends Server
             return;
         }
 
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS)
         );
 
         foreach ($files as $file) {
@@ -269,8 +272,9 @@ class AiclMcpServer extends Server
     /**
      * Resolve which operations are enabled for an entity.
      *
-     * @param  class-string  $class
-     * @param  array<string, array<string>>|array<string>  $exposedConfig
+     * @param class-string                               $class
+     * @param array<string, array<string>>|array<string> $exposedConfig
+     *
      * @return array<string>
      */
     protected function resolveOperations(string $class, array $exposedConfig, bool $exposeAll): array

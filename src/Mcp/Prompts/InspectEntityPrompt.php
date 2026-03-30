@@ -14,6 +14,7 @@ use Laravel\Mcp\Server\Prompt;
 use Laravel\Mcp\Server\Prompts\Argument;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
 
 /**
  * InspectEntityPrompt.
@@ -82,7 +83,7 @@ class InspectEntityPrompt extends Prompt
     /**
      * Build the inspection report for an entity instance.
      *
-     * @param  array{class: class-string, table: string, label: string, base_class: class-string|null, columns: array<string, bool>}  $entry
+     * @param array{class: class-string, table: string, label: string, base_class: class-string|null, columns: array<string, bool>} $entry
      */
     protected function buildInspection(Model $model, array $entry): string
     {
@@ -159,7 +160,8 @@ class InspectEntityPrompt extends Prompt
     /**
      * Discover relationship method names from the model class.
      *
-     * @param  class-string  $modelClass
+     * @param class-string $modelClass
+     *
      * @return array<string, string>
      */
     protected function discoverRelationshipMethods(string $modelClass): array
@@ -179,7 +181,7 @@ class InspectEntityPrompt extends Prompt
             }
 
             $returnType = $method->getReturnType();
-            if (! $returnType instanceof \ReflectionNamedType) {
+            if (! $returnType instanceof ReflectionNamedType) {
                 continue;
             }
 

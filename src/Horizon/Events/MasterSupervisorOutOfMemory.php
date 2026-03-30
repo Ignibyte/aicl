@@ -20,8 +20,6 @@ class MasterSupervisorOutOfMemory
 
     /**
      * Create a new event instance.
-     *
-     * @return void
      */
     public function __construct(MasterSupervisor $master)
     {

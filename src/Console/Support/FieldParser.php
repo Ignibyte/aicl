@@ -48,7 +48,7 @@ class FieldParser
     /**
      * Parse a single field segment like "title:string:nullable".
      *
-     * @param  array<int, string>  $seenNames
+     * @param array<int, string> $seenNames
      */
     protected function parseSegment(string $segment, array $seenNames): FieldDefinition
     {
@@ -89,7 +89,7 @@ class FieldParser
     }
 
     /**
-     * @param  array<int, string>  $seenNames
+     * @param array<int, string> $seenNames
      */
     protected function validateName(string $name, array $seenNames): void
     {
@@ -137,7 +137,7 @@ class FieldParser
     }
 
     /**
-     * @param  array<int, string>  $modifiers
+     * @param array<int, string> $modifiers
      */
     protected function buildDefinition(
         string $name,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aicl\Horizon;
 
+use Closure;
 use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Contracts\Redis\Factory as RedisFactory;
 use Illuminate\Redis\Connections\Connection;
@@ -22,8 +23,6 @@ class Lock
 
     /**
      * Create a Horizon lock manager.
-     *
-     * @return void
      */
     public function __construct(RedisFactory $redis)
     {
@@ -33,10 +32,9 @@ class Lock
     /**
      * Execute the given callback if a lock can be acquired.
      *
-     * @param  string  $key
-     * @param  \Closure  $callback
-     * @param  int  $seconds
-     * @return void
+     * @param string  $key
+     * @param Closure $callback
+     * @param int     $seconds
      */
     public function with($key, $callback, $seconds = 60)
     {
@@ -52,7 +50,8 @@ class Lock
     /**
      * Determine if a lock exists for the given key.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return bool
      */
     public function exists($key)
@@ -63,8 +62,9 @@ class Lock
     /**
      * Attempt to get a lock for the given key.
      *
-     * @param  string  $key
-     * @param  int  $seconds
+     * @param string $key
+     * @param int    $seconds
+     *
      * @return bool
      */
     public function get($key, $seconds = 60)
@@ -81,8 +81,7 @@ class Lock
     /**
      * Release the lock for the given key.
      *
-     * @param  string  $key
-     * @return void
+     * @param string $key
      */
     public function release($key)
     {

@@ -21,8 +21,6 @@ class StoreMonitoredTags
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(TagRepository $tags)
     {
@@ -31,8 +29,6 @@ class StoreMonitoredTags
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(JobPushed $event)
     {

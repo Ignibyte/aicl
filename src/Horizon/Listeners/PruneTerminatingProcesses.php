@@ -13,8 +13,6 @@ class PruneTerminatingProcesses
 {
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(SupervisorLooped $event)
     {

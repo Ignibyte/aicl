@@ -19,6 +19,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Spatie\Permission\Models\Role;
+use Throwable;
 
 /** Filament form schema definition for the AiAgent resource. */
 class AiAgentForm
@@ -200,7 +201,7 @@ class AiAgentForm
 
             return $options;
             // @codeCoverageIgnoreStart — Filament Livewire rendering
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
             // @codeCoverageIgnoreEnd
         }

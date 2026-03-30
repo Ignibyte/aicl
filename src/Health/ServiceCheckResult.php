@@ -10,7 +10,7 @@ namespace Aicl\Health;
 final class ServiceCheckResult
 {
     /**
-     * @param  array<string, string>  $details
+     * @param array<string, string> $details
      */
     public function __construct(
         public readonly string $name,
@@ -21,7 +21,7 @@ final class ServiceCheckResult
     ) {}
 
     /**
-     * @param  array<string, string>  $details
+     * @param array<string, string> $details
      */
     public static function healthy(string $name, string $icon, array $details = []): static
     {
@@ -34,7 +34,7 @@ final class ServiceCheckResult
     }
 
     /**
-     * @param  array<string, string>  $details
+     * @param array<string, string> $details
      */
     public static function degraded(string $name, string $icon, array $details = [], ?string $error = null): static
     {
@@ -48,7 +48,7 @@ final class ServiceCheckResult
     }
 
     /**
-     * @param  array<string, string>  $details
+     * @param array<string, string> $details
      */
     public static function down(string $name, string $icon, array $details = [], ?string $error = null): static
     {

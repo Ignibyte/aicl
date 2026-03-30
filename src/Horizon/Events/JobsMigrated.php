@@ -36,8 +36,7 @@ class JobsMigrated
     /**
      * Create a new event instance.
      *
-     * @param  array<int, string>  $payloads
-     * @return void
+     * @param array<int, string> $payloads
      */
     public function __construct($payloads)
     {
@@ -49,7 +48,8 @@ class JobsMigrated
     /**
      * Set the connection name.
      *
-     * @param  string  $connectionName
+     * @param string $connectionName
+     *
      * @return $this
      */
     public function connection($connectionName)
@@ -62,7 +62,8 @@ class JobsMigrated
     /**
      * Set the queue name.
      *
-     * @param  string  $queue
+     * @param string $queue
+     *
      * @return $this
      */
     public function queue($queue)

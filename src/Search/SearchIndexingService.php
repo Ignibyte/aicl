@@ -9,6 +9,7 @@ use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /** Manages Elasticsearch index lifecycle including document indexing, removal, and bulk reindexing. */
 class SearchIndexingService
@@ -24,7 +25,7 @@ class SearchIndexingService
     /**
      * Index a single model into the unified search index.
      *
-     * @param  array<string, mixed>  $entityConfig
+     * @param array<string, mixed> $entityConfig
      */
     public function index(Model $model, array $entityConfig): void
     {
@@ -39,7 +40,7 @@ class SearchIndexingService
                 'id' => $documentId,
                 'body' => $document,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Search indexing failed', [
                 'model' => get_class($model),
                 'id' => $model->getKey(),
@@ -72,7 +73,7 @@ class SearchIndexingService
                     'error' => $e->getMessage(),
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Search delete failed', [
                 'model' => get_class($model),
                 'id' => $model->getKey(),
@@ -149,7 +150,7 @@ class SearchIndexingService
             $response = $this->client->indices()->exists(['index' => $indexName]);
 
             return $response->asBool();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
             // @codeCoverageIgnoreEnd
         }
@@ -178,7 +179,7 @@ class SearchIndexingService
     /**
      * Bulk index multiple documents.
      *
-     * @param  array<int, array{id: string, body: array<string, mixed>}>  $documents
+     * @param array<int, array{id: string, body: array<string, mixed>}> $documents
      */
     public function bulkIndex(array $documents, ?string $indexName = null): int
     {

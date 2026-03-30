@@ -50,14 +50,18 @@ class ReindexPermissionsJob implements ShouldQueue
             /** @var Model $model */
             $model = new $modelClass;
 
-            if ($model->getConnection()->getSchemaBuilder()->hasColumn($model->getTable(), 'owner_id')) {
-                $query->where('owner_id', $this->userId);
-            } elseif ($model->getConnection()->getSchemaBuilder()->hasColumn($model->getTable(), 'user_id')) {
-                $query->where('user_id', $this->userId);
+            $schema = $model->getConnection()->getSchemaBuilder();
+            $table = $model->getTable();
+
+            if (! $schema->hasColumn($table, 'owner_id') && ! $schema->hasColumn($table, 'user_id')) {
                 // @codeCoverageIgnoreEnd
-            } else {
                 continue;
             }
+
+            // @codeCoverageIgnoreStart — Job processing
+            $ownerColumn = $schema->hasColumn($table, 'owner_id') ? 'owner_id' : 'user_id';
+            $query->where($ownerColumn, $this->userId);
+            // @codeCoverageIgnoreEnd
 
             // @codeCoverageIgnoreStart — Job processing
             $query->chunk(100, function ($models) use ($indexingService, $config, $documentBuilder): void {

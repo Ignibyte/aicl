@@ -7,6 +7,7 @@ namespace Aicl\Events;
 use Aicl\Events\Enums\ActorType;
 use Aicl\Events\Exceptions\UnresolvableEventException;
 use Aicl\Models\DomainEventRecord;
+use ReflectionClass;
 
 /**
  * DomainEventRegistry.
@@ -23,7 +24,7 @@ class DomainEventRegistry
     /**
      * Register an event type → class mapping.
      *
-     * @param  class-string<DomainEvent>  $className
+     * @param class-string<DomainEvent> $className
      */
     public static function register(string $eventType, string $className): void
     {
@@ -43,9 +44,9 @@ class DomainEventRegistry
     /**
      * Resolve the class name for an event type.
      *
-     * @return class-string<DomainEvent>
-     *
      * @throws UnresolvableEventException
+     *
+     * @return class-string<DomainEvent>
      */
     public static function resolve(string $eventType): string
     {
@@ -71,11 +72,11 @@ class DomainEventRegistry
         // @codeCoverageIgnoreStart — Event infrastructure
         $className = static::resolve($record->event_type);
 
-        $reflection = new \ReflectionClass($className);
+        $reflection = new ReflectionClass($className);
         $event = $reflection->newInstanceWithoutConstructor();
 
         // Hydrate the base properties
-        $baseReflection = new \ReflectionClass(DomainEvent::class);
+        $baseReflection = new ReflectionClass(DomainEvent::class);
 
         $eventIdProp = $baseReflection->getProperty('eventId');
         $eventIdProp->setValue($event, $record->id);

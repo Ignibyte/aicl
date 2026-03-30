@@ -6,7 +6,7 @@
  */
 import { setupFloating } from '../_shared/floating.js';
 
-window.aiclDropdown = function ({ placement, closeOnClick }) {
+window.aiclDropdown = function ({ placement, closeOnClick: _closeOnClick }) {
     return {
         isOpen: false,
         _cleanup: null,

@@ -15,8 +15,7 @@ class SendNotification
     /**
      * Handle the event.
      *
-     * @param  mixed  $event
-     * @return void
+     * @param mixed $event
      */
     public function handle($event)
     {

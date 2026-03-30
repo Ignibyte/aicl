@@ -67,10 +67,11 @@ class PostgresCheck implements ServiceHealthCheck
     protected function formatBytes(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $unitCount = count($units);
         $i = 0;
         $size = (float) $bytes;
 
-        while ($size >= 1024 && $i < count($units) - 1) {
+        while ($size >= 1024 && $i < $unitCount - 1) {
             $size /= 1024;
             $i++;
         }

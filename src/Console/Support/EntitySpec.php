@@ -12,20 +12,20 @@ namespace Aicl\Console\Support;
 class EntitySpec
 {
     /**
-     * @param  array<int, FieldDefinition>  $fields
-     * @param  array<int, string>  $states
-     * @param  array<string, array<int, string>>  $stateTransitions  Map of from-state => [to-states]
-     * @param  array<int, RelationshipDefinition>  $relationships
-     * @param  array<string, array<int, array{case: string, label: string, color?: string, icon?: string}>>  $enums
-     * @param  array<int, string>  $traits
-     * @param  array<string, mixed>  $options
-     * @param  array<int, string>  $businessRules
-     * @param  array<int, string>  $widgetHints
-     * @param  array<int, string>  $notificationHints
-     * @param  array<int, WidgetSpec>|null  $widgetSpecs  Structured widget definitions (null = use legacy widgetHints)
-     * @param  array<int, NotificationSpec>|null  $notificationSpecs  Structured notification definitions (null = use legacy notificationHints)
-     * @param  array<int, ObserverRuleSpec>|null  $observerRules  Structured observer rules (null = use default observer generation)
-     * @param  ReportLayoutSpec|null  $reportLayout  Structured report layout (null = use default PDF generation)
+     * @param array<int, FieldDefinition>                                                                  $fields
+     * @param array<int, string>                                                                           $states
+     * @param array<string, array<int, string>>                                                            $stateTransitions  Map of from-state => [to-states]
+     * @param array<int, RelationshipDefinition>                                                           $relationships
+     * @param array<string, array<int, array{case: string, label: string, color?: string, icon?: string}>> $enums
+     * @param array<int, string>                                                                           $traits
+     * @param array<string, mixed>                                                                         $options
+     * @param array<int, string>                                                                           $businessRules
+     * @param array<int, string>                                                                           $widgetHints
+     * @param array<int, string>                                                                           $notificationHints
+     * @param array<int, WidgetSpec>|null                                                                  $widgetSpecs       Structured widget definitions (null = use legacy widgetHints)
+     * @param array<int, NotificationSpec>|null                                                            $notificationSpecs Structured notification definitions (null = use legacy notificationHints)
+     * @param array<int, ObserverRuleSpec>|null                                                            $observerRules     Structured observer rules (null = use default observer generation)
+     * @param ReportLayoutSpec|null                                                                        $reportLayout      Structured report layout (null = use default PDF generation)
      */
     public function __construct(
         public string $name,
@@ -147,7 +147,7 @@ class EntitySpec
 
     /**
      * Convert fields to CLI --fields string format.
-     * Format: name:type[:argument][:modifier1][:modifier2]
+     * Format: name:type[:argument][:modifier1][:modifier2].
      */
     public function toFieldsString(): string
     {
@@ -196,7 +196,7 @@ class EntitySpec
 
     /**
      * Convert relationships to CLI --relationships string format.
-     * Format: name:type:Model[:foreign_key]
+     * Format: name:type:Model[:foreign_key].
      */
     public function toRelationshipsString(): string
     {

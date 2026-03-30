@@ -11,17 +11,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
- * @property string $command
+ * @property int         $id
+ * @property string      $command
  * @property string|null $description
- * @property string $expression
- * @property string $status
- * @property int|null $exit_code
+ * @property string      $expression
+ * @property string      $status
+ * @property int|null    $exit_code
  * @property string|null $output
- * @property int|null $duration_ms
- * @property Carbon $started_at
+ * @property int|null    $duration_ms
+ * @property Carbon      $started_at
  * @property Carbon|null $finished_at
- * @property Carbon $created_at
+ * @property Carbon      $created_at
  */
 class ScheduleHistory extends Model
 {
@@ -70,7 +70,8 @@ class ScheduleHistory extends Model
     }
 
     /**
-     * @param  Builder<ScheduleHistory>  $query
+     * @param Builder<ScheduleHistory> $query
+     *
      * @return Builder<ScheduleHistory>
      */
     public function scopeSuccessful(Builder $query): Builder
@@ -81,7 +82,8 @@ class ScheduleHistory extends Model
     }
 
     /**
-     * @param  Builder<ScheduleHistory>  $query
+     * @param Builder<ScheduleHistory> $query
+     *
      * @return Builder<ScheduleHistory>
      */
     public function scopeFailed(Builder $query): Builder
@@ -90,7 +92,8 @@ class ScheduleHistory extends Model
     }
 
     /**
-     * @param  Builder<ScheduleHistory>  $query
+     * @param Builder<ScheduleHistory> $query
+     *
      * @return Builder<ScheduleHistory>
      */
     public function scopeForCommand(Builder $query, string $command): Builder
@@ -99,7 +102,8 @@ class ScheduleHistory extends Model
     }
 
     /**
-     * @param  Builder<ScheduleHistory>  $query
+     * @param Builder<ScheduleHistory> $query
+     *
      * @return Builder<ScheduleHistory>
      */
     public function scopeRecent(Builder $query, int $hours = 24): Builder

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aicl\Database\Factories;
 
 use Aicl\Models\ScheduleHistory;

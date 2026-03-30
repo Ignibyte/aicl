@@ -32,7 +32,7 @@ class AiToolRegistry
     /**
      * Register a tool class.
      *
-     * @param  class-string<AiTool>  $toolClass
+     * @param class-string<AiTool> $toolClass
      */
     public function register(string $toolClass): void
     {
@@ -44,7 +44,7 @@ class AiToolRegistry
     /**
      * Register multiple tool classes at once.
      *
-     * @param  array<class-string<AiTool>>  $toolClasses
+     * @param array<class-string<AiTool>> $toolClasses
      */
     public function registerMany(array $toolClasses): void
     {

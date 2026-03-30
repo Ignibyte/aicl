@@ -6,6 +6,7 @@ namespace Aicl\Http\Requests;
 
 use Aicl\Models\AiAgent;
 use Aicl\Models\AiConversation;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -29,7 +30,7 @@ class StoreAiConversationRequest extends FormRequest
                 'required',
                 'uuid',
                 // Single query: exists + is_active check instead of exists rule + separate find()
-                function (string $attribute, mixed $value, \Closure $fail): void {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     $agent = AiAgent::query()
                         ->where('id', $value)
                         ->select(['id', 'is_active'])

@@ -10,9 +10,36 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.16.6`
+Current version: `1.17.0`
 
 ---
+
+## [1.17.0] - 2026-03-30
+
+### Added
+
+- **New pipeline commands** — `/qa` (post-pipeline adversarial quality audit), `/self-reflection` (PhD-level code critique with 10-dimension scoring)
+- **RLM outer loop enforcement** — `rlm-feedback` at validate/verify phases, `rlm-distill` + `rlm-health` at completion phase, enforced by `enforce-completion.sh` hook
+- **`has_rlm()` hook helper** — Checks for RlmCommand.php existence before enforcing RLM tool calls
+- **Scaffolder template standards** — All 44 template blocks now generate files with `declare(strict_types=1)`, class-level docblocks, and `@SuppressWarnings` for contract-mandated unused params
+
+### Changed
+
+- **AiclServiceProvider refactored** — `register()` (112 lines) and `boot()` (161 lines) split into 15 focused private methods; `@SuppressWarnings(PHPMD.CouplingBetweenObjects)` on class
+- **Livewire tables refactored** — DomainEventTable, NotificationLogTable, ScheduleHistoryTable: extracted `getColumns()`/`getFilters()` from long `table()` methods
+- **AiAssistantPanel refactored** — Extracted `transformMessage()` method; `@SuppressWarnings(PHPMD.CyclomaticComplexity)` on `findJsonArrayEnd()` parser
+- **ESLint config expanded** — Added second config block for `packages/aicl/**/*.js` with browser/Alpine globals (window, document, Alpine, Livewire, fetch, etc.)
+- **Rector levels bumped** — typeCoverageLevel 0→5, deadCodeLevel 0→1, codeQualityLevel 0→1; added `database/` to scan paths
+- **PHPStan strict rules** — Added `phpstan-strict-rules` and `phpstan-deprecation-rules` includes; memory limit bumped 512M→1G in quality hook
+- **Forge sync** — 42 files updated: commands, hooks, templates, CLAUDE.md, CONSTITUTION.md; `/commit` now auto-closes Forge tickets; pipeline templates include RLM feedback sections
+
+### Fixed
+
+- **ESLint 92→0 errors** — Root cause: eslint.config.js glob only covered `resources/js/`, not `packages/aicl/`
+- **PHPMD 46→0 violations** (14 targeted dirs) — else→early return (15), @SuppressWarnings for contracts (10), variable renames (5), method extractions (6), count() caching (3)
+- **3 notification syntax errors** — Malformed escaped quotes `\\"` → `\"` in ProjectAssigned, ProjectStatusChanged, VoucherAssigned notifications
+- **Constitution S14** — Fixed PHPStan level reference from 6 to 8
+- **Scaffolder template hygiene** — All 41 MakeEntityCommand templates + 3 generator templates now include strict_types and docblocks
 
 ## [1.16.6] - 2026-03-28
 

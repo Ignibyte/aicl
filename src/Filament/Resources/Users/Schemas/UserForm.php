@@ -33,7 +33,8 @@ class UserForm
     /**
      * Configure the user form schema with personal info, roles, and security sections.
      *
-     * @param  Schema  $schema  The Filament schema instance to configure
+     * @param Schema $schema The Filament schema instance to configure
+     *
      * @return Schema The configured schema with all form components
      */
     public static function configure(Schema $schema): Schema

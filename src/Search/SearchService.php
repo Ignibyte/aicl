@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /** Executes permission-filtered search queries against the unified Elasticsearch index. */
 /**
@@ -49,11 +50,11 @@ class SearchService
 
         // Filter to specific entity type if requested
         if ($entityTypeFilter !== null) {
-            $entityConfigs = array_filter(
-                $entityConfigs,
-                fn (mixed $config, string $class): bool => class_basename($class) === $entityTypeFilter || $class === $entityTypeFilter,
-                ARRAY_FILTER_USE_BOTH,
+            $matchingKeys = array_filter(
+                array_keys($entityConfigs),
+                static fn (string $class): bool => class_basename($class) === $entityTypeFilter || $class === $entityTypeFilter,
             );
+            $entityConfigs = array_intersect_key($entityConfigs, array_flip($matchingKeys));
 
             if (empty($entityConfigs)) {
                 return SearchResultCollection::empty();
@@ -70,7 +71,7 @@ class SearchService
             ]);
 
             return $this->parseResponse($response->asArray(), $page, $perPage);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Search query failed', [
                 'query' => $query,
                 'error' => $e->getMessage(),
@@ -83,7 +84,8 @@ class SearchService
     /**
      * Build the ES search request body.
      *
-     * @param  array<string, array<string, mixed>>  $entityConfigs
+     * @param array<string, array<string, mixed>> $entityConfigs
+     *
      * @return array<string, mixed>
      */
     protected function buildSearchBody(
@@ -159,7 +161,7 @@ class SearchService
     /**
      * Parse the ES response into a SearchResultCollection.
      *
-     * @param  array<string, mixed>  $response
+     * @param array<string, mixed> $response
      */
     protected function parseResponse(array $response, int $page, int $perPage): SearchResultCollection
     {
@@ -190,7 +192,8 @@ class SearchService
      * Batch-loads models per entity type to avoid N+1 queries (one query per
      * entity type instead of one per search result).
      *
-     * @param  Collection<int, SearchResult>  $results
+     * @param Collection<int, SearchResult> $results
+     *
      * @return Collection<int, SearchResult>
      */
     public function applyPolicyFilter(Collection $results, Authenticatable $user): Collection
@@ -212,7 +215,7 @@ class SearchService
                 $ids = $group->pluck('entityId')->all();
                 $models = $entityType::whereIn('id', $ids)->get()->keyBy('id');
                 $loadedModels[$entityType] = $models;
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $loadedModels[$entityType] = collect();
             }
         }
@@ -235,7 +238,7 @@ class SearchService
 
                 try {
                     return $user->can('view', $model);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     return false;
                 }
             }
@@ -262,7 +265,7 @@ class SearchService
     {
         $types = ['' => 'All Types'];
 
-        foreach ($this->getEntityConfigs() as $entityClass => $config) {
+        foreach (array_keys($this->getEntityConfigs()) as $entityClass) {
             $types[class_basename($entityClass)] = str(class_basename($entityClass))
                 ->headline()
                 ->plural()

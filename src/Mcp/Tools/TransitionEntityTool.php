@@ -16,6 +16,7 @@ use Spatie\ModelStates\Exceptions\CouldNotPerformTransition;
 use Spatie\ModelStates\Exceptions\TransitionNotFound;
 use Spatie\ModelStates\HasStates;
 use Spatie\ModelStates\State;
+use Throwable;
 
 /**
  * MCP tool that transitions an entity's state machine to a new state.
@@ -136,7 +137,7 @@ class TransitionEntityTool extends Tool
             ]);
         } catch (TransitionNotFound|CouldNotPerformTransition $e) {
             return Response::error("Cannot transition to '{$targetState}' from current state.");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return Response::error("Transition failed: {$e->getMessage()}");
             // @codeCoverageIgnoreEnd
         }

@@ -29,8 +29,6 @@ class MarkJobAsComplete
 
     /**
      * Create a new listener instance.
-     *
-     * @return void
      */
     public function __construct(JobRepository $jobs, TagRepository $tags)
     {
@@ -40,8 +38,6 @@ class MarkJobAsComplete
 
     /**
      * Handle the event.
-     *
-     * @return void
      */
     public function handle(JobDeleted $event)
     {

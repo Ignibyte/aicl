@@ -314,8 +314,6 @@ window.navigationSwitcher = function () {
          * mobile sidebar is a drawer, not a collapsible rail.
          */
         _watchSidebarCollapse() {
-            var self = this;
-
             var setupWatcher = function () {
                 if (!window.Alpine || !Alpine.store('sidebar')) return false;
 
@@ -706,7 +704,7 @@ window.aiAssistantPanel = function (config) {
             if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
                 try {
                     return DOMPurify.sanitize(marked.parse(text, { breaks: true }));
-                } catch (e) {
+                } catch (_e) {
                     // Fall through to basic rendering
                 }
             }

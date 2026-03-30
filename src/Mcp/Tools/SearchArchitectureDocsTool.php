@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Aicl\Mcp\Tools;
 
+use FilesystemIterator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 /**
  * MCP tool for searching project architecture documentation.
@@ -110,8 +113,8 @@ class SearchArchitectureDocsTool extends Tool
     protected function discoverDocs(string $docsPath): array
     {
         $docs = [];
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($docsPath, \FilesystemIterator::SKIP_DOTS),
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($docsPath, FilesystemIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
@@ -199,7 +202,7 @@ class SearchArchitectureDocsTool extends Tool
     /**
      * Search docs by keyword query, ranking by relevance.
      *
-     * @param  array<int, array{slug: string, title: string, sections: array<string>, path: string, content: string}>  $docs
+     * @param array<int, array{slug: string, title: string, sections: array<string>, path: string, content: string}> $docs
      */
     protected function searchDocs(array $docs, string $query, int $limit): Response
     {
@@ -244,8 +247,8 @@ class SearchArchitectureDocsTool extends Tool
     /**
      * Score a doc against search terms. Higher = more relevant.
      *
-     * @param  array{slug: string, title: string, sections: array<string>, content: string}  $doc
-     * @param  array<string>  $terms
+     * @param array{slug: string, title: string, sections: array<string>, content: string} $doc
+     * @param array<string>                                                                $terms
      */
     protected function scoreDocs(array $doc, array $terms): int
     {
@@ -331,7 +334,7 @@ class SearchArchitectureDocsTool extends Tool
     /**
      * Extract a relevant snippet around the first matching term.
      *
-     * @param  array<string>  $terms
+     * @param array<string> $terms
      */
     protected function extractSnippet(string $content, array $terms, int $contextChars = 200): string
     {

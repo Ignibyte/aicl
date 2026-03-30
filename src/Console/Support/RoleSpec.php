@@ -13,7 +13,7 @@ namespace Aicl\Console\Support;
 class RoleSpec
 {
     /**
-     * @param  array<int, string>  $guards  Guard names (e.g., ['web', 'api'])
+     * @param array<int, string> $guards Guard names (e.g., ['web', 'api'])
      */
     public function __construct(
         public string $name,
