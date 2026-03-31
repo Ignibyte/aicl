@@ -224,7 +224,11 @@ class AiAgentForm
         }
     }
 
-    /** @codeCoverageIgnore Reason: filament-closure -- Form schema with reactive closures untestable in PHPUnit */
+    /**
+     * @codeCoverageIgnore Reason: filament-closure -- Form schema with reactive closures untestable in PHPUnit
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema

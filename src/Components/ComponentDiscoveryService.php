@@ -130,18 +130,17 @@ class ComponentDiscoveryService
     }
 
     /**
-     * Validate a manifest against the v1 schema.
+     * Validate required fields are present in the manifest.
      *
      * @param array<string, mixed> $manifest
      *
-     * @return array<string> List of validation errors
+     * @return array<string>
      */
-    public function validateManifest(array $manifest, string $componentName = 'unknown'): array
+    private function validateRequiredFields(array $manifest): array
     {
         $errors = [];
-
-        // Required fields
         $required = ['$schema', 'name', 'tag', 'category', 'status', 'description', 'context', 'props', 'decision_rule'];
+
         foreach ($required as $field) {
             if (! isset($manifest[$field])) {
                 // @codeCoverageIgnoreStart — Untestable in unit context
@@ -150,57 +149,95 @@ class ComponentDiscoveryService
             }
         }
 
+        return $errors;
+    }
+
+    /**
+     * Validate schema version, tag format, category, and status enum values.
+     *
+     * @param array<string, mixed> $manifest
+     *
+     * @return array<string>
+     */
+    private function validateEnumFields(array $manifest): array
+    {
+        // @codeCoverageIgnoreStart — Untestable in unit context
+        $errors = [];
+
+        if ($manifest['$schema'] !== 'aicl-component-v1') {
+            $errors[] = "Invalid schema version: expected 'aicl-component-v1', got '{$manifest['$schema']}'";
+        }
+
+        if (! preg_match('/^x-aicl-[a-z][a-z0-9-]*$/', $manifest['tag'])) {
+            $errors[] = "Invalid tag format: '{$manifest['tag']}' — must match x-aicl-{name}";
+        }
+
+        $validCategories = ['metric', 'data', 'collection', 'action', 'status', 'timeline', 'layout', 'feedback', 'utility'];
+        if (! in_array($manifest['category'], $validCategories, true)) {
+            $errors[] = "Invalid category: '{$manifest['category']}' — must be one of: ".implode(', ', $validCategories);
+        }
+
+        $validStatuses = ['experimental', 'stable', 'deprecated'];
+        if (! in_array($manifest['status'], $validStatuses, true)) {
+            $errors[] = "Invalid status: '{$manifest['status']}' — must be one of: ".implode(', ', $validStatuses);
+        }
+
+        return $errors;
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Validate the context array values.
+     *
+     * @param array<string, mixed> $manifest
+     *
+     * @return array<string>
+     */
+    private function validateContextField(array $manifest): array
+    {
+        // @codeCoverageIgnoreStart — Untestable in unit context
+        if (! is_array($manifest['context']) || count($manifest['context']) === 0) {
+            return ['Context must be a non-empty array'];
+        }
+
+        $errors = [];
+        $validContexts = ['blade', 'livewire', 'filament-widget', 'email', 'pdf', 'cms-builder', 'entity-display'];
+
+        foreach ($manifest['context'] as $ctx) {
+            if (! in_array($ctx, $validContexts, true)) {
+                $errors[] = "Invalid context: '{$ctx}'";
+            }
+        }
+
+        return $errors;
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Validate a manifest against the v1 schema.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     *
+     * @param array<string, mixed> $manifest
+     *
+     * @return array<string> List of validation errors
+     */
+    public function validateManifest(array $manifest, string $componentName = 'unknown'): array
+    {
+        $errors = $this->validateRequiredFields($manifest);
+
         if (count($errors) > 0) {
             // @codeCoverageIgnoreStart — Untestable in unit context
             return $errors;
             // @codeCoverageIgnoreEnd
         }
 
-        // Schema version
-        if ($manifest['$schema'] !== 'aicl-component-v1') {
-            // @codeCoverageIgnoreStart — Untestable in unit context
-            $errors[] = "Invalid schema version: expected 'aicl-component-v1', got '{$manifest['$schema']}'";
-            // @codeCoverageIgnoreEnd
-        }
-
-        // Tag format
-        if (! preg_match('/^x-aicl-[a-z][a-z0-9-]*$/', $manifest['tag'])) {
-            // @codeCoverageIgnoreStart — Untestable in unit context
-            $errors[] = "Invalid tag format: '{$manifest['tag']}' — must match x-aicl-{name}";
-            // @codeCoverageIgnoreEnd
-        }
-
-        // Category enum
-        $validCategories = ['metric', 'data', 'collection', 'action', 'status', 'timeline', 'layout', 'feedback', 'utility'];
-        if (! in_array($manifest['category'], $validCategories, true)) {
-            // @codeCoverageIgnoreStart — Untestable in unit context
-            $errors[] = "Invalid category: '{$manifest['category']}' — must be one of: ".implode(', ', $validCategories);
-            // @codeCoverageIgnoreEnd
-        }
-
-        // Status enum
-        $validStatuses = ['experimental', 'stable', 'deprecated'];
-        if (! in_array($manifest['status'], $validStatuses, true)) {
-            // @codeCoverageIgnoreStart — Untestable in unit context
-            $errors[] = "Invalid status: '{$manifest['status']}' — must be one of: ".implode(', ', $validStatuses);
-            // @codeCoverageIgnoreEnd
-        }
-
-        // Context array
-        if (! is_array($manifest['context']) || count($manifest['context']) === 0) {
-            // @codeCoverageIgnoreStart — Untestable in unit context
-            $errors[] = 'Context must be a non-empty array';
-            // @codeCoverageIgnoreEnd
-        } else {
-            $validContexts = ['blade', 'livewire', 'filament-widget', 'email', 'pdf', 'cms-builder', 'entity-display'];
-            foreach ($manifest['context'] as $ctx) {
-                if (! in_array($ctx, $validContexts, true)) {
-                    // @codeCoverageIgnoreStart — Untestable in unit context
-                    $errors[] = "Invalid context: '{$ctx}'";
-                    // @codeCoverageIgnoreEnd
-                }
-            }
-        }
+        $errors = array_merge(
+            $this->validateEnumFields($manifest),
+            $this->validateContextField($manifest),
+        );
 
         // Props must be an object
         if (! is_array($manifest['props'])) {

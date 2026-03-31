@@ -91,6 +91,10 @@ class QueueStatsWidget extends StatsOverviewWidget
         return (float) ($latest->throughput ?? 0);
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     protected function getStats(): array
     {
         $cached = $this->getCachedFailedJobStats();

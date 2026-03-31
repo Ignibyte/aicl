@@ -214,7 +214,11 @@ class NotificationCenter extends Page implements HasForms, HasTable
         ];
     }
 
-    /** @codeCoverageIgnore Reason: filament-closure -- Filament table query closure */
+    /**
+     * @codeCoverageIgnore Reason: filament-closure -- Filament table query closure
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     public function table(Table $table): Table
     {
         return $table

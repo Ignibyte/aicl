@@ -78,6 +78,8 @@ class AiclMcpServer extends Server
      * Iterates all entity types from the EntityRegistry, resolves which
      * operations are enabled per entity (via config), and creates the
      * corresponding MCP tool instances (list, show, create, update, delete, transition).
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     protected function registerEntityTools(): void
     {

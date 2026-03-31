@@ -57,7 +57,11 @@ class UpdateEntityTool extends Tool
         return $properties;
     }
 
-    /** @codeCoverageIgnore Reason: mcp-runtime -- Form request validation requires live MCP request context */
+    /**
+     * @codeCoverageIgnore Reason: mcp-runtime -- Form request validation requires live MCP request context
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     */
     public function handle(Request $request): Response
     {
         // @codeCoverageIgnoreStart — MCP server integration

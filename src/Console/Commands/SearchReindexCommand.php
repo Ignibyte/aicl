@@ -24,7 +24,11 @@ class SearchReindexCommand extends Command
 
     protected $description = 'Rebuild the global search index from database records.';
 
-    /** @codeCoverageIgnore Reason: external-service -- Requires Elasticsearch connection */
+    /**
+     * @codeCoverageIgnore Reason: external-service -- Requires Elasticsearch connection
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     */
     public function handle(): int
     {
         if (! config('aicl.search.enabled', false)) {

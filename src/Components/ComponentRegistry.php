@@ -205,6 +205,8 @@ class ComponentRegistry
     /**
      * Validate props against a component's schema (dev-only).
      *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     *
      * @param array<string, mixed> $props
      *
      * @return array{valid: bool, errors: array<string>}

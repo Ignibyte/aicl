@@ -97,79 +97,110 @@ class FieldSignalEngine
     }
 
     /**
-     * Register the default field signal matching rules.
+     * Build the status and boolean badge rules.
+     *
+     * @return array<string, array{detect: callable, tag: string, reason: string, confidence: float, suggestedProps: array<string, mixed>, alternative: string}>
      */
-    private function registerDefaultRules(): void
+    private function buildBadgeRules(): array
     {
-        // Status enum/state → status badge
-        $this->rules['status_enum'] = [
-            'detect' => fn (string $name, string $type): bool => ($name === 'status' || str_ends_with($name, '_status'))
-                && in_array($type, ['enum', 'state'], true),
-            'tag' => 'x-aicl-status-badge',
-            'reason' => 'Status/state field detected — use status badge for visual indicator',
-            'confidence' => 0.95,
-            'suggestedProps' => [],
-            'alternative' => 'TextColumn::make()->badge()',
-        ];
-
-        // Progress field → progress card
-        $this->rules['progress'] = [
-            'detect' => fn (string $name, string $type): bool => $name === 'progress'
-                && in_array($type, ['integer', 'float'], true),
-            'tag' => 'x-aicl-progress-card',
-            'reason' => 'Progress percentage field detected — use progress card',
-            'confidence' => 0.95,
-            'suggestedProps' => ['label' => 'Progress'],
-            'alternative' => 'Filament\Widgets\StatsOverviewWidget',
-        ];
-
-        // Count/aggregate → stat card
-        $this->rules['count_aggregate'] = [
-            'detect' => fn (string $name, string $type): bool => (str_ends_with($name, '_count') || str_starts_with($name, 'total_') || str_starts_with($name, 'num_'))
-                && in_array($type, ['integer', 'float'], true),
-            'tag' => 'x-aicl-stat-card',
-            'reason' => 'Count/aggregate field detected — use stat card for metric display',
-            'confidence' => 0.9,
-            'suggestedProps' => ['label' => ucfirst(str_replace('_', ' ', 'field'))],
-            'alternative' => 'Filament\Widgets\StatsOverviewWidget',
-        ];
-
-        // Monetary field → stat card
-        $this->rules['monetary'] = [
-            'detect' => fn (string $name, string $type): bool => in_array($name, ['budget', 'amount', 'price', 'cost', 'total', 'revenue', 'salary'], true)
-                && in_array($type, ['float', 'decimal', 'integer'], true),
-            'tag' => 'x-aicl-stat-card',
-            'reason' => 'Monetary field detected — use stat card with currency formatting',
-            'confidence' => 0.8,
-            'suggestedProps' => ['icon' => 'heroicon-o-currency-dollar'],
-            'alternative' => 'Filament\Widgets\StatsOverviewWidget',
-        ];
-
-        // Boolean field → status badge
-        $this->rules['boolean'] = [
-            'detect' => fn (string $name, string $type): bool => str_starts_with($name, 'is_')
-                && $type === 'boolean',
-            'tag' => 'x-aicl-status-badge',
-            'reason' => 'Boolean flag detected — use badge for on/off display',
-            'confidence' => 0.7,
-            'suggestedProps' => [],
-            'alternative' => 'IconColumn::make()',
-        ];
-
-        // Single datetime → trend card context
-        $this->rules['single_datetime'] = [
-            'detect' => fn (string $name, string $type): bool => (str_ends_with($name, '_at') || str_ends_with($name, '_date'))
-                && in_array($type, ['datetime', 'date'], true),
-            'tag' => 'x-aicl-trend-card',
-            'reason' => 'Temporal field detected — suitable for time-series trend display',
-            'confidence' => 0.6,
-            'suggestedProps' => [],
-            'alternative' => 'Filament\Widgets\ChartWidget',
+        return [
+            'status_enum' => [
+                'detect' => fn (string $name, string $type): bool => ($name === 'status' || str_ends_with($name, '_status'))
+                    && in_array($type, ['enum', 'state'], true),
+                'tag' => 'x-aicl-status-badge',
+                'reason' => 'Status/state field detected — use status badge for visual indicator',
+                'confidence' => 0.95,
+                'suggestedProps' => [],
+                'alternative' => 'TextColumn::make()->badge()',
+            ],
+            'boolean' => [
+                'detect' => fn (string $name, string $type): bool => str_starts_with($name, 'is_')
+                    && $type === 'boolean',
+                'tag' => 'x-aicl-status-badge',
+                'reason' => 'Boolean flag detected — use badge for on/off display',
+                'confidence' => 0.7,
+                'suggestedProps' => [],
+                'alternative' => 'IconColumn::make()',
+            ],
         ];
     }
 
     /**
+     * Build the numeric metric rules (count, monetary, progress).
+     *
+     * @return array<string, array{detect: callable, tag: string, reason: string, confidence: float, suggestedProps: array<string, mixed>, alternative: string}>
+     */
+    private function buildMetricRules(): array
+    {
+        return [
+            'progress' => [
+                'detect' => fn (string $name, string $type): bool => $name === 'progress'
+                    && in_array($type, ['integer', 'float'], true),
+                'tag' => 'x-aicl-progress-card',
+                'reason' => 'Progress percentage field detected — use progress card',
+                'confidence' => 0.95,
+                'suggestedProps' => ['label' => 'Progress'],
+                'alternative' => 'Filament\Widgets\StatsOverviewWidget',
+            ],
+            'count_aggregate' => [
+                'detect' => fn (string $name, string $type): bool => (str_ends_with($name, '_count') || str_starts_with($name, 'total_') || str_starts_with($name, 'num_'))
+                    && in_array($type, ['integer', 'float'], true),
+                'tag' => 'x-aicl-stat-card',
+                'reason' => 'Count/aggregate field detected — use stat card for metric display',
+                'confidence' => 0.9,
+                'suggestedProps' => ['label' => ucfirst(str_replace('_', ' ', 'field'))],
+                'alternative' => 'Filament\Widgets\StatsOverviewWidget',
+            ],
+            'monetary' => [
+                'detect' => fn (string $name, string $type): bool => in_array($name, ['budget', 'amount', 'price', 'cost', 'total', 'revenue', 'salary'], true)
+                    && in_array($type, ['float', 'decimal', 'integer'], true),
+                'tag' => 'x-aicl-stat-card',
+                'reason' => 'Monetary field detected — use stat card with currency formatting',
+                'confidence' => 0.8,
+                'suggestedProps' => ['icon' => 'heroicon-o-currency-dollar'],
+                'alternative' => 'Filament\Widgets\StatsOverviewWidget',
+            ],
+        ];
+    }
+
+    /**
+     * Build the temporal/datetime rules.
+     *
+     * @return array<string, array{detect: callable, tag: string, reason: string, confidence: float, suggestedProps: array<string, mixed>, alternative: string}>
+     */
+    private function buildTemporalRules(): array
+    {
+        return [
+            'single_datetime' => [
+                'detect' => fn (string $name, string $type): bool => (str_ends_with($name, '_at') || str_ends_with($name, '_date'))
+                    && in_array($type, ['datetime', 'date'], true),
+                'tag' => 'x-aicl-trend-card',
+                'reason' => 'Temporal field detected — suitable for time-series trend display',
+                'confidence' => 0.6,
+                'suggestedProps' => [],
+                'alternative' => 'Filament\Widgets\ChartWidget',
+            ],
+        ];
+    }
+
+    /**
+     * Register the default field signal matching rules.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     */
+    private function registerDefaultRules(): void
+    {
+        $this->rules = array_merge(
+            $this->buildBadgeRules(),
+            $this->buildMetricRules(),
+            $this->buildTemporalRules(),
+        );
+    }
+
+    /**
      * Recommend components for an entity's full field set.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      *
      * @param array<string, string> $fields   Array of ['name' => 'type'] pairs
      * @param string                $context  Rendering context

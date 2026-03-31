@@ -26,7 +26,12 @@ class PipelineContextCommand extends Command
      */
     protected $description = 'Extract targeted context from a pipeline document — only the phase section relevant to the current agent.';
 
-    /** @codeCoverageIgnore Reason: external-service -- Requires pipeline document files */
+    /**
+     * @codeCoverageIgnore Reason: external-service -- Requires pipeline document files
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     public function handle(): int
     {
         $entity = $this->argument('entity');

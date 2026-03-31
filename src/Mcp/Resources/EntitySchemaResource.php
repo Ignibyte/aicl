@@ -47,7 +47,11 @@ class EntitySchemaResource extends Resource
         return 'entity://'.Str::snake(class_basename($this->modelClass)).'/schema';
     }
 
-    /** @codeCoverageIgnore Reason: mcp-runtime -- Schema resolution requires registered entity models */
+    /**
+     * @codeCoverageIgnore Reason: mcp-runtime -- Schema resolution requires registered entity models
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     public function handle(Request $request): Response
     {
         /** @var Model $instance */

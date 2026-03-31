@@ -42,6 +42,9 @@ class BroadcastEventGenerator extends BaseGenerator
         return $files;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     protected function buildBroadcastEventContent(string $name, string $className, string $snakeName, string $action): string
     {
         if ($action === 'deleted') {

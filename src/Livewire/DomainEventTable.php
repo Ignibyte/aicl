@@ -25,19 +25,6 @@ class DomainEventTable extends TableWidget
 
     protected string $view = 'aicl::livewire.domain-event-table';
 
-    public function table(Table $table): Table
-    {
-        return $table
-            ->query(DomainEventRecord::query())
-            ->columns($this->getColumns())
-            ->defaultSort('occurred_at', 'desc')
-            ->filters($this->getFilters())
-            ->emptyStateHeading('No domain events')
-            ->emptyStateDescription('Domain events will appear here as they are dispatched throughout the application.')
-            ->emptyStateIcon('heroicon-o-bolt')
-            ->paginated([10, 25, 50, 100]);
-    }
-
     /**
      * Column definitions for the domain events table.
      *
@@ -172,5 +159,22 @@ class DomainEventTable extends TableWidget
                         );
                 }),
         ];
+    }
+
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(DomainEventRecord::query())
+            ->columns($this->getColumns())
+            ->defaultSort('occurred_at', 'desc')
+            ->filters($this->getFilters())
+            ->emptyStateHeading('No domain events')
+            ->emptyStateDescription('Domain events will appear here as they are dispatched throughout the application.')
+            ->emptyStateIcon('heroicon-o-bolt')
+            ->paginated([10, 25, 50, 100]);
     }
 }

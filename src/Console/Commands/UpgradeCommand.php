@@ -47,6 +47,10 @@ class UpgradeCommand extends Command
         'up_to_date' => 0,
     ];
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     public function handle(Filesystem $files): int
     {
         $this->files = $files;
@@ -219,6 +223,7 @@ class UpgradeCommand extends Command
      * @param array<string, string> $entry
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     protected function handleOverwrite(string $sectionKey, array $entry, bool $isForce, bool $isFresh): void
     {

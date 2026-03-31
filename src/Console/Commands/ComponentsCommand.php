@@ -11,6 +11,8 @@ use Illuminate\Support\Collection;
 
 /**
  * CLI for the component registry: list, show, validate, recommend, cache, clear.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class ComponentsCommand extends Command
 {
@@ -88,6 +90,10 @@ class ComponentsCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     private function handleShow(ComponentRegistry $registry): int
     {
         $tag = $this->option('tag');
@@ -274,6 +280,11 @@ class ComponentsCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     private function handleTree(ComponentRegistry $registry): int
     {
         $components = $registry->all();

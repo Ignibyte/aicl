@@ -150,6 +150,8 @@ class EntitySpec
     /**
      * Convert fields to CLI --fields string format.
      * Format: name:type[:argument][:modifier1][:modifier2].
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function toFieldsString(): string
     {

@@ -19,7 +19,75 @@ use Jeffgreco13\FilamentBreezy\BreezyCore;
 class MustTwoFactor
 {
     /**
+     * Resolve the two-factor route and profile route parameters for the current panel.
+     *
+     * Returns null for $twoFactorRoute when tenancy is active but no tenant is present
+     * (caller should pass through to $next in that case).
+     *
      * @codeCoverageIgnore Reason: framework-bootstrap -- Requires Filament tenancy and 2FA session state
+     *
+     * @return array{twoFactorRoute: string|null, myProfileRouteName: string, myProfileRouteParameters: array<string, mixed>}
+     */
+    private function resolveTwoFactorRoutes(string $panelId, BreezyCore $breezy): array
+    {
+        $myProfileRouteName = 'filament.'.$panelId.'.pages.'.$breezy->slug();
+        $myProfileRouteParameters = [];
+        $twoFactorRoute = null;
+
+        if (! filament()->hasTenancy()) {
+            $twoFactorRoute = route('filament.'.$panelId.'.auth.two-factor', ['next' => request()->getRequestUri()]);
+
+            return compact('twoFactorRoute', 'myProfileRouteName', 'myProfileRouteParameters');
+        }
+
+        // @codeCoverageIgnoreStart — Untestable in unit context
+        $tenantId = request()->route()?->parameter('tenant');
+
+        if ($tenantId) {
+            $myProfileRouteParameters = ['tenant' => $tenantId];
+            $twoFactorRoute = route('filament.'.$panelId.'.auth.two-factor', ['tenant' => $tenantId, 'next' => request()->getRequestUri()]);
+        }
+        // @codeCoverageIgnoreEnd
+
+        return compact('twoFactorRoute', 'myProfileRouteName', 'myProfileRouteParameters');
+    }
+
+    /**
+     * Determine whether a two-factor redirect is required and return it, or null to continue.
+     *
+     * @param array{twoFactorRoute: string|null, myProfileRouteName: string, myProfileRouteParameters: array<string, mixed>} $resolved
+     *
+     * @codeCoverageIgnore Reason: framework-bootstrap -- Requires Filament tenancy and 2FA session state
+     */
+    private function resolveTwoFactorRedirect(Request $request, BreezyCore $breezy, array $resolved): mixed
+    {
+        $myProfileRouteName = $resolved['myProfileRouteName'];
+        $myProfileRouteParameters = $resolved['myProfileRouteParameters'];
+        $twoFactorRoute = $resolved['twoFactorRoute'];
+
+        // @codeCoverageIgnoreStart — Untestable in unit context
+        if (filament()->hasTenancy() && $twoFactorRoute === null) {
+            return null;
+        }
+
+        if ($breezy->shouldForceTwoFactor() && ! $request->routeIs($myProfileRouteName)) {
+            return redirect()->route($myProfileRouteName, $myProfileRouteParameters);
+        }
+
+        $user = filament()->auth()->user();
+
+        if ($user && $user->hasConfirmedTwoFactor() && ! $user->hasValidTwoFactorSession()) {
+            return redirect($twoFactorRoute);
+        }
+        // @codeCoverageIgnoreEnd
+
+        return null;
+    }
+
+    /**
+     * @codeCoverageIgnore Reason: framework-bootstrap -- Requires Filament tenancy and 2FA session state
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      *
      * @return mixed
      */
@@ -28,40 +96,24 @@ class MustTwoFactor
         $route = $request->route();
 
         if (
-            filament()->auth()->check() &&
-            $route &&
-            ! str($route->getName())->contains('logout')
+            ! filament()->auth()->check() ||
+            ! $route ||
+            str($route->getName())->contains('logout')
         ) {
-            /** @var BreezyCore $breezy */
-            $breezy = filament('filament-breezy');
+            return $next($request);
+        }
 
-            $panel = filament()->getCurrentOrDefaultPanel();
-            $panelId = $panel?->getId() ?? 'admin';
-            $myProfileRouteName = 'filament.'.$panelId.'.pages.'.$breezy->slug();
+        /** @var BreezyCore $breezy */
+        $breezy = filament('filament-breezy');
 
-            $myProfileRouteParameters = [];
+        $panel = filament()->getCurrentOrDefaultPanel();
+        $panelId = $panel?->getId() ?? 'admin';
 
-            if (filament()->hasTenancy()) {
-                // @codeCoverageIgnoreStart — Untestable in unit context
-                if (! $tenantId = request()->route()?->parameter('tenant')) {
-                    return $next($request);
-                }
-                $myProfileRouteParameters = ['tenant' => $tenantId];
-                $twoFactorRoute = route('filament.'.$panelId.'.auth.two-factor', ['tenant' => $tenantId, 'next' => request()->getRequestUri()]);
-                // @codeCoverageIgnoreEnd
-            } else {
-                $twoFactorRoute = route('filament.'.$panelId.'.auth.two-factor', ['next' => request()->getRequestUri()]);
-            }
+        $resolved = $this->resolveTwoFactorRoutes($panelId, $breezy);
+        $redirect = $this->resolveTwoFactorRedirect($request, $breezy, $resolved);
 
-            $user = filament()->auth()->user();
-
-            if ($breezy->shouldForceTwoFactor() && ! $request->routeIs($myProfileRouteName)) {
-                // @codeCoverageIgnoreStart — Untestable in unit context
-                return redirect()->route($myProfileRouteName, $myProfileRouteParameters);
-            } elseif ($user && $user->hasConfirmedTwoFactor() && ! $user->hasValidTwoFactorSession()) {
-                return redirect($twoFactorRoute);
-                // @codeCoverageIgnoreEnd
-            }
+        if ($redirect !== null) {
+            return $redirect;
         }
 
         return $next($request);

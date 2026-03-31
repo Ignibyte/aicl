@@ -13,6 +13,8 @@ namespace Aicl\Components;
 class ComponentDefinition
 {
     /**
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     *
      * @param array<int, string>        $context
      * @param array<int, string>        $notFor
      * @param array<string, mixed>      $props

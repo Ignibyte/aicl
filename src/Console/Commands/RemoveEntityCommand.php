@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
-/** Removes all generated files for an AICL entity, inverse of aicl:make-entity. */
+/**
+ * Removes all generated files for an AICL entity, inverse of aicl:make-entity.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ */
 class RemoveEntityCommand extends Command
 {
     /**
@@ -99,6 +103,9 @@ class RemoveEntityCommand extends Command
      * Discover all entity-specific files and directories.
      *
      * @codeCoverageIgnore Reason: external-service -- File discovery glob requires entity files on disk
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function discoverEntityFiles(string $name, string $plural, string $snakePlural): void
     {

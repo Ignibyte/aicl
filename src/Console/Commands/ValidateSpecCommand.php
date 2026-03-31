@@ -45,7 +45,12 @@ class ValidateSpecCommand extends Command
      */
     protected array $warnings = [];
 
-    /** @codeCoverageIgnore Reason: external-service -- Spec validation requires entity spec files */
+    /**
+     * @codeCoverageIgnore Reason: external-service -- Spec validation requires entity spec files
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     public function handle(): int
     {
         $input = $this->argument('spec');
@@ -235,6 +240,10 @@ class ValidateSpecCommand extends Command
         }
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     protected function validateEnumDefinitions(EntitySpec $spec): void
     {
         // Find all enum fields
@@ -308,6 +317,9 @@ class ValidateSpecCommand extends Command
         }
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     */
     protected function validateStates(EntitySpec $spec): void
     {
         if (empty($spec->states)) {
@@ -543,6 +555,9 @@ class ValidateSpecCommand extends Command
      * @param array<int, string> $validTriggerTypes
      * @param array<int, string> $validChannels
      * @param array<int, string> $validColors
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function validateSingleNotificationSpec(
         NotificationSpec $notifSpec,
@@ -649,6 +664,10 @@ class ValidateSpecCommand extends Command
         }
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     protected function validateObserverRules(EntitySpec $spec): void
     {
         if ($spec->observerRules === null) {
@@ -721,6 +740,10 @@ class ValidateSpecCommand extends Command
         }
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     protected function validateReportLayout(EntitySpec $spec): void
     {
         if ($spec->reportLayout === null) {

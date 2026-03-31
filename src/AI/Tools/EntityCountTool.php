@@ -69,9 +69,11 @@ class EntityCountTool extends BaseTool
                 foreach ($value as $status => $count) {
                     $pairs[] = ['key' => "{$key} ({$status})", 'value' => $count];
                 }
-            } else {
-                $pairs[] = ['key' => (string) $key, 'value' => $value];
+
+                continue;
             }
+
+            $pairs[] = ['key' => (string) $key, 'value' => $value];
         }
 
         return [

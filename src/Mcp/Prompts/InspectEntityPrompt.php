@@ -146,11 +146,17 @@ class InspectEntityPrompt extends Prompt
         foreach ($model->getRelations() as $name => $relation) {
             if ($relation === null) {
                 $loaded[$name] = 0;
-            } elseif ($relation instanceof Collection) {
-                $loaded[$name] = $relation->count();
-            } else {
-                $loaded[$name] = 1;
+
+                continue;
             }
+
+            if ($relation instanceof Collection) {
+                $loaded[$name] = $relation->count();
+
+                continue;
+            }
+
+            $loaded[$name] = 1;
         }
 
         return $loaded;

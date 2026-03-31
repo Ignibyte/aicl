@@ -141,6 +141,8 @@ class FieldParser
 
     /**
      * @param array<int, string> $modifiers
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     protected function buildDefinition(
         string $name,

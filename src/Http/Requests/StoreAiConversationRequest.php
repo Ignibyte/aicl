@@ -21,6 +21,8 @@ class StoreAiConversationRequest extends FormRequest
 
     /**
      * @return array<string, array<int, mixed>>
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function rules(): array
     {

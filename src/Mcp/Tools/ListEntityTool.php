@@ -98,11 +98,11 @@ class ListEntityTool extends Tool
         $query = $this->modelClass::query();
 
         if ($search) {
-            if (in_array(HasStandardScopes::class, class_uses_recursive($this->modelClass), true)) {
-                $query->search($search); // @phpstan-ignore method.notFound
-            } else {
+            if (! in_array(HasStandardScopes::class, class_uses_recursive($this->modelClass), true)) {
                 return Response::error("Search is not supported for {$this->entityLabel}. The model does not implement HasStandardScopes.");
             }
+
+            $query->search($search); // @phpstan-ignore method.notFound
         }
 
         $query->orderBy($sortBy, $sortDir);

@@ -222,43 +222,6 @@ class AiAssistantPanel extends Component
     }
 
     /**
-     * Get messages for the active conversation.
-     *
-     * @return array<int, array{role: string, content: string, tools: array<int, array{name: string}>, timestamp: string, agent_name: string|null}>
-     */
-    public function loadMessages(): array
-    {
-        // @codeCoverageIgnoreStart — Filament Livewire rendering
-        if (! $this->activeConversationId) {
-            return [];
-        }
-
-        $user = auth()->user();
-
-        if (! $user) {
-            return [];
-        }
-
-        // Enforce ownership — prevent IDOR via manipulated activeConversationId
-        $conversation = AiConversation::query()
-            ->where('user_id', $user->id)
-            ->find($this->activeConversationId);
-
-        if (! $conversation) {
-            return [];
-        }
-
-        $agentName = $conversation->agent->name ?? 'Assistant';
-
-        return $conversation->messages()
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn ($msg): array => $this->transformMessage($msg, $agentName))
-            ->toArray();
-        // @codeCoverageIgnoreEnd
-    }
-
-    /**
      * Transform a single message model into the display array format.
      *
      * Extracts tool call JSON from persisted assistant content and merges
@@ -432,6 +395,43 @@ class AiAssistantPanel extends Component
 
         // @codeCoverageIgnoreStart — Filament Livewire rendering
         return false;
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Get messages for the active conversation.
+     *
+     * @return array<int, array{role: string, content: string, tools: array<int, array{name: string}>, timestamp: string, agent_name: string|null}>
+     */
+    public function loadMessages(): array
+    {
+        // @codeCoverageIgnoreStart — Filament Livewire rendering
+        if (! $this->activeConversationId) {
+            return [];
+        }
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return [];
+        }
+
+        // Enforce ownership — prevent IDOR via manipulated activeConversationId
+        $conversation = AiConversation::query()
+            ->where('user_id', $user->id)
+            ->find($this->activeConversationId);
+
+        if (! $conversation) {
+            return [];
+        }
+
+        $agentName = $conversation->agent->name ?? 'Assistant';
+
+        return $conversation->messages()
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn ($msg): array => $this->transformMessage($msg, $agentName))
+            ->toArray();
         // @codeCoverageIgnoreEnd
     }
 

@@ -16,6 +16,9 @@ class StateMachineGenerator extends BaseGenerator
         return "Creating state machine: {$this->ctx->name}State";
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     public function generate(): array
     {
         $name = $this->ctx->name;

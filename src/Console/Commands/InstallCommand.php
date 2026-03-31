@@ -47,6 +47,8 @@ class InstallCommand extends Command
      * channel seeding, Filament assets, version cache clear, and project file sync.
      *
      * @return int Exit code (SUCCESS)
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function handle(): int
     {

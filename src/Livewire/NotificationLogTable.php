@@ -21,20 +21,6 @@ class NotificationLogTable extends TableWidget
 
     protected string $view = 'aicl::livewire.notification-log-table';
 
-    /** @codeCoverageIgnore Reason: filament-closure -- Filament searchable/format closures require Livewire rendering */
-    public function table(Table $table): Table
-    {
-        return $table
-            ->query(NotificationLog::query())
-            ->columns($this->getColumns())
-            ->defaultSort('created_at', 'desc')
-            ->filters($this->getFilters())
-            ->emptyStateHeading('No notification logs')
-            ->emptyStateDescription('Notification logs will appear here as notifications are sent through the system.')
-            ->emptyStateIcon('heroicon-o-bell-slash')
-            ->paginated([10, 25, 50, 100]);
-    }
-
     /**
      * Column definitions for the notification log table.
      *
@@ -182,5 +168,23 @@ class NotificationLogTable extends TableWidget
                     };
                 }),
         ];
+    }
+
+    /**
+     * @codeCoverageIgnore Reason: filament-closure -- Filament searchable/format closures require Livewire rendering
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(NotificationLog::query())
+            ->columns($this->getColumns())
+            ->defaultSort('created_at', 'desc')
+            ->filters($this->getFilters())
+            ->emptyStateHeading('No notification logs')
+            ->emptyStateDescription('Notification logs will appear here as notifications are sent through the system.')
+            ->emptyStateIcon('heroicon-o-bell-slash')
+            ->paginated([10, 25, 50, 100]);
     }
 }

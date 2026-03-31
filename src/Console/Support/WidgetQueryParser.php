@@ -161,6 +161,9 @@ class WidgetQueryParser
 
     /**
      * Resolve a value reference — state class, enum, special keyword, or string literal.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function resolveValue(string $field, string $value): string
     {

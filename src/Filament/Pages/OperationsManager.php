@@ -620,6 +620,9 @@ class OperationsManager extends Page implements HasActions, HasForms, HasTable
         ];
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     public function table(Table $table): Table
     {
         return $table

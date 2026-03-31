@@ -52,194 +52,59 @@ class AiConversationStreamJob implements ShouldQueue
         $this->onQueue(config('aicl.ai.streaming.queue', 'default'));
     }
 
-    /** @codeCoverageIgnore Reason: mcp-runtime -- AI streaming job requires NeuronAI provider, WebSocket, and conversation context */
-    public function handle(AiChatService $chatService): void
+    /**
+     * Resolve the conversation and agent, broadcasting failure if not found.
+     *
+     * @codeCoverageIgnore Reason: mcp-runtime -- AI streaming job requires NeuronAI provider, WebSocket, and conversation context
+     */
+    private function findConversation(): ?AiConversation
     {
-        $userId = $this->userId;
+        $conversation = AiConversation::with('agent')->find($this->conversationId);
 
-        try {
-            $conversation = AiConversation::with('agent')->find($this->conversationId);
-
-            if (! $conversation || ! $conversation->agent) {
-                Log::error('AI conversation stream: conversation or agent not found', [
-                    'stream_id' => $this->streamId,
-                    'conversation_id' => $this->conversationId,
-                ]);
-
-                return;
-            }
-
-            $agent = $conversation->agent;
-
-            broadcast(new AiStreamStarted($this->streamId, $userId));
-            $provider = AiProviderFactory::makeFromAgent($agent);
-
-            if (! $provider) {
-                broadcast(new AiStreamFailed(
-                    $this->streamId,
-                    $userId,
-                    'AI provider not configured for this agent.',
-                ));
-
-                return;
-            }
-
-            $neuronAgent = $this->buildNeuronAgent($provider, $agent, $userId);
-            $messages = $chatService->buildMessageHistory($conversation);
-
-            $fullResponse = '';
-            $index = 0;
-            $toolResults = [];
-
-            $generator = $neuronAgent->stream($messages);
-
-            // @codeCoverageIgnoreStart — Streaming loop requires real AI provider connection
-            foreach ($generator as $chunk) {
-                if ($chunk instanceof ToolCallMessage) {
-                    $toolData = collect($chunk->getTools())->map(function ($t) use (&$toolResults): array {
-                        $entry = [
-                            'name' => $t->getName(),
-                            'inputs' => $t->getInputs(),
-                        ];
-
-                        // Include structured render data if the tool supports it
-                        // Guard against null result — NeuronAI may yield ToolCallMessage
-                        // before the tool's result property is populated
-                        // @codeCoverageIgnoreStart — Job processing
-                        if ($t instanceof BaseTool) {
-                            try {
-                                $resultStr = $t->getResult();
-                                $rawResult = json_decode($resultStr, true) ?? $resultStr;
-                            } catch (TypeError) {
-                                $rawResult = null;
-                            }
-
-                            if ($rawResult !== null) {
-                                $render = $t->formatResultForDisplay($rawResult);
-                                $entry['render'] = $render;
-                            }
-
-                            $toolResults[] = $entry;
-                        }
-
-                        return $entry;
-                    })->toArray();
-
-                    broadcast(new AiToolCallEvent(
-                        $this->streamId,
-                        $userId,
-                        $toolData,
-                    ));
-
-                    continue;
-                }
-
-                $token = (string) $chunk;
-                $fullResponse .= $token;
-
-                broadcast(new AiTokenEvent(
-                    $this->streamId,
-                    $userId,
-                    $token,
-                    $index++,
-                ));
-            }
-
-            $usage = $this->extractUsage($generator);
-            // @codeCoverageIgnoreEnd
-
-            // Strip any tool call JSON from the response before persisting.
-            // NeuronAI may include tool call+result data as [{...}] in the
-            // text stream — this should not be saved as message content.
-            // @codeCoverageIgnoreStart — Job processing
-            $cleanResponse = $this->stripToolCallJson($fullResponse);
-
-            // Persist assistant response as AiMessage
-            $totalTokens = ($usage['input_tokens'] ?? 0) + ($usage['output_tokens'] ?? 0);
-
-            $metadata = [
-                'model' => $agent->model,
-                'provider' => $agent->provider->value,
-                'usage' => $usage,
-                'stream_id' => $this->streamId,
-            ];
-
-            if (! empty($toolResults)) {
-                $metadata['tool_results'] = $toolResults;
-            }
-            // @codeCoverageIgnoreEnd
-
-            $conversation->messages()->create([
-                'role' => AiMessageRole::Assistant,
-                'content' => $cleanResponse,
-                'token_count' => $totalTokens > 0 ? $totalTokens : null,
-                'metadata' => $metadata,
-            ]);
-
-            broadcast(new AiStreamCompleted(
-                $this->streamId,
-                $userId,
-                $index,
-                $usage,
-            ));
-
-            Log::info('AI conversation stream completed', [
+        if (! $conversation || ! $conversation->agent) {
+            Log::error('AI conversation stream: conversation or agent not found', [
                 'stream_id' => $this->streamId,
                 'conversation_id' => $this->conversationId,
-                'agent' => $agent->slug,
-                'total_tokens' => $index,
-                'usage' => $usage,
             ]);
 
-            // Auto-compact if conversation exceeds threshold
-            $conversation->refresh();
-            if ($conversation->is_compactable) {
-                CompactConversationJob::dispatch($conversation->id);
-                // @codeCoverageIgnoreEnd
-            }
-        } catch (Throwable $e) {
-            Log::error('AI conversation stream failed', [
-                'stream_id' => $this->streamId,
-                'conversation_id' => $this->conversationId,
-                'error' => $e->getMessage(),
-            ]);
-
-            broadcast(new AiStreamFailed(
-                $this->streamId,
-                $userId,
-                'An error occurred while generating the response.',
-            ));
-        } finally {
-            $this->decrementConcurrentCount($userId);
+            return null;
         }
+
+        return $conversation;
     }
 
     /**
-     * Build the NeuronAI agent with the agent-specific provider and tools.
+     * Build the tool entry array for a single tool call, resolving render data when available.
      *
-     * Tool resolution respects the agent's capabilities:
-     * - Global tools_enabled config must be true
-     * - Agent must have capabilities.tools_enabled = true
-     * - Only allowed_tools are attached (or all if unrestricted)
+     * @param array<string, mixed> $toolResults Accumulated tool results (passed by reference)
      *
-     * @codeCoverageIgnore Requires real AI provider SDK — tool wiring tested via AiToolRegistry unit tests
+     * @return array<string, mixed>
+     *
+     * @codeCoverageIgnore Reason: mcp-runtime -- AI streaming job requires NeuronAI provider, WebSocket, and conversation context
      */
-    protected function buildNeuronAgent(AIProviderInterface $provider, AiAgent $agent, int $userId): AgentInterface
+    private function buildToolEntry(mixed $t, array &$toolResults): array
     {
-        $neuronAgent = Agent::make()
-            ->setAiProvider($provider)
-            ->setInstructions($agent->system_prompt ?? config('aicl.ai.system_prompt', ''));
+        $entry = [
+            'name' => $t->getName(),
+            'inputs' => $t->getInputs(),
+        ];
 
-        if (config('aicl.ai.tools_enabled', true)) {
-            $registry = app(AiToolRegistry::class);
-            $tools = $registry->resolveForAgent($agent, $userId);
-
-            if (! empty($tools)) {
-                $neuronAgent->addTool($tools);
+        if ($t instanceof BaseTool) {
+            try {
+                $resultStr = $t->getResult();
+                $rawResult = json_decode($resultStr, true) ?? $resultStr;
+            } catch (TypeError) {
+                $rawResult = null;
             }
+
+            if ($rawResult !== null) {
+                $entry['render'] = $t->formatResultForDisplay($rawResult);
+            }
+
+            $toolResults[] = $entry;
         }
 
-        return $neuronAgent;
+        return $entry;
     }
 
     /**
@@ -270,6 +135,9 @@ class AiConversationStreamJob implements ShouldQueue
      * NeuronAI may include tool call+result data as a JSON array
      * at the start of the text stream (e.g., [{...}]Natural language).
      * This removes the JSON portion and returns the clean text.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function stripToolCallJson(string $response): string
     {
@@ -337,25 +205,6 @@ class AiConversationStreamJob implements ShouldQueue
     }
 
     /**
-     * Handle permanent job failure (safety net for worker crashes).
-     *
-     * If the worker is killed (SIGKILL, OOM) before finally runs,
-     * Laravel calls this on a fresh instance after retry_after expires.
-     * The $decremented flag prevents double-decrement in the normal
-     * exception path where finally already ran.
-     */
-    public function failed(Throwable $exception): void
-    {
-        $this->decrementConcurrentCount($this->userId);
-
-        Log::error('AI conversation stream job failed permanently', [
-            'stream_id' => $this->streamId,
-            'conversation_id' => $this->conversationId,
-            'error' => $exception->getMessage(),
-        ]);
-    }
-
-    /**
      * Decrement the concurrent stream count for this user.
      *
      * Uses atomic Cache::decrement() to prevent TOCTOU race conditions
@@ -375,5 +224,184 @@ class AiConversationStreamJob implements ShouldQueue
         if ($newValue < 0) {
             Cache::put($key, 0, 300);
         }
+    }
+
+    /**
+     * Run the streaming loop: iterate generator chunks, dispatch broadcast events,
+     * persist the assistant message, and trigger auto-compaction when needed.
+     *
+     * @param array<mixed> $messages
+     *
+     * @codeCoverageIgnore Reason: mcp-runtime -- AI streaming job requires NeuronAI provider, WebSocket, and conversation context
+     */
+    private function runStream(AiConversation $conversation, AgentInterface $neuronAgent, array $messages, int $userId): void
+    {
+        $agent = $conversation->agent;
+        $fullResponse = '';
+        $index = 0;
+        $toolResults = [];
+
+        $generator = $neuronAgent->stream($messages);
+
+        // @codeCoverageIgnoreStart — Streaming loop requires real AI provider connection
+        foreach ($generator as $chunk) {
+            if ($chunk instanceof ToolCallMessage) {
+                $toolData = collect($chunk->getTools())
+                    ->map(fn ($t): array => $this->buildToolEntry($t, $toolResults))
+                    ->toArray();
+
+                broadcast(new AiToolCallEvent($this->streamId, $userId, $toolData));
+
+                continue;
+            }
+
+            $token = (string) $chunk;
+            $fullResponse .= $token;
+
+            broadcast(new AiTokenEvent($this->streamId, $userId, $token, $index++));
+        }
+
+        $usage = $this->extractUsage($generator);
+        // @codeCoverageIgnoreEnd
+
+        $cleanResponse = $this->stripToolCallJson($fullResponse);
+        $totalTokens = ($usage['input_tokens'] ?? 0) + ($usage['output_tokens'] ?? 0);
+
+        // @codeCoverageIgnoreStart — Job processing
+        $metadata = [
+            'model' => $agent->model,
+            'provider' => $agent->provider->value,
+            'usage' => $usage,
+            'stream_id' => $this->streamId,
+        ];
+
+        if (! empty($toolResults)) {
+            $metadata['tool_results'] = $toolResults;
+        }
+
+        $conversation->messages()->create([
+            'role' => AiMessageRole::Assistant,
+            'content' => $cleanResponse,
+            'token_count' => $totalTokens > 0 ? $totalTokens : null,
+            'metadata' => $metadata,
+        ]);
+
+        broadcast(new AiStreamCompleted($this->streamId, $userId, $index, $usage));
+
+        Log::info('AI conversation stream completed', [
+            'stream_id' => $this->streamId,
+            'conversation_id' => $this->conversationId,
+            'agent' => $agent->slug,
+            'total_tokens' => $index,
+            'usage' => $usage,
+        ]);
+
+        $conversation->refresh();
+
+        if ($conversation->is_compactable) {
+            CompactConversationJob::dispatch($conversation->id);
+        }
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Build the NeuronAI agent with the agent-specific provider and tools.
+     *
+     * Tool resolution respects the agent's capabilities:
+     * - Global tools_enabled config must be true
+     * - Agent must have capabilities.tools_enabled = true
+     * - Only allowed_tools are attached (or all if unrestricted)
+     *
+     * @codeCoverageIgnore Requires real AI provider SDK — tool wiring tested via AiToolRegistry unit tests
+     */
+    protected function buildNeuronAgent(AIProviderInterface $provider, AiAgent $agent, int $userId): AgentInterface
+    {
+        $neuronAgent = Agent::make()
+            ->setAiProvider($provider)
+            ->setInstructions($agent->system_prompt ?? config('aicl.ai.system_prompt', ''));
+
+        if (config('aicl.ai.tools_enabled', true)) {
+            $registry = app(AiToolRegistry::class);
+            $tools = $registry->resolveForAgent($agent, $userId);
+
+            if (! empty($tools)) {
+                $neuronAgent->addTool($tools);
+            }
+        }
+
+        return $neuronAgent;
+    }
+
+    /**
+     * @codeCoverageIgnore Reason: mcp-runtime -- AI streaming job requires NeuronAI provider, WebSocket, and conversation context
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function handle(AiChatService $chatService): void
+    {
+        $userId = $this->userId;
+
+        try {
+            $conversation = $this->findConversation();
+
+            if (! $conversation) {
+                return;
+            }
+
+            $agent = $conversation->agent;
+
+            broadcast(new AiStreamStarted($this->streamId, $userId));
+            $provider = AiProviderFactory::makeFromAgent($agent);
+
+            if (! $provider) {
+                broadcast(new AiStreamFailed(
+                    $this->streamId,
+                    $userId,
+                    'AI provider not configured for this agent.',
+                ));
+
+                return;
+            }
+
+            $neuronAgent = $this->buildNeuronAgent($provider, $agent, $userId);
+            $messages = $chatService->buildMessageHistory($conversation);
+
+            $this->runStream($conversation, $neuronAgent, $messages, $userId);
+        } catch (Throwable $e) {
+            Log::error('AI conversation stream failed', [
+                'stream_id' => $this->streamId,
+                'conversation_id' => $this->conversationId,
+                'error' => $e->getMessage(),
+            ]);
+
+            broadcast(new AiStreamFailed(
+                $this->streamId,
+                $userId,
+                'An error occurred while generating the response.',
+            ));
+        } finally {
+            $this->decrementConcurrentCount($userId);
+        }
+    }
+
+    /**
+     * Handle permanent job failure (safety net for worker crashes).
+     *
+     * If the worker is killed (SIGKILL, OOM) before finally runs,
+     * Laravel calls this on a fresh instance after retry_after expires.
+     * The $decremented flag prevents double-decrement in the normal
+     * exception path where finally already ran.
+     */
+    public function failed(Throwable $exception): void
+    {
+        $this->decrementConcurrentCount($this->userId);
+
+        Log::error('AI conversation stream job failed permanently', [
+            'stream_id' => $this->streamId,
+            'conversation_id' => $this->conversationId,
+            'error' => $exception->getMessage(),
+        ]);
     }
 }
