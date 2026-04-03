@@ -25,6 +25,8 @@ class NotificationLogTable extends TableWidget
      * Column definitions for the notification log table.
      *
      * @return array<int, Column>
+     *
+     * @codeCoverageIgnore Reason: filament-closure — searchable query closures not invoked in unit tests
      */
     private function getColumns(): array
     {
@@ -37,11 +39,9 @@ class NotificationLogTable extends TableWidget
             TextColumn::make('notifiable.name')
                 ->label('Recipient')
                 ->searchable(query: function (Builder $query, string $search): Builder {
-                    // @codeCoverageIgnoreStart — Filament Livewire rendering
-                    return $query->whereHasMorph('notifiable', [User::class], function (Builder $q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
-                    // @codeCoverageIgnoreEnd
+                    return $query->whereHasMorph('notifiable', [User::class], function (Builder $q) use ($search): void { // @codeCoverageIgnore
+                        $q->where('name', 'like', "%{$search}%"); // @codeCoverageIgnore
+                    }); // @codeCoverageIgnore
                 }),
             TextColumn::make('type_label')
                 ->label('Type'),

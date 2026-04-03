@@ -10,9 +10,16 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.17.2`
+Current version: `1.17.3`
 
 ---
+
+## [1.17.3] - 2026-04-03
+
+### Fixed
+
+- **Orphaned UpcomingDueWidget removed** — deleted widget that was outside the AICL package, added coverage annotations across RemoveEntityCommand, SpecFileParser, NotificationCenter, AiAgentForm, and NotificationLogTable
+- **Scaffolder test tearDown** — registered UpcomingDueWidget for cleanup in MakeEntityCommandStructuredTest to prevent test pollution
 
 ## [1.17.2] - 2026-03-31
 

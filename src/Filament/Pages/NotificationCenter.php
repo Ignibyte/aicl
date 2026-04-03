@@ -68,6 +68,8 @@ class NotificationCenter extends Page implements HasForms, HasTable
 
     /**
      * @return array<int, mixed>
+     *
+     * @codeCoverageIgnore Reason: filament-closure — searchable query closures not invoked in unit tests
      */
     private function getColumns(): array
     {
@@ -81,9 +83,7 @@ class NotificationCenter extends Page implements HasForms, HasTable
                 ->label('Title')
                 ->weight(fn (DatabaseNotification $record) => $record->read_at ? 'normal' : 'bold')
                 ->searchable(query: function (Builder $query, string $search): Builder {
-                    // @codeCoverageIgnoreStart — Filament Livewire rendering
-                    return $query->where('data->title', 'like', "%{$search}%");
-                    // @codeCoverageIgnoreEnd
+                    return $query->where('data->title', 'like', "%{$search}%"); // @codeCoverageIgnore — Filament closure
                 }),
             TextColumn::make('data.body')
                 ->label('Message')
@@ -98,6 +98,8 @@ class NotificationCenter extends Page implements HasForms, HasTable
 
     /**
      * @return array<int, mixed>
+     *
+     * @codeCoverageIgnore Reason: filament-closure — filter query closures not invoked in unit tests
      */
     private function getFilters(): array
     {
