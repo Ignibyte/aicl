@@ -10,9 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `2.0.2`
+Current version: `2.0.3`
 
 ---
+
+## [2.0.3] - 2026-04-04
+
+### Fixed
+
+- **Added missing `nunomaduro/collision` dev dependency to package** — the AICL package runs artisan commands and downstream projects inherit from it, so collision must be declared in the package's `require-dev` to ensure proper CLI error rendering.
 
 ## [2.0.2] - 2026-04-04
 
