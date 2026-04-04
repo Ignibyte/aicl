@@ -191,7 +191,7 @@ The dev repo uses Forge-synced pipeline commands (`.claude/commands/pipeline/`) 
 Ignibyte/project (skeleton)
   └── requires: aicl/aicl:^1.0 (from Ignibyte/aicl VCS repo)
         └── requires: filament/filament:^4.0, spatie/laravel-permission, etc.
-              └── requires: laravel/framework:^11.0|^12.0
+              └── requires: laravel/framework:^11.0|^12.0|^13.0
 ```
 
 When a client runs `composer update aicl/aicl`, they get the latest tagged release from `Ignibyte/aicl` that satisfies `^1.0`. The skeleton itself is only used at project creation time — after that, the project is independent.

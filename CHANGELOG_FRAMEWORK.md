@@ -10,9 +10,16 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `2.0.3`
+Current version: `2.0.4`
 
 ---
+
+## [2.0.4] - 2026-04-04
+
+### Fixed
+
+- **Updated all documentation version references for Laravel 13 + PHP 8.5 + Swoole 6.2 upgrade** — 18 files across architecture docs, README badges, CONSTITUTION, dist stubs, pipeline commands, and repositories doc still referenced Laravel 12, PHP 8.3, Swoole 6.0.0, and DDEV v1.24.10.
+- **Converted hook paths to absolute in `.claude/settings.json`** — all 9 hook commands now use absolute paths instead of relative paths to prevent resolution failures.
 
 ## [2.0.3] - 2026-04-04
 

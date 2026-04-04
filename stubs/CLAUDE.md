@@ -75,7 +75,7 @@ This creates a `WORK-{Title}.md` pipeline document with phases: Plan, Design, Im
 
 ## Development Environment
 
-- **DDEV** with PHP 8.3, PostgreSQL 17, Redis 7, Swoole 6.0.0
+- **DDEV** with PHP 8.5, PostgreSQL 17, Redis 7, Swoole 6.2.0
 - **Site URL:** `https://{project}.ddev.site`
 - **Admin Panel:** `https://{project}.ddev.site/admin`
 - **Login:** `admin@aicl.test` / `password`

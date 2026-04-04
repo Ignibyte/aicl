@@ -127,7 +127,7 @@ AICL is built on a curated, opinionated set of Laravel ecosystem packages. Every
 
 | Component | Technology | Role in AICL |
 |-----------|-----------|--------------|
-| **Application** | Laravel 12 | Foundation — routing, Eloquent, events, queues, etc. |
+| **Application** | Laravel 13 | Foundation — routing, Eloquent, events, queues, etc. |
 | **Performance** | Laravel Octane + Swoole 6 | Long-running workers, high-throughput serving |
 | **Admin Panel** | Filament v4.7 | Declarative PHP admin UI — resources, pages, widgets |
 | **Frontend** | Tailwind CSS v4 + Livewire | Utility-first CSS, reactive server-rendered components |
@@ -167,7 +167,7 @@ AICL is built on a curated, opinionated set of Laravel ecosystem packages. Every
 
 | Component | Technology | Role in AICL |
 |-----------|-----------|--------------|
-| **Environment** | DDEV + PHP 8.3 + PostgreSQL 17 | Containerized local dev |
+| **Environment** | DDEV + PHP 8.5 + PostgreSQL 17 | Containerized local dev |
 | **Testing** | PHPUnit + Dusk | Feature tests + browser tests |
 | **Code Style** | Laravel Pint | PSR-12 + Laravel conventions |
 | **Static Analysis** | PHPStan | Type checking |

@@ -367,7 +367,7 @@ Port assignments are defined in `.ddev/config.yaml` under `web_extra_exposed_por
 
 | File | Purpose | Key Settings |
 |---|---|---|
-| `.ddev/config.yaml` | DDEV project definition | PHP 8.3, PostgreSQL 17, nginx-fpm, daemon definitions, exposed ports, post-start hooks |
+| `.ddev/config.yaml` | DDEV project definition | PHP 8.5, PostgreSQL 17, nginx-fpm, daemon definitions, exposed ports, post-start hooks |
 | `.ddev/nginx_full/nginx-site.conf` | nginx reverse proxy | Upstream to Octane, static asset serving with `try_files`, WebSocket upgrade headers, proxy timeouts |
 | `.ddev/.webimageBuild/octane.conf` | Octane supervisor config | Swoole command with worker counts, autorestart, 3s startsecs, 15 retries |
 | `.ddev/.webimageBuild/reverb.conf` | Reverb supervisor config | WebSocket server command, same restart policy |

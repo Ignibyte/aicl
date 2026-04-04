@@ -14,12 +14,12 @@ The critical consequence of this architecture: **workers persist across requests
 
 ## Dependencies
 
-- **Swoole 6.0.0** -- PHP extension compiled from source via DDEV web-build (`pecl install swoole-6.0.0`)
+- **Swoole 6.2.0** -- PHP extension compiled from source via DDEV web-build (`pecl install swoole-6.0.0`)
 - **Laravel Octane v2.13** -- `laravel/octane` Composer package
 - **Redis 7** -- Timer persistence, session storage, queue backend
 - **nginx** -- TLS termination, static asset serving, reverse proxy to Swoole
 - **supervisord** -- Process management within the DDEV container
-- **DDEV v1.24.10** -- Development environment orchestration
+- **DDEV v1.25.1** -- Development environment orchestration
 
 Build file: `.ddev/web-build/Dockerfile.swoole` installs Swoole with sockets, OpenSSL, HTTP/2, mysqlnd, curl, and JSON support enabled.
 
@@ -173,7 +173,7 @@ web_extra_daemons:
 
 **File:** `.ddev/web-build/Dockerfile.swoole`
 
-Compiles Swoole 6.0.0 from PECL with: sockets, OpenSSL, HTTP/2, mysqlnd, swoole-curl, swoole-json.
+Compiles Swoole 6.2.0 from PECL with: sockets, OpenSSL, HTTP/2, mysqlnd, swoole-curl, swoole-json.
 
 ### Exposed Ports
 
