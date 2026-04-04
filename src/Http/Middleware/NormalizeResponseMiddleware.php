@@ -14,11 +14,11 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Livewire/Filament may return a Livewire\Features\SupportRedirects\Redirector
  * instead of an Illuminate\Http\RedirectResponse when authorization fails.
- * Downstream middleware (VerifyCsrfToken, EncryptCookies) assumes a Symfony Response
+ * Downstream middleware (PreventRequestForgery, EncryptCookies) assumes a Symfony Response
  * with a $headers property — accessing it on a Redirector causes a 500.
  *
- * Place this middleware immediately AFTER VerifyCsrfToken in the panel middleware
- * stack so it normalizes responses before VerifyCsrfToken processes them.
+ * Place this middleware immediately AFTER PreventRequestForgery in the panel middleware
+ * stack so it normalizes responses before PreventRequestForgery processes them.
  *
  * @see https://github.com/livewire/livewire/issues/... (known Livewire/Octane interaction)
  */

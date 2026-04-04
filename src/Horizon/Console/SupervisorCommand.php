@@ -98,7 +98,8 @@ class SupervisorCommand extends Command
     protected function start($supervisor)
     {
         if ($supervisor->options->nice !== 0) {
-            proc_nice($supervisor->options->nice);
+            /** @phpstan-ignore cast.useless (PHPDoc says int but runtime value is string in PHP 8.5) */
+            proc_nice((int) $supervisor->options->nice);
         }
 
         $supervisor->handleOutputUsing(function ($type, $line) {

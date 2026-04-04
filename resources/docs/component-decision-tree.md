@@ -1,7 +1,7 @@
 # AICL Component Decision Tree
 
 > Auto-generated from `component.json` manifests via `artisan aicl:components tree`
-> Generated: 2026-03-31 02:25:07
+> Generated: 2026-04-03 23:33:48
 > Components: 35
 
 ## metric (4)

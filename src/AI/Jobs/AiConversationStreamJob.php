@@ -23,9 +23,10 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use NeuronAI\Agent;
-use NeuronAI\AgentInterface;
-use NeuronAI\Chat\Messages\ToolCallMessage;
+use NeuronAI\Agent\Agent;
+use NeuronAI\Agent\AgentInterface;
+use NeuronAI\Chat\Messages\Stream\Chunks\TextChunk;
+use NeuronAI\Chat\Messages\Stream\Chunks\ToolCallChunk;
 use NeuronAI\Providers\AIProviderInterface;
 use Throwable;
 use TypeError;
@@ -241,24 +242,24 @@ class AiConversationStreamJob implements ShouldQueue
         $index = 0;
         $toolResults = [];
 
-        $generator = $neuronAgent->stream($messages);
+        $handler = $neuronAgent->stream($messages);
+        $generator = $handler->events();
 
         // @codeCoverageIgnoreStart — Streaming loop requires real AI provider connection
         foreach ($generator as $chunk) {
-            if ($chunk instanceof ToolCallMessage) {
-                $toolData = collect($chunk->getTools())
-                    ->map(fn ($t): array => $this->buildToolEntry($t, $toolResults))
-                    ->toArray();
+            if ($chunk instanceof ToolCallChunk) {
+                $toolData = [$this->buildToolEntry($chunk->tool, $toolResults)];
 
                 broadcast(new AiToolCallEvent($this->streamId, $userId, $toolData));
 
                 continue;
             }
 
-            $token = (string) $chunk;
-            $fullResponse .= $token;
+            if ($chunk instanceof TextChunk) {
+                $fullResponse .= $chunk->content;
 
-            broadcast(new AiTokenEvent($this->streamId, $userId, $token, $index++));
+                broadcast(new AiTokenEvent($this->streamId, $userId, $chunk->content, $index++));
+            }
         }
 
         $usage = $this->extractUsage($generator);

@@ -5,7 +5,7 @@
     "license": "proprietary",
     "require": {
         "php": "^8.3",
-        "laravel/framework": "^11.0|^12.0",
+        "laravel/framework": "^11.0|^12.0|^13.0",
 
         "filament/filament": "^4.0",
         "spatie/laravel-permission": "^6.0",
@@ -20,9 +20,9 @@
         "laravel/scout": "^10.0",
         "laravel/reverb": "^1.0",
         "barryvdh/laravel-dompdf": "^3.0",
-        "shuvroroy/filament-spatie-laravel-backup": "^3.3",
-        "neuron-core/neuron-ai": "^2.12",
-        "neuron-core/neuron-laravel": "^0.4"
+        "shuvroroy/filament-spatie-laravel-backup": "^3.3|^3.4",
+        "neuron-core/neuron-ai": "^3.3",
+        "neuron-core/neuron-laravel": "^1.1"
     },
     "suggest": {
         "matchish/laravel-scout-elasticsearch": "Required for Elasticsearch Scout driver support.",

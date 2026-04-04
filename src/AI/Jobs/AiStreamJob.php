@@ -17,11 +17,12 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use NeuronAI\Agent;
-use NeuronAI\AgentInterface;
+use NeuronAI\Agent\Agent;
+use NeuronAI\Agent\AgentInterface;
 use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
-use NeuronAI\Chat\Messages\ToolCallMessage;
+use NeuronAI\Chat\Messages\Stream\Chunks\TextChunk;
+use NeuronAI\Chat\Messages\Stream\Chunks\ToolCallChunk;
 use NeuronAI\Providers\AIProviderInterface;
 use Throwable;
 
@@ -75,28 +76,28 @@ class AiStreamJob implements ShouldQueue
             $messages = $this->buildMessages();
             $index = 0;
 
-            $generator = $agent->stream($messages);
+            $handler = $agent->stream($messages);
+            $generator = $handler->events();
 
             foreach ($generator as $chunk) {
-                if ($chunk instanceof ToolCallMessage) {
+                if ($chunk instanceof ToolCallChunk) {
                     broadcast(new AiToolCallEvent(
                         $this->streamId,
                         $this->userId,
-                        collect($chunk->getTools())->map(fn ($t): array => [
-                            'name' => $t->getName(),
-                            'inputs' => $t->getInputs(),
-                        ])->toArray(),
+                        [['name' => $chunk->tool->getName(), 'inputs' => $chunk->tool->getInputs()]],
                     ));
 
                     continue;
                 }
 
-                broadcast(new AiTokenEvent(
-                    $this->streamId,
-                    $this->userId,
-                    (string) $chunk,
-                    $index++,
-                ));
+                if ($chunk instanceof TextChunk) {
+                    broadcast(new AiTokenEvent(
+                        $this->streamId,
+                        $this->userId,
+                        $chunk->content,
+                        $index++,
+                    ));
+                }
             }
 
             $usage = $this->extractUsage($generator);

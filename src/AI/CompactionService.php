@@ -8,7 +8,7 @@ use Aicl\Enums\AiMessageRole;
 use Aicl\Models\AiConversation;
 use Aicl\States\AiConversation\Summarized;
 use Illuminate\Support\Facades\Log;
-use NeuronAI\Agent;
+use NeuronAI\Agent\Agent;
 use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
 use NeuronAI\Providers\AIProviderInterface;

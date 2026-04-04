@@ -10,9 +10,143 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `1.17.3`
+Current version: `2.0.0`
 
 ---
+
+## [2.0.0] - 2026-04-03
+
+### BREAKING — Platform Requirements
+
+- **PHP 8.5+ required** (was 8.3+). PHP 8.3 and 8.4 are no longer supported.
+- **Laravel 13 required** (was 12). Laravel 11 and 12 are no longer supported.
+- **Swoole 6.2+ required** (was 6.0). Update your DDEV Dockerfile or server Swoole installation.
+
+### BREAKING — NeuronAI v3 (AI Assistant)
+
+The NeuronAI SDK was upgraded from v2 to v3. If your project extends or customizes the AI assistant streaming jobs, you must update:
+
+| What Changed | Before (v2) | After (v3) |
+|-------------|-------------|------------|
+| Agent class | `NeuronAI\Agent` | `NeuronAI\Agent\Agent` |
+| Agent interface | `NeuronAI\AgentInterface` | `NeuronAI\Agent\AgentInterface` |
+| `stream()` return type | `Generator` (iterate directly) | `AgentHandler` (call `->events()` for the Generator) |
+| Stream chunks | Raw strings + `ToolCallMessage` | `TextChunk` (access `->content`) + `ToolCallChunk` (access `->tool`) |
+| `ToolCall` class | `NeuronAI\Tools\ToolCall` | Removed — use `NeuronAI\Tools\ToolInterface` |
+
+**Migration example:**
+```php
+// Before (v2)
+$generator = $agent->stream($messages);
+foreach ($generator as $chunk) {
+    if ($chunk instanceof ToolCallMessage) { ... }
+    $token = (string) $chunk;
+}
+
+// After (v3)
+$handler = $agent->stream($messages);
+foreach ($handler->events() as $chunk) {
+    if ($chunk instanceof ToolCallChunk) {
+        $name = $chunk->tool->getName();
+    }
+    if ($chunk instanceof TextChunk) {
+        $token = $chunk->content;
+    }
+}
+```
+
+### BREAKING — Laravel 13 CSRF Middleware Rename
+
+Laravel 13 renamed `VerifyCsrfToken` to `PreventRequestForgery`. Update any custom middleware stacks or CSRF exemptions:
+
+```php
+// Before
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+
+// After
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+```
+
+**Files to check in your project:**
+- `app/Providers/Filament/AdminPanelProvider.php` — middleware stack
+- Any routes using `->withoutMiddleware([...])` for CSRF exemption
+- Semgrep rules referencing the old class name
+
+### BREAKING — spatie/laravel-backup v10
+
+If your project customizes backup events or cleanup strategies:
+- Backup event properties changed from object instances to primitives (`$event->backupDestination->diskName()` → `$event->diskName`)
+- Custom cleanup strategies must accept `Spatie\Backup\Config\Config` instead of `Illuminate\Contracts\Config\Repository`
+- `BackupJob::disableNotifications()` removed — use `EventHandler::disable()`
+- If `encryption` is `null` or `false` in `config/backup.php`, change to `'none'`
+
+### BREAKING — PHP 8.5 Strict Types
+
+- `proc_nice()` now requires `int` argument (was silently cast from string). Horizon supervisor updated.
+- `PDO::MYSQL_ATTR_SSL_CA` deprecated — use `Pdo\Mysql::ATTR_SSL_CA` in `config/database.php`
+
+### Changed — Dependency Versions
+
+| Package | Before | After | Notes |
+|---------|--------|-------|-------|
+| `laravel/framework` | 12.55.1 | **13.3.0** | Major — see L13 upgrade guide |
+| `php` | ^8.3 | **^8.5** | Major — PHP 8.5 minimum |
+| `neuron-core/neuron-ai` | 2.14.0 | **3.3.0** | Major — see NeuronAI section above |
+| `neuron-core/neuron-laravel` | 0.4.0 | **1.1.3** | Major — L13 illuminate/contracts support |
+| `spatie/laravel-backup` | 9.4.1 | **10.2.1** | Major — see backup section above |
+| `owenvoke/blade-fontawesome` | 2.9.1 | **3.2.2** | Major — L13 illuminate/support required |
+| `laravel/tinker` | 2.11.1 | **3.0.0** | Major |
+| `orchestra/testbench` | 10.11.0 | **11.0.0** | Major — tied to Laravel version |
+| `squizlabs/php_codesniffer` | 3.13.5 | **4.0.1** | Major — dev tool |
+| `slevomat/coding-standard` | 8.22.1 | **8.28.1** | Minor — requires phpcs ^4.0.1 |
+| `qossmic/deptrac` | 2.0.4 | — | **Removed** (abandoned) |
+| `deptrac/deptrac` | — | **4.6.0** | Replacement for qossmic/deptrac |
+| `shuvroroy/filament-spatie-laravel-backup` | 3.3.0 | **3.4.0** | Minor — backup v10 support |
+| `dedoc/scramble` | 0.13.16 | **0.13.17** | Patch |
+| `laravel/boost` | 2.3.4 | **2.4.1** | Minor |
+| `laravel/dusk` | 8.4.1 | **8.5.0** | Minor |
+| `laravel/envoy` | 2.11.0 | **2.12.2** | Minor |
+| `laravel/sail` | 1.54.0 | **1.56.0** | Minor |
+| `nunomaduro/collision` | 8.9.1 | **8.9.2** | Patch |
+| `phpstan/phpstan` | 2.1.42 | **2.1.46** | Patch |
+| `phpunit/phpunit` | 12.5.14 | **12.5.16** | Patch |
+
+### Changed — Infrastructure
+
+- **DDEV PHP version** — `php_version: "8.3"` → `"8.5"` in `.ddev/config.yaml`
+- **Swoole Dockerfile** — `SWOOLE_VERSION=6.0.0` → `6.2.0` in `.ddev/web-build/Dockerfile.swoole`
+- **PHPStan baseline** — regenerated for L13 + PHP 8.5 (15,267 entries)
+
+### Unchanged
+
+- **Filament** — stays at v4.9.x (Filament 4.x already supports L13; Filament 5.x does NOT yet support L13)
+- **PostgreSQL** — no changes required
+- **Redis** — no changes required
+- **Elasticsearch** — no changes required
+- **Livewire** — no changes required (bundled with Filament)
+
+### Upgrade Checklist for Projects
+
+1. **Verify PHP 8.5** — `php -v` must show 8.5+. Update DDEV config or server.
+2. **Update Swoole** — Must be 6.2+. Update DDEV Dockerfile or `pecl install swoole-6.2.0`.
+3. **Update `composer.json`:**
+   - `"php": "^8.5"`
+   - `"laravel/framework": "^13.0"`
+   - `"laravel/tinker": "^3.0"`
+   - `"owenvoke/blade-fontawesome": "^3.0"`
+   - `"spatie/laravel-backup": "^10.0"` (if used directly)
+   - `"shuvroroy/filament-spatie-laravel-backup": "^3.4"` (if used directly)
+   - `"orchestra/testbench": "^11.0"` (dev)
+   - Replace `"qossmic/deptrac"` with `"deptrac/deptrac": "^4.6"` (dev)
+   - `"squizlabs/php_codesniffer": "^4.0"` + `"slevomat/coding-standard": "^8.28"` (dev)
+4. **Run `composer update --with-all-dependencies`**
+5. **Search & replace** `VerifyCsrfToken` → `PreventRequestForgery` in your project files
+6. **Update `config/database.php`** — replace `PDO::MYSQL_ATTR_SSL_CA` with `Pdo\Mysql::ATTR_SSL_CA`
+7. **Check backup config** — if `encryption` is `null`/`false`, change to `'none'`
+8. **If you customized AI streaming** — update NeuronAI imports per the migration table above
+9. **Regenerate PHPStan baseline** — `vendor/bin/phpstan analyse --generate-baseline`
+10. **Run full test suite** — `php artisan test`
+11. **Flush Redis cache** — `php artisan cache:clear` (L13 changed cache prefix format)
 
 ## [1.17.3] - 2026-04-03
 

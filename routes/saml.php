@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Aicl\Http\Controllers\SocialAuthController;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('web')->group(function (): void {
@@ -19,6 +19,6 @@ Route::middleware('web')->group(function (): void {
     // SAML Assertion Consumer Service (ACS) — receives POST from IdP
     // CSRF must be exempt since IdP posts directly to this URL
     Route::post('/auth/saml2/callback', [SocialAuthController::class, 'samlCallback'])
-        ->withoutMiddleware([VerifyCsrfToken::class])
+        ->withoutMiddleware([PreventRequestForgery::class])
         ->name('saml.callback');
 });
