@@ -10,9 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `2.0.0`
+Current version: `2.0.1`
 
 ---
+
+## [2.0.1] - 2026-04-03
+
+### Added
+
+- **Stack Versions panel on Ops page** — new section at the top of the Ops Panel (`/admin/ops-panel`) displaying runtime versions for 9 stack components: AICL, PHP, Laravel, Filament, Swoole, PostgreSQL, Redis, Elasticsearch, and Node.js. Each version is collected with graceful fallbacks ('Unavailable', 'Disabled', 'Not installed') when services are unreachable.
 
 ## [2.0.0] - 2026-04-03
 

@@ -1,4 +1,23 @@
 <x-filament-panels::page>
+    {{-- Stack Versions --}}
+    <x-filament::section>
+        <x-slot name="heading">
+            <div class="flex items-center gap-2">
+                <x-filament::icon icon="heroicon-o-cpu-chip" class="h-5 w-5" />
+                <span>Stack Versions</span>
+            </div>
+        </x-slot>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            @foreach ($this->getStackVersions() as $component => $version)
+                <div class="text-center rounded-lg bg-gray-50 p-3 dark:bg-white/5">
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ $component }}</div>
+                    <div class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{{ $version }}</div>
+                </div>
+            @endforeach
+        </div>
+    </x-filament::section>
+
     <div wire:poll.30s>
         {{-- Service Health Checks Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
