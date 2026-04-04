@@ -10,9 +10,15 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `2.0.1`
+Current version: `2.0.2`
 
 ---
+
+## [2.0.2] - 2026-04-04
+
+### Removed
+
+- **Stack Versions panel from Ops page** — removed the version info bar that duplicated information already shown in health check cards (PostgreSQL, Redis, Elasticsearch versions). The health cards are the single source of truth for infrastructure versions.
 
 ## [2.0.1] - 2026-04-03
 

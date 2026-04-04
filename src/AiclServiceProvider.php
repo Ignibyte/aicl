@@ -138,7 +138,7 @@ class AiclServiceProvider extends ServiceProvider
     /**
      * Current package version, used by VersionService and the admin version badge.
      */
-    public const VERSION = '2.0.1';
+    public const VERSION = '2.0.2';
 
     /**
      * Register package services, singletons, and configuration.

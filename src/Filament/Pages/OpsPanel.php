@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace Aicl\Filament\Pages;
 
-use Aicl\AiclServiceProvider;
 use Aicl\Health\HealthCheckRegistry;
 use Aicl\Health\ServiceCheckResult;
 use BackedEnum;
-use Composer\InstalledVersions;
-use Elastic\Elasticsearch\Response\Elasticsearch;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\Redis;
-use Throwable;
 use UnitEnum;
 
 /**
@@ -40,34 +35,6 @@ class OpsPanel extends Page
     protected static ?string $slug = 'ops-panel';
 
     protected string $view = 'aicl::filament.pages.ops-panel';
-
-    /**
-     * Get runtime stack version information for display.
-     *
-     * @return array<string, string>
-     */
-    public function getStackVersions(): array
-    {
-        return [
-            'AICL' => AiclServiceProvider::VERSION,
-            'PHP' => PHP_VERSION,
-            'Laravel' => app()->version(),
-            'Filament' => $this->getComposerVersion('filament/filament'),
-            'Swoole' => defined('SWOOLE_VERSION') ? SWOOLE_VERSION : 'N/A',
-        ];
-    }
-
-    /**
-     * Get a package version from Composer's installed versions registry.
-     */
-    private function getComposerVersion(string $package): string
-    {
-        try {
-            return InstalledVersions::getPrettyVersion($package) ?? 'Unknown';
-        } catch (Throwable) {
-            return 'Unknown';
-        }
-    }
 
     /**
      * Get all service check results from cache — called by the Blade template.
