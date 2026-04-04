@@ -1,22 +1,16 @@
 <x-filament-panels::page>
-    {{-- Stack Versions --}}
-    <x-filament::section>
-        <x-slot name="heading">
-            <div class="flex items-center gap-2">
-                <x-filament::icon icon="heroicon-o-cpu-chip" class="h-5 w-5" />
-                <span>Stack Versions</span>
+    {{-- Platform Versions (compact bar — infrastructure versions are in health cards below) --}}
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl bg-gray-50 px-5 py-3 text-sm dark:bg-white/5">
+        @foreach ($this->getStackVersions() as $component => $version)
+            <div class="flex items-center gap-1.5">
+                <span class="font-medium text-gray-500 dark:text-gray-400">{{ $component }}</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ $version }}</span>
             </div>
-        </x-slot>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            @foreach ($this->getStackVersions() as $component => $version)
-                <div class="text-center rounded-lg bg-gray-50 p-3 dark:bg-white/5">
-                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ $component }}</div>
-                    <div class="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{{ $version }}</div>
-                </div>
-            @endforeach
-        </div>
-    </x-filament::section>
+            @if (! $loop->last)
+                <span class="hidden sm:inline text-gray-300 dark:text-gray-600">|</span>
+            @endif
+        @endforeach
+    </div>
 
     <div wire:poll.30s>
         {{-- Service Health Checks Grid --}}

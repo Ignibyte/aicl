@@ -9,11 +9,9 @@ use Aicl\Health\HealthCheckRegistry;
 use Aicl\Health\ServiceCheckResult;
 use BackedEnum;
 use Composer\InstalledVersions;
-use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\Response\Elasticsearch;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Throwable;
 use UnitEnum;
@@ -55,11 +53,7 @@ class OpsPanel extends Page
             'PHP' => PHP_VERSION,
             'Laravel' => app()->version(),
             'Filament' => $this->getComposerVersion('filament/filament'),
-            'Swoole' => defined('SWOOLE_VERSION') ? SWOOLE_VERSION : 'Not installed',
-            'PostgreSQL' => $this->getDatabaseVersion(),
-            'Redis' => $this->getRedisVersion(),
-            'Elasticsearch' => $this->getElasticsearchVersion(),
-            'Node.js' => $this->getNodeVersion(),
+            'Swoole' => defined('SWOOLE_VERSION') ? SWOOLE_VERSION : 'N/A',
         ];
     }
 
@@ -69,84 +63,9 @@ class OpsPanel extends Page
     private function getComposerVersion(string $package): string
     {
         try {
-            $version = InstalledVersions::getPrettyVersion($package);
-
-            return $version ?? 'Unknown';
+            return InstalledVersions::getPrettyVersion($package) ?? 'Unknown';
         } catch (Throwable) {
             return 'Unknown';
-        }
-    }
-
-    /**
-     * Get the PostgreSQL server version.
-     */
-    private function getDatabaseVersion(): string
-    {
-        try {
-            $result = DB::selectOne('SELECT version()');
-
-            /** @var string $version */
-            $version = $result->version ?? '';
-
-            // Extract just the version number (e.g., "PostgreSQL 17.2" from the full string)
-            if (preg_match('/PostgreSQL\s+([\d.]+)/', $version, $matches) === 1) {
-                return 'PostgreSQL '.$matches[1];
-            }
-
-            return $version !== '' ? $version : 'Unavailable';
-        } catch (Throwable) {
-            return 'Unavailable';
-        }
-    }
-
-    /**
-     * Get the Redis server version.
-     */
-    private function getRedisVersion(): string
-    {
-        try {
-            /** @var array<string, mixed> $info */
-            $info = Redis::connection()->client()->info('server');
-
-            return (string) ($info['redis_version'] ?? $info['Server']['redis_version'] ?? 'Unavailable');
-        } catch (Throwable) {
-            return 'Unavailable';
-        }
-    }
-
-    /**
-     * Get the Elasticsearch server version.
-     */
-    private function getElasticsearchVersion(): string
-    {
-        try {
-            if (config('aicl.features.search') !== true) {
-                return 'Disabled';
-            }
-
-            $client = app(Client::class);
-            /** @var Elasticsearch $response */
-            $response = $client->info();
-            /** @var array<string, mixed> $data */
-            $data = $response->asArray();
-
-            return (string) ($data['version']['number'] ?? 'Unavailable');
-        } catch (Throwable) {
-            return 'Unavailable';
-        }
-    }
-
-    /**
-     * Get the Node.js version.
-     */
-    private function getNodeVersion(): string
-    {
-        try {
-            $version = trim((string) shell_exec('node -v 2>/dev/null'));
-
-            return $version !== '' ? $version : 'Not installed';
-        } catch (Throwable) {
-            return 'Not installed';
         }
     }
 
