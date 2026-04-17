@@ -21,6 +21,21 @@ class CleanStaleDeliveriesJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
 
+    /**
+     * Maximum retry attempts on transient DB error.
+     */
+    public int $tries = 3;
+
+    /**
+     * Seconds to wait between retries.
+     */
+    public int $backoff = 30;
+
+    /**
+     * Worker-side timeout in seconds.
+     */
+    public int $timeout = 120;
+
     public function handle(): void
     {
         $staleThreshold = now()->subHours(24);

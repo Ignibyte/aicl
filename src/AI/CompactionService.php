@@ -6,8 +6,10 @@ namespace Aicl\AI;
 
 use Aicl\Enums\AiMessageRole;
 use Aicl\Models\AiConversation;
+use Aicl\Models\AiMessage;
 use Aicl\States\AiConversation\Summarized;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NeuronAI\Agent\Agent;
 use NeuronAI\Chat\Enums\MessageRole;
 use NeuronAI\Chat\Messages\Message;
@@ -46,9 +48,18 @@ class CompactionService
             throw new RuntimeException('AI provider not configured for compaction.'); // @codeCoverageIgnore
         }
 
-        // Load messages that will be summarized (everything except the most recent N)
+        // Load messages that will be summarized (everything except the most recent N).
+        // Count only user + assistant messages toward the "keep N recent turns" window —
+        // system messages would inflate the total and cause real turns to be summarized
+        // sooner than the agent's context_messages setting intends.
         $contextMessages = $agent->context_messages;
-        $totalMessages = $conversation->messages()->count();
+        $totalMessages = AiMessage::query()
+            ->where('ai_conversation_id', $conversation->id)
+            ->whereIn('role', [
+                AiMessageRole::User->value,
+                AiMessageRole::Assistant->value,
+            ])
+            ->count();
         $messagesToSummarize = $totalMessages - $contextMessages;
 
         if ($messagesToSummarize <= 0) {
@@ -121,18 +132,27 @@ class CompactionService
     }
 
     /**
-     * Build the summarization prompt.
+     * Build the summarization prompt with a per-invocation UUID delimiter.
+     *
+     * A fixed delimiter like `--- END ---` can be injected by a user message
+     * containing that exact string, letting the content break out of the
+     * conversation block. Generating a UUID per invocation makes the
+     * delimiter unguessable. Any accidental collision inside user content
+     * is defensively replaced before interpolation.
      */
     protected function buildSummaryPrompt(string $conversationText): string
     {
+        $delim = (string) Str::uuid();
+        $safeText = str_replace($delim, '[redacted]', $conversationText);
+
         return <<<PROMPT
 Summarize the following conversation concisely. Capture the key topics discussed, any decisions made, important facts mentioned, and the overall context. The summary will be used to provide context for future messages in this conversation.
 
 Keep the summary under 500 words. Focus on information that would be useful for continuing the conversation.
 
---- CONVERSATION ---
-{$conversationText}
---- END ---
+--- BEGIN CONVERSATION ({$delim}) ---
+{$safeText}
+--- END CONVERSATION ({$delim}) ---
 
 Provide only the summary, no preamble or explanation.
 PROMPT;

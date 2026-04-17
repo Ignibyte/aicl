@@ -350,14 +350,31 @@ window.navigationSwitcher = function () {
                 requestAnimationFrame(function () { setupWatcher(); });
             });
 
-            // Fallback: poll briefly in case both above missed the window
+            // Fallback: poll briefly in case both above missed the window.
+            // Store the interval handle on `this._poll` so destroy() can
+            // clearInterval it if the component is torn down before the
+            // poll self-clears (Livewire re-render / navigation-away).
+            var self = this;
             var attempts = 0;
-            var poll = setInterval(function () {
+            this._poll = setInterval(function () {
                 attempts++;
                 if (setupWatcher() || attempts > 20) {
-                    clearInterval(poll);
+                    clearInterval(self._poll);
+                    self._poll = null;
                 }
             }, 100);
+        },
+
+        /**
+         * Alpine destroy() lifecycle hook — clear any outstanding setInterval
+         * handle to prevent leaked intervals across Livewire re-renders or
+         * page navigations.
+         */
+        destroy() {
+            if (this._poll) {
+                clearInterval(this._poll);
+                this._poll = null;
+            }
         },
     };
 };

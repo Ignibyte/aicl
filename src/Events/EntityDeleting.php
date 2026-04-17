@@ -6,23 +6,45 @@ namespace Aicl\Events;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * Fired before an AICL entity model is deleted.
  *
  * Dispatched by the HasEntityEvents trait during the Eloquent "deleting" hook.
- * Listeners can perform cleanup or prevent deletion by throwing an exception.
+ * Listeners can perform cleanup based on the scalar identity fields.
+ *
+ * Stores entity identity as scalar properties rather than the live Model
+ * reference to prevent `SerializesModels` re-hydration failures if a listener
+ * queues — the row may already be gone by the time the queue worker tries to
+ * re-fetch. Mirrors the scalar-override pattern used by EntityDeleted.
+ *
+ * @see EntityDeleted The sibling "after delete" event using the same pattern
  */
 class EntityDeleting
 {
     use Dispatchable;
-    use SerializesModels;
 
     /**
-     * @param Model $entity The entity model about to be deleted
+     * The ID of the entity about to be deleted.
      */
-    public function __construct(
-        public Model $entity,
-    ) {}
+    public int|string $entityId;
+
+    /**
+     * The short class name of the entity (e.g., "Project").
+     */
+    public string $entityType;
+
+    /**
+     * The fully-qualified class name of the entity.
+     *
+     * @var class-string<Model>
+     */
+    public string $entityClass;
+
+    public function __construct(Model $entity)
+    {
+        $this->entityId = $entity->getKey();
+        $this->entityType = class_basename($entity);
+        $this->entityClass = $entity::class;
+    }
 }

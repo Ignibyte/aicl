@@ -410,6 +410,16 @@ return [
             'compaction_threshold' => 50,
             'compaction_delete_old_messages' => false,
             'token_budget_daily' => null,
+            /*
+             * Shadow-mode flag for the daily token budget. When true AND
+             * `token_budget_daily` is set, over-budget requests are logged
+             * and tracked in the `metrics:ai_rate_limit:budget_warn_only:*`
+             * counter BUT are NOT blocked. Enables operators to dark-launch
+             * a budget + observe metrics before committing to enforcement.
+             * Default false preserves hard-enforce semantics for existing
+             * installs. See architecture decision `feature.ai-budget-shadow-mode`.
+             */
+            'token_budget_daily_warn_only' => env('AICL_AI_BUDGET_DAILY_WARN_ONLY', false),
             'context_injection' => true,
         ],
     ],

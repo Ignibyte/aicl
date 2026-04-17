@@ -101,16 +101,6 @@ class Changelog extends Page
         // @codeCoverageIgnoreEnd
     }
 
-    /**
-     * @deprecated Use getFrameworkChangelogHtml() instead.
-     */
-    public function getChangelogHtml(): string
-    {
-        // @codeCoverageIgnoreStart — Filament Livewire rendering
-        return $this->getFrameworkChangelogHtml();
-        // @codeCoverageIgnoreEnd
-    }
-
     public static function canAccess(): bool
     {
         $user = auth()->user();
@@ -131,6 +121,7 @@ class Changelog extends Page
             return '<p class="text-gray-500">No changelog found.</p>';
         }
 
+        // nosemgrep: file-get-contents-url -- $path is resolved from a static, non-user-controlled changelog filename list via getChangelogContent(). No URL scheme is accepted.
         return Str::markdown((string) file_get_contents($path), ['html_input' => 'strip']);
         // @codeCoverageIgnoreEnd
     }

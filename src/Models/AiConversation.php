@@ -191,9 +191,7 @@ class AiConversation extends Model
      */
     protected function searchableColumns(): array
     {
-        // @codeCoverageIgnoreStart — Untestable in unit context
         return ['title'];
-        // @codeCoverageIgnoreEnd
     }
 
     // ──────────────────────────────────────────────

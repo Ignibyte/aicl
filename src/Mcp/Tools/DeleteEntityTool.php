@@ -7,6 +7,7 @@ namespace Aicl\Mcp\Tools;
 use Aicl\Mcp\Concerns\ChecksTokenScope;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -69,7 +70,16 @@ class DeleteEntityTool extends Tool
         $user = $request->user('api');
 
         if (! $user || ! $user->can('delete', $model)) {
-            return Response::error("Unauthorized to delete this {$this->entityLabel}.");
+            // Unified error to prevent existence enumeration via differential
+            // error responses. Policy denials are logged for audit trail.
+            Log::info('MCP policy denial', [
+                'tool' => static::class,
+                'model' => $this->modelClass,
+                'model_id' => $validated['id'],
+                'user_id' => $user?->getAuthIdentifier(),
+            ]);
+
+            return Response::error("{$this->entityLabel} not found.");
         }
 
         $model->delete();

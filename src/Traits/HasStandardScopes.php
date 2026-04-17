@@ -93,22 +93,28 @@ trait HasStandardScopes
         }
 
         return $query->where(function (Builder $q) use ($columns, $term): void {
+            $grammar = $q->getGrammar();
             foreach ($columns as $column) {
-                $q->orWhereRaw("LOWER({$column}) LIKE ?", ['%'.mb_strtolower($term).'%']);
+                $wrapped = $grammar->wrap($column);
+                $q->orWhereRaw("LOWER({$wrapped}) LIKE ?", ['%'.mb_strtolower($term).'%']);
             }
         });
     }
 
     /**
      * Columns searched by the search() scope.
-     * Override in your model to customize.
+     *
+     * **REQUIRED: models MUST override this method.** The default returns an
+     * empty array — any model using `HasStandardScopes` without explicitly
+     * overriding `searchableColumns()` will get no results from `search()`,
+     * not a SQL error. Previously this defaulted to `['name', 'title']`, which
+     * caused BF-005 (500 errors on Filament search for models without a
+     * `title` column). The empty default is fail-soft by design.
      *
      * @return array<int, string>
      */
     protected function searchableColumns(): array
     {
-        // @codeCoverageIgnoreStart — Trait requiring integration context
-        return ['name', 'title'];
-        // @codeCoverageIgnoreEnd
+        return [];
     }
 }

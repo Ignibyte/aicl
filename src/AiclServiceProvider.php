@@ -93,6 +93,7 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Events\NotificationSent;
@@ -100,6 +101,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -128,7 +130,13 @@ use Throwable;
  *   2. config/aicl-project.php (project-level overrides)
  *   3. packages/aicl/config/aicl.php (package defaults)
  *
+ * Service providers with multiple boot* methods are a legitimate organizational
+ * pattern; each is single-responsibility. Per the project's
+ * quality.phpmd-suppression-policy, AiclServiceProvider is an intentional
+ * coupling/organization point — coupling and method count are suppressed.
+ *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.TooManyMethods)
  *
  * @see AiclPlugin  Filament panel plugin that registers pages, resources, and widgets
  * @see EntityRegistry  Central registry of all entity types
@@ -138,7 +146,7 @@ class AiclServiceProvider extends ServiceProvider
     /**
      * Current package version, used by VersionService and the admin version badge.
      */
-    public const VERSION = '2.0.4';
+    public const VERSION = '2.1.0';
 
     /**
      * Register package services, singletons, and configuration.
@@ -313,6 +321,7 @@ class AiclServiceProvider extends ServiceProvider
     {
         $this->bootUrlScheme();
         $this->bootPassportScopes();
+        $this->bootMorphMap();
         $this->bootPolicies();
         $this->bootObservers();
         $this->bootEvents();
@@ -324,6 +333,29 @@ class AiclServiceProvider extends ServiceProvider
         $this->registerSecurityMiddleware();
         $this->registerPresenceMiddleware();
         $this->bootCommands();
+    }
+
+    /**
+     * Register short aliases for polymorphic relations.
+     *
+     * Decouples `*_type` column values from PHP namespaces so class renames
+     * don't silently break existing rows. Laravel's morphMap reads both
+     * alias and FQCN transparently, so legacy FQCN-valued rows continue to
+     * resolve indefinitely. See architecture decision `data.morphmap`.
+     */
+    private function bootMorphMap(): void
+    {
+        // App\Models\User is intentionally NOT aliased — it appears in
+        // multiple pre-existing polymorphic subject_type/causer_type columns
+        // (activity log, audit trail, notifications) written with FQCN
+        // strings. Adding a user alias would cause silent data drift.
+        // AI models are new (recent sprints) and not used elsewhere as
+        // polymorphic subjects.
+        Relation::morphMap([
+            'ai_agent' => AiAgent::class,
+            'ai_conversation' => AiConversation::class,
+            'ai_message' => AiMessage::class,
+        ]);
     }
 
     /**
@@ -806,6 +838,15 @@ class AiclServiceProvider extends ServiceProvider
         $overrides = require $path;
 
         if (! is_array($overrides)) {
+            // Silent in production to avoid log spam during misconfigured
+            // deploys; warn in non-production so developers catch typos.
+            if ($this->app->environment() !== 'production') {
+                Log::warning('AICL local config override returned non-array; ignored.', [
+                    'path' => $path,
+                    'type' => gettype($overrides),
+                ]);
+            }
+
             return;
         }
 

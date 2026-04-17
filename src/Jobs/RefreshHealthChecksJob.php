@@ -23,6 +23,16 @@ class RefreshHealthChecksJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
 
+    /**
+     * Health checks are point-in-time; retrying stale results adds no value.
+     */
+    public int $tries = 1;
+
+    /**
+     * Worker-side timeout in seconds (bounds a slow external dependency).
+     */
+    public int $timeout = 60;
+
     public function handle(HealthCheckRegistry $registry): void
     {
         $results = $registry->runAll();

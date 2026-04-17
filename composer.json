@@ -22,7 +22,8 @@
         "barryvdh/laravel-dompdf": "^3.0",
         "shuvroroy/filament-spatie-laravel-backup": "^3.3|^3.4",
         "neuron-core/neuron-ai": "^3.3",
-        "neuron-core/neuron-laravel": "^1.1"
+        "neuron-core/neuron-laravel": "^1.1",
+        "phpseclib/phpseclib": "^3.0.51"
     },
     "require-dev": {
         "nunomaduro/collision": "^8.6"

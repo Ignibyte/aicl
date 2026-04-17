@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aicl\Mcp\Tools;
 
+use Aicl\Mcp\Concerns\ChecksTokenScope;
 use FilesystemIterator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Str;
@@ -34,6 +35,8 @@ use RecursiveIteratorIterator;
 #[IsReadOnly]
 class SearchArchitectureDocsTool extends Tool
 {
+    use ChecksTokenScope;
+
     protected string $name = 'search-architecture-docs';
 
     protected string $description = 'Search project architecture documentation in docs/architecture/. Three modes: (1) search by query, (2) fetch a specific doc/section by slug, (3) list all docs (no params). These are project-level architectural decisions, integration guides, and service documentation.';
@@ -59,6 +62,12 @@ class SearchArchitectureDocsTool extends Tool
 
     public function handle(Request $request): Response
     {
+        $scopeError = $this->checkScope($request, 'read');
+
+        if ($scopeError !== null) {
+            return $scopeError;
+        }
+
         $docsPath = $this->docsPath ?? base_path('docs/architecture');
 
         if (! is_dir($docsPath)) {

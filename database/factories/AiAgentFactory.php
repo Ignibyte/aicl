@@ -14,6 +14,11 @@ use Illuminate\Support\Str;
 
 /**
  * @extends Factory<AiAgent>
+ *
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ *   — state() closures receive Laravel's $attributes context per the Factory
+ *   contract; many states don't consume it. Consistent with the Laravel
+ *   factory idiom and the project's scaffolder-template-standards policy.
  */
 class AiAgentFactory extends Factory
 {
@@ -55,12 +60,10 @@ class AiAgentFactory extends Factory
                 'Debug this issue',
                 'Explain this concept',
             ], fake()->numberBetween(1, 3)),
-            'capabilities' => fake()->optional(0.3)->randomElements([
-                'chat',
-                'analyze_data',
-                'generate_code',
-                'summarize',
-            ], fake()->numberBetween(1, 3)),
+            // Conservative default matching AiAgent accessor shape
+            // (hasToolsEnabled/getAllowedTools expect associative keys).
+            // Tests needing custom capabilities should pass them explicitly.
+            'capabilities' => ['tools_enabled' => false],
             'visible_to_roles' => null,
             'max_requests_per_minute' => fake()->optional(0.3)->numberBetween(5, 60),
             'state' => Draft::class,

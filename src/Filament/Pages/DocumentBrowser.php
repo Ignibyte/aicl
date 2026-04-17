@@ -7,7 +7,6 @@ namespace Aicl\Filament\Pages;
 use BackedEnum;
 use Filament\Pages\Page;
 use Illuminate\Support\Str;
-use Livewire\Attributes\Url;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use UnitEnum;
@@ -34,8 +33,54 @@ class DocumentBrowser extends Page
 
     protected string $view = 'aicl::filament.pages.document-browser';
 
-    #[Url]
+    /**
+     * Currently-selected file path (relative to base_path).
+     *
+     * No `#[Url]` attribute — URL query-param binding would allow any path
+     * through the property setter. Instead, use the public `selectFile()`
+     * action, which validates against `isAllowedPath()` before assigning.
+     * The `updatedFile()` hook is a belt-and-suspenders validator for any
+     * other channel (test setters, Livewire internals) — rejects disallowed
+     * paths by resetting to null.
+     */
     public ?string $file = null;
+
+    /**
+     * Public action for selecting a document file.
+     *
+     * The only supported write path for `$file`. Validates the proposed path
+     * resolves within the configured document allowlist before assigning;
+     * silently ignores disallowed paths.
+     */
+    public function selectFile(string $path): void
+    {
+        if ($this->isAllowedPath(base_path($path))) {
+            $this->file = $path;
+
+            return;
+        }
+
+        $this->file = null;
+    }
+
+    /**
+     * Livewire lifecycle hook — runs on any `$file` property update.
+     *
+     * Defense-in-depth: if `$file` is set via any channel other than
+     * `selectFile()` (e.g., a test setter, a Livewire internal, a legacy
+     * URL binding), this hook runs the allowlist validator and resets to
+     * null on failure.
+     */
+    public function updatedFile(?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        if (! $this->isAllowedPath(base_path($value))) {
+            $this->file = null;
+        }
+    }
 
     /**
      * Get configured document paths, including auto-discovered framework docs.
@@ -126,6 +171,7 @@ class DocumentBrowser extends Page
             return '<p class="text-gray-500">File not found or not readable.</p>';
         }
 
+        // nosemgrep: file-get-contents-url -- $fullPath has passed isAllowedPath() which resolves via realpath() and requires the path to live under config('aicl.docs.paths'). No URL scheme is accepted.
         return Str::markdown((string) file_get_contents($fullPath), ['html_input' => 'strip']);
     }
 

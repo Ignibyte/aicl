@@ -355,7 +355,11 @@
                                         {{-- Bubble --}}
                                         <div class="ml-auto w-fit max-w-[80%]">
                                             <div class="rounded-2xl rounded-tr-sm bg-primary-500 px-4 py-2.5 text-white">
-                                                <div x-html="_renderMarkdown(msg.content || '')" class="prose-chat text-sm leading-relaxed [overflow-wrap:anywhere]"></div>
+                                                {{-- User messages use x-text (HTML-escaped) — no markdown rendering.
+                                                     Users send plain text; rendering via x-html would require trusting
+                                                     the client-side _renderMarkdown escape, which is a weaker guarantee
+                                                     than Alpine's native text-node escape. --}}
+                                                <div x-text="msg.content || ''" class="prose-chat text-sm leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap"></div>
                                             </div>
                                         </div>
                                     </div>

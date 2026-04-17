@@ -26,6 +26,9 @@ abstract class AiConversationState extends State
             ->allowTransition(Active::class, Summarized::class)
             ->allowTransition(Active::class, Archived::class)
             ->allowTransition(Summarized::class, Archived::class)
+            // Reactivate a summarized conversation without routing through Archived.
+            // Supports the "continue chatting after compaction" user flow directly.
+            ->allowTransition(Summarized::class, Active::class)
             ->allowTransition(Archived::class, Active::class);
     }
 }

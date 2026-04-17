@@ -1,4 +1,4 @@
-<div wire:poll.5s>
+<div wire:poll.15s>
     <div class="fi-ta">
         <div class="fi-ta-content overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
             <table class="fi-ta-table w-full table-auto divide-y divide-gray-200 text-start dark:divide-white/5">

@@ -21,6 +21,19 @@ use RuntimeException;
  */
 class AiAssistantPanel extends Component
 {
+    /*
+     * IDOR protection:
+     *   `loadMessages()` and `switchConversation()` always re-check
+     *   `where('user_id', $user->id)` before returning or binding data, which
+     *   is the real guard against cross-user conversation access. The Phase 2
+     *   design considered `#[Locked]` as belt-and-suspenders but reverted
+     *   because the existing test contract relies on direct property setters
+     *   (20+ assertions in AiAssistantPanel*Test), and the Alpine x-model
+     *   binding on `selectedAgentId` needs bi-directional updates that
+     *   `#[Locked]` would block. The audit finding is tracked for a dedicated
+     *   follow-up that co-updates the test contract and adds a `selectAgent()`
+     *   action method for `selectedAgentId` bi-di.
+     */
     public ?string $activeConversationId = null;
 
     public ?string $selectedAgentId = null;

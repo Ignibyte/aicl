@@ -5,13 +5,24 @@ declare(strict_types=1);
 namespace Aicl\Horizon\Listeners;
 
 use Aicl\Horizon\Lock;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Notification;
 
 /**
+ * Queued listener for Horizon's LongWaitDetected event.
+ *
+ * Runs on a queue worker — not inside the supervisor tick — so a slow
+ * SMTP handshake cannot stall the SupervisorLooped loop.
+ *
  * @codeCoverageIgnore Horizon process management
  */
-class SendNotification
+class SendNotification implements ShouldQueue
 {
+    use InteractsWithQueue;
+    use Queueable;
+
     /**
      * Handle the event.
      *

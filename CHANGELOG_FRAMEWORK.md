@@ -10,7 +10,120 @@ This project uses **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`:
 - **MINOR** — New package features, commands, components, or non-breaking additions
 - **PATCH** — Bug fixes, test improvements, documentation updates
 
-Current version: `2.0.4`
+Current version: `2.1.0`
+
+---
+
+## [2.1.0] - 2026-04-17
+
+Seven pipelines + one housekeeping bundle + one upstream security delegation, all merged to `main` on top of `v2.0.4`. Sources: v2.1.0 self-reflection review (Findings 3a, 4a, 4b, 4c, 7, 8a, 10a, 10b), audit #58 (Cluster 1–6), UCSOS-119 upstream security delegation.
+
+### Pipeline A — MCP auth + AI assistant safety hardening (PR #1 · `63b1935`)
+
+Closes audit #58 Cluster 1 (MCP + AI safety, 10 findings). Scope limited by Phase 2 risk review — two defenses were deliberately deferred and are tracked separately (see "Deferred / Wontfix" at the end of this bundle).
+
+- **Fixed:** AI message rate-limit + per-user daily token budget enforcement (previously DB-column-only, unconsumed). Extracted into `AiChatService::enforcePerAgentRpmLimit` + `enforceDailyTokenBudget` private methods. New `AiRateLimitException` class. `AiMessageObserver::created()` increments the per-user daily token cache counter.
+- **Fixed:** CompactionService prompt-injection — per-invocation UUID delimiter replaces the static `--- END ---` marker; defensive `str_replace($delim, '[redacted]', $content)` prevents user messages from breaking out of the conversation block.
+- **Fixed:** CompactionService context-window correctness — counts only `User` + `Assistant` role messages toward `context_messages`; System messages no longer inflate the total and cause real turns to be summarized sooner than the agent's configured window intends.
+- **Changed:** IDOR protection on `AiAssistantPanel::$activeConversationId` / `$selectedAgentId` — retained server-side `where('user_id', $user->id)` re-check in `loadMessages()` and `switchConversation()` as the authoritative guard. `#[Locked]` was evaluated but reverted (broke Alpine `x-model` + 20+ tests). See "Deferred / Wontfix" below and `docs/planning/brainstorm/BRAINSTORM-64-Locked-vs-ServerCoerce.md`.
+
+### Pipeline B — Event / job hygiene + BF-050 regression (PR #2 · `31d2497`)
+
+Closes audit #58 Cluster 2 (event + queued-job metadata, 6 findings).
+
+- **Fixed:** `EntityDeleting` / `EntityDeleted` events — removed `SerializesModels` trait; store scalar `entityId` / `entityType` / `entityClass` fields instead of the live `Model` reference (prevents BF-050: `SerializesModels` on delete events tries to re-hydrate the row when the queue worker runs, but the row is already gone).
+- **Changed:** Horizon `RetryFailedJob` now implements `ShouldQueue` (previously synchronous). Scalar public properties are safe for `SerializesModels`. `$tries=3`, `$timeout=30s`.
+- **Changed:** `SendNotification` listener implements `ShouldQueue`. `CleanStaleDeliveriesJob` + `RefreshHealthChecksJob` gain `$tries=3` + `$backoff=30s` for transient DB error resilience.
+
+### Pipeline C — Data layer correctness (PR #3 · `e9c5a48`)
+
+Closes audit #58 Cluster 5 + 7 (search, Eloquent, framework polish, 12 findings).
+
+- **Fixed:** `GlobalSearchWidget::results()` now calls `$searchService->applyPolicyFilter()` as a defense-in-depth safety-net matching the Search page's pattern. Previously low-privilege users could see policy-protected entities in widget search results. (NOTE: this pipeline introduced the `total: $filteredResults->count()` defect later fixed by Pipeline F.)
+- **Fixed:** `SearchIndexingService::swapAlias()` TOCTOU — atomic `add + remove` in one `updateAliases` call with `ignore_unavailable: true`. Eliminates the time-of-check/time-of-use window between the prior `indexExists()` and `updateAliases`.
+- **Fixed:** `SearchIndexingService::bulkIndex()` miscount — partial-flush uses `count($params['body']) / 2` instead of hardcoded `+= 500`.
+- **Fixed:** `AiMessageObserver` `DB::raw` hardening — `DB::raw('token_count + '.$tokenCount)` concat (was interpolated string); `$tokenCount` is `(int)`-cast.
+- **Fixed:** BF-005 `HasStandardScopes::searchableColumns()` footgun — default returns `[]` (was `['name', 'title']`). Models without a `title` column no longer 500 on Filament search.
+- **Changed:** Polymorphic morphMap registered for `AiAgent`, `AiConversation`, `AiMessage` (short aliases replace FQCN strings). `App\Models\User` intentionally NOT aliased (appears in pre-existing polymorphic columns written with FQCN).
+- **Changed:** `AiclServiceProvider::applyLocalOverrides()` logs `Log::warning` in non-production when `local.php` returns non-array.
+- **Changed:** `AiConversationState` adds `Summarized → Active` transition (restores the "reactivate from summary" direct path).
+- **Added:** Migration `0006_alter_notification_logs_json_to_jsonb` — converts `channels` + `channel_status` from `json` to `jsonb` on PostgreSQL. Reversible. Skips on non-PG drivers.
+
+### Pipeline D — UI cleanup (PR #4 · `8238dcb`)
+
+Closes audit #58 Cluster 6 (UI, 8 findings — 6 substantive + 2 inspected-no-change).
+
+- **Fixed:** `UsersTable` adds `ViewAction` alongside existing `EditAction` in `recordActions`. `CreateAction` already on `ListUsers` header (no change).
+- **Fixed:** `DocumentBrowser` path-traversal defense — removed `#[Url]` from `$file`; writes flow through explicit `selectFile(string $path)` Livewire action gated by `isAllowedPath(base_path($path))`. `updatedFile(?string $value)` hook is defense-in-depth.
+- **Fixed:** AI assistant panel XSS defense — user-message container swapped from `x-html="_renderMarkdown(msg.content)"` to `x-text="msg.content || ''"`. HTML tags render as literal text (Alpine HTML-escapes at the DOM level). Assistant messages retain `x-html` (server-sanitized markdown).
+- **Fixed:** `navigationSwitcher` Alpine interval leak — fallback poll's `setInterval` handle stored on `this._poll`, cleared in `destroy()`. Attempt counter bounds at 20 iterations.
+- **Changed:** Horizon poll cadence — `jobs-table.blade.php` + `failed-jobs-table.blade.php` changed `wire:poll.5s` → `wire:poll.15s` (12/min/tab → 4/min/tab Redis reads).
+- **Changed:** Version badge resolves per-render — `AiclPlugin::boot()` render hook for `USER_MENU_BEFORE` resolves `app(VersionService::class)->current()` inside the closure per render (not once at plugin boot). Redeployed versions surface without an Octane restart.
+- **Removed:** `Changelog::getChangelogHtml()` deprecated wrapper. Three tests migrated to regression guards.
+- **Testing:** New `tests/Playwright/specs/auth.setup.ts` seeds admin storageState at `tests/Playwright/.auth/admin.json`. Auth-gated specs from Pipelines A/B/C either run or are explicitly `test.fixme()`-ed.
+
+### Housekeeping — CVE bump + PCOV + Stylelint + Semgrep (PR #5 · `59ea042`)
+
+- **Fixed:** phpseclib `3.0.50 → 3.0.51` via `composer update --with-dependencies` (CVE-2026-40194 — SSH2 variable-time HMAC comparison). `composer audit`: no advisories.
+- **Fixed:** Infection PCOV deferral resolved — `.ddev/php/pcov.ini` enables `pcov.enabled=1`. Cross-pipeline blocker from A/B/C/D cleared. Infection + phpunit coverage now run without `--initial-tests-php-options='-d pcov.enabled=1'` gymnastics.
+- **Fixed:** Stylelint 40 `alpha-value-notation` errors — auto-fix (`0.3` → `30%` etc.) on `resources/css/filament/admin/theme.css`. No visual change.
+- **Fixed:** Semgrep `file-get-contents-url` suppressions on `Changelog::renderChangelog()` + `DocumentBrowser::renderFile()` with inline justifications (both read allowlisted local paths; no URL schemes).
+
+### UCSOS-119 — phpseclib floor + HasStandardScopes identifier quoting (PR #6 · `55bd51f`)
+
+Delegated from UCSOS ticket #119 (two defense-in-depth fixes; no known active exploit in any downstream).
+
+- **Fixed:** H9 — `phpseclib/phpseclib: ^3.0.51` now explicit in `packages/aicl/composer.json` require (was only reached transitively via `laravel/passport` + `laravel/socialite` with no floor). Downstream projects inherit the floor on next `composer update aicl/aicl`.
+- **Fixed:** H11 — `HasStandardScopes::scopeSearch()` wraps each `$column` via `$grammar->wrap()` before interpolating into `orWhereRaw` LIKE. Per-driver quoting (`"users"."email"` on pgsql, `` `users`.`email` `` on mysql) with embedded-quote escaping. No current downstream caller passes dynamic columns, but the contract no longer forbids them — defense-in-depth for future extensions.
+
+### Pipeline E — AiChatService rate-limit atomicity + fail-closed budget (PR #7 · `8eec907`)
+
+Self-reflection review followup that fixes two defects introduced by Pipeline A (PR #1). Ticket #65 (v2.1.0 release blocker).
+
+- **Fixed:** Finding 4a (CRITICAL) — RPM counter TOCTOU race. `enforcePerAgentRpmLimit()` now uses hit-first-then-check via `RateLimiter::hit()` post-increment return (Redis `INCR` under the hood). Prior non-atomic `tooManyAttempts → hit` pair leaked the limit by `min(workers, concurrent_requests)` under Octane. `RateLimiter::attempt()` is NOT atomic either (vendor `RateLimiter.php:105-118`); documented.
+- **Fixed:** Finding 4b (HIGH) — fail-OPEN on Redis outage. Both `RateLimiter::hit()` and `Cache::get()` wrapped in `try/catch(\Throwable)` that converts to `AiRateLimitException('...temporarily unavailable', 60)` with `Log::error` operator signal. Previously a Redis outage silently bypassed RPM + daily budget controls.
+- **Added:** `safeAvailableIn(string $rpmKey): int` helper — catches secondary Redis flap between `hit()` and `availableIn()`, falls back to 60s default. User still sees "Rate limit reached" instead of a raw Redis exception.
+- **Architecture decisions recorded:** `security.ai-rate-limit-atomicity`, `security.ai-rate-limit-fail-closed`.
+
+### Pipeline F — GlobalSearchWidget pagination math (PR #8 · `8dfdab4`)
+
+Self-reflection review followup that fixes a defect introduced by Pipeline C (PR #3). Ticket #66 (v2.1.0 release blocker).
+
+- **Fixed:** Finding 8a (HIGH) — widget under-reported `total` AND rendered sparse dropdown when policy dropped results. Prior code requested `perPage: 5` from ES + reported `total: $filteredResults->count()`. Fix (Option 1d): over-fetch `PER_PAGE × OVER_FETCH_MULTIPLIER` (5 × 3 = 15) from ES, apply policy filter on enlarged set, slice first `PER_PAGE` for display, report `total: $collection->total` (ES-raw). Matches Search page semantics at `Search.php:115`. Handles policy-drop rates up to 66% without under-populating.
+- **Added:** `GlobalSearchWidget::OVER_FETCH_MULTIPLIER = 3` + `PER_PAGE = 5` class constants with explanatory docblocks.
+- **Architecture decision recorded:** `search.widget-pagination-over-fetch`.
+- **Deferred:** Option 2 (ES-side policy filter via `PermissionFilterBuilder`) — tracked as research ticket #69, requires policy-as-ES-bool.filter design.
+
+### Pipeline G+H — DailyTokenBudgetTracker extraction + metrics + shadow-mode (PR #9 · `b43aa98`)
+
+Closes 5 self-reflection findings in one combined pipeline (tickets #67 + #68).
+
+- **Added:** `DailyTokenBudgetTracker` service (`packages/aicl/src/AI/DailyTokenBudgetTracker.php`) — canonical owner of the per-user daily AI token budget cache. 4 public methods: `record`, `refund`, `currentUsage`, `wouldExceedBudget`. Stateless / Octane-safe. Preserves `ai:user:{userId}:daily_tokens:{YYYY-MM-DD}` key shape + 86,400s TTL byte-for-byte from the pre-extraction inline logic.
+- **Changed:** Finding 3a — `AiMessageObserver::created()` delegates the daily-budget cache write to `$this->tracker()->record()` via lazy-init pattern. `AiChatService::enforceDailyTokenBudget()` delegates to `$this->tracker()->wouldExceedBudget()`. Preserves `new AiChatService()` + `new AiMessageObserver()` backward compat for 4 pre-existing test files (zero test churn).
+- **Added:** Finding 10a — metrics emission on rate-limit + budget events. Structured `Log::warning('ai.rate_limit.hit', [...])` + `Cache::increment("metrics:ai_rate_limit:{kind}:{YmdH}")` counter (48h TTL). `kind` ∈ {`rpm`, `budget`, `budget_warn_only`, `cache_outage`}. Namespace disjoint from `ai:` enforcement state. Metrics wrapped in `try/catch(\Throwable)` — failures never propagate to user request.
+- **Added:** Finding 10b — `token_budget_daily_warn_only` config flag (env: `AICL_AI_BUDGET_DAILY_WARN_ONLY`, default false). When true AND user at-or-over budget, logs + increments the `budget_warn_only` metric but does NOT throw. Enables operators to dark-launch a budget + calibrate before enforcing.
+- **Documented:** Finding 4c — delete-decrement policy. `AiMessageObserver::deleted()` does NOT refund the daily budget. Daily budget is a cost CEILING, not a token ledger. `tracker::refund()` ships for operator-invoked admin corrections only.
+- **Fixed:** Finding 7 — `ChecksTokenScope` class docblock refreshed. Removed "tracked for a dedicated follow-up" language; pointed to `docs/planning/brainstorm/BRAINSTORM-63-ChecksTokenScope-FailClosed.md` for closed-wontfix analysis.
+- **Architecture decisions recorded:** `security.ai-budget-tracker-service`, `security.ai-metrics-namespace`, `security.ai-budget-no-refund-policy`, `feature.ai-budget-shadow-mode`.
+
+### Deferred / Wontfix (tracked separately)
+
+- **Ticket #63** — Fail-closed `ChecksTokenScope` → closed wontfix per `docs/planning/brainstorm/BRAINSTORM-63-ChecksTokenScope-FailClosed.md`. 4-layer HTTP defense stack (`api` + `auth:api` + `throttle:api` + `CheckToken::using('mcp')`) makes the session-auth fallthrough architecturally unreachable by external clients.
+- **Ticket #64** — `#[Locked]` vs server-coerce for `AiAssistantPanel` IDOR guards → closed wontfix per `docs/planning/brainstorm/BRAINSTORM-64-Locked-vs-ServerCoerce.md`. Server-side `where('user_id', $user->id)` filter in `loadMessages()` / `switchConversation()` is functionally equivalent; `#[Locked]` breaks Alpine `x-model` + 20+ tests.
+- **Ticket #69** — Research: move policy filter into ES `PermissionFilterBuilder` (Pipeline F Option 2). Low priority, out of scope for v2.1.0.
+- **Pipeline A/C/F fixture-seeder Playwright fixmes** — 3 specs currently `test.fixme()` awaiting consolidated test-only seeder infrastructure. Tracked as untracked followup (candidate for post-v2.1.0 `/work-lite`).
+
+### Testing summary (bundle totals across all 8 PRs)
+
+- Full PHPUnit: **7,888 passed** (from ~7,720 pre-bundle) / **17,256 assertions** / 0 failures / 14 skipped / 29 risky (pre-existing) / 90 deprecated (pre-existing).
+- Full Playwright: **12 passed / 7 documented fixmes / 0 failed**.
+- Infection MSI: `AiChatService` 97% · `DailyTokenBudgetTracker` 92.86% · `UsersTable` / `DocumentBrowser` / `GlobalSearchWidget` covered via source-inspection regression guards + mocked-service boundary tests (all behave identically to pre-bundle baseline).
+- PHPStan baseline: `15,251 → 15,350` (drift from new service classes + Log facade dynamic calls + test Mockery patterns; all baselined).
+- Security gates: `composer audit` reports no advisories. Semgrep 0 blocking findings. Deptrac 0 violations.
+
+### RLM lessons recorded during the bundle (14 total)
+
+`filament.render-hook-per-render-resolution`, `alpine.destroy-interval-lifecycle`, `playwright.storage-state-seeder-pattern`, `playwright.auth-seeder-surfaces-latent-specs`, `horizon.poll-cadence-scoped-assertions`, `testing.unit-tests-facade-Tests-TestCase`, `quality.phpmd-guard-method-extraction`, `quality.phpstan-baseline-refactor-drift`, `security.rate-limiter-attempt-not-atomic`, `security.rate-limit-fail-closed`, `testing.mutation-testing-pattern-for-concurrency-invariant-code`, `search.widget-over-fetch-policy-drop-pattern`, `livewire.computed-mockery-call-count`, `phpmd.mockery-withargs-variadic-pattern`, plus Pipeline G+H Phase 3 lessons (`refactoring.preserve-feature-off-short-circuit`, `testing.reflection-invoke-for-scoped-facade-mock`, `testing.assert-empty-for-zero-length-invariants`).
 
 ---
 

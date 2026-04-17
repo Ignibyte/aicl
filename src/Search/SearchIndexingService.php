@@ -162,13 +162,14 @@ class SearchIndexingService
     public function swapAlias(string $alias, string $oldIndex, string $newIndex): void
     {
         // @codeCoverageIgnoreStart — Elasticsearch dependency
+        // Always send both add + remove in one atomic updateAliases call.
+        // `ignore_unavailable: true` on the remove action lets the old index
+        // be absent without an error — eliminates the TOCTOU window that
+        // previously existed between indexExists() and updateAliases().
         $actions = [
             ['add' => ['index' => $newIndex, 'alias' => $alias]],
+            ['remove' => ['index' => $oldIndex, 'alias' => $alias, 'ignore_unavailable' => true]],
         ];
-
-        if ($this->indexExists($oldIndex)) {
-            $actions[] = ['remove' => ['index' => $oldIndex, 'alias' => $alias]];
-        }
 
         $this->client->indices()->updateAliases([
             'body' => ['actions' => $actions],
@@ -200,7 +201,9 @@ class SearchIndexingService
             // Flush every 500 documents
             if (count($params['body']) >= 1000) {
                 $this->client->bulk($params);
-                $indexed += 500;
+                // Count the actual payload — matches the final-flush pattern
+                // below and gives an accurate total on non-multiple-of-500 batches.
+                $indexed += (int) (count($params['body']) / 2);
                 $params['body'] = [];
                 // @codeCoverageIgnoreEnd
             }

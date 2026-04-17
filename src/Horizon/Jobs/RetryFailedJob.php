@@ -6,12 +6,39 @@ namespace Aicl\Horizon\Jobs;
 
 use Aicl\Horizon\Contracts\JobRepository;
 use Carbon\CarbonImmutable;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\Factory as Queue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
-/** Retries a failed Horizon job by re-pushing it onto its original queue. */
-class RetryFailedJob
+/**
+ * Retries a failed Horizon job by re-pushing it onto its original queue.
+ *
+ * Implemented as a truly queued job so the admin "Retry" click in
+ * FailedJobsTable returns an immediate HTTP response; the actual re-push
+ * happens on a worker. SerializesModels is safe here because the public
+ * properties are scalar strings.
+ */
+class RetryFailedJob implements ShouldQueue
 {
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
+
+    /**
+     * Maximum number of retry attempts on worker failure.
+     */
+    public int $tries = 3;
+
+    /**
+     * Worker-side timeout in seconds.
+     */
+    public int $timeout = 30;
+
     /**
      * Create a new job instance.
      *

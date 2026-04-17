@@ -234,13 +234,13 @@ class AiclPlugin implements Plugin
             fn (): string => Blade::render('@include("aicl::components.favicon-meta")'),
         );
 
-        // Version badge — rendered before user menu (inside .fi-topbar-end)
-        // Resolve version once at boot time (constant for the worker's lifetime).
-        $version = app(VersionService::class)->current();
+        // Version badge — rendered before user menu (inside .fi-topbar-end).
+        // Version resolves per-render (not boot-cached) so Octane workers pick
+        // up redeployed versions without requiring a worker restart.
         FilamentView::registerRenderHook(
             PanelsRenderHook::USER_MENU_BEFORE,
             fn (): string => view('aicl::components.version-badge', [
-                'version' => $version,
+                'version' => app(VersionService::class)->current(),
             ])->render(),
         );
 

@@ -90,15 +90,14 @@ class UpdateEntityTool extends Tool
 
         $fillable = $model->getFillable();
 
-        // Validate via Form Request BEFORE updating (authorize + rules)
+        // Validate via Form Request rules (authorize() is intentionally
+        // skipped — a bare `new` bypasses the IoC container so `$this->user()`
+        // inside authorize() is null. The policy check above is the real
+        // authorization guard.
         $formRequestClass = $this->resolveFormRequest('Update');
 
         if ($formRequestClass) {
             $formRequest = new $formRequestClass;
-
-            if (method_exists($formRequest, 'authorize') && ! $formRequest->authorize()) {
-                return Response::error("Form request authorization denied for {$this->entityLabel}.");
-            }
 
             if (method_exists($formRequest, 'rules')) {
                 $request->validate($formRequest->rules());
